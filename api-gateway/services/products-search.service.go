@@ -8,6 +8,7 @@ import (
 	netUrl "net/url"
 	httphelper "shopping-list/api-gateway/http-helper"
 	"shopping-list/api-gateway/models"
+	"strings"
 )
 
 type ProductsSearchService struct {
@@ -22,11 +23,12 @@ func NewProductsSearchService(client *httphelper.Client, baseURL string) *Produc
 	}
 }
 
-func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string) (models.ProductsSearchResult, error) {
-	url := fmt.Sprintf("%s/search?q=%s", pss.baseURL, netUrl.QueryEscape(query))
+func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string, page string, pageSize string) (models.ProductsSearchResult, error) {
+	var url strings.Builder
+	fmt.Fprintf(&url, "%s/search?q=%s&page=%s&pageSize=%s", pss.baseURL, netUrl.QueryEscape(query), page, pageSize)
 
 	for _, category := range categories {
-		url += fmt.Sprintf("&category=%s", netUrl.QueryEscape(category))
+		fmt.Fprintf(&url, "&category=%s", netUrl.QueryEscape(category))
 	}
 
 	var response models.ProductsSearchResult
@@ -34,7 +36,7 @@ func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query stri
 	_, err := pss.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		url,
+		url.String(),
 		nil,
 		nil,
 		&response,
@@ -47,8 +49,8 @@ func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query stri
 	return response, nil
 }
 
-func (pss *ProductsSearchService) SearchProduct(ctx context.Context, query string, category string) (models.ProductsSearchResult, error) {
-	url := fmt.Sprintf("%s/search/fuzzy?q=%s&category=%s", pss.baseURL, url.QueryEscape(query), category)
+func (pss *ProductsSearchService) SearchProduct(ctx context.Context, query string, category string, page string, pageSize string) (models.ProductsSearchResult, error) {
+	url := fmt.Sprintf("%s/search/fuzzy?q=%s&category=%s&page=%s&pageSize=%s", pss.baseURL, url.QueryEscape(query), category, page, pageSize)
 
 	var response models.ProductsSearchResult
 
