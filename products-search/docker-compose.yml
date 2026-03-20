@@ -7,7 +7,7 @@ services:
     ports:
       - "8001:3000"
     volumes:
-      - ./products:/app/data
+      - ./data:/app/data
     environment:
       ENV: production
     env_file:
