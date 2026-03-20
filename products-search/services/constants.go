@@ -1,6 +1,6 @@
 package services
 
 const (
-	ProductsCSV = "./products/products.csv"
+	ProductsCSV = "./data/products.csv"
 	DateUpdated = "31/12/2025"
 )

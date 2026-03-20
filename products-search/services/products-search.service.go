@@ -18,10 +18,38 @@ func NewProductsSearchService() *ProductsSearchService {
 	return &ProductsSearchService{}
 }
 
+func paginate[T any](items []T, page, pageSize int) ([]T, int) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	totalItems := len(items)
+	totalPages := (totalItems + pageSize - 1) / pageSize // ceiling division
+
+	// clamp page to totalPages
+	if page > totalPages {
+		return []T{}, totalPages
+	}
+
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if end > totalItems {
+		end = totalItems
+	}
+
+	return items[start:end], totalPages
+}
+
 func (pss *ProductsSearchService) SearchProducts(
 	query string,
 	categories []string,
+	page int,
+	pageSize int,
 ) (models.ProductsSearchResult, error) {
+
 	query = strings.ToLower(query)
 
 	categorySet := make(map[string]struct{})
@@ -79,16 +107,28 @@ func (pss *ProductsSearchService) SearchProducts(
 		})
 	}
 
+	paginated, totalPages := paginate(matches, page, pageSize)
+
 	return models.ProductsSearchResult{
-		Products:    matches,
+		Products:    paginated,
 		DateUpdated: DateUpdated,
+		Total:       len(matches),
+		Page:        page,
+		PageSize:    pageSize,
+		TotalPages:  totalPages,
 	}, nil
 }
 
+// --------------------
+// Fuzzy search
+// --------------------
 func (pss *ProductsSearchService) FuzzySearch(
 	query string,
 	category string,
+	page int,
+	pageSize int,
 ) (models.ProductsSearchResult, error) {
+
 	query = strings.ToLower(strings.TrimSpace(query))
 	query = stopwords.CleanString(query, "nl", true)
 
@@ -186,8 +226,14 @@ func (pss *ProductsSearchService) FuzzySearch(
 		final[i] = r.Product
 	}
 
+	paginated, totalPages := paginate(final, page, pageSize)
+
 	return models.ProductsSearchResult{
-		Products:    final,
+		Products:    paginated,
 		DateUpdated: DateUpdated,
+		Total:       len(final),
+		Page:        page,
+		PageSize:    pageSize,
+		TotalPages:  totalPages,
 	}, nil
 }

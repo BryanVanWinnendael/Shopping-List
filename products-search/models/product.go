@@ -11,6 +11,10 @@ type Product struct {
 type ProductsSearchResult struct {
 	Products    []Product `json:"products"`
 	DateUpdated string    `json:"date_updated"`
+	Total       int       `json:"total"`
+	Page        int       `json:"page"`
+	PageSize    int       `json:"page_size"`
+	TotalPages  int       `json:"total_pages"`
 }
 
 type ScoredProduct struct {
