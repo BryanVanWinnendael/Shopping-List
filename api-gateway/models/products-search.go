@@ -15,4 +15,6 @@ type ProductsSearchResult struct {
 	Page        int       `json:"page"`
 	PageSize    int       `json:"page_size"`
 	TotalPages  int       `json:"total_pages"`
+	Item        string    `json:"item"`
+	Category    string    `json:"category"`
 }

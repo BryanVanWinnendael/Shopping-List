@@ -83,6 +83,7 @@ func (pss *ProductsSearchService) SearchProducts(
 	}
 
 	paginated, totalPages := paginate(matches, page, pageSize)
+	categoriesString := strings.Join(categories, ",")
 
 	return models.ProductsSearchResult{
 		Products:    paginated,
@@ -91,6 +92,8 @@ func (pss *ProductsSearchService) SearchProducts(
 		Page:        page,
 		PageSize:    pageSize,
 		TotalPages:  totalPages,
+		Item:        query,
+		Category:    categoriesString,
 	}, nil
 }
 
@@ -207,6 +210,8 @@ func (pss *ProductsSearchService) FuzzySearch(
 		Page:        page,
 		PageSize:    pageSize,
 		TotalPages:  totalPages,
+		Item:        query,
+		Category:    category,
 	}, nil
 }
 
