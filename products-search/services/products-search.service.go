@@ -18,31 +18,6 @@ func NewProductsSearchService() *ProductsSearchService {
 	return &ProductsSearchService{}
 }
 
-func paginate[T any](items []T, page, pageSize int) ([]T, int) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	totalItems := len(items)
-	totalPages := (totalItems + pageSize - 1) / pageSize // ceiling division
-
-	// clamp page to totalPages
-	if page > totalPages {
-		return []T{}, totalPages
-	}
-
-	start := (page - 1) * pageSize
-	end := start + pageSize
-	if end > totalItems {
-		end = totalItems
-	}
-
-	return items[start:end], totalPages
-}
-
 func (pss *ProductsSearchService) SearchProducts(
 	query string,
 	categories []string,
@@ -119,9 +94,6 @@ func (pss *ProductsSearchService) SearchProducts(
 	}, nil
 }
 
-// --------------------
-// Fuzzy search
-// --------------------
 func (pss *ProductsSearchService) FuzzySearch(
 	query string,
 	category string,
@@ -236,4 +208,28 @@ func (pss *ProductsSearchService) FuzzySearch(
 		PageSize:    pageSize,
 		TotalPages:  totalPages,
 	}, nil
+}
+
+func paginate[T any](items []T, page, pageSize int) ([]T, int) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	totalItems := len(items)
+	totalPages := (totalItems + pageSize - 1) / pageSize
+
+	if page > totalPages {
+		return []T{}, totalPages
+	}
+
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if end > totalItems {
+		end = totalItems
+	}
+
+	return items[start:end], totalPages
 }

@@ -23,24 +23,6 @@ func NewProductsSearchHandler(pss ProductsSearchService) *ProductsSearchHandler 
 	return &ProductsSearchHandler{ProductsSearchService: pss}
 }
 
-func parsePagination(c echo.Context) (int, int) {
-	page, err := strconv.Atoi(c.QueryParam("page"))
-	if err != nil || page < 1 {
-		page = 1
-	}
-
-	pageSize, err := strconv.Atoi(c.QueryParam("pageSize"))
-	if err != nil || pageSize <= 0 {
-		pageSize = 10
-	}
-
-	if pageSize > 100 {
-		pageSize = 100
-	}
-
-	return page, pageSize
-}
-
 func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("q"))
 	if query == "" {
@@ -62,7 +44,7 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	results, err := psh.ProductsSearchService.SearchProducts(query, categories, page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Error searching products",
+			"error": err.Error(),
 		})
 	}
 
@@ -87,9 +69,27 @@ func (psh *ProductsSearchHandler) SearchProduct(c echo.Context) error {
 	results, err := psh.ProductsSearchService.FuzzySearch(query, category, page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Error searching products",
+			"error": err.Error(),
 		})
 	}
 
 	return c.JSON(http.StatusOK, results)
+}
+
+func parsePagination(c echo.Context) (int, int) {
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(c.QueryParam("pageSize"))
+	if err != nil || pageSize <= 0 {
+		pageSize = 10
+	}
+
+	if pageSize > 100 {
+		pageSize = 100
+	}
+
+	return page, pageSize
 }
