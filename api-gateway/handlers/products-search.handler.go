@@ -26,10 +26,10 @@ type ProductsSearchHandler struct {
 func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("q"))
 	categories := c.QueryParams()["category"]
-	page := c.QueryParam("page")
-	pageSize := c.QueryParam("pageSize")
+	page := strings.TrimSpace(c.QueryParam("page"))
+	pageSize := strings.TrimSpace(c.QueryParam("pageSize"))
 
-	missingQueryParams := response.GetMissingQueryParams(c, "q", page, pageSize)
+	missingQueryParams := response.GetMissingQueryParams(c, "q")
 	if len(missingQueryParams) > 0 {
 		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
@@ -44,11 +44,11 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 
 func (psh *ProductsSearchHandler) SearchProduct(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("q"))
-	category := c.QueryParam("category")
-	page := c.QueryParam("page")
-	pageSize := c.QueryParam("pageSize")
+	category := strings.TrimSpace(c.QueryParam("category"))
+	page := strings.TrimSpace(c.QueryParam("page"))
+	pageSize := strings.TrimSpace(c.QueryParam("pageSize"))
 
-	missingQueryParams := response.GetMissingQueryParams(c, "q", page, pageSize)
+	missingQueryParams := response.GetMissingQueryParams(c, "q")
 	if len(missingQueryParams) > 0 {
 		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
