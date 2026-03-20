@@ -15,4 +15,4 @@ services:
     restart: unless-stopped
 networks:
   shopping-list-network:
-    name: shopping-list-network
+    external: true

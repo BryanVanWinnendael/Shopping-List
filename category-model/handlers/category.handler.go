@@ -32,7 +32,7 @@ func (cms *CategoryHandler) GetCategory(c echo.Context) error {
 	result, err := cms.CategoryService.GetCategory(item)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Error getting category: " + err.Error(),
+			"error": err.Error(),
 		})
 	}
 
@@ -59,7 +59,7 @@ func (cms *CategoryHandler) AddCategory(c echo.Context) error {
 	err := cms.CategoryService.AddCategory(request.Item, request.Category)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to add category: " + err.Error(),
+			"error": err.Error(),
 		})
 	}
 
