@@ -1,0 +1,18 @@
+services:
+  shopping-list:
+    container_name: shopping-list-storage
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8010:3000"
+    volumes:
+      - ./storage:/app/storage
+    environment:
+      ENV: production
+    env_file:
+      - .env
+    restart: unless-stopped
+networks:
+  shopping-list-network:
+    name: shopping-list-network

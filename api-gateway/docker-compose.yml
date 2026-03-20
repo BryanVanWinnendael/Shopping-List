@@ -1,0 +1,20 @@
+services:
+  shopping-list:
+    container_name: shopping-list-api-gateway
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      ENV: production
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - shopping-list-network
+networks:
+  shopping-list-network:
+    name: shopping-list-network

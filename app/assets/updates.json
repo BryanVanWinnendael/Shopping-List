@@ -1,0 +1,27 @@
+[
+  {
+    "date": "24/01/2026",
+    "text": [
+      "Option to use the new UI (liquid glass design)",
+      "Improved recipes page layout",
+      "Updated search page",
+      "Hold down on an item in the list to get suggestions"
+    ]
+  },
+  {
+    "date": "07/12/2025",
+    "text": [
+      "You can now favorite/unfavorite recipes",
+      "Weekly List - adds items automatically every week",
+      "Notifications for added, removed and weekly added items"
+    ]
+  },
+  {
+    "date": "18/10/2025",
+    "text": [
+      "Images are stored on own storage service",
+      "Images load quicker and are cached",
+      "Filter for recipes and added more fields"
+    ]
+  }
+]

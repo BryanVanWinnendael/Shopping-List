@@ -1,0 +1,21 @@
+services:
+  shopping-list:
+    container_name: shopping-list-recipes
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      ENV: production
+      DATA_DIR: /app/data
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - shopping-list-network
+networks:
+  shopping-list-network:
+    name: shopping-list-network

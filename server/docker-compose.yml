@@ -1,0 +1,22 @@
+services:
+  shopping-list:
+    container_name: shopping-list-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8009:3000"
+    environment:
+      ENV: production
+      GOOGLE_APPLICATION_CREDENTIALS: /serviceAccountKey.json
+      DATA_DIR: /app/data
+    env_file:
+      - .env
+    volumes:
+      - ./serviceAccountKey.json:/serviceAccountKey.json:ro
+    restart: unless-stopped
+    networks:
+      - shopping-list-network
+networks:
+  shopping-list-network:
+    name: shopping-list-network

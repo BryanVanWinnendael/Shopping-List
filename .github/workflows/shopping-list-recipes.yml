@@ -1,0 +1,31 @@
+name: Deploy Recipes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "recipes/**"
+      - ".github/workflows/shopping-list-recipes.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up SSH
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+      - name: Deploy Recipes
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd ~/projects/shopping-list/recipes
+          git fetch origin main
+          git reset --hard origin/main
+          docker compose build
+          docker compose up -d
+          docker image prune -af
+          EOF

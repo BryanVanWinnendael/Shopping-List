@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "535540636140",
+    "firebase_url": "https://shopping-list-1eb8b-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "shopping-list-1eb8b",
+    "storage_bucket": "shopping-list-1eb8b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:535540636140:android:2c9c501ca60c3fb88388c9",
+        "android_client_info": {
+          "package_name": "com.bryanvw.shoppinglist"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDH9u9BCx7B_7fytyieguFpqS29QydiJCw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
