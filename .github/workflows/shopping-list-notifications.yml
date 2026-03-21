@@ -1,4 +1,4 @@
-name: Deploy Notifications
+name: Deploy Ms Notifications
 
 on:
   push:

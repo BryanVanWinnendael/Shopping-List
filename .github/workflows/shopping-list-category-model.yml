@@ -1,4 +1,4 @@
-name: Deploy Category Model
+name: Deploy Ms Category Model
 
 on:
   push:

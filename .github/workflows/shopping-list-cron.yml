@@ -1,4 +1,4 @@
-name: Deploy Cron
+name: Deploy Ms Cron
 
 on:
   push:

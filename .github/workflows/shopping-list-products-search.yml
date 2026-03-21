@@ -1,4 +1,4 @@
-name: Deploy Products Search
+name: Deploy Ms Products Search
 
 on:
   push:
