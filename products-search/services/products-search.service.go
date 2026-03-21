@@ -18,6 +18,13 @@ func NewProductsSearchService() *ProductsSearchService {
 	return &ProductsSearchService{}
 }
 
+func getCategoryPriority(category string) int {
+	if p, ok := categoryPriority[strings.ToLower(category)]; ok {
+		return p
+	}
+	return 999
+}
+
 func (pss *ProductsSearchService) SearchProducts(
 	query string,
 	categories []string,
@@ -81,6 +88,17 @@ func (pss *ProductsSearchService) SearchProducts(
 			Image:    image,
 		})
 	}
+
+	// ✅ Sort by category priority
+	sort.Slice(matches, func(i, j int) bool {
+		pi := getCategoryPriority(matches[i].Category)
+		pj := getCategoryPriority(matches[j].Category)
+
+		if pi == pj {
+			return matches[i].Item < matches[j].Item
+		}
+		return pi < pj
+	})
 
 	paginated, totalPages := paginate(matches, page, pageSize)
 	categoriesString := strings.Join(categories, ",")
@@ -193,6 +211,15 @@ func (pss *ProductsSearchService) FuzzySearch(
 	}
 
 	sort.Slice(results, func(i, j int) bool {
+		if results[i].Score == results[j].Score {
+			pi := getCategoryPriority(results[i].Category)
+			pj := getCategoryPriority(results[j].Category)
+
+			if pi == pj {
+				return results[i].Item < results[j].Item
+			}
+			return pi < pj
+		}
 		return results[i].Score > results[j].Score
 	})
 

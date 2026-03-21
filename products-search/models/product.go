@@ -20,6 +20,8 @@ type ProductsSearchResult struct {
 }
 
 type ScoredProduct struct {
-	Product Product
-	Score   int
+	Product  Product
+	Score    int
+	Category string
+	Item     string
 }
