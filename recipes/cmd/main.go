@@ -17,7 +17,6 @@ func main() {
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
-	e.Use(middlewares.AuthMiddleware)
 
 	rs := services.NewRecipeService(bbolt)
 	rh := handlers.NewRecipeHandler(rs)

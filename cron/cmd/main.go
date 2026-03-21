@@ -19,7 +19,6 @@ func main() {
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
-	e.Use(middlewares.AuthMiddleware)
 
 	ns := services.NewNotificationService()
 	cs := services.NewCronService(firebase, bbolt, ns)
