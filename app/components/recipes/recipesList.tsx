@@ -67,31 +67,31 @@ export default function RecipesList({ fetchRecipes }: Props) {
       displayRecipes?.filter((r) => favoriteRecipes.includes(r.id)) || []
     let mine =
       displayRecipes
-        ?.filter((r) => r.created_by === user)
+        ?.filter((r) => r.createdBy === user)
         ?.filter((r) => !favoriteRecipes.includes(r.id)) || []
     let publicR =
       displayRecipes
-        ?.filter((r) => r.created_by !== user)
+        ?.filter((r) => r.createdBy !== user)
         ?.filter((r) => !favoriteRecipes.includes(r.id)) || []
 
     if (activeFilter && filter) {
       if (activeFilter.mealType && activeFilter.mealType !== "Any") {
         mine = mine.filter(
           (r) =>
-            r.meal_type?.toLowerCase() === activeFilter.mealType?.toLowerCase(),
+            r.mealType?.toLowerCase() === activeFilter.mealType?.toLowerCase(),
         )
         publicR = publicR.filter(
           (r) =>
-            r.meal_type?.toLowerCase() === activeFilter.mealType?.toLowerCase(),
+            r.mealType?.toLowerCase() === activeFilter.mealType?.toLowerCase(),
         )
       }
       if (activeFilter.public === false) {
-        mine = mine.filter((r) => r.created_by === user)
+        mine = mine.filter((r) => r.createdBy === user)
         publicR = []
       }
       if (activeFilter.public === true) {
-        mine = mine.filter((r) => r.created_by === user)
-        publicR = publicR.filter((r) => r.created_by !== user)
+        mine = mine.filter((r) => r.createdBy === user)
+        publicR = publicR.filter((r) => r.createdBy !== user)
       }
       if (
         activeFilter.country &&

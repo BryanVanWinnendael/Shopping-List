@@ -69,8 +69,8 @@ export type Recipe = {
   notes?: string
   time?: number // in minutes
   country?: string
-  meal_type?: MealType
-  created_by: Users
+  mealType?: MealType
+  createdBy: Users
 }
 
 export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Dessert" | "Any"
@@ -149,6 +149,12 @@ export type Country = {
 export type ProductsSearchResult = {
   products: ProductSearch[]
   dateUpdated: string
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+  item: string
+  category: Categories
 }
 
 type ThemeVariant = {

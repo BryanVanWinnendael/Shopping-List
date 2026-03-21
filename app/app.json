@@ -3,7 +3,7 @@
     "name": "Shopping List",
     "slug": "shopping-list",
     "scheme": "shopping-list-scheme",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "orientation": "portrait",
     "icon": "./assets/old-icon.png",
     "userInterfaceStyle": "automatic",
@@ -27,7 +27,7 @@
       "config": {
         "usesNonExemptEncryption": false
       },
-      "buildNumber": "3"
+      "buildNumber": "0"
     },
     "android": {
       "adaptiveIcon": {

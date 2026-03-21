@@ -18,7 +18,7 @@ export default function Recipes() {
     if (!user) return
 
     const data = await getRecipes()
-    const filteredData = data.filter((recipe) => recipe.created_by !== user)
+    const filteredData = data.filter((recipe) => recipe.createdBy !== user)
     const userData = await getUserRecipes(user)
 
     const cData = [...filteredData, ...userData]

@@ -128,14 +128,12 @@ export const storeRecipesLocally = async (recipes: Recipe[], user: Users) => {
 
     const myPrivateRecipes = recipes
       .filter(
-        (r) => !r.public && r.created_by === user && !favoriteSet.has(r.id),
+        (r) => !r.public && r.createdBy === user && !favoriteSet.has(r.id),
       )
       .slice(0, 5)
 
     const publicRecipes = recipes
-      .filter(
-        (r) => r.public && r.created_by !== user && !favoriteSet.has(r.id),
-      )
+      .filter((r) => r.public && r.createdBy !== user && !favoriteSet.has(r.id))
       .slice(0, 5)
 
     const subsetToStore = [

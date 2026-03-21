@@ -42,7 +42,7 @@ export default function RecipeDetails() {
   const borderColor = getBorderColor(theme)
   const textColor = getTextColor(theme)
 
-  const canEdit = recipe?.created_by === user
+  const canEdit = recipe?.createdBy === user
   const showConfirmDelete = () => setConfirmDeleteVisible(true)
   const hideConfirmDelete = () => setConfirmDeleteVisible(false)
 
@@ -173,7 +173,7 @@ export default function RecipeDetails() {
                 gap: 12,
               }}
             >
-              {recipe.meal_type && recipe.meal_type !== "Any" && (
+              {recipe.mealType && recipe.mealType !== "Any" && (
                 <View
                   style={{
                     ...styles.chip,
@@ -191,7 +191,7 @@ export default function RecipeDetails() {
                       textTransform: "capitalize",
                     }}
                   >
-                    {MEALS[recipe.meal_type]} {recipe.meal_type}
+                    {MEALS[recipe.mealType]} {recipe.mealType}
                   </Text>
                 </View>
               )}

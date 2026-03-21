@@ -17,12 +17,22 @@ import {
 import { useSettings } from "@/stores/useSettings"
 import { Categories, ProductsSearchResult } from "@/types"
 import SearchItem from "@/components/search/searchItem"
-import { CATEGORY_PRIORITY } from "@/lib/firebase"
 import { PressableScale } from "pressto"
 import { ListFilter } from "lucide-react-native"
 import { CustomBottomSheet } from "@/components/customBottomSheet"
 import BottomSheet from "@gorhom/bottom-sheet"
 import { FilterSearch } from "@/components/search/filterSearch"
+
+const EMPTY_RESULT: ProductsSearchResult = {
+  products: [],
+  dateUpdated: "",
+  page: 0,
+  pageSize: 0,
+  total: 0,
+  totalPages: 0,
+  category: "remaining",
+  item: "",
+}
 
 export default function Search() {
   const { theme } = useSettings()
@@ -32,12 +42,10 @@ export default function Search() {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
   const flatListRef = useRef<FlatList>(null)
   const bottomSheetRef = useRef<BottomSheet>(null)
+  const isFetching = useRef(false)
 
   const [query, setQuery] = useState("")
-  const [results, setResults] = useState<ProductsSearchResult>({
-    products: [],
-    dateUpdated: "",
-  })
+  const [results, setResults] = useState<ProductsSearchResult>(EMPTY_RESULT)
   const [loading, setLoading] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<Categories[]>([])
 
@@ -57,9 +65,8 @@ export default function Search() {
   const applyFilters = useCallback(
     (categories: Categories[]) => {
       setSelectedCategories(categories)
-
       if (query.trim()) {
-        fetchProducts(query, categories)
+        fetchProducts(query, categories, 1, true)
       }
     },
     [query],
@@ -73,38 +80,50 @@ export default function Search() {
     }
 
     debounceTimeout.current = setTimeout(() => {
-      fetchProducts(text)
+      fetchProducts(text, selectedCategories, 1, true)
     }, 500)
   }
 
-  const fetchProducts = async (text: string, categories?: Categories[]) => {
+  const fetchProducts = async (
+    text: string,
+    categories: Categories[],
+    page = 1,
+    replace = false,
+  ) => {
     if (!text.trim()) {
-      setResults({ products: [], dateUpdated: "" })
+      setResults(EMPTY_RESULT)
       return
     }
 
-    setLoading(true)
-    try {
-      const res = await searchProducts(text, categories ?? selectedCategories)
-      if (res.products.length === 0) {
-        setResults({ products: [], dateUpdated: "" })
-        return
-      }
-      const sorted = res.products.sort((a, b) => {
-        const aPriority =
-          CATEGORY_PRIORITY[a.category] ?? Number.MAX_SAFE_INTEGER
-        const bPriority =
-          CATEGORY_PRIORITY[b.category] ?? Number.MAX_SAFE_INTEGER
-        return aPriority - bPriority
-      })
+    if (isFetching.current) return
+    isFetching.current = true
 
-      setResults({ products: sorted, dateUpdated: res.dateUpdated })
+    if (replace) setLoading(true)
+
+    try {
+      const res = await searchProducts(text, page, categories)
+
+      setResults((prev) =>
+        replace
+          ? res
+          : {
+              ...prev,
+              ...res,
+              products: [...prev.products, ...res.products],
+            },
+      )
     } catch (err) {
       console.error("Error fetching products:", err)
-      setResults({ products: [], dateUpdated: "" })
+      setResults(EMPTY_RESULT)
     } finally {
       setLoading(false)
+      isFetching.current = false
     }
+  }
+
+  const fetchNextPage = () => {
+    if (results.page >= results.totalPages) return
+    fetchProducts(query, selectedCategories, results.page + 1, false)
   }
 
   return (
@@ -160,31 +179,53 @@ export default function Search() {
           </PressableScale>
         </View>
 
-        {loading && <ActivityIndicator size="small" color="#000" />}
+        {loading && <ActivityIndicator size="small" />}
         {results.dateUpdated && (
-          <Text
+          <View
             style={{
-              marginBottom: 10,
-              paddingLeft: 10,
-              fontWeight: "500",
-              color: textColor,
-              opacity: 0.2,
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginRight: 8,
             }}
           >
-            Last updated: {results.dateUpdated}
-          </Text>
+            <Text
+              style={{
+                marginBottom: 10,
+                paddingLeft: 10,
+                fontWeight: "500",
+                color: textColor,
+                opacity: 0.2,
+              }}
+            >
+              Found results: {results.total}
+            </Text>
+            <Text
+              style={{
+                marginBottom: 10,
+                paddingLeft: 10,
+                fontWeight: "500",
+                color: textColor,
+                opacity: 0.2,
+              }}
+            >
+              Last updated: {results.dateUpdated}
+            </Text>
+          </View>
         )}
-
         <FlatList
           ref={flatListRef}
           data={results.products}
           keyExtractor={(item, index) => item.item + index}
-          renderItem={({ item }) => {
-            return <SearchItem key={item.item} item={item} />
-          }}
-          contentContainerStyle={{
-            paddingBottom: 40,
-          }}
+          renderItem={({ item }) => <SearchItem item={item} />}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          onEndReached={fetchNextPage}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isFetching.current ? (
+              <ActivityIndicator style={{ marginTop: 10 }} />
+            ) : null
+          }
           ListEmptyComponent={() =>
             !loading && query ? (
               <Text style={{ paddingLeft: 10, marginTop: 10 }}>
@@ -194,6 +235,7 @@ export default function Search() {
           }
         />
       </View>
+
       <CustomBottomSheet
         onClose={closeSheet}
         sheetRef={bottomSheetRef}

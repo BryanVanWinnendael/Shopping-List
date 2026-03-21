@@ -37,9 +37,7 @@ export default function NewUI() {
     >
       <View style={styles.row}>
         <View style={styles.textBlock}>
-          <Text style={[styles.title, { color: textColor }]}>
-            New UI (experimental)
-          </Text>
+          <Text style={[styles.title, { color: textColor }]}>New UI</Text>
           <Text
             style={[
               styles.description,

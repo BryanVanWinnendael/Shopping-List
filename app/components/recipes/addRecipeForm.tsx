@@ -97,9 +97,9 @@ export function AddRecipeForm({ onSubmit }: Props) {
       source: source,
       list: mappedList,
       country: countryString,
-      meal_type: mealType,
+      mealType: mealType,
       time: time,
-      created_by: user,
+      createdBy: user,
     }
 
     resetForm()

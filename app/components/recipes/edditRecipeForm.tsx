@@ -54,7 +54,7 @@ export function EditRecipeForm({ recipe, onEdit }: Props) {
   const [country, setCountry] = useState<Country | undefined>(
     convertToCountry(recipe.country),
   )
-  const [mealType, setMealType] = useState<MealType>(recipe.meal_type || "Any")
+  const [mealType, setMealType] = useState<MealType>(recipe.mealType || "Any")
   const [time, setTime] = useState<number>(recipe.time || 0)
   const [list, setList] = useState<Ingredient[]>(recipe.list || [])
   const [bannerImage, setBannerImage] = useState<
@@ -154,7 +154,7 @@ export function EditRecipeForm({ recipe, onEdit }: Props) {
         notes,
         source,
         country: countryString,
-        meal_type: mealType,
+        mealType: mealType,
         time,
         list: mappedList,
       }

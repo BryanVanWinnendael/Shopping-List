@@ -485,8 +485,8 @@ const CategoryIcon = ({
         <Wrapper size={size} category={category} theme={theme}>
           <Svg
             fill="white"
-            width="28px"
-            height="28px"
+            width={getSVGSize(svgSizeSmaller, category)}
+            height={getSVGSize(svgSizeSmaller, category)}
             id="Icons"
             viewBox="0 0 32 32"
           >

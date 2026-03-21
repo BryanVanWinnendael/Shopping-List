@@ -7,7 +7,7 @@ import { sortItemsByCategory } from "."
 
 const addItem = async (item: ItemType) => {
   try {
-    if (item.type == "text") {
+    if (item.type == "text" && item.category === "remaining") {
       const category = await getCategory(item.item)
       item.category = category
     }

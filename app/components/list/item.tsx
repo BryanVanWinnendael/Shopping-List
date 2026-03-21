@@ -169,7 +169,7 @@ export default function Item({ item, onDelete, scrollRef, onEdit }: Props) {
   }
 
   const searchItem = async () => {
-    const res = await fuzzySearchProducts(item.item, item.category)
+    const res = await fuzzySearchProducts(item.item, item.category, 0)
     setSearchItemsResult(res)
   }
 
@@ -247,6 +247,7 @@ export default function Item({ item, onDelete, scrollRef, onEdit }: Props) {
               <PressableScale
                 style={{ flex: 1, flexDirection: "row", gap: 8 }}
                 onPressIn={() => {
+                  if (item.type === "image") return
                   pressed.value = true
                   longPressTriggered.value = false
 

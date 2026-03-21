@@ -34,7 +34,16 @@ export const useInteractions = create<InteractionsState>((set, get) => ({
   error: null,
   updateRecipes: false,
   searchSheet: null,
-  searchItemsResult: { products: [], dateUpdated: "" },
+  searchItemsResult: {
+    products: [],
+    dateUpdated: "",
+    page: 0,
+    pageSize: 0,
+    total: 0,
+    totalPages: 0,
+    category: "remaining",
+    item: "",
+  },
   searchItems: null,
 
   setItems: (items) => set({ items }),

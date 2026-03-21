@@ -1,4 +1,3 @@
-import Constants from "expo-constants"
 import { Categories, Items, ItemType } from "@/types"
 import { dev } from "./dev"
 import { CATEGORY_ORDER, IS_DEV } from "../constants"

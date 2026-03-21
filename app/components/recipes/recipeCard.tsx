@@ -27,7 +27,7 @@ export default function RecipeCard({
   const textColor = getTextColor(theme)
   const secondaryBackgroundColor = getSecondaryBackgroundColor(theme)
 
-  const canEdit = item.created_by === user
+  const canEdit = item.createdBy === user
   const isFavorite = favoriteRecipes.includes(item.id)
 
   return (
@@ -69,10 +69,10 @@ export default function RecipeCard({
               </GlassOrBlurView>
 
               <View style={styles.chipsRow}>
-                {item.meal_type && item.meal_type !== "Any" && (
+                {item.mealType && item.mealType !== "Any" && (
                   <GlassOrBlurView style={styles.chipGlass} forceBlur>
                     <Text style={[styles.chipText, { color: textColor }]}>
-                      {MEALS[item.meal_type]} {item.meal_type}
+                      {MEALS[item.mealType]} {item.mealType}
                     </Text>
                   </GlassOrBlurView>
                 )}
