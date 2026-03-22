@@ -3,9 +3,11 @@ package services
 import (
 	"encoding/csv"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
+	"shopping-list/products-search/internal/config"
 	"shopping-list/products-search/internal/constants"
 	"shopping-list/products-search/models"
 	"shopping-list/products-search/utils"
@@ -40,7 +42,8 @@ func (pss *ProductsSearchService) SearchProducts(
 		categorySet[strings.ToLower(c)] = struct{}{}
 	}
 
-	file, err := os.Open(constants.ProductsCSV)
+	var ProductsCSV = filepath.Join(config.Vars.DataDir, constants.ProductsCSV)
+	file, err := os.Open(ProductsCSV)
 	if err != nil {
 		return models.ProductsSearchResult{}, err
 	}
@@ -90,7 +93,6 @@ func (pss *ProductsSearchService) SearchProducts(
 		})
 	}
 
-	// ✅ Sort by category priority
 	sort.Slice(matches, func(i, j int) bool {
 		pi := getCategoryPriority(matches[i].Category)
 		pj := getCategoryPriority(matches[j].Category)
@@ -131,7 +133,8 @@ func (pss *ProductsSearchService) FuzzySearch(
 		queryWords[i] = utils.Singularize(w)
 	}
 
-	file, err := os.Open(constants.ProductsCSV)
+	var ProductsCSV = filepath.Join(config.Vars.DataDir, constants.ProductsCSV)
+	file, err := os.Open(ProductsCSV)
 	if err != nil {
 		return models.ProductsSearchResult{}, err
 	}
