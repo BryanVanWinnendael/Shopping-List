@@ -6,6 +6,7 @@ type RecipeListItem struct {
 	Type string  `json:"type"`
 	ID   *string `json:"id,omitempty"`
 }
+
 type Recipe struct {
 	ID        string           `json:"id"`
 	CreatedBy string           `json:"createdBy"`

@@ -9,11 +9,11 @@ import (
 )
 
 type RecipeService interface {
-	CreateRecipe(recipe *models.RecipeCreate) (*models.Recipe, error)
-	GetRecipe(id string) (*models.Recipe, error)
-	GetRecipes(skip, limit int) ([]map[string]interface{}, error)
-	GetRecipesByUser(user string, skip, limit int) ([]map[string]interface{}, error)
-	UpdateRecipe(id string, update *models.RecipeUpdate) (*models.Recipe, error)
+	CreateRecipe(recipe *models.RecipeCreate) (*models.RecipeResponse, error)
+	GetRecipe(id string) (*models.RecipeResponse, error)
+	GetRecipes(skip, limit int) ([]models.RecipeResponse, error)
+	GetRecipesByUser(user string, skip, limit int) ([]models.RecipeResponse, error)
+	UpdateRecipe(id string, update *models.RecipeUpdate) (*models.RecipeResponse, error)
 	DeleteRecipe(id string) (bool, error)
 	GetAllDistinctCountries() ([]string, error)
 }

@@ -26,6 +26,20 @@ type Recipe struct {
 	Country   *string  `json:"country,omitempty"`
 }
 
+type RecipeResponse struct {
+	ID        string           `json:"id"`
+	CreatedBy string           `json:"createdBy"`
+	Title     string           `json:"title"`
+	Public    *bool            `json:"public"`
+	Image     *string          `json:"image"`
+	List      []RecipeListItem `json:"list"`
+	Source    *string          `json:"source"`
+	Notes     *string          `json:"notes"`
+	Time      *int             `json:"time"`
+	MealType  *string          `json:"mealType"`
+	Country   *string          `json:"country"`
+}
+
 // -------------------
 // RecipeCreate for POST requests
 // -------------------

@@ -29,7 +29,7 @@ func NewRecipeService(db *bolt.DB) *RecipeService {
 	return &RecipeService{db: db}
 }
 
-func (s *RecipeService) CreateRecipe(data *models.RecipeCreate) (*models.Recipe, error) {
+func (s *RecipeService) CreateRecipe(data *models.RecipeCreate) (*models.RecipeResponse, error) {
 	recipeID := data.ID
 	if recipeID == "" {
 		recipeID = uuid.New().String()
@@ -58,10 +58,24 @@ func (s *RecipeService) CreateRecipe(data *models.RecipeCreate) (*models.Recipe,
 		return nil, err
 	}
 
-	return recipe, nil
+	resp := &models.RecipeResponse{
+		ID:        recipe.ID,
+		CreatedBy: recipe.CreatedBy,
+		Title:     recipe.Title,
+		Public:    recipe.Public,
+		Image:     recipe.Image,
+		List:      convertList(recipe.List),
+		Source:    recipe.Source,
+		Notes:     recipe.Notes,
+		Time:      recipe.Time,
+		MealType:  recipe.MealType,
+		Country:   recipe.Country,
+	}
+
+	return resp, nil
 }
 
-func (s *RecipeService) GetRecipe(id string) (*models.Recipe, error) {
+func (s *RecipeService) GetRecipe(id string) (*models.RecipeResponse, error) {
 	var recipe models.Recipe
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -76,10 +90,24 @@ func (s *RecipeService) GetRecipe(id string) (*models.Recipe, error) {
 		return nil, err
 	}
 
-	return &recipe, nil
+	resp := models.RecipeResponse{
+		ID:        recipe.ID,
+		CreatedBy: recipe.CreatedBy,
+		Title:     recipe.Title,
+		Public:    recipe.Public,
+		Image:     recipe.Image,
+		List:      convertList(recipe.List),
+		Source:    recipe.Source,
+		Notes:     recipe.Notes,
+		Time:      recipe.Time,
+		MealType:  recipe.MealType,
+		Country:   recipe.Country,
+	}
+
+	return &resp, nil
 }
 
-func (s *RecipeService) GetRecipes(skip, limit int) ([]map[string]interface{}, error) {
+func (s *RecipeService) GetRecipes(skip, limit int) ([]models.RecipeResponse, error) {
 	var recipes []models.Recipe
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -100,30 +128,30 @@ func (s *RecipeService) GetRecipes(skip, limit int) ([]map[string]interface{}, e
 	}
 
 	if skip >= len(recipes) {
-		return []map[string]interface{}{}, nil
+		return []models.RecipeResponse{}, nil
 	}
 	end := skip + limit
 	if end > len(recipes) {
 		end = len(recipes)
 	}
 
-	result := make([]map[string]interface{}, 0, end-skip)
+	result := make([]models.RecipeResponse, 0, end-skip)
 	for _, r := range recipes[skip:end] {
-		result = append(result, map[string]interface{}{
-			"id":        r.ID,
-			"title":     r.Title,
-			"image":     r.Image,
-			"createdBy": r.CreatedBy,
-			"mealType":  r.MealType,
-			"country":   r.Country,
-			"time":      r.Time,
+		result = append(result, models.RecipeResponse{
+			ID:        r.ID,
+			CreatedBy: r.CreatedBy,
+			Title:     r.Title,
+			Image:     r.Image,
+			MealType:  r.MealType,
+			Country:   r.Country,
+			Time:      r.Time,
 		})
 	}
 
 	return result, nil
 }
 
-func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) ([]map[string]interface{}, error) {
+func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) ([]models.RecipeResponse, error) {
 	var recipes []models.Recipe
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -144,27 +172,34 @@ func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) ([]map[st
 	}
 
 	if skip >= len(recipes) {
-		return []map[string]interface{}{}, nil
+		return []models.RecipeResponse{}, nil
 	}
-	end := min(skip+limit, len(recipes))
+	end := skip + limit
+	if end > len(recipes) {
+		end = len(recipes)
+	}
 
-	result := make([]map[string]interface{}, 0, end-skip)
+	result := make([]models.RecipeResponse, 0, end-skip)
 	for _, r := range recipes[skip:end] {
-		result = append(result, map[string]interface{}{
-			"id":        r.ID,
-			"title":     r.Title,
-			"image":     r.Image,
-			"createdBy": r.CreatedBy,
-			"mealType":  r.MealType,
-			"country":   r.Country,
-			"time":      r.Time,
+		result = append(result, models.RecipeResponse{
+			ID:        r.ID,
+			CreatedBy: r.CreatedBy,
+			Title:     r.Title,
+			Public:    r.Public,
+			Image:     r.Image,
+			List:      convertList(r.List),
+			Source:    r.Source,
+			Notes:     r.Notes,
+			Time:      r.Time,
+			MealType:  r.MealType,
+			Country:   r.Country,
 		})
 	}
 
 	return result, nil
 }
 
-func (s *RecipeService) UpdateRecipe(id string, data *models.RecipeUpdate) (*models.Recipe, error) {
+func (s *RecipeService) UpdateRecipe(id string, data *models.RecipeUpdate) (*models.RecipeResponse, error) {
 	var recipe models.Recipe
 
 	err := s.db.Update(func(tx *bolt.Tx) error {
@@ -216,7 +251,21 @@ func (s *RecipeService) UpdateRecipe(id string, data *models.RecipeUpdate) (*mod
 		return nil, err
 	}
 
-	return &recipe, nil
+	resp := &models.RecipeResponse{
+		ID:        recipe.ID,
+		CreatedBy: recipe.CreatedBy,
+		Title:     recipe.Title,
+		Public:    recipe.Public,
+		Image:     recipe.Image,
+		List:      convertList(recipe.List),
+		Source:    recipe.Source,
+		Notes:     recipe.Notes,
+		Time:      recipe.Time,
+		MealType:  recipe.MealType,
+		Country:   recipe.Country,
+	}
+
+	return resp, nil
 }
 
 func (s *RecipeService) DeleteRecipe(id string) (bool, error) {
@@ -262,4 +311,15 @@ func (s *RecipeService) GetAllDistinctCountries() ([]string, error) {
 	sort.Strings(countries)
 
 	return countries, nil
+}
+
+func convertList(list models.JSONList) []models.RecipeListItem {
+	if list == nil {
+		return []models.RecipeListItem{}
+	}
+	items := make([]models.RecipeListItem, len(list))
+	for i, v := range list {
+		items[i] = models.RecipeListItem(v)
+	}
+	return items
 }
