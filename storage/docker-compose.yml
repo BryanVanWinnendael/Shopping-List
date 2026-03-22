@@ -10,7 +10,6 @@ services:
       - ./storage:/app/storage
     environment:
       ENV: production
-      STORAGE_DIR: /app/storage
     env_file:
       - .env
     restart: unless-stopped
