@@ -4,12 +4,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8001:3000"
+    expose:
+      - "3000"
     volumes:
       - ./data:/app/data
     environment:
       ENV: production
+      DATA_DIR: /app/data
     env_file:
       - .env
     restart: unless-stopped
@@ -17,4 +18,4 @@ services:
       - shopping-list-network
 networks:
   shopping-list-network:
-    name: shopping-list-network
+    external: true

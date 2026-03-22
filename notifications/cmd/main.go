@@ -17,7 +17,6 @@ func main() {
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
-	e.Use(middlewares.AuthMiddleware)
 
 	expo := services.NewExpoPushService()
 	ns := services.NewNotificationsService(db, expo)

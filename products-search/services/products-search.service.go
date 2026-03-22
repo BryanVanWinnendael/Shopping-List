@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"shopping-list/products-search/internal/constants"
 	"shopping-list/products-search/models"
 	"shopping-list/products-search/utils"
 
@@ -39,7 +40,7 @@ func (pss *ProductsSearchService) SearchProducts(
 		categorySet[strings.ToLower(c)] = struct{}{}
 	}
 
-	file, err := os.Open(ProductsCSV)
+	file, err := os.Open(constants.ProductsCSV)
 	if err != nil {
 		return models.ProductsSearchResult{}, err
 	}
@@ -130,7 +131,7 @@ func (pss *ProductsSearchService) FuzzySearch(
 		queryWords[i] = utils.Singularize(w)
 	}
 
-	file, err := os.Open(ProductsCSV)
+	file, err := os.Open(constants.ProductsCSV)
 	if err != nil {
 		return models.ProductsSearchResult{}, err
 	}

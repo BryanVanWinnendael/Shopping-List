@@ -6,15 +6,15 @@ services:
       dockerfile: Dockerfile
     expose:
       - "3000"
+    volumes:
+      - ./serviceAccountKey.json:/serviceAccountKey.json:ro
+      - ./data:/app/data
     environment:
       ENV: production
       GOOGLE_APPLICATION_CREDENTIALS: /serviceAccountKey.json
       DATA_DIR: /app/data
     env_file:
       - .env
-    volumes:
-      - ./serviceAccountKey.json:/serviceAccountKey.json:ro
-      - ./data:/app/data
     restart: unless-stopped
     networks:
       - shopping-list-network

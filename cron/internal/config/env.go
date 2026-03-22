@@ -12,7 +12,6 @@ type Env struct {
 	FireBaseUrl           string
 	NotificationsAPIUrl   string
 	DataDir               string
-	APIAuthToken          string
 	GoogleApplicationCred string
 }
 
@@ -30,7 +29,6 @@ func LoadEnv() {
 		FireBaseUrl:           getEnv("FIREBASE_URL", ""),
 		NotificationsAPIUrl:   getEnv("NOTIFICATIONS_API_URL", ""),
 		DataDir:               getEnv("DATA_DIR", "./data"),
-		APIAuthToken:          getEnv("API_TOKEN", ""),
 		GoogleApplicationCred: getEnv("GOOGLE_APPLICATION_CREDENTIALS", ""),
 	}
 }

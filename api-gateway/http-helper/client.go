@@ -2,7 +2,7 @@ package httphelper
 
 import (
 	"net/http"
-	"os"
+	"shopping-list/api-gateway/internal/config"
 	"time"
 )
 
@@ -16,6 +16,6 @@ func NewClient(timeout time.Duration) *Client {
 		httpClient: &http.Client{
 			Timeout: timeout,
 		},
-		defaultToken: os.Getenv("API_TOKEN"),
+		defaultToken: config.Vars.APIAuthToken,
 	}
 }

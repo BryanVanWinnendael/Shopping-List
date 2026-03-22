@@ -14,7 +14,6 @@ func main() {
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
-	e.Use(middlewares.AuthMiddleware)
 
 	pss := services.NewProductsSearchService()
 	psh := handlers.NewProductsSearchHandler(pss)

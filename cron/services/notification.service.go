@@ -14,7 +14,7 @@ func NewNotificationService() *NotificationServiceImpl {
 
 func (e *NotificationServiceImpl) SendNotification(user string, notificationType string) error {
 	notificationAPI := config.Vars.NotificationsAPIUrl
-	url := fmt.Sprintf("%s/api/notifications/push/%s/%s", notificationAPI, notificationType, user)
+	url := fmt.Sprintf("%s/push/%s/%s", notificationAPI, notificationType, user)
 
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
@@ -22,7 +22,6 @@ func (e *NotificationServiceImpl) SendNotification(user string, notificationType
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", config.Vars.APIAuthToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

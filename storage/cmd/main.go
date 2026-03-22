@@ -20,7 +20,6 @@ func main() {
 	sh := handlers.NewStorageHandler(ss)
 
 	api := e.Group("")
-	api.Use(middlewares.AuthMiddleware)
 
 	handlers.SetupRoutes(api, sh)
 

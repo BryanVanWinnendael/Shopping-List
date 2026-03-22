@@ -16,7 +16,6 @@ func main() {
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
-	e.Use(middlewares.AuthMiddleware)
 
 	nb := utils.NewNaiveBayes()
 	ms := services.NewModelService(nb)

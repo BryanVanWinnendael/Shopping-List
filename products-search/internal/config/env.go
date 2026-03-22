@@ -8,7 +8,7 @@ import (
 )
 
 type Env struct {
-	APIAuthToken string
+	DataDir string
 }
 
 var Vars Env
@@ -21,7 +21,7 @@ func LoadEnv() {
 	}
 
 	Vars = Env{
-		APIAuthToken: getEnv("API_TOKEN", ""),
+		DataDir: getEnv("DATA_DIR", "./data"),
 	}
 }
 

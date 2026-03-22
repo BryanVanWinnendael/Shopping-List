@@ -4,8 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8008:3000"
+    expose:
+      - "3000"
     volumes:
       - ./data:/app/data
     environment:
@@ -18,4 +18,4 @@ services:
       - shopping-list-network
 networks:
   shopping-list-network:
-    name: shopping-list-network
+    external: true
