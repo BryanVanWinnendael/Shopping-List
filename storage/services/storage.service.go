@@ -29,7 +29,8 @@ func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, i
 	}
 	defer src.Close()
 
-	dirPath := filepath.Join(config.Vars.StorageDir, category, "images", itemID)
+	dirName := strings.TrimPrefix(config.Vars.StorageDir, "./")
+	dirPath := filepath.Join(dirName, category, "images", itemID)
 	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create directory: %v", err)
 	}
@@ -81,9 +82,10 @@ func (s *StorageService) deleteImage(category, itemID, imageURL string) error {
 		return fmt.Errorf("invalid URL: %v", err)
 	}
 
-	relativeURLPath := strings.TrimPrefix(u.Path, "/")
-	prefix := filepath.Join(config.Vars.StorageDir, category, "images")
-	localPath := filepath.FromSlash(relativeURLPath)
+	localPath := filepath.FromSlash(strings.TrimPrefix(u.Path, "/"))
+
+	dirName := strings.TrimPrefix(config.Vars.StorageDir, "./")
+	prefix := filepath.Join(dirName, category, "images")
 
 	relPath, err := filepath.Rel(prefix, localPath)
 	if err != nil || strings.HasPrefix(relPath, "..") {
@@ -116,7 +118,8 @@ func (s *StorageService) deleteImage(category, itemID, imageURL string) error {
 }
 
 func (s *StorageService) DeleteStorage(recipeID string, category string) error {
-	dirPath := filepath.Join(config.Vars.StorageDir, category, "images", recipeID)
+	dirName := strings.TrimPrefix(config.Vars.StorageDir, "./")
+	dirPath := filepath.Join(dirName, category, "images", recipeID)
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		return fmt.Errorf("no storage found for recipe %s", recipeID)
 	}
