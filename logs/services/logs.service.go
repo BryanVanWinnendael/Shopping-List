@@ -3,8 +3,6 @@ package services
 import (
 	"bufio"
 	"os"
-	"path/filepath"
-	"shopping-list/logs/internal/config"
 	"shopping-list/logs/internal/constants"
 
 	"sync"
@@ -22,8 +20,7 @@ func (ls *LogsService) GetLogs() ([]string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	logFile := filepath.Join(config.Vars.DataDir, constants.LogFile)
-	file, err := os.Open(logFile)
+	file, err := os.Open(constants.LogsFile())
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +39,7 @@ func (ls *LogsService) WriteLog(text string) error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	logFile := filepath.Join(config.Vars.DataDir, constants.LogFile)
-	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(constants.LogsFile(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -57,6 +53,5 @@ func (ls *LogsService) ClearLogs() error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	logFile := filepath.Join(config.Vars.DataDir, constants.LogFile)
-	return os.WriteFile(logFile, []byte(""), 0644)
+	return os.WriteFile(constants.LogsFile(), []byte(""), 0644)
 }

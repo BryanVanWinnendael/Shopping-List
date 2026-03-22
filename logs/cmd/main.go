@@ -15,7 +15,7 @@ func main() {
 	config.LoadEnv()
 
 	_ = os.MkdirAll(config.Vars.DataDir, 0755)
-	_, _ = os.OpenFile(constants.LogFile, os.O_CREATE, 0644)
+	_, _ = os.OpenFile(constants.LogsFile(), os.O_CREATE, 0644)
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
