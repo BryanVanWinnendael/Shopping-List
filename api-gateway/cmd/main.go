@@ -16,6 +16,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
+	e.Use(middlewares.ResponseLogger)
 	e.Use(middlewares.AuthMiddleware)
 
 	httpClient := httphelper.NewClient(60 * time.Second)

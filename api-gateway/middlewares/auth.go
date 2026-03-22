@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 	"shopping-list/api-gateway/internal/config"
 	"strings"
@@ -19,7 +18,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 		token = strings.TrimSpace(token)
-		fmt.Println(token)
+
 		validToken := config.Vars.APIAuthToken
 		if validToken == "" {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
