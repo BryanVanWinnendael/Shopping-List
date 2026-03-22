@@ -51,12 +51,9 @@ func (sh *StorageHandler) uploadImage(c echo.Context, category string) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	scheme := "https"
 	host := config.Vars.HOST
-	baseURL := fmt.Sprintf("%s://%s", scheme, host)
-
-	largeURL := fmt.Sprintf("%s%s", baseURL, filePath)
-	smallURL := fmt.Sprintf("%s%s", baseURL, strings.Replace(filePath, "large-", "small-", 1))
+	largeURL := fmt.Sprintf("%s%s", host, filePath)
+	smallURL := fmt.Sprintf("%s%s", host, strings.Replace(filePath, "large-", "small-", 1))
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Image uploaded successfully",
