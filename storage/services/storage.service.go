@@ -6,8 +6,10 @@ import (
 	"image"
 	"image/jpeg"
 	"mime/multipart"
+	"net/url"
 	"os"
 	"path/filepath"
+	"shopping-list/storage/internal/config"
 	"strings"
 	"time"
 
@@ -18,7 +20,7 @@ func NewStorageService() *StorageService {
 	return &StorageService{}
 }
 
-type StorageService struct {}
+type StorageService struct{}
 
 func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, itemID string) (string, error) {
 	src, err := fileHeader.Open()
@@ -27,7 +29,7 @@ func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, i
 	}
 	defer src.Close()
 
-	dirPath := filepath.Join("storage", category, "images", itemID)
+	dirPath := filepath.Join(config.Vars.StorageDir, category, "images", itemID)
 	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create directory: %v", err)
 	}
@@ -74,37 +76,47 @@ func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, i
 }
 
 func (s *StorageService) deleteImage(category, itemID, imageURL string) error {
-	prefix := fmt.Sprintf("/storage/%s/images/", category)
-	parts := strings.SplitN(imageURL, prefix, 2)
-	if len(parts) != 2 {
-		return fmt.Errorf("invalid URL: must contain %s", prefix)
+	u, err := url.Parse(imageURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL: %v", err)
 	}
 
-	relativePath := parts[1]
-	fullPath := filepath.Join("storage", category, "images", relativePath)
+	relativeURLPath := strings.TrimPrefix(u.Path, "/")
+	prefix := filepath.Join(config.Vars.StorageDir, category, "images")
+	localPath := filepath.FromSlash(relativeURLPath)
 
-	if !strings.Contains(fullPath, filepath.Join("images", itemID)) {
+	relPath, err := filepath.Rel(prefix, localPath)
+	if err != nil || strings.HasPrefix(relPath, "..") {
+		return fmt.Errorf("invalid URL: must be inside %s", prefix)
+	}
+
+	if !strings.Contains(relPath, itemID) {
 		return fmt.Errorf("image does not belong to %s %s", category, itemID)
 	}
 
+	fullPath := filepath.Join(prefix, relPath)
+
 	if err := os.Remove(fullPath); err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("file not found")
+			return fmt.Errorf("file not found: %s", fullPath)
 		}
 		return fmt.Errorf("failed to delete image: %v", err)
 	}
 
-	if strings.Contains(fullPath, "large-") {
-		os.Remove(strings.Replace(fullPath, "large-", "small-", 1))
-	} else if strings.Contains(fullPath, "small-") {
-		os.Remove(strings.Replace(fullPath, "small-", "large-", 1))
+	base := filepath.Base(fullPath)
+	dir := filepath.Dir(fullPath)
+	switch {
+	case strings.HasPrefix(base, "large-"):
+		os.Remove(filepath.Join(dir, strings.Replace(base, "large-", "small-", 1)))
+	case strings.HasPrefix(base, "small-"):
+		os.Remove(filepath.Join(dir, strings.Replace(base, "small-", "large-", 1)))
 	}
 
 	return nil
 }
 
 func (s *StorageService) DeleteStorage(recipeID string, category string) error {
-	dirPath := filepath.Join("storage", category, "images", recipeID)
+	dirPath := filepath.Join(config.Vars.StorageDir, category, "images", recipeID)
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		return fmt.Errorf("no storage found for recipe %s", recipeID)
 	}
