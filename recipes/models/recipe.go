@@ -31,7 +31,7 @@ type Recipe struct {
 // -------------------
 type RecipeCreate struct {
 	ID        string           `json:"id" validate:"required"`
-	CreatedBy string           `json:"created_by" validate:"required"`
+	CreatedBy string           `json:"createdBy" validate:"required"`
 	Title     string           `json:"title" validate:"required"`
 	Public    *bool            `json:"public"`
 	Image     *string          `json:"image"`
@@ -39,7 +39,7 @@ type RecipeCreate struct {
 	Source    *string          `json:"source"`
 	Notes     *string          `json:"notes"`
 	Time      *int             `json:"time"`
-	MealType  *string          `json:"meal_type"`
+	MealType  *string          `json:"mealType"`
 	Country   *string          `json:"country"`
 }
 
@@ -54,6 +54,6 @@ type RecipeUpdate struct {
 	Source   *string           `json:"source"`
 	Notes    *string           `json:"notes"`
 	Time     *int              `json:"time"`
-	MealType *string           `json:"meal_type"`
+	MealType *string           `json:"mealType"`
 	Country  *string           `json:"country"`
 }

@@ -11,7 +11,7 @@ func GetMissingRequestFields(body interface{}) []string {
 	var missing []string
 
 	val := reflect.ValueOf(body)
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 

@@ -8,7 +8,7 @@ type RecipeListItem struct {
 }
 type Recipe struct {
 	ID        string           `json:"id"`
-	CreatedBy string           `json:"created_by"`
+	CreatedBy string           `json:"createdBy"`
 	Title     string           `json:"title"`
 	Public    *bool            `json:"public"`
 	Image     *string          `json:"image"`
@@ -16,6 +16,6 @@ type Recipe struct {
 	Source    *string          `json:"source"`
 	Notes     *string          `json:"notes"`
 	Time      *int             `json:"time"`
-	MealType  *string          `json:"meal_type"`
+	MealType  *string          `json:"mealType"`
 	Country   *string          `json:"country"`
 }
