@@ -110,13 +110,13 @@ func (s *RecipeService) GetRecipes(skip, limit int) ([]map[string]interface{}, e
 	result := make([]map[string]interface{}, 0, end-skip)
 	for _, r := range recipes[skip:end] {
 		result = append(result, map[string]interface{}{
-			"id":         r.ID,
-			"title":      r.Title,
-			"image":      r.Image,
-			"created_by": r.CreatedBy,
-			"meal_type":  r.MealType,
-			"country":    r.Country,
-			"time":       r.Time,
+			"id":        r.ID,
+			"title":     r.Title,
+			"image":     r.Image,
+			"createdBy": r.CreatedBy,
+			"mealType":  r.MealType,
+			"country":   r.Country,
+			"time":      r.Time,
 		})
 	}
 
@@ -151,13 +151,13 @@ func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) ([]map[st
 	result := make([]map[string]interface{}, 0, end-skip)
 	for _, r := range recipes[skip:end] {
 		result = append(result, map[string]interface{}{
-			"id":         r.ID,
-			"title":      r.Title,
-			"image":      r.Image,
-			"created_by": r.CreatedBy,
-			"meal_type":  r.MealType,
-			"country":    r.Country,
-			"time":       r.Time,
+			"id":        r.ID,
+			"title":     r.Title,
+			"image":     r.Image,
+			"createdBy": r.CreatedBy,
+			"mealType":  r.MealType,
+			"country":   r.Country,
+			"time":      r.Time,
 		})
 	}
 
