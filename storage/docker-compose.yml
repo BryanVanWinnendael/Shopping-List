@@ -14,6 +14,8 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+    networks:
+      - shopping-list-network
 networks:
   shopping-list-network:
     external: true

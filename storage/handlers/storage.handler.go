@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"shopping-list/storage/internal/config"
 	"shopping-list/storage/models"
 	"strings"
 
@@ -51,7 +52,7 @@ func (sh *StorageHandler) uploadImage(c echo.Context, category string) error {
 	}
 
 	scheme := "https"
-	host := c.Request().Host
+	host := config.Vars.HOST
 	baseURL := fmt.Sprintf("%s://%s", scheme, host)
 
 	largeURL := fmt.Sprintf("%s%s", baseURL, filePath)
