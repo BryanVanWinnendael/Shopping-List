@@ -105,13 +105,13 @@ Each microservice is automatically deployed by pulling the latest code on the se
 - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#windows-stable)
 - [Go ≥ 1.25.0](https://go.dev/doc/install)
 - [Docker](https://docs.docker.com/)
-- [ Docker Compose](https://docs.docker.com/compose/install/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 - [Expo Go](https://expo.dev/go)
 - [Expo Access Token](https://docs.expo.dev/accounts/programmatic-access/)
 
 ### Setup
 
-Clone the repository and follow the instructions for all micro
+Clone the repository and follow the instructions for all microservices and the app.
 
 ```bash
 git clone https://github.com/BryanVanWinnendael/shopping-list
