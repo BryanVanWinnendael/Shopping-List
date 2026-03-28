@@ -1,12 +1,13 @@
 require("dotenv").config()
+
 const fs = require("fs")
 const { execSync } = require("child_process")
 const path = require("path")
 
 const ROOT = path.resolve(__dirname, "..")
 const API_KEY_PATH = path.join(ROOT, "auth.p8")
+const versionPath = path.join(ROOT, "version.json")
 
-// Required environment variables
 const required = [
   "EXPO_ASC_KEY_ID",
   "EXPO_ASC_ISSUER_ID",
@@ -22,41 +23,24 @@ for (const key of required) {
   }
 }
 
-// Read current version from app.config.js
-const appConfig = require(path.join(ROOT, "app.config.js")).default
-const currentVersion = appConfig.expo.version
+let version = { version: "1.0.0" }
 
-// Path to build.json
-const buildPath = path.join(ROOT, "build.json")
-let build = { ios: 0, version: currentVersion }
-
-// Load previous build info if exists
-if (fs.existsSync(buildPath)) {
-  build = JSON.parse(fs.readFileSync(buildPath, "utf-8"))
-
-  // Reset iOS build number if version changed
-  if (build.version !== currentVersion) {
-    console.log(
-      `🔄 Version changed from ${build.version} → ${currentVersion}, resetting iOS build number to 0`,
-    )
-    build.ios = 0
-    build.version = currentVersion
-  }
+// Load existing
+if (fs.existsSync(versionPath)) {
+  version = JSON.parse(fs.readFileSync(versionPath, "utf-8"))
 }
 
-// Increment iOS build number
-build.ios += 1
+// Increment version
+const [major, minor, patch] = version.version.split(".").map(Number)
+const newVersion = `${major}.${minor}.${patch + 1}`
 
-// Save updated build info
-fs.writeFileSync(buildPath, JSON.stringify(build, null, 2))
+version.version = newVersion
 
-console.log(
-  `📦 Building iOS version ${currentVersion}, build number ${build.ios}`,
-)
+fs.writeFileSync(versionPath, JSON.stringify(version, null, 2))
+console.log(`📦 Building iOS version ${newVersion}`)
 
-// Run EAS build for iOS + auto-submit
+// Build
 try {
-  console.log("🚀 Starting EAS iOS build & submit...")
   execSync(
     "eas build -p ios --profile production --auto-submit --clear-cache",
     {
@@ -70,7 +54,7 @@ try {
         EXPO_APPLE_TEAM_ID: process.env.EXPO_APPLE_TEAM_ID,
         EXPO_APPLE_TEAM_TYPE: process.env.EXPO_APPLE_TEAM_TYPE,
         EXPO_APPLE_ID: process.env.EXPO_APPLE_ID,
-        IOS_BUILD_NUMBER: String(build.ios),
+        EXPO_VERSION_NUMBER: newVersion,
       },
     },
   )
