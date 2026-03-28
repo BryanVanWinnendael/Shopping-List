@@ -74,7 +74,7 @@ export const getUserNotifications = async (
 
     return response.data
   } catch (error) {
-    console.error("Error deleting notification:", error)
+    console.error("Error getting user notification:", error)
     return []
   }
 }

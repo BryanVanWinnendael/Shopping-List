@@ -27,6 +27,7 @@ import { PressableScale } from "pressto"
 import { GlassOrBlurView } from "../glassOrBlurView"
 import { CountryInput } from "./countryInput"
 import { ImageInput } from "../inputs/imageInput"
+import { router } from "expo-router"
 
 type Props = {
   onSubmit: (recipe: Recipe) => void
@@ -78,13 +79,18 @@ export function AddRecipeForm({ onSubmit }: Props) {
     setUploading(true)
     if (image) {
       const result = await uploadRecipeImage(image, id) // upload banner image
-      if (!result.ok) return setError(result.reason)
+      if (!result.ok) {
+        setError(result.reason)
+        return router.replace("/recipes")
+      }
 
       uploadedImageUrl = result?.url || ""
     }
 
     const mappedList = await mapList(id) // upload list images and get final list
-    if (!mappedList) return
+    if (!mappedList) {
+      return router.replace("/recipes")
+    }
 
     const countryString = country ? `${country.flag} ${country.name}` : ""
 

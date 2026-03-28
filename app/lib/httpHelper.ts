@@ -23,7 +23,6 @@ export async function httpRequest<Res = any, Req = any>({
   contentType,
 }: RequestOptions<Req>): Promise<GatewayResponse<Res>> {
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData
-
   const finalHeaders: Record<string, string> = {
     Authorization: API_KEY,
     ...headers,
@@ -47,28 +46,9 @@ export async function httpRequest<Res = any, Req = any>({
 
   try {
     const response = await axios(config)
-    return { data: keysToCamelCase(response.data.data) as Res }
+    return { data: response.data.data as Res }
   } catch (error: any) {
     console.error("HTTP Request failed:", error.message || error)
     throw error
   }
-}
-
-function toCamelCase(str: string) {
-  return str.replace(/_([a-z])/g, (_, char) => char.toUpperCase())
-}
-
-function keysToCamelCase(obj: any): any {
-  if (Array.isArray(obj)) {
-    return obj.map(keysToCamelCase)
-  }
-
-  if (obj !== null && obj.constructor === Object) {
-    return Object.keys(obj).reduce((acc, key) => {
-      acc[toCamelCase(key)] = keysToCamelCase(obj[key])
-      return acc
-    }, {} as any)
-  }
-
-  return obj
 }

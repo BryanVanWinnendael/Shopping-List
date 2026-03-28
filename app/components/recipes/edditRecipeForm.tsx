@@ -25,6 +25,7 @@ import { PressableScale } from "pressto"
 import { useInteractions } from "@/stores/useInteractions"
 import { CountryInput } from "./countryInput"
 import { ImageInput } from "../inputs/imageInput"
+import { router } from "expo-router"
 
 type Props = {
   recipe: Recipe
@@ -94,7 +95,10 @@ export function EditRecipeForm({ recipe, onEdit }: Props) {
     if (typeof bannerImage === "string") return bannerImage
 
     const result = await uploadRecipeImage(bannerImage, recipe.id)
-    if (!result.ok) return setError(result.reason)
+    if (!result.ok) {
+      setError(result.reason)
+      return router.replace("/recipes")
+    }
 
     return result?.url || null
   }
@@ -107,6 +111,7 @@ export function EditRecipeForm({ recipe, onEdit }: Props) {
         const result = await uploadRecipeImage(ingredient.image, recipe.id)
         if (!result.ok) {
           setError(result.reason)
+          router.replace("/recipes")
           return []
         }
 
