@@ -2,6 +2,7 @@ require("dotenv").config()
 
 const { execSync } = require("child_process")
 const path = require("path")
+const appConfig = require("./app.config.js")
 
 const ROOT = path.resolve(__dirname, "..")
 const API_KEY_PATH = path.join(ROOT, "auth.p8")
