@@ -21,6 +21,11 @@ for (const key of required) {
   }
 }
 
+const current = parseInt(appConfig.expo.ios.buildNumber || "1", 10)
+const next = current + 1
+
+appConfig.expo.ios.buildNumber = String(next)
+
 //  Run EAS build for ios + submit
 try {
   console.log("🚀 Starting EAS iOS build & submit...")
