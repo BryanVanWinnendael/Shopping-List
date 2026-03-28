@@ -23,7 +23,6 @@
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleDisplayName": "Shopping List"
       },
-      "googleServicesFile": "./GoogleService-Info.plist",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -37,7 +36,6 @@
       "edgeToEdgeEnabled": true,
       "package": "com.bryanvw.shoppinglist",
       "permissions": ["android.permission.RECORD_AUDIO"],
-      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/icon.png",
