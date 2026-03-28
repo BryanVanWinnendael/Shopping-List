@@ -1,3 +1,5 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
 # dependencies
 node_modules/
 
@@ -38,3 +40,5 @@ yarn-error.*
 android/
 .expo/
 
+!google-services.json
+!GoogleService-Info.plist
