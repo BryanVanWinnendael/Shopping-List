@@ -29,7 +29,7 @@ export default {
       config: {
         usesNonExemptEncryption: false,
       },
-      buildNumber: "1",
+      buildNumber: process.env.IOS_BUILD_NUMBER ?? "1",
     },
 
     android: {

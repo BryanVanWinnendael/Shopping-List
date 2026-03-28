@@ -1,8 +1,7 @@
 require("dotenv").config()
-
+const fs = require("fs")
 const { execSync } = require("child_process")
 const path = require("path")
-const appConfig = require("../app.config.js")
 
 const ROOT = path.resolve(__dirname, "..")
 const API_KEY_PATH = path.join(ROOT, "auth.p8")
@@ -22,9 +21,15 @@ for (const key of required) {
   }
 }
 
-const current = parseInt(appConfig.default.expo.ios.buildNumber || "1", 10)
-const next = current + 1
-appConfig.default.expo.ios.buildNumber = String(next)
+const buildPath = path.join(ROOT, "build.json")
+let build = { ios: 1 }
+
+if (fs.existsSync(buildPath)) {
+  build = JSON.parse(fs.readFileSync(buildPath, "utf-8"))
+}
+
+build.ios += 1
+fs.writeFileSync(buildPath, JSON.stringify(build, null, 2))
 
 //  Run EAS build for ios + submit
 try {
@@ -42,6 +47,7 @@ try {
         EXPO_APPLE_TEAM_ID: process.env.EXPO_APPLE_TEAM_ID,
         EXPO_APPLE_TEAM_TYPE: process.env.EXPO_APPLE_TEAM_TYPE,
         EXPO_APPLE_ID: process.env.EXPO_APPLE_ID,
+        IOS_BUILD_NUMBER: String(build.ios),
       },
     },
   )
