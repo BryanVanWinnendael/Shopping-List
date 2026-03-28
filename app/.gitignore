@@ -39,3 +39,6 @@ yarn-error.*
 .env
 android/
 .expo/
+
+google-services.json
+GoogleService-Info.plist

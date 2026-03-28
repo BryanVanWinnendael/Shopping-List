@@ -1,5 +1,3 @@
 .env
 tmp/
-model.pkl
-categories.csv
-suggestions.csv
+data/
