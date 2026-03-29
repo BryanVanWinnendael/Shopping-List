@@ -99,3 +99,9 @@ yarn tunnel
 ```
 
 Run via tunnel (different network). Works anywhere.
+
+## Creating a Release or Build
+
+When CI/CD is setup, you can up the release or build number automatically.
+For Release add 'RELEASE' to you git commit message.
+For build add 'BUILD'.
