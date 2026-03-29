@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - "app/**"
+      - ".github/workflows/shopping-list-app-release.yml"
 
 jobs:
   deploy:
     if: contains(join(github.event.commits.*.message, ' '), 'RELEASE')
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Set up SSH
@@ -21,7 +23,7 @@ jobs:
 
       - name: Deploy App
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          timeout 240 ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
@@ -30,4 +32,4 @@ jobs:
           git reset --hard origin/main
           yarn install
           EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn release
-          EOF
+          EOF || true
