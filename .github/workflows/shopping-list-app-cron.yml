@@ -4,10 +4,15 @@ on:
   schedule:
     # Run every 45 days at midnight UTC
     - cron: "0 0 1 */2 *"
-    - ".github/workflows/shopping-list-app-cron.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/shopping-list-app-cron.yml"
 
 jobs:
   deploy:
+    if: github.event_name == 'schedule' || (github.event_name == 'push' && contains(join(github.event.commits.*.message, ' '), 'BUILD'))
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
