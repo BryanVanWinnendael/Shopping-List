@@ -29,5 +29,5 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           yarn install
-          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn release
+          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
           EOF
