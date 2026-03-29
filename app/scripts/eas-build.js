@@ -1,12 +1,10 @@
 require("dotenv").config()
 
-const fs = require("fs")
 const { execSync } = require("child_process")
 const path = require("path")
 
 const ROOT = path.resolve(__dirname, "..")
 const API_KEY_PATH = path.join(ROOT, "auth.p8")
-const versionPath = path.join(ROOT, "version.json")
 
 const required = [
   "EXPO_ASC_KEY_ID",
@@ -23,24 +21,9 @@ for (const key of required) {
   }
 }
 
-let version = { version: "1.0.0" }
-
-// Load existing
-if (fs.existsSync(versionPath)) {
-  version = JSON.parse(fs.readFileSync(versionPath, "utf-8"))
-}
-
-// Increment version
-const [major, minor, patch] = version.version.split(".").map(Number)
-const newVersion = `${major}.${minor}.${patch + 1}`
-
-version.version = newVersion
-
-fs.writeFileSync(versionPath, JSON.stringify(version, null, 2))
-console.log(`📦 Building iOS version ${newVersion}`)
-
-// Build
+//  Run EAS build for ios + submit
 try {
+  console.log("🚀 Starting EAS iOS build & submit...")
   execSync(
     "eas build -p ios --profile production --auto-submit --clear-cache",
     {
@@ -54,7 +37,6 @@ try {
         EXPO_APPLE_TEAM_ID: process.env.EXPO_APPLE_TEAM_ID,
         EXPO_APPLE_TEAM_TYPE: process.env.EXPO_APPLE_TEAM_TYPE,
         EXPO_APPLE_ID: process.env.EXPO_APPLE_ID,
-        EXPO_VERSION_NUMBER: newVersion,
       },
     },
   )
