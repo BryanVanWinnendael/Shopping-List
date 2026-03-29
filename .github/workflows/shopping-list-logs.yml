@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "logs/**"
-      - ".github/workflows/shopping-list-logs.yml"
 
 jobs:
   deploy:

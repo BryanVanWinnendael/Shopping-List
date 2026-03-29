@@ -108,6 +108,7 @@ Each microservice is automatically deployed by pulling the latest code on the se
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Expo Go](https://expo.dev/go)
 - [Expo Access Token](https://docs.expo.dev/accounts/programmatic-access/)
+- [Firebase](https://console.firebase.google.com/u/0/)
 
 ### Setup
 

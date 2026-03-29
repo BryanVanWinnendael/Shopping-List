@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "api-gateway/**"
-      - ".github/workflows/shopping-list-api-gateway.yml"
 
 jobs:
   deploy:

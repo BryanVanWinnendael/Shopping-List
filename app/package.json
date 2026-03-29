@@ -9,7 +9,8 @@
     "android": "DARK_MODE=media expo start --android",
     "ios": "DARK_MODE=media expo start --ios",
     "web": "DARK_MODE=media expo start --web",
-    "eas:ios": "EXPO_TOKEN=$EXPO_TOKEN node scripts/eas-build.js"
+    "release": "node scripts/next-version.js && EXPO_TOKEN=$EXPO_TOKEN node scripts/eas-build.js",
+    "build": "node scripts/next-build.js && EXPO_TOKEN=$EXPO_TOKEN node scripts/eas-build.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",

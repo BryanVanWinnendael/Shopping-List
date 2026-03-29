@@ -1,4 +1,4 @@
-name: Deploy App
+name: Release App
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - main
     paths:
       - "app/**"
-      - ".github/workflows/shopping-list-app.yml"
 
 jobs:
   deploy:
+    if: contains(join(github.event.commits.*.message, ' '), 'RELEASE')
     runs-on: ubuntu-latest
 
     steps:
@@ -29,5 +29,5 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           yarn install
-          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn eas:ios
+          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn release
           EOF

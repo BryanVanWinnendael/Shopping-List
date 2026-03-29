@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "category-model/**"
-      - ".github/workflows/shopping-list-category-model.yml"
 
 jobs:
   deploy:

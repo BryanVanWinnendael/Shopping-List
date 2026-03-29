@@ -23,5 +23,5 @@ jobs:
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
           cd ~/projects/shopping-list/app
-          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn eas:ios
+          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
           EOF

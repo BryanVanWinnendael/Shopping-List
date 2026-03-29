@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "notifications/**"
-      - ".github/workflows/shopping-list-notifications.yml"
 
 jobs:
   deploy:

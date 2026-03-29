@@ -1,20 +1,25 @@
 import database from "@react-native-firebase/database"
-import type { Categories, ItemType, Items } from "@/types"
+import type { Actions, Categories, ItemType, Items } from "@/types"
 import { createLogs } from "../logs"
 import { addCategory, getCategory } from "../categories"
 import { deleteListImage } from "../storage"
 import { sortItemsByCategory } from "."
 import auth from "@react-native-firebase/auth"
 
-const ensureAuth = async () => {
+const ensureAuth = async (action: Actions) => {
   if (!auth().currentUser) {
-    await auth().signInAnonymously()
+    try {
+      await auth().signInAnonymously()
+    } catch (error) {
+      const msg = `Authentication error: ${error}`
+      createLogs(action, msg, true)
+    }
   }
 }
 
 const addItem = async (item: ItemType) => {
   try {
-    await ensureAuth()
+    await ensureAuth("add")
 
     if (item.type === "text" && item.category === "remaining") {
       const category = await getCategory(item.item)
@@ -30,7 +35,7 @@ const addItem = async (item: ItemType) => {
 }
 
 const getItems = async (setItems: (items: Items) => any) => {
-  await ensureAuth()
+  await ensureAuth("get")
 
   const itemsRef = database().ref("items")
   itemsRef.on(
@@ -49,7 +54,7 @@ const getItems = async (setItems: (items: Items) => any) => {
 
 const deleteItem = async (item: ItemType) => {
   try {
-    await ensureAuth()
+    await ensureAuth("delete")
 
     await database().ref(`items/${item.id}`).remove()
 
@@ -65,7 +70,7 @@ const deleteItem = async (item: ItemType) => {
 
 const updateCategory = async (item: ItemType, category: Categories) => {
   try {
-    await ensureAuth()
+    await ensureAuth("update")
 
     item.category = category
 
@@ -82,7 +87,7 @@ const updateCategory = async (item: ItemType, category: Categories) => {
 
 const editItem = async (item: ItemType) => {
   try {
-    await ensureAuth()
+    await ensureAuth("update")
 
     await database().ref(`items/${item.id}`).set(item)
     createLogs("update", item.item)

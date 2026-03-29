@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "recipes/**"
-      - ".github/workflows/shopping-list-recipes.yml"
 
 jobs:
   deploy:

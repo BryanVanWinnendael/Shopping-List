@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "storage/**"
-      - ".github/workflows/shopping-list-storage.yml"
 
 jobs:
   deploy:

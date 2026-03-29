@@ -1,14 +1,15 @@
-name: Deploy Ms Products Search
+name: Build App
 
 on:
   push:
     branches:
       - main
     paths:
-      - "products-search/**"
+      - "app/**"
 
 jobs:
   deploy:
+    if: contains(join(github.event.commits.*.message, ' '), 'BUILD')
     runs-on: ubuntu-latest
 
     steps:
@@ -18,13 +19,15 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
 
-      - name: Deploy Products Search
+      - name: Deploy App
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/products-search
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+          cd ~/projects/shopping-list/app
           git fetch origin main
           git reset --hard origin/main
-          docker compose build
-          docker compose up -d
-          docker image prune -af
+          yarn install
+          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn release
           EOF

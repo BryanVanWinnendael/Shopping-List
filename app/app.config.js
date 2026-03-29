@@ -3,7 +3,7 @@ export default {
     name: "Shopping List",
     slug: "shopping-list",
     scheme: "shopping-list-scheme",
-    version: process.env.EXPO_VERSION_NUMBER ?? "1.0.0",
+    version: "2.1.5",
     orientation: "portrait",
     icon: "./assets/old-icon.png",
     userInterfaceStyle: "automatic",
