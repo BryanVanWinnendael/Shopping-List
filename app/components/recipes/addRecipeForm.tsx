@@ -132,7 +132,6 @@ export function AddRecipeForm({ onSubmit }: Props) {
       item: recipe.item,
       type: recipe.type,
       url: imagesList[index]?.url || "",
-      id: imagesList[index]?.url || "",
     }))
 
     return res

@@ -29,7 +29,7 @@ export default {
       config: {
         usesNonExemptEncryption: false,
       },
-      buildNumber: "2",
+      buildNumber: "4",
     },
 
     android: {

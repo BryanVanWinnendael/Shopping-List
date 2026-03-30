@@ -1144,6 +1144,13 @@
   resolved "https://registry.yarnpkg.com/@expo/sudo-prompt/-/sudo-prompt-9.3.2.tgz#0fd2813402a42988e49145cab220e25bea74b308"
   integrity sha512-HHQigo3rQWKMDzYDLkubN5WQOYXJJE2eNqIQC2axC2iO3mHdwnIR7FgZVvHWtBwAdzBgAP0ECp8KqS8TiMKvgw==
 
+"@expo/ui@~0.2.0-beta.9":
+  version "0.2.0-canary-20260121-a63c0dd"
+  resolved "https://registry.yarnpkg.com/@expo/ui/-/ui-0.2.0-canary-20260121-a63c0dd.tgz#e0a5e1cc616d76ab071ac232e4c0b533e270c7fc"
+  integrity sha512-V3zCuj0XmssM04YzxCeWxKumQ27jUMjroojFq9IVOe0+Ht59nsA/zTK+0KxUn8M+EfFgV8Yqo4A1AV+1fMZ+BQ==
+  dependencies:
+    sf-symbols-typescript "^2.1.0"
+
 "@expo/vector-icons@^15.0.3":
   version "15.0.3"
   resolved "https://registry.yarnpkg.com/@expo/vector-icons/-/vector-icons-15.0.3.tgz#12c38d4e6cc927dd0500e4591ac00672a8909748"
@@ -2263,10 +2270,10 @@
   dependencies:
     firebase "11.10.0"
 
-"@react-native-firebase/auth@^23.8.8":
-  version "23.8.8"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/auth/-/auth-23.8.8.tgz#5ed684cec4e363a9ccc2ddfaecb06d5518588283"
-  integrity sha512-2X067hMAW07O1vKvQh5LtnvlCNfgoKOFXeStTurhnA3+BslkASJwKzjs0qUvnE8RJ7R2YltiF/E+nJfplOKDuQ==
+"@react-native-firebase/auth@^22.4.0":
+  version "22.4.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/auth/-/auth-22.4.0.tgz#7d0af466b54186cb3e9bb9e5b7b099c6f9458fc1"
+  integrity sha512-cmyTrh5i/XmQ5G+/7XQ8zLBCdSSLi4rLm1M1mBF5tuAd1CLyUy5SehXQX5/RJgRQ0B0vXd+TMNeNQKjD/nb+OA==
   dependencies:
     plist "^3.1.0"
 
