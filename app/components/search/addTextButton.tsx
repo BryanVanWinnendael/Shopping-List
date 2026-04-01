@@ -1,13 +1,12 @@
-import { View, StyleSheet } from "react-native"
+import { View, StyleSheet, Text } from "react-native"
 import type { ItemType, ProductSearch, Recipe } from "@/types"
 import { useSettings } from "@/stores/useSettings"
 import { getBackgroundColor, getBorderColor } from "@/lib/theme"
 import uuid from "react-native-uuid"
 import { addItem } from "@/lib/firebase"
-import { Host, ContextMenu, Button, Text } from "@expo/ui/swift-ui"
-import { getUserRecipes } from "@/lib/recipes"
-import { useEffect, useState } from "react"
-import AddToRecipeButton from "./addToRecipeButton"
+import { editRecipe } from "@/lib/recipes"
+import * as ContextMenu from "zeego/context-menu"
+import { useRecipes } from "@/stores/useRecipes"
 
 type Props = {
   item: ProductSearch
@@ -15,7 +14,7 @@ type Props = {
 
 export default function AddTextButton({ item }: Props) {
   const { theme, user } = useSettings()
-  const [recipes, setRecipes] = useState<Recipe[]>([])
+  const { userRecipes } = useRecipes()
 
   const backgroundColor = getBackgroundColor(theme)
   const borderColor = getBorderColor(theme)
@@ -42,45 +41,55 @@ export default function AddTextButton({ item }: Props) {
     }
   }
 
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      if (!user) return
-      const data = await getUserRecipes(user)
-      setRecipes(data)
+  const addToRecipe = async (recipe: Recipe) => {
+    if (!user) return
+
+    const toAdd = {
+      item: item.item,
+      type: "text" as const,
+      url: "",
     }
-    fetchRecipes()
-  }, [user])
+
+    const updatedRecipe: Recipe = {
+      ...recipe,
+      list: [...(recipe.list ?? []), toAdd],
+    }
+
+    await editRecipe(updatedRecipe)
+  }
 
   return (
     <View style={styles.container}>
-      <Host matchContents>
-        <ContextMenu>
-          <ContextMenu.Items>
-            <Button label="Add to List" onPress={addToList} />
+      <ContextMenu.Root>
+        <ContextMenu.Trigger>
+          <View style={[styles.button, { borderColor, backgroundColor }]}>
+            <Text>Add text</Text>
+          </View>
+        </ContextMenu.Trigger>
 
-            <ContextMenu>
-              <ContextMenu.Items>
-                {recipes.map((recipe) => (
-                  <AddToRecipeButton
-                    recipe={recipe}
-                    type="text"
-                    item={item.item}
-                  />
-                ))}
-              </ContextMenu.Items>
-              <ContextMenu.Trigger>
-                <Button label="Add to Recipes" />
-              </ContextMenu.Trigger>
-            </ContextMenu>
-          </ContextMenu.Items>
+        <ContextMenu.Content>
+          <ContextMenu.Item key="add-to-list" onSelect={addToList}>
+            <ContextMenu.ItemTitle>Add to List</ContextMenu.ItemTitle>
+          </ContextMenu.Item>
 
-          <ContextMenu.Trigger>
-            <View style={[styles.button, { borderColor, backgroundColor }]}>
-              <Text>Add text</Text>
-            </View>
-          </ContextMenu.Trigger>
-        </ContextMenu>
-      </Host>
+          <ContextMenu.Sub>
+            <ContextMenu.SubTrigger key="recipes-trigger">
+              <ContextMenu.ItemTitle>Add to Recipes</ContextMenu.ItemTitle>
+            </ContextMenu.SubTrigger>
+
+            <ContextMenu.SubContent>
+              {userRecipes.map((recipe) => (
+                <ContextMenu.Item
+                  key={recipe.id}
+                  onSelect={() => addToRecipe(recipe)}
+                >
+                  <ContextMenu.ItemTitle>{recipe.title}</ContextMenu.ItemTitle>
+                </ContextMenu.Item>
+              ))}
+            </ContextMenu.SubContent>
+          </ContextMenu.Sub>
+        </ContextMenu.Content>
+      </ContextMenu.Root>
     </View>
   )
 }

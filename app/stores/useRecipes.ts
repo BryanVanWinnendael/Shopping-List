@@ -21,6 +21,8 @@ type RecipesState = {
   setStoredRecipes: (recipes: Recipe[]) => void
   setRecipes: (recipes: Recipe[], user: Users) => void
   setFavoriteRecipes: (recipes: string[]) => void
+  userRecipes: Recipe[]
+  setUserRecipes: (recipes: Recipe[]) => void
 }
 
 export const useRecipes = create<RecipesState>((set) => ({
@@ -34,6 +36,7 @@ export const useRecipes = create<RecipesState>((set) => ({
   favoriteRecipes: [],
   recipes: [],
   storedRecipes: [],
+  userRecipes: [],
 
   loadRecipes: async () => {
     const storedFilter = await getActiveRecipeFilter()
@@ -73,5 +76,9 @@ export const useRecipes = create<RecipesState>((set) => ({
 
   setStoredRecipes: (recipes: Recipe[]) => {
     set({ storedRecipes: recipes })
+  },
+
+  setUserRecipes: (recipes: Recipe[]) => {
+    set({ userRecipes: recipes })
   },
 }))

@@ -1,7 +1,11 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { View, ImageBackground, StyleSheet } from "react-native"
-import CachedImage, { CacheManager } from "expo-cached-image"
-import * as Crypto from "expo-crypto"
+import CachedImage from "expo-cached-image"
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated"
 
 type Props = {
   small: string
@@ -23,52 +27,15 @@ export function ImageLoader({
   large,
   style,
   resizeMode = "cover",
-  expiresIn = 604800, // 7 days
+  expiresIn = 604800,
 }: Props) {
-  const [showLarge, setShowLarge] = useState(false)
-  const [cacheKey, setCacheKey] = useState<string | null>(null)
+  const [loaded, setLoaded] = useState(false)
 
-  useEffect(() => {
-    let active = true
-    const hashKey = async () => {
-      const hash = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA1,
-        large,
-      )
-      if (active) setCacheKey(hash)
-    }
-    hashKey()
-    return () => {
-      active = false
-    }
-  }, [large])
+  const opacity = useSharedValue(0)
 
-  useEffect(() => {
-    if (!cacheKey) return
-    let active = true
-
-    const loadLarge = async () => {
-      try {
-        const cached = await CacheManager.getCachedUri({ key: cacheKey })
-        if (cached && active) {
-          setShowLarge(true)
-          return
-        }
-
-        const img = new Image()
-        img.src = large
-        img.onload = () => active && setShowLarge(true)
-      } catch {
-        console.log("Failed to load large image")
-        if (active) setShowLarge(true)
-      }
-    }
-
-    loadLarge()
-    return () => {
-      active = false
-    }
-  }, [cacheKey, large])
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }))
 
   return (
     <View style={[style, { overflow: "hidden" }]}>
@@ -79,19 +46,29 @@ export function ImageLoader({
         resizeMode={resizeMode}
       />
 
-      {/* Large cached image */}
-      {cacheKey && showLarge && large !== "remove" && (
+      {/* Hidden loader (USES CACHE!) */}
+      {!loaded && (
         <CachedImage
-          key={cacheKey}
-          source={{
-            uri: large || "",
-            expiresIn,
+          cacheKey={large}
+          source={{ uri: large, expiresIn }}
+          style={{ width: 1, height: 1, position: "absolute" }}
+          onLoadEnd={() => {
+            setLoaded(true)
+            opacity.value = withTiming(1, { duration: 250 })
           }}
-          onError={() => {}}
-          cacheKey={cacheKey}
-          resizeMode={resizeMode}
-          style={StyleSheet.absoluteFill}
         />
+      )}
+
+      {/* Visible image (same cache, no refetch) */}
+      {loaded && (
+        <Animated.View style={[StyleSheet.absoluteFill, animatedStyle]}>
+          <CachedImage
+            cacheKey={large}
+            source={{ uri: large, expiresIn }}
+            resizeMode={resizeMode}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
       )}
     </View>
   )

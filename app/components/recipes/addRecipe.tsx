@@ -18,7 +18,7 @@ import { GlassOrBlurView } from "../glassOrBlurView"
 import { useInteractions } from "@/stores/useInteractions"
 
 type Props = {
-  fetchRecipes: () => Promise<void>
+  fetchRecipes: (refresh?: boolean) => Promise<void>
 }
 
 export function AddRecipe({ fetchRecipes }: Props) {
@@ -43,7 +43,7 @@ export function AddRecipe({ fetchRecipes }: Props) {
   const onSubmit = async (recipe: Recipe) => {
     const success = await addRecipe(recipe)
     if (!success) setError("Failed to create recipe")
-    fetchRecipes()
+    fetchRecipes(true)
     closeSheet()
   }
 

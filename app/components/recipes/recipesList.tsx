@@ -14,7 +14,7 @@ type ListItem =
   | { type: "recipe"; recipe: Recipe }
 
 type Props = {
-  fetchRecipes: () => Promise<void>
+  fetchRecipes: (refresh?: boolean) => Promise<void>
 }
 
 export default function RecipesList({ fetchRecipes }: Props) {
@@ -41,7 +41,7 @@ export default function RecipesList({ fetchRecipes }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true)
-    await fetchRecipes()
+    await fetchRecipes(true)
     setRefreshing(false)
   }
 

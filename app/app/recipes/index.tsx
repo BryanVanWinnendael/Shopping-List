@@ -8,25 +8,35 @@ import { getRecipes, getUserRecipes } from "@/lib/recipes"
 import { FilterButton } from "@/components/recipes/filter/filterButton"
 import { useInteractions } from "@/stores/useInteractions"
 import { useRecipes } from "@/stores/useRecipes"
+import { Recipe } from "@/types"
 
 export default function Recipes() {
   const { theme, user } = useSettings()
-  const { setRecipes } = useRecipes()
+  const { setRecipes, userRecipes } = useRecipes()
   const { updateRecipes, setUpdateRecipes } = useInteractions()
 
-  const fetchRecipes = useCallback(async () => {
-    if (!user) return
+  const fetchRecipes = useCallback(
+    async (refresh: boolean = false) => {
+      if (!user) return
 
-    const data = await getRecipes()
-    const filteredData = data.filter((recipe) => recipe.createdBy !== user)
-    const userData = await getUserRecipes(user)
+      const data = await getRecipes()
+      const filteredData = data.filter((recipe) => recipe.createdBy !== user)
 
-    const cData = [...filteredData, ...userData]
+      let userData: Recipe[] = []
+      if (userRecipes.length === 0 || refresh) {
+        userData = await getUserRecipes(user)
+      } else {
+        userData = userRecipes
+      }
 
-    if (cData) {
-      setRecipes(cData, user)
-    }
-  }, [user])
+      const cData = [...filteredData, ...userData]
+
+      if (cData) {
+        setRecipes(cData, user)
+      }
+    },
+    [user],
+  )
 
   useEffect(() => {
     fetchRecipes()
@@ -34,7 +44,7 @@ export default function Recipes() {
 
   useEffect(() => {
     if (updateRecipes) {
-      fetchRecipes()
+      fetchRecipes(true)
       setUpdateRecipes(false)
     }
   }, [updateRecipes])

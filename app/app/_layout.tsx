@@ -29,11 +29,13 @@ import BottomSheet from "@gorhom/bottom-sheet"
 import { useInteractions } from "@/stores/useInteractions"
 import { useRecipes } from "@/stores/useRecipes"
 import { ADMIN_USERS_ARRAY } from "@/lib/constants"
+import { getUserRecipes } from "@/lib/recipes"
 
 const ICON_SIZE = 18
 
 export default function RootLayout() {
   const { setSearchSheet } = useInteractions()
+  const { setUserRecipes } = useRecipes()
   const searchItemBottomSheetRef = useRef<BottomSheet>(null)
   const loadSettings = useSettings((state) => state.loadSettings)
   const loadRecipes = useRecipes((state) => state.loadRecipes)
@@ -46,10 +48,16 @@ export default function RootLayout() {
   // true when inside /recipes/[id]
   const inRecipeDetail = /^\/recipes\/[^/]+$/.test(pathname)
 
+  const fetchUserRecipes = async () => {
+    if (!user) return
+    const userData = await getUserRecipes(user)
+    setUserRecipes(userData)
+  }
+
   useEffect(() => {
     loadSettings()
     loadRecipes()
-
+    fetchUserRecipes()
     setSearchSheet(searchItemBottomSheetRef)
   }, [user])
 
