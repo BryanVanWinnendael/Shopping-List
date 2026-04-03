@@ -12,7 +12,7 @@ jobs:
   deploy:
     if: contains(join(github.event.commits.*.message, ' '), 'BUILD')
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
 
     steps:
       - name: Set up SSH
@@ -23,13 +23,25 @@ jobs:
 
       - name: Deploy App
         run: |
-          timeout 240 ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          OUTPUT=$(timeout 120 ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
           cd ~/projects/shopping-list/app
           git fetch origin main
           git reset --hard origin/main
           yarn install
           EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
-          EOF || true
+          EOF
+          )
+
+          echo "$OUTPUT"
+
+          if echo "$OUTPUT" | grep -q "Waiting for build to complete."; then
+            echo "✅ Build started successfully"
+            exit 0
+          else
+            echo "❌ Build did not reach expected state"
+            exit 1
+          fi
