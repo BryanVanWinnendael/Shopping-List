@@ -19,6 +19,20 @@ export default function AddTextButton({ item }: Props) {
   const backgroundColor = getBackgroundColor(theme)
   const borderColor = getBorderColor(theme)
 
+  const actions = [
+    {
+      title: "Add to List",
+      systemIcon: "plus",
+    },
+    {
+      title: "Add to Recipes",
+      systemIcon: "book",
+      actions: userRecipes.map((recipe) => ({
+        title: recipe.title,
+      })),
+    },
+  ]
+
   const addToList = async () => {
     if (!user) return
 
@@ -57,20 +71,6 @@ export default function AddTextButton({ item }: Props) {
 
     await editRecipe(updatedRecipe)
   }
-
-  const actions = [
-    {
-      title: "Add to List",
-      systemIcon: "plus",
-    },
-    {
-      title: "Add to Recipes",
-      systemIcon: "book",
-      actions: userRecipes.map((recipe) => ({
-        title: recipe.title,
-      })),
-    },
-  ]
 
   const handlePress = (e: any) => {
     const { index, name } = e.nativeEvent
