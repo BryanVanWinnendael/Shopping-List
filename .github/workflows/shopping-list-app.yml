@@ -1,18 +1,17 @@
-name: Release App
+name: Build App
 
 on:
   push:
     branches:
       - main
     paths:
-      - "app/**"
-      - ".github/workflows/shopping-list-app-release.yml"
+      - "app/app.config.js"
+      - ".github/workflows/shopping-list-app-build.yml"
 
 jobs:
   deploy:
-    if: contains(join(github.event.commits.*.message, ' '), 'RELEASE')
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
 
     steps:
       - name: Set up SSH
@@ -31,5 +30,5 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           yarn install
-          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn release
+          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
           EOF || true

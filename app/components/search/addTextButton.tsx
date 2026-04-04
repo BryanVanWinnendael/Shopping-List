@@ -7,6 +7,7 @@ import uuid from "react-native-uuid"
 import { addItem } from "@/lib/firebase"
 import { editRecipe } from "@/lib/recipes"
 import ContextMenu from "react-native-context-menu-view"
+import { createLogs } from "@/lib/logs"
 
 type Props = {
   item: ProductSearch
@@ -69,12 +70,16 @@ export default function AddTextButton({ item }: Props) {
       list: [...(recipe.list ?? []), toAdd],
     }
 
+    await createLogs("update", "Updating recipe: " + updatedRecipe.title)
+    await createLogs("update", "Updating recipe with: " + updatedRecipe)
+
     await editRecipe(updatedRecipe)
   }
 
-  const handlePress = (e: any) => {
+  const handlePress = async (e: any) => {
     const { index, name } = e.nativeEvent
-
+    const text = "index: " + index + ", name: " + name
+    await createLogs("add", text)
     if (index === 0) {
       addToList()
       return
@@ -82,13 +87,17 @@ export default function AddTextButton({ item }: Props) {
 
     if (index === 1) {
       const recipe = userRecipes.find((r) => r.title === name)
+      await createLogs(
+        "get",
+        recipe ? "Found recipe: " + recipe.title : "Recipe not found: " + name,
+      )
       if (recipe) addToRecipe(recipe)
     }
   }
 
   return (
     <View style={styles.container}>
-      <ContextMenu actions={actions} onPress={handlePress}>
+      <ContextMenu dropdownMenuMode actions={actions} onPress={handlePress}>
         <View style={[styles.button, { borderColor, backgroundColor }]}>
           <Text>Add text</Text>
         </View>

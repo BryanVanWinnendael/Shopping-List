@@ -12,9 +12,9 @@ on:
 
 jobs:
   deploy:
-    if: github.event_name == 'schedule' || (github.event_name == 'push' && contains(join(github.event.commits.*.message, ' '), 'BUILD'))
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
 
     steps:
       - name: Set up SSH
@@ -25,10 +25,10 @@ jobs:
 
       - name: Deploy App
         run: |
-          timeout 240 ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          timeout 120 ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
           cd ~/projects/shopping-list/app
-          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
+          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn cron
           EOF || true
