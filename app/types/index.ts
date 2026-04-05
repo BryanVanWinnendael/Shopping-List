@@ -63,7 +63,6 @@ export type Recipe = {
     url?: string
     item: string
     type: "text" | "image"
-    id?: string
   }[]
   source?: string
   notes?: string

@@ -1,19 +1,13 @@
-import { View, Text, StyleSheet } from "react-native"
-import { ItemType, ProductSearch } from "@/types"
+import { View, StyleSheet, Text } from "react-native"
+import { ItemType, ProductSearch, Recipe } from "@/types"
 import { useSettings } from "@/stores/useSettings"
+import { useRecipes } from "@/stores/useRecipes"
 import { getBackgroundColor, getBorderColor, getTextColor } from "@/lib/theme"
-import { PressableScale } from "pressto"
 import uuid from "react-native-uuid"
 import { addItem } from "@/lib/firebase"
-import { useState } from "react"
-import { Check } from "lucide-react-native"
-import Animated, {
-  useSharedValue,
-  withTiming,
-  useAnimatedStyle,
-  Easing,
-} from "react-native-reanimated"
-import { scheduleOnRN } from "react-native-worklets"
+import { editRecipe } from "@/lib/recipes"
+import ContextMenu from "react-native-context-menu-view"
+import * as Haptics from "expo-haptics"
 
 type Props = {
   item: ProductSearch
@@ -21,20 +15,35 @@ type Props = {
 
 export default function AddImageButton({ item }: Props) {
   const { theme, user } = useSettings()
+  const { userRecipes } = useRecipes()
 
   const backgroundColor = getBackgroundColor(theme)
   const borderColor = getBorderColor(theme)
-  const textColor = getTextColor(theme)
+  const color = getTextColor(theme)
 
-  const imageOpacity = useSharedValue(0)
-  const [added, setAdded] = useState(false)
+  const actions = [
+    {
+      title: "Add to List",
+      systemIcon: "plus",
+    },
+    {
+      title: "Add to Recipes",
+      systemIcon: "book",
+      actions: userRecipes.map((recipe) => ({
+        title: recipe.title,
+      })),
+    },
+  ]
 
-  const handleAddImage = async () => {
-    if (!user || added) return
+  const addToList = async () => {
+    if (!user) return
+
+    let trimmed = `${item.brand}: ${item.item.trim()}`
+    if (trimmed.endsWith(".")) trimmed = trimmed.slice(0, -1)
 
     const newItem: ItemType = {
       id: uuid.v4(),
-      item: item.item,
+      item: "",
       type: "image",
       addedBy: user,
       addedAt: Date.now(),
@@ -42,48 +51,48 @@ export default function AddImageButton({ item }: Props) {
       url: item.image,
     }
 
-    try {
-      await addItem(newItem)
+    await addItem(newItem)
+  }
 
-      setAdded(true)
-      imageOpacity.value = 1
+  const addToRecipe = async (recipe: Recipe) => {
+    if (!user) return
 
-      setTimeout(() => {
-        imageOpacity.value = withTiming(0, {
-          duration: 300,
-          easing: Easing.in(Easing.ease),
-        })
-        scheduleOnRN(setAdded, false)
-      }, 3000)
-    } catch (err) {
-      console.error("Failed to add item:", err)
+    const toAdd = {
+      item: "",
+      type: "image" as const,
+      url: item.image,
+    }
+
+    const updatedRecipe: Recipe = {
+      ...recipe,
+      list: [...(recipe.list ?? []), toAdd],
+    }
+
+    await editRecipe(updatedRecipe)
+  }
+
+  const handlePress = async (e: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
+    const { name } = e.nativeEvent
+
+    if (name === "Add to List") {
+      addToList()
+      return
+    }
+
+    const recipe = userRecipes.find((r) => r.title === name)
+    if (recipe) {
+      addToRecipe(recipe)
     }
   }
 
-  const imageAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: imageOpacity.value,
-  }))
-
   return (
     <View style={styles.container}>
-      <PressableScale
-        style={[
-          styles.button,
-          {
-            borderColor,
-            backgroundColor: added ? "rgba(52,199,89,0.15)" : backgroundColor,
-          },
-        ]}
-        onPress={handleAddImage}
-      >
-        <Animated.View style={imageAnimatedStyle}>
-          <Check size={16} color="#34C759" style={{ marginRight: 4 }} />
-        </Animated.View>
-
-        <Text style={{ color: added ? "#34C759" : textColor }}>
-          {added ? "Added" : "Add image"}
-        </Text>
-      </PressableScale>
+      <ContextMenu dropdownMenuMode actions={actions} onPress={handlePress}>
+        <View style={[styles.button, { borderColor, backgroundColor }]}>
+          <Text style={{ color }}>Add text</Text>
+        </View>
+      </ContextMenu>
     </View>
   )
 }
@@ -98,7 +107,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 12,
     alignItems: "center",
-    flexDirection: "row",
     justifyContent: "center",
   },
 })

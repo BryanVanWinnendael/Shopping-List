@@ -9,6 +9,7 @@ import {
 import CategoryIcon from "../categoryIcon"
 import AddImageButton from "./addImageButton"
 import AddTextButton from "./addTextButton"
+import { IS_DEV } from "@/lib/constants"
 
 type Props = {
   item: ProductSearch
@@ -84,8 +85,12 @@ export default function SearchItem({ item }: Props) {
       </View>
 
       <View style={styles.buttons}>
-        <AddImageButton item={item} />
-        <AddTextButton item={item} />
+        {!IS_DEV && (
+          <>
+            <AddImageButton item={item} />
+            <AddTextButton item={item} />
+          </>
+        )}
       </View>
     </View>
   )

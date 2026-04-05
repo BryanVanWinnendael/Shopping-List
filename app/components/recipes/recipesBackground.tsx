@@ -4,16 +4,21 @@ import { getSecondaryBackgroundColor } from "@/lib/theme"
 import { Recipe } from "@/types"
 import { ImageLoader } from "../imageLoader"
 import { RecipesBack } from "./recipesBack"
+import { FavoriteRecipe } from "./favoriteRecipe"
+import { EditRecipeButton } from "./editRecipeButton"
 
 type Props = {
   recipe: Recipe
   children?: React.ReactNode
+  openSheet?: () => void
 }
 
-export function RecipesBackground({ recipe, children }: Props) {
-  const { theme } = useSettings()
+export function RecipesBackground({ recipe, children, openSheet }: Props) {
+  const { theme, user } = useSettings()
 
   const secondaryBackgroundColor = getSecondaryBackgroundColor(theme)
+
+  const canEdit = recipe?.createdBy === user
 
   return (
     <View style={styles.container}>
@@ -40,6 +45,16 @@ export function RecipesBackground({ recipe, children }: Props) {
         <RecipesBack />
       </View>
 
+      <View
+        style={[styles.favoriteButtonContainer, { right: canEdit ? 70 : 16 }]}
+      >
+        <FavoriteRecipe recipe={recipe} />
+      </View>
+
+      <View style={styles.favoriteButtonContainer}>
+        <EditRecipeButton openSheet={openSheet} />
+      </View>
+
       {children && <View style={styles.floatingContent}>{children}</View>}
     </View>
   )
@@ -58,6 +73,12 @@ const styles = StyleSheet.create({
     left: 10,
     top: 15,
     zIndex: 10,
+  },
+  favoriteButtonContainer: {
+    position: "absolute",
+    top: 15,
+    zIndex: 10,
+    right: 16,
   },
   floatingContent: {
     position: "absolute",

@@ -113,7 +113,10 @@ export default function RecipeCard({
             title="Delete"
             destructive
             icon="trash"
-            onPress={() => onDelete(item)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              onDelete(item)
+            }}
           />
         ) : (
           <></>

@@ -42,7 +42,6 @@ export default function RecipeDetails() {
   const borderColor = getBorderColor(theme)
   const textColor = getTextColor(theme)
 
-  const canEdit = recipe?.createdBy === user
   const showConfirmDelete = () => setConfirmDeleteVisible(true)
   const hideConfirmDelete = () => setConfirmDeleteVisible(false)
 
@@ -112,7 +111,7 @@ export default function RecipeDetails() {
           paddingTop: headerHeight - 40,
         }}
       >
-        <RecipesBackground recipe={recipe} />
+        <RecipesBackground recipe={recipe} openSheet={openSheet} />
 
         <View
           style={{
@@ -157,14 +156,6 @@ export default function RecipeDetails() {
               >
                 {recipe.title}
               </Text>
-              {canEdit && (
-                <PressableScale
-                  onPress={openSheet}
-                  style={{ padding: 6, borderRadius: 8 }}
-                >
-                  <Pencil size={16} color={textColor} />
-                </PressableScale>
-              )}
             </View>
             <View
               style={{
@@ -322,11 +313,31 @@ export default function RecipeDetails() {
           >
             Edit recipe
           </Text>
+
           <PressableScale
             onPress={showConfirmDelete}
-            style={{ padding: 6, borderRadius: 8 }}
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              width: 40,
+              height: 40,
+            }}
           >
-            <Trash size={16} color={textColor} />
+            <GlassOrBlurView
+              style={[
+                {
+                  borderRadius: 50,
+                  overflow: "hidden",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginBottom: 8,
+                  width: 40,
+                  height: 40,
+                },
+              ]}
+            >
+              <Trash size={16} color={textColor} />
+            </GlassOrBlurView>
           </PressableScale>
         </View>
 

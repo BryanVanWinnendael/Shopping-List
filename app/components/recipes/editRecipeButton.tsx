@@ -1,19 +1,21 @@
-import { useNavigation } from "@react-navigation/native"
-import { ArrowLeft } from "lucide-react-native"
+import { Pencil } from "lucide-react-native"
 import { useSettings } from "@/stores/useSettings"
 import { getTextColor } from "@/lib/theme"
 import { PressableScale } from "pressto"
 import { GlassOrBlurView } from "../glassOrBlurView"
 
-export function RecipesBack() {
+type Props = {
+  openSheet?: () => void
+}
+
+export function EditRecipeButton({ openSheet }: Props) {
   const { theme } = useSettings()
-  const navigation = useNavigation()
 
   const textColor = getTextColor(theme)
 
   return (
     <PressableScale
-      onPress={() => navigation.goBack()}
+      onPress={openSheet}
       style={{
         justifyContent: "center",
         alignItems: "center",
@@ -34,7 +36,7 @@ export function RecipesBack() {
           },
         ]}
       >
-        <ArrowLeft size={20} color={textColor} />
+        <Pencil size={20} color={textColor} />
       </GlassOrBlurView>
     </PressableScale>
   )

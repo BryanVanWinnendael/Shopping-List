@@ -1,19 +1,33 @@
-import { useNavigation } from "@react-navigation/native"
-import { ArrowLeft } from "lucide-react-native"
+import { Star, StarOff } from "lucide-react-native"
 import { useSettings } from "@/stores/useSettings"
 import { getTextColor } from "@/lib/theme"
 import { PressableScale } from "pressto"
 import { GlassOrBlurView } from "../glassOrBlurView"
+import { Recipe } from "@/types"
+import { useRecipes } from "@/stores/useRecipes"
 
-export function RecipesBack() {
+type Props = {
+  recipe: Recipe
+}
+
+export function FavoriteRecipe({ recipe }: Props) {
   const { theme } = useSettings()
-  const navigation = useNavigation()
+  const { setFavoriteRecipes, favoriteRecipes } = useRecipes()
+  const isFavorite = favoriteRecipes.includes(recipe.id)
 
   const textColor = getTextColor(theme)
 
+  const handleAddToFavorites = async () => {
+    if (isFavorite) {
+      setFavoriteRecipes(favoriteRecipes.filter((r) => r !== recipe.id))
+    } else {
+      setFavoriteRecipes([...favoriteRecipes, recipe.id])
+    }
+  }
+
   return (
     <PressableScale
-      onPress={() => navigation.goBack()}
+      onPress={handleAddToFavorites}
       style={{
         justifyContent: "center",
         alignItems: "center",
@@ -34,7 +48,11 @@ export function RecipesBack() {
           },
         ]}
       >
-        <ArrowLeft size={20} color={textColor} />
+        {isFavorite ? (
+          <StarOff size={20} color={textColor} />
+        ) : (
+          <Star size={20} color={textColor} />
+        )}
       </GlassOrBlurView>
     </PressableScale>
   )
