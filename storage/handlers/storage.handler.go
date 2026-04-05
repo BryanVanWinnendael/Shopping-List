@@ -76,6 +76,12 @@ func (sh *StorageHandler) deleteImage(c echo.Context, category string) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing URL"})
 	}
 
+	if !strings.Contains(request.URL, config.Vars.HOST) {
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Image is not stored in the configured storage",
+		})
+	}
+
 	var err error
 	switch category {
 	case "recipes":

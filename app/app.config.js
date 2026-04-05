@@ -3,7 +3,7 @@ export default {
     name: "Shopping List",
     slug: "shopping-list",
     scheme: "shopping-list-scheme",
-    version: "2.1.5",
+    version: "2.2.0",
     orientation: "portrait",
     icon: "./assets/old-icon.png",
     userInterfaceStyle: "automatic",
@@ -29,7 +29,7 @@ export default {
       config: {
         usesNonExemptEncryption: false,
       },
-      buildNumber: "10",
+      buildNumber: "1",
     },
 
     android: {

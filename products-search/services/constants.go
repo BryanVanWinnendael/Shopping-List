@@ -1,7 +1,7 @@
 package services
 
 const (
-	DateUpdated = "31/12/2025"
+	DateUpdated = "05/04/2026"
 )
 
 var categoryPriority = map[string]int{

@@ -8,6 +8,7 @@ import { addItem } from "@/lib/firebase"
 import { editRecipe } from "@/lib/recipes"
 import ContextMenu from "react-native-context-menu-view"
 import * as Haptics from "expo-haptics"
+import { useInteractions } from "@/stores/useInteractions"
 
 type Props = {
   item: ProductSearch
@@ -15,6 +16,7 @@ type Props = {
 
 export default function AddImageButton({ item }: Props) {
   const { theme, user } = useSettings()
+  const { handleNotification } = useInteractions()
   const { userRecipes } = useRecipes()
 
   const backgroundColor = getBackgroundColor(theme)
@@ -52,6 +54,7 @@ export default function AddImageButton({ item }: Props) {
     }
 
     await addItem(newItem)
+    handleNotification("added", user)
   }
 
   const addToRecipe = async (recipe: Recipe) => {
@@ -90,7 +93,7 @@ export default function AddImageButton({ item }: Props) {
     <View style={styles.container}>
       <ContextMenu dropdownMenuMode actions={actions} onPress={handlePress}>
         <View style={[styles.button, { borderColor, backgroundColor }]}>
-          <Text style={{ color }}>Add text</Text>
+          <Text style={{ color }}>Add image</Text>
         </View>
       </ContextMenu>
     </View>
