@@ -51,9 +51,11 @@ export function RecipesBackground({ recipe, children, openSheet }: Props) {
         <FavoriteRecipe recipe={recipe} />
       </View>
 
-      <View style={styles.favoriteButtonContainer}>
-        <EditRecipeButton openSheet={openSheet} />
-      </View>
+      {canEdit && (
+        <View style={styles.favoriteButtonContainer}>
+          <EditRecipeButton openSheet={openSheet} />
+        </View>
+      )}
 
       {children && <View style={styles.floatingContent}>{children}</View>}
     </View>
