@@ -20,7 +20,7 @@ It does not implement authentication and therefore is **not designed for public 
   - Filter recipes for easier browsing
 
 - **Product Search**
-  - Search for products to quickly add them to your list
+  - Search for products to quickly add them to your list or recipes
 
 - **Weekly Items**
   - Add items to a weekly list
@@ -33,6 +33,19 @@ It does not implement authentication and therefore is **not designed for public 
 - **Customization**
   - Customize the app appearance
   - Adjust application settings
+
+#### Screenshots
+
+<img src="./assets/app/img1.png" width="200">
+<img src="./assets/app/img2.png" width="200">
+<img src="./assets/app/img3.png" width="200">
+<img src="./assets/app/img4.png" width="200">
+<img src="./assets/app/img5.png" width="200">
+<img src="./assets/app/img6.png" width="200">
+<img src="./assets/app/img7.png" width="200">
+<img src="./assets/app/img8.png" width="200">
+<img src="./assets/app/img10.png" width="200">
+<img src="./assets/app/img9.png" width="200">
 
 ---
 
@@ -89,6 +102,12 @@ The mobile application pipeline builds the app using **EAS Build** and publishes
 
 ![App CI/CD Pipeline](./assets/app-diagram.png)
 
+#### Cron Mobile App Pipeline
+
+The CI/CD cron workflow runs every two months to ensure the app remains active and does not expire. The TestFlight provisioning profile, however, has a validity period of 90 days.
+
+![App CI/CD Pipeline](./assets/cron-app-diagram.png)
+
 #### Microservices Pipeline
 
 Each microservice is automatically deployed by pulling the latest code on the server and rebuilding the Docker container.
@@ -104,6 +123,7 @@ Each microservice is automatically deployed by pulling the latest code on the se
 - [ Node.js ≥ v22](https://nodejs.org/en)
 - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#windows-stable)
 - [Go ≥ 1.25.0](https://go.dev/doc/install)
+- [Air](https://github.com/air-verse/air)
 - [Docker](https://docs.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Expo Go](https://expo.dev/go)
@@ -112,8 +132,25 @@ Each microservice is automatically deployed by pulling the latest code on the se
 
 ### Setup
 
-Clone the repository and follow the instructions for all microservices and the app.
+Clone the repository and follow first the instructions for the API Gateway, all microservices and then the app.
 
 ```bash
 git clone https://github.com/BryanVanWinnendael/shopping-list
 ```
+
+#### CI/CD Pipelines
+
+In your repository:
+Settings -> Secrets and Variables -> Actions -> New repository secret
+
+EXPO_TOKEN:
+The Expo Access Token
+
+SSH_HOST:
+The host of your server
+
+SSH_PRIVATE_KEY:
+The private key of your server
+
+SSH_USER:
+The user of your server
