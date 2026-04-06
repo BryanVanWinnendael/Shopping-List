@@ -6,8 +6,8 @@ on:
       - main
     paths:
       - "api-gateway/**"
-    paths-ignore:
-      - "api-gateway/README.md"
+      - "!api-gateway/README.md"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
