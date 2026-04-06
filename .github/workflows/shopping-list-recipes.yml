@@ -7,6 +7,8 @@ on:
     paths:
       - "recipes/**"
       - "!recipes/README.md"
+      - "!recipes/.env.example"
+      - "!recipes/.gitignore"
 
 jobs:
   deploy:

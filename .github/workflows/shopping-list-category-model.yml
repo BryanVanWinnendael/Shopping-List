@@ -7,6 +7,8 @@ on:
     paths:
       - "category-model/**"
       - "!category-model/README.md"
+      - "!category-model/.env.example"
+      - "!category-model/.gitignore"
 
 jobs:
   deploy:

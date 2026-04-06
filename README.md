@@ -36,16 +36,18 @@ It does not implement authentication and therefore is **not designed for public 
 
 #### Screenshots
 
-<img src="./assets/app/img1.png" width="200">
-<img src="./assets/app/img2.png" width="200">
-<img src="./assets/app/img3.png" width="200">
-<img src="./assets/app/img4.png" width="200">
-<img src="./assets/app/img5.png" width="200">
-<img src="./assets/app/img6.png" width="200">
-<img src="./assets/app/img7.png" width="200">
-<img src="./assets/app/img8.png" width="200">
-<img src="./assets/app/img10.png" width="200">
-<img src="./assets/app/img9.png" width="200">
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+  <img src="./assets/app/img1.png" width="200">
+  <img src="./assets/app/img2.png" width="200">
+  <img src="./assets/app/img3.png" width="200">
+  <img src="./assets/app/img4.png" width="200">
+  <img src="./assets/app/img5.png" width="200">
+  <img src="./assets/app/img6.png" width="200">
+  <img src="./assets/app/img7.png" width="200">
+  <img src="./assets/app/img8.png" width="200">
+  <img src="./assets/app/img9.png" width="200">
+  <img src="./assets/app/img10.png" width="200">
+</div>
 
 ---
 

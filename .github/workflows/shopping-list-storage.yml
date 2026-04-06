@@ -7,6 +7,8 @@ on:
     paths:
       - "storage/**"
       - "!storage/README.md"
+      - "!storage/.env.example"
+      - "!storage/.gitignore"
 
 jobs:
   deploy:
