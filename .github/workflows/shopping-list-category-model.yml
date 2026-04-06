@@ -1,4 +1,4 @@
-name: Deploy Ms Category Model
+name: Deploy Category Model µS
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "category-model/**"
+    paths-ignore:
+      - "category-model/README.md"
 
 jobs:
   deploy:

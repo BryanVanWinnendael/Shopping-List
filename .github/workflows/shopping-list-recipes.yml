@@ -1,4 +1,4 @@
-name: Deploy Ms Recipes
+name: Deploy Recipes µS
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "recipes/**"
+    paths-ignore:
+      - "recipes/README.md"
 
 jobs:
   deploy:

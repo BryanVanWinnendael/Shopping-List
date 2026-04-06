@@ -1,4 +1,4 @@
-name: Deploy Ms Products Search
+name: Deploy Products Search µS
 
 on:
   push:
@@ -6,7 +6,8 @@ on:
       - main
     paths:
       - "products-search/**"
-
+    paths-ignore:
+      - "products-search/README.md"
 jobs:
   deploy:
     runs-on: ubuntu-latest

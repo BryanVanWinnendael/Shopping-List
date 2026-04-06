@@ -1,4 +1,4 @@
-name: Deploy Ms Notifications
+name: Deploy Notifications µS
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "notifications/**"
+    paths-ignore:
+      - "notifications/README.md"
 
 jobs:
   deploy:

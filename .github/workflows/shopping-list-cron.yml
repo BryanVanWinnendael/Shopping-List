@@ -1,4 +1,4 @@
-name: Deploy Ms Cron
+name: Deploy Cron µS
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "cron/**"
+    paths-ignore:
+      - "cron/README.md"
 
 jobs:
   deploy:

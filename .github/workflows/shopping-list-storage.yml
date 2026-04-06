@@ -1,4 +1,4 @@
-name: Deploy Ms Storage
+name: Deploy Storage µS
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "storage/**"
+    paths-ignore:
+      - "storage/README.md"
 
 jobs:
   deploy:
