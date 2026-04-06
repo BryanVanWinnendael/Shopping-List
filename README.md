@@ -4,6 +4,7 @@ A mobile app to manage your shopping list and recipes.
 
 The app is intended for **private use by a family or small group of users**.  
 It does not implement authentication and therefore is **not designed for public distribution on the App Store**.
+It is only tested and recommended for iOS.
 
 ## Features
 
@@ -34,6 +35,19 @@ It does not implement authentication and therefore is **not designed for public 
   - Customize the app appearance
   - Adjust application settings
 
+---
+
+### For Admin Users
+
+- **Logs Management**
+  - View all application logs
+
+- **Prediction Model Training**
+  - Review items where the predicted category was incorrect
+  - Correct the category to improve the prediction model
+
+---
+
 #### Screenshots
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
@@ -48,17 +62,6 @@ It does not implement authentication and therefore is **not designed for public 
   <img src="./assets/app/img9.png" width="200">
   <img src="./assets/app/img10.png" width="200">
 </div>
-
----
-
-### For Admin Users
-
-- **Logs Management**
-  - View all application logs
-
-- **Prediction Model Training**
-  - Review items where the predicted category was incorrect
-  - Correct the category to improve the prediction model
 
 ---
 

@@ -44,6 +44,7 @@ For Authentication you will only need to enable Authentication sign-in method.
 
 Firebase Console → Project Settings → General → Your Apps
 and copy values for:
+expo
 
 ```
 API_KEY_DEV=***
@@ -102,6 +103,4 @@ Run via tunnel (different network). Works anywhere.
 
 ## Creating a Release or Build
 
-When CI/CD is setup, you can up the release or build number automatically.
-For Release add 'RELEASE' to you git commit message.
-For build add 'BUILD'.
+When CI/CD is setup, you can create a new release/build when changing the version or build number in the **app.config.js**.

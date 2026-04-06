@@ -31,9 +31,17 @@ export default function AddImageButton({ item }: Props) {
     {
       title: "Add to Recipes",
       systemIcon: "book",
-      actions: userRecipes.map((recipe) => ({
-        title: recipe.title,
-      })),
+      actions:
+        userRecipes.length > 0
+          ? userRecipes.map((recipe) => ({
+              title: recipe.title,
+            }))
+          : [
+              {
+                title: "You don't have any recipes",
+                disabled: true,
+              },
+            ],
     },
   ]
 
