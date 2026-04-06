@@ -44,7 +44,6 @@ For Authentication you will only need to enable Authentication sign-in method.
 
 Firebase Console → Project Settings → General → Your Apps
 and copy values for:
-expo
 
 ```
 API_KEY_DEV=***

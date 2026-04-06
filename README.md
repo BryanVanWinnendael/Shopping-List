@@ -33,6 +33,9 @@ It is only tested and recommended for iOS.
 
 - **Customization**
   - Customize the app appearance
+    - Dark mode
+    - Liquid glass
+    - Accent colors
   - Adjust application settings
 
 ---
