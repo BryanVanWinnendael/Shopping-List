@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - "recipes/**"
-    paths-ignore:
-      - "recipes/README.md"
+      - "!recipes/README.md"
 
 jobs:
   deploy:

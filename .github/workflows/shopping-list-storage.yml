@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - "storage/**"
-    paths-ignore:
-      - "storage/README.md"
+      - "!storage/README.md"
 
 jobs:
   deploy:

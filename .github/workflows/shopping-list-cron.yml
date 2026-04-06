@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - "cron/**"
-    paths-ignore:
-      - "cron/README.md"
+      - "!cron/README.md"
 
 jobs:
   deploy:

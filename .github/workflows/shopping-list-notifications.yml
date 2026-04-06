@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - "notifications/**"
-    paths-ignore:
-      - "notifications/README.md"
+      - "!notifications/README.md"
 
 jobs:
   deploy:

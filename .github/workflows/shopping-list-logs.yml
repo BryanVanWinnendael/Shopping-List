@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - "logs/**"
-    paths-ignore:
-      - "logs/README.md"
+      - "!logs/README.md"
 
 jobs:
   deploy:

@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - "category-model/**"
-    paths-ignore:
-      - "category-model/README.md"
+      - "!category-model/README.md"
 
 jobs:
   deploy:

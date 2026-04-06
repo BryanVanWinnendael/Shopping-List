@@ -6,8 +6,8 @@ on:
       - main
     paths:
       - "products-search/**"
-    paths-ignore:
-      - "products-search/README.md"
+      - "!products-search/README.md"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
