@@ -14,9 +14,29 @@ jobs:
   deploy:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Increment build number
+        run: node app/scripts/next-build.js
+
+      - name: Commit & push changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add app.config.js
+          git commit -m "[Shopping List CI/CD] bump iOS buildNumber" || echo "No changes to commit"
+          git push
+
       - name: Set up SSH
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
@@ -28,7 +48,8 @@ jobs:
           timeout 120 ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
           cd ~/projects/shopping-list/app
-          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn cron
+          git fetch origin main
+          git reset --hard origin/main
+          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
           EOF || true

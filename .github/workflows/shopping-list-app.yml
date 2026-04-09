@@ -6,10 +6,10 @@ on:
       - main
     paths:
       - "app/app.config.js"
-      - ".github/workflows/shopping-list-app-build.yml"
 
 jobs:
   deploy:
+    if: github.actor != 'github-actions'
     runs-on: ubuntu-latest
     timeout-minutes: 3
 
@@ -29,6 +29,5 @@ jobs:
           cd ~/projects/shopping-list/app
           git fetch origin main
           git reset --hard origin/main
-          yarn install
           EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
           EOF || true
