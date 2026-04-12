@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"shopping-list/category-model/models"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -70,6 +72,107 @@ func TestGetCategory(t *testing.T) {
 
 		// when
 		err := handler.GetCategory(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("expected 500, got %d", rec.Code)
+		}
+	})
+}
+
+func TestAddCategory(t *testing.T) {
+	t.Run("Given invalid JSON, When calling endpoint, Then returns 400", func(t *testing.T) {
+		// given
+		c, rec := setupEchoContext(http.MethodPost, "/category", []byte("invalid-json"))
+
+		handler := newHandler(&MockCategoryService{})
+
+		// when
+		err := handler.AddCategory(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given missing fields, When calling endpoint, Then returns 400", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(models.AddCategoryRequest{
+			Item:     "",
+			Category: "",
+		})
+
+		c, rec := setupEchoContext(http.MethodPost, "/category", body)
+
+		handler := newHandler(&MockCategoryService{})
+
+		// when
+		err := handler.AddCategory(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given valid request, When service succeeds, Then returns 200", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(models.AddCategoryRequest{
+			Item:     " apple ",
+			Category: " fruit ",
+		})
+
+		c, rec := setupEchoContext(http.MethodPost, "/category", body)
+
+		handler := newHandler(&MockCategoryService{
+			AddCategoryFunc: func(item, category string) error {
+				return nil
+			},
+		})
+
+		// when
+		err := handler.AddCategory(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given service error, When calling endpoint, Then returns 500", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(models.AddCategoryRequest{
+			Item:     "apple",
+			Category: "fruit",
+		})
+
+		c, rec := setupEchoContext(http.MethodPost, "/category", body)
+
+		handler := newHandler(&MockCategoryService{
+			AddCategoryFunc: func(item, category string) error {
+				return errors.New("service error")
+			},
+		})
+
+		// when
+		err := handler.AddCategory(c)
 
 		// then
 		if err != nil {
