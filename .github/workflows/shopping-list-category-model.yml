@@ -30,25 +30,41 @@ jobs:
             -coverpkg=./handlers,./services \
             -coverprofile=coverage.out
 
-      - name: Check coverage threshold (80%)
+      - name: Check coverage per package (80% rule)
         working-directory: category-model
         run: |
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "📊 Coverage Report"
 
-          echo "Total coverage: $COVERAGE%"
+          HANDLERS_COV=$(go test ./handlers -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+          SERVICES_COV=$(go test ./services -cover | grep coverage | awk '{print $5}' | sed 's/%//')
 
-          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
-            echo "❌ Coverage below 80% threshold"
+          echo "--------------------------------"
+          echo "Handlers coverage: $HANDLERS_COV%"
+          echo "Services coverage: $SERVICES_COV%"
+          echo "--------------------------------"
+
+          FAIL=0
+
+          if (( $(echo "$HANDLERS_COV < 80" | bc -l) )); then
+            echo "❌ Handlers coverage below 80%"
+            FAIL=1
+          else
+            echo "✅ Handlers coverage OK"
+          fi
+
+          if (( $(echo "$SERVICES_COV < 80" | bc -l) )); then
+            echo "❌ Services coverage below 80%"
+            FAIL=1
+          else
+            echo "✅ Services coverage OK"
+          fi
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo "❌ Coverage check failed"
             exit 1
           fi
 
-          echo "✅ Coverage requirement met"
-
-      - name: Set up SSH
-        run: |
-          install -m 600 -D /dev/null ~/.ssh/id_rsa
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+          echo "All coverage thresholds passed"
 
       - name: Deploy Category Model
         run: |
