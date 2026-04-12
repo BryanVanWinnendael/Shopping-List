@@ -5,10 +5,10 @@ import (
 	"shopping-list/category-model/internal/config"
 )
 
-func CategoriesCsv() string {
+var CategoriesCsv = func() string {
 	return filepath.Join(config.Vars.DataDir, "categories.csv")
 }
 
-func ModelFile() string {
+var ModelFile = func() string {
 	return filepath.Join(config.Vars.DataDir, "model.pkl")
 }

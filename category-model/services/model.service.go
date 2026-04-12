@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"math"
 	"os"
 	"shopping-list/category-model/models"
@@ -32,7 +33,7 @@ func (ms *ModelService) TrainModel() (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer closeFile(file)
 
 	encoder := gob.NewEncoder(file)
 	if err := encoder.Encode(ms.naiveBayes); err != nil {
@@ -66,7 +67,7 @@ func (ms *ModelService) LoadModel() error {
 		}
 		return err
 	}
-	defer file.Close()
+	defer closeFile(file)
 
 	return gob.NewDecoder(file).Decode(ms.naiveBayes)
 }
@@ -78,6 +79,7 @@ func (ms *ModelService) trainAndSave() error {
 
 func (ms *ModelService) Predict(item string) (string, error) {
 	if ms.naiveBayes == nil {
+
 		return "", errors.New("model not loaded, call TrainModel or LoadModel first")
 	}
 	return getBestClass(item, ms.naiveBayes), nil
@@ -128,13 +130,13 @@ func tokenize(text string) []string {
 }
 
 func loadCSV() ([]models.TrainingData, error) {
-	f, err := os.Open(CategoriesCsv())
+	file, err := os.Open(CategoriesCsv())
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer closeFile(file)
 
-	reader := csv.NewReader(f)
+	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, err
@@ -158,4 +160,11 @@ func loadCSV() ([]models.TrainingData, error) {
 		})
 	}
 	return data, nil
+}
+
+func closeFile(file *os.File) {
+	err := file.Close()
+	if err != nil {
+		fmt.Println("Failed to close file:", err)
+	}
 }

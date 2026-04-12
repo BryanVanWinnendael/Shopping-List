@@ -1,4 +1,4 @@
-package utils
+package services
 
 import "shopping-list/category-model/models"
 

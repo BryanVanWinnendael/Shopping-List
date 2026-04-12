@@ -6,7 +6,6 @@ import (
 	"shopping-list/category-model/internal/config"
 	"shopping-list/category-model/middlewares"
 	"shopping-list/category-model/services"
-	"shopping-list/category-model/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -17,7 +16,7 @@ func main() {
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
 
-	nb := utils.NewNaiveBayes()
+	nb := services.NewNaiveBayes()
 	ms := services.NewModelService(nb)
 	mh := handlers.NewModelHandler(ms)
 
