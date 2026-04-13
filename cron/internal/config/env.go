@@ -13,6 +13,8 @@ type Env struct {
 	NotificationsAPIUrl   string
 	DataDir               string
 	GoogleApplicationCred string
+	Bucket                string
+	DB                    string
 }
 
 var Vars Env
@@ -30,6 +32,8 @@ func LoadEnv() {
 		NotificationsAPIUrl:   getEnv("NOTIFICATIONS_API_URL", ""),
 		DataDir:               getEnv("DATA_DIR", "./data"),
 		GoogleApplicationCred: getEnv("GOOGLE_APPLICATION_CREDENTIALS", ""),
+		Bucket:                getEnv("BUCKET", "cron"),
+		DB:                    getEnv("DB", "cron.db"),
 	}
 }
 

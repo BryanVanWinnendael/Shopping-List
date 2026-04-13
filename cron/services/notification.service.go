@@ -6,13 +6,18 @@ import (
 	"shopping-list/cron/internal/config"
 )
 
-type NotificationServiceImpl struct{}
-
-func NewNotificationService() *NotificationServiceImpl {
-	return &NotificationServiceImpl{}
+type NotificationServiceImpl struct {
+	client *http.Client
 }
 
-func (e *NotificationServiceImpl) SendNotification(user string, notificationType string) error {
+func NewNotificationService(client *http.Client) *NotificationServiceImpl {
+	if client == nil {
+		client = &http.Client{}
+	}
+	return &NotificationServiceImpl{client: client}
+}
+
+func (nsi *NotificationServiceImpl) SendNotification(user string, notificationType string) error {
 	notificationAPI := config.Vars.NotificationsAPIUrl
 	url := fmt.Sprintf("%s/push/%s/%s", notificationAPI, notificationType, user)
 
@@ -23,12 +28,15 @@ func (e *NotificationServiceImpl) SendNotification(user string, notificationType
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := nsi.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}()
 
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("received error status: %s", resp.Status)

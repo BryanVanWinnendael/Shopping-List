@@ -13,6 +13,8 @@ services:
       ENV: production
       GOOGLE_APPLICATION_CREDENTIALS: /serviceAccountKey.json
       DATA_DIR: /app/data
+      BUCKET: cron
+      DB: cron.db
     env_file:
       - .env
     restart: unless-stopped

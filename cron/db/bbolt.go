@@ -5,31 +5,30 @@ import (
 	"os"
 	"path/filepath"
 	"shopping-list/cron/internal/config"
-	"shopping-list/cron/internal/constants"
 
-	bolt "go.etcd.io/bbolt"
+	"go.etcd.io/bbolt"
 )
 
-func InitBolt() *bolt.DB {
+func InitBbolt() *bbolt.DB {
 	if err := os.MkdirAll(config.Vars.DataDir, os.ModePerm); err != nil {
 		log.Fatalf("Failed to create data directory: %v", err)
 	}
 
-	dbPath := filepath.Join(config.Vars.DataDir, "cron.db")
+	dbPath := filepath.Join(config.Vars.DataDir, config.Vars.DB)
 
-	db, err := bolt.Open(dbPath, 0600, nil)
+	db, err := bbolt.Open(dbPath, 0600, nil)
 	if err != nil {
-		log.Fatalf("Failed to open BoltDB: %v", err)
+		log.Fatalf("Failed to open BboltDB: %v", err)
 	}
 
-	err = db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(constants.CronBucket))
+	err = db.Update(func(tx *bbolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
 		return err
 	})
 	if err != nil {
 		log.Fatalf("Failed to create bucket: %v", err)
 	}
 
-	log.Println("Connected to BoltDB at", dbPath)
+	log.Println("Connected to BboltDB at", dbPath)
 	return db
 }

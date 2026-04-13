@@ -58,7 +58,7 @@ func (ch *CronHandler) GetAllCronItems(c echo.Context) error {
 	return c.JSON(http.StatusOK, items)
 }
 
-func (h *CronHandler) UpdateCategory(c echo.Context) error {
+func (ch *CronHandler) UpdateCategory(c echo.Context) error {
 	idParam := c.Param("id")
 
 	var request models.UpdateCronItemRequest
@@ -74,7 +74,7 @@ func (h *CronHandler) UpdateCategory(c echo.Context) error {
 		})
 	}
 
-	if err := h.Service.UpdateCategory(idParam, request.Category); err != nil {
+	if err := ch.Service.UpdateCategory(idParam, request.Category); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
@@ -86,9 +86,9 @@ func (h *CronHandler) UpdateCategory(c echo.Context) error {
 	})
 }
 
-func (h *CronHandler) DeleteCronItem(c echo.Context) error {
+func (ch *CronHandler) DeleteCronItem(c echo.Context) error {
 	idParam := c.Param("id")
-	if err := h.Service.Delete(idParam); err != nil {
+	if err := ch.Service.Delete(idParam); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})

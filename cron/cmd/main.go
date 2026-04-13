@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"shopping-list/cron/cron"
 	"shopping-list/cron/db"
 	"shopping-list/cron/handlers"
@@ -14,13 +15,14 @@ import (
 func main() {
 	config.LoadEnv()
 
-	bbolt := db.InitBolt()
+	bbolt := db.InitBbolt()
 	firebase := db.InitFirebase()
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
 
-	ns := services.NewNotificationService()
+	httpClient := &http.Client{}
+	ns := services.NewNotificationService(httpClient)
 	cs := services.NewCronService(firebase, bbolt, ns)
 	ch := handlers.NewCronHandler(cs)
 

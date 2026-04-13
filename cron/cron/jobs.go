@@ -13,12 +13,18 @@ func StartCronJobs(cronService *services.CronService) *cron.Cron {
 	c := cron.New()
 	cronTime := config.Vars.CronTime
 
-	c.AddFunc(cronTime, func() {
-		cronService.RunCronJob()
-		now := time.Now().Unix()
+	_, err := c.AddFunc(cronTime, func() {
+		if err := cronService.RunCronJob(); err != nil {
+			log.Printf("cron job failed: %v", err)
+		}
 
+		now := time.Now().Unix()
 		log.Println("Cron job ran at:", now)
 	})
+
+	if err != nil {
+		log.Fatalf("failed to schedule cron job: %v", err)
+	}
 
 	c.Start()
 	return c

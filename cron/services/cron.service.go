@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"shopping-list/cron/internal/constants"
+	"shopping-list/cron/internal/config"
 	"shopping-list/cron/models"
 	"time"
 
 	"firebase.google.com/go/v4/db"
 	"github.com/google/uuid"
-	bolt "go.etcd.io/bbolt"
+	"go.etcd.io/bbolt"
 )
 
 type NotificationService interface {
@@ -21,13 +21,13 @@ type NotificationService interface {
 
 type CronService struct {
 	firebaseDB *db.Client
-	db         *bolt.DB
+	db         *bbolt.DB
 	ns         NotificationService
 }
 
-func NewCronService(firebaseDBClient *db.Client, boltDB *bolt.DB, notificationService NotificationService) *CronService {
-	err := boltDB.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(constants.CronBucket))
+func NewCronService(firebaseDBClient *db.Client, bboltDB *bbolt.DB, notificationService NotificationService) *CronService {
+	err := bboltDB.Update(func(tx *bbolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
 		return err
 	})
 	if err != nil {
@@ -36,7 +36,7 @@ func NewCronService(firebaseDBClient *db.Client, boltDB *bolt.DB, notificationSe
 
 	return &CronService{
 		firebaseDB: firebaseDBClient,
-		db:         boltDB,
+		db:         bboltDB,
 		ns:         notificationService,
 	}
 }
@@ -51,8 +51,8 @@ func (c *CronService) AddCronItem(item models.CronItem) (string, error) {
 		return "", err
 	}
 
-	err = c.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.CronBucket))
+	err = c.db.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.Put([]byte(item.ID), data)
 	})
 	if err != nil {
@@ -65,8 +65,8 @@ func (c *CronService) AddCronItem(item models.CronItem) (string, error) {
 func (c *CronService) GetAllCronItems() ([]models.CronItem, error) {
 	var items []models.CronItem
 
-	err := c.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.CronBucket))
+	err := c.db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(k, v []byte) error {
 			var item models.CronItem
 			if err := json.Unmarshal(v, &item); err != nil {
@@ -81,8 +81,8 @@ func (c *CronService) GetAllCronItems() ([]models.CronItem, error) {
 }
 
 func (c *CronService) UpdateCategory(id string, newCategory string) error {
-	return c.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.CronBucket))
+	return c.db.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
 			return errors.New("cron item not found")
@@ -104,8 +104,8 @@ func (c *CronService) UpdateCategory(id string, newCategory string) error {
 }
 
 func (c *CronService) Delete(id string) error {
-	return c.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.CronBucket))
+	return c.db.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
 			return errors.New("cron item not found")
@@ -144,9 +144,11 @@ func (c *CronService) RunCronJob() error {
 			Category: cronItem.Category,
 		}
 
-		_, err := c.AddItemToList(item)
-		if err != nil {
-			fmt.Printf("failed to add item '%s' to Firebase: %v\n", item.Item, err)
+		if c.firebaseDB != nil {
+			_, err := c.AddItemToList(item)
+			if err != nil {
+				fmt.Printf("failed to add item '%s' to Firebase: %v\n", item.Item, err)
+			}
 		}
 
 		userSet[cronItem.AddedBy] = struct{}{}
