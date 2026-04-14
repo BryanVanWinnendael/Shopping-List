@@ -308,6 +308,59 @@ func TestGetByAddedBy(t *testing.T) {
 	})
 }
 
+func TestUpdateCategory_Errors(t *testing.T) {
+
+	t.Run("Given invalid body, When UpdateCategory, Then returns 400", func(t *testing.T) {
+		// given
+		c, rec := setupEcho(http.MethodPut, "/cron/1", []byte("invalid-json"))
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		handler := newHandler(&MockCronService{})
+
+		// when
+		err := handler.UpdateCategory(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given service error, When UpdateCategory, Then returns 500", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(models.UpdateCronItemRequest{
+			Category: "new",
+		})
+
+		c, rec := setupEcho(http.MethodPut, "/cron/1", body)
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		handler := newHandler(&MockCronService{
+			UpdateCategoryFunc: func(id, category string) error {
+				return errors.New("fail")
+			},
+		})
+
+		// when
+		err := handler.UpdateCategory(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("expected 500, got %d", rec.Code)
+		}
+	})
+}
+
 func (m *MockCronService) AddCronItem(item models.CronItem) (string, error) {
 	if m.AddFunc != nil {
 		return m.AddFunc(item)

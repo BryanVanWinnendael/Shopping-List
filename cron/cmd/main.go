@@ -23,7 +23,8 @@ func main() {
 
 	httpClient := &http.Client{}
 	ns := services.NewNotificationService(httpClient)
-	cs := services.NewCronService(firebase, bbolt, ns)
+	firebaseClient := services.NewFirebaseClient(firebase)
+	cs := services.NewCronService(firebaseClient, bbolt, ns)
 	ch := handlers.NewCronHandler(cs)
 
 	handlers.SetupRoutes(e, ch)

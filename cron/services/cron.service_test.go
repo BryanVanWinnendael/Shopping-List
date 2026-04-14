@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"shopping-list/cron/internal/config"
 	"shopping-list/cron/models"
@@ -12,6 +13,10 @@ import (
 
 type MockNotificationService struct {
 	SendFunc func(user string, t string) error
+}
+
+type MockFirebase struct {
+	SetFunc func(path string, data interface{}) error
 }
 
 const TmpDB = "test.db"
@@ -218,8 +223,9 @@ func TestRunCronJob(t *testing.T) {
 		}
 
 		service := &CronService{
-			db: db,
-			ns: mockNotif,
+			db:       db,
+			ns:       mockNotif,
+			firebase: &MockFirebase{},
 		}
 
 		item := models.CronItem{
@@ -240,6 +246,71 @@ func TestRunCronJob(t *testing.T) {
 
 		// when
 		err = service.RunCronJob()
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	})
+}
+
+func TestGetAllCronItems_UnmarshalError(t *testing.T) {
+	t.Run("Given invalid JSON in DB, Then return error", func(t *testing.T) {
+		// given
+		db := setupDB(t)
+		defer cleanupDB(t, db)
+
+		service := &CronService{db: db}
+
+		invalidJSON := []byte("not-json")
+
+		mustUpdate(t, db, func(tx *bbolt.Tx) error {
+			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), invalidJSON)
+		})
+
+		// when
+		_, err := service.GetAllCronItems()
+
+		// then
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+	})
+}
+
+func TestRunCronJob_NotificationError(t *testing.T) {
+	t.Run("Given notification fails, Then still completes", func(t *testing.T) {
+		// given
+		db := setupDB(t)
+		defer cleanupDB(t, db)
+
+		mockNotif := &MockNotificationService{
+			SendFunc: func(user, t string) error {
+				return errors.New("fail")
+			},
+		}
+
+		service := &CronService{
+			db:       db,
+			ns:       mockNotif,
+			firebase: &MockFirebase{},
+		}
+
+		item := models.CronItem{
+			ID:       "1",
+			Item:     "test",
+			Category: "work",
+			AddedBy:  "user1",
+		}
+
+		data, _ := json.Marshal(item)
+
+		mustUpdate(t, db, func(tx *bbolt.Tx) error {
+			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
+		})
+
+		// when
+		err := service.RunCronJob()
 
 		// then
 		if err != nil {
@@ -292,4 +363,11 @@ func mustUpdate(t *testing.T, db *bbolt.DB, fn func(tx *bbolt.Tx) error) {
 	if err != nil {
 		t.Fatalf("db update failed: %v", err)
 	}
+}
+
+func (m *MockFirebase) Set(path string, data interface{}) error {
+	if m.SetFunc != nil {
+		return m.SetFunc(path, data)
+	}
+	return nil
 }

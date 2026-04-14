@@ -19,13 +19,25 @@ type NotificationService interface {
 	SendNotification(user string, notificationType string) error
 }
 
-type CronService struct {
-	firebaseDB *db.Client
-	db         *bbolt.DB
-	ns         NotificationService
+type FirebaseClient interface {
+	Set(path string, data interface{}) error
 }
 
-func NewCronService(firebaseDBClient *db.Client, bboltDB *bbolt.DB, notificationService NotificationService) *CronService {
+type FirebaseClientImpl struct {
+	client *db.Client
+}
+
+func NewFirebaseClient(client *db.Client) *FirebaseClientImpl {
+	return &FirebaseClientImpl{client: client}
+}
+
+type CronService struct {
+	firebase FirebaseClient
+	db       *bbolt.DB
+	ns       NotificationService
+}
+
+func NewCronService(firebaseDBClient FirebaseClient, bboltDB *bbolt.DB, notificationService NotificationService) *CronService {
 	err := bboltDB.Update(func(tx *bbolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
 		return err
@@ -35,10 +47,16 @@ func NewCronService(firebaseDBClient *db.Client, bboltDB *bbolt.DB, notification
 	}
 
 	return &CronService{
-		firebaseDB: firebaseDBClient,
-		db:         bboltDB,
-		ns:         notificationService,
+		firebase: firebaseDBClient,
+		db:       bboltDB,
+		ns:       notificationService,
 	}
+}
+
+func (f *FirebaseClientImpl) Set(path string, data interface{}) error {
+	ctx := context.Background()
+	ref := f.client.NewRef(path)
+	return ref.Set(ctx, data)
 }
 
 func (c *CronService) AddCronItem(item models.CronItem) (string, error) {
@@ -115,11 +133,11 @@ func (c *CronService) Delete(id string) error {
 }
 
 func (c *CronService) AddItemToList(item models.Item) (string, error) {
-	ctx := context.Background()
-	ref := c.firebaseDB.NewRef(fmt.Sprintf("items/%s", item.ID))
-	if err := ref.Set(ctx, item); err != nil {
+	path := fmt.Sprintf("items/%s", item.ID)
+	if err := c.firebase.Set(path, item); err != nil {
 		return "", err
 	}
+
 	return item.ID, nil
 }
 
@@ -144,11 +162,9 @@ func (c *CronService) RunCronJob() error {
 			Category: cronItem.Category,
 		}
 
-		if c.firebaseDB != nil {
-			_, err := c.AddItemToList(item)
-			if err != nil {
-				fmt.Printf("failed to add item '%s' to Firebase: %v\n", item.Item, err)
-			}
+		_, err := c.AddItemToList(item)
+		if err != nil {
+			fmt.Printf("failed to add item '%s' to Firebase: %v\n", item.Item, err)
 		}
 
 		userSet[cronItem.AddedBy] = struct{}{}
