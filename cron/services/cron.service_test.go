@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"os"
 	"shopping-list/cron/internal/config"
-	"testing"
-
 	"shopping-list/cron/models"
+	"testing"
 
 	"go.etcd.io/bbolt"
 )
@@ -262,13 +261,17 @@ func setupDB(t *testing.T) *bbolt.DB {
 		t.Fatalf("failed to open db: %v", err)
 	}
 
+	bucket := "test-bucket"
+
 	err = db.Update(func(tx *bbolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
+		_, err := tx.CreateBucketIfNotExists([]byte(bucket))
 		return err
 	})
 	if err != nil {
 		t.Fatalf("failed to create bucket: %v", err)
 	}
+
+	config.Vars.Bucket = bucket
 
 	return db
 }
