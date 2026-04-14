@@ -11,6 +11,7 @@ services:
     environment:
       ENV: production
       DATA_DIR: /app/data
+      LOGS_FILE: logs.txt
     env_file:
       - .env
     restart: unless-stopped

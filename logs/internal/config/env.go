@@ -8,7 +8,8 @@ import (
 )
 
 type Env struct {
-	DataDir string
+	DataDir  string
+	LogsFile string
 }
 
 var Vars Env
@@ -21,7 +22,8 @@ func LoadEnv() {
 	}
 
 	Vars = Env{
-		DataDir: getEnv("DATA_DIR", "./data"),
+		DataDir:  getEnv("DATA_DIR", "./data"),
+		LogsFile: getEnv("LOGS_FILE", "logs.txt"),
 	}
 }
 
