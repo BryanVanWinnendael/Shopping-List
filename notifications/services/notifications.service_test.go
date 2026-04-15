@@ -131,14 +131,15 @@ func TestGetUserNotifications(t *testing.T) {
 
 		mustUpdate(t, db, func(tx *bbolt.Tx) error {
 			b := tx.Bucket([]byte(config.Vars.Bucket))
-			err := b.Put([]byte("1"), b1)
-			if err != nil {
+
+			if err := b.Put([]byte("1"), b1); err != nil {
 				return err
 			}
-			err = b.Put([]byte("2"), b2)
-			if err != nil {
+
+			if err := b.Put([]byte("2"), b2); err != nil {
 				return err
 			}
+
 			return nil
 		})
 
