@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"shopping-list/notifications/models"
 
@@ -93,7 +94,7 @@ func (nh *NotificationsHandler) SendPushByType(c echo.Context) error {
 
 	env := ""
 	body := make(map[string]interface{})
-	if err := c.Bind(&body); err != nil && err != echo.ErrUnsupportedMediaType {
+	if err := c.Bind(&body); err != nil && !errors.Is(err, echo.ErrUnsupportedMediaType) {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 	}
 

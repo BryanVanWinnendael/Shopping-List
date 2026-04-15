@@ -10,12 +10,8 @@ import (
 	"shopping-list/cron/internal/config"
 )
 
-type MockRoundTripper struct {
+type mockRoundTripper struct {
 	RoundTripFunc func(req *http.Request) (*http.Response, error)
-}
-
-func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	return m.RoundTripFunc(req)
 }
 
 func TestSendNotification(t *testing.T) {
@@ -23,17 +19,14 @@ func TestSendNotification(t *testing.T) {
 		// given
 		config.Vars.NotificationsAPIUrl = "http://test"
 
-		mockTransport := &MockRoundTripper{
-			RoundTripFunc: func(req *http.Request) (*http.Response, error) {
-				return &http.Response{
-					StatusCode: 200,
-					Status:     "200 OK",
-					Body:       io.NopCloser(strings.NewReader("ok")),
-				}, nil
-			},
-		}
+		client := newMockClient(func(req *http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader("ok")),
+			}, nil
+		})
 
-		client := &http.Client{Transport: mockTransport}
 		service := NewNotificationService(client)
 
 		// when
@@ -49,13 +42,10 @@ func TestSendNotification(t *testing.T) {
 		// given
 		config.Vars.NotificationsAPIUrl = "http://test"
 
-		mockTransport := &MockRoundTripper{
-			RoundTripFunc: func(req *http.Request) (*http.Response, error) {
-				return nil, errors.New("network error")
-			},
-		}
+		client := newMockClient(func(req *http.Request) (*http.Response, error) {
+			return nil, errors.New("network error")
+		})
 
-		client := &http.Client{Transport: mockTransport}
 		service := NewNotificationService(client)
 
 		// when
@@ -71,17 +61,14 @@ func TestSendNotification(t *testing.T) {
 		// given
 		config.Vars.NotificationsAPIUrl = "http://test"
 
-		mockTransport := &MockRoundTripper{
-			RoundTripFunc: func(req *http.Request) (*http.Response, error) {
-				return &http.Response{
-					StatusCode: 500,
-					Status:     "500 Internal Server Error",
-					Body:       io.NopCloser(strings.NewReader("error")),
-				}, nil
-			},
-		}
+		client := newMockClient(func(req *http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 500,
+				Status:     "500 Internal Server Error",
+				Body:       io.NopCloser(strings.NewReader("error")),
+			}, nil
+		})
 
-		client := &http.Client{Transport: mockTransport}
 		service := NewNotificationService(client)
 
 		// when
@@ -107,4 +94,16 @@ func TestSendNotification(t *testing.T) {
 			t.Fatalf("expected error, got nil")
 		}
 	})
+}
+
+func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	return m.RoundTripFunc(req)
+}
+
+func newMockClient(fn func(req *http.Request) (*http.Response, error)) *http.Client {
+	return &http.Client{
+		Transport: &mockRoundTripper{
+			RoundTripFunc: fn,
+		},
+	}
 }

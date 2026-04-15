@@ -9,6 +9,8 @@ import (
 
 type Env struct {
 	DataDir string
+	Bucket  string
+	DB      string
 }
 
 var Vars Env
@@ -22,6 +24,8 @@ func LoadEnv() {
 
 	Vars = Env{
 		DataDir: getEnv("DATA_DIR", "./data"),
+		Bucket:  getEnv("BUCKET", "notifications"),
+		DB:      getEnv("DB", "notifications.db"),
 	}
 }
 

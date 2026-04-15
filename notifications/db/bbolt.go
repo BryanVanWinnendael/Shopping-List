@@ -6,25 +6,24 @@ import (
 	"path/filepath"
 
 	"shopping-list/notifications/internal/config"
-	"shopping-list/notifications/internal/constants"
 
-	bolt "go.etcd.io/bbolt"
+	"go.etcd.io/bbolt"
 )
 
-func InitBolt() *bolt.DB {
+func InitBbolt() *bbolt.DB {
 	if err := os.MkdirAll(config.Vars.DataDir, os.ModePerm); err != nil {
 		log.Fatalf("Failed to create data directory: %v", err)
 	}
 
-	dbPath := filepath.Join(config.Vars.DataDir, "notifications.db")
+	dbPath := filepath.Join(config.Vars.DataDir, config.Vars.DB)
 
-	db, err := bolt.Open(dbPath, 0600, nil)
+	db, err := bbolt.Open(dbPath, 0600, nil)
 	if err != nil {
 		log.Fatalf("Failed to open BoltDB: %v", err)
 	}
 
-	err = db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(constants.NotificationsBucket))
+	err = db.Update(func(tx *bbolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
 		return err
 	})
 	if err != nil {

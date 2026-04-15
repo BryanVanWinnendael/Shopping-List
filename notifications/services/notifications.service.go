@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"shopping-list/notifications/internal/constants"
+	"shopping-list/notifications/internal/config"
 	"shopping-list/notifications/models"
 
 	"github.com/google/uuid"
-	bolt "go.etcd.io/bbolt"
+	"go.etcd.io/bbolt"
 )
 
 type ExpoPushService interface {
@@ -16,13 +16,13 @@ type ExpoPushService interface {
 }
 
 type NotificationsService struct {
-	db   *bolt.DB
+	db   *bbolt.DB
 	expo ExpoPushService
 }
 
-func NewNotificationsService(db *bolt.DB, expo ExpoPushService) *NotificationsService {
-	err := db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(constants.NotificationsBucket))
+func NewNotificationsService(db *bbolt.DB, expo ExpoPushService) *NotificationsService {
+	err := db.Update(func(tx *bbolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
 		return err
 	})
 	if err != nil {
@@ -44,8 +44,8 @@ func (ns *NotificationsService) CreateNotification(data *models.NotificationCrea
 	}
 	notifJSON, _ := json.MarshalIndent(notif, "", "  ")
 
-	err := ns.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.NotificationsBucket))
+	err := ns.db.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.Put([]byte(notif.ID), notifJSON)
 	})
 	if err != nil {
@@ -58,8 +58,8 @@ func (ns *NotificationsService) CreateNotification(data *models.NotificationCrea
 func (ns *NotificationsService) GetNotification(id string) (*models.Notification, error) {
 	var notif models.Notification
 
-	err := ns.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.NotificationsBucket))
+	err := ns.db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
 			return errors.New("notification not found")
@@ -77,8 +77,8 @@ func (ns *NotificationsService) GetNotification(id string) (*models.Notification
 func (ns *NotificationsService) GetAllNotifications() ([]models.Notification, error) {
 	var list []models.Notification
 
-	err := ns.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.NotificationsBucket))
+	err := ns.db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(k, v []byte) error {
 			var n models.Notification
 			if err := json.Unmarshal(v, &n); err != nil {
@@ -109,8 +109,8 @@ func (ns *NotificationsService) GetUserNotifications(userID string) ([]models.No
 }
 
 func (ns *NotificationsService) DeleteNotification(user string, notifType string) error {
-	return ns.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.NotificationsBucket))
+	return ns.db.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		var found bool
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
@@ -158,11 +158,11 @@ func (ns *NotificationsService) SendPushNotification(notifType string, user stri
 	return nil
 }
 
-func sendDevNotification(expo ExpoPushService, db *bolt.DB, notifType string, user string) error {
-	all := []models.Notification{}
+func sendDevNotification(expo ExpoPushService, db *bbolt.DB, notifType string, user string) error {
+	var all []models.Notification
 
-	err := db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.NotificationsBucket))
+	err := db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(k, v []byte) error {
 			var n models.Notification
 			if err := json.Unmarshal(v, &n); err != nil {

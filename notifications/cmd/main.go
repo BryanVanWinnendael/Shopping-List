@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"shopping-list/notifications/db"
 	"shopping-list/notifications/handlers"
 	"shopping-list/notifications/internal/config"
@@ -13,13 +14,14 @@ import (
 func main() {
 	config.LoadEnv()
 
-	db := db.InitBolt()
+	bbolt := db.InitBbolt()
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
 
-	expo := services.NewExpoPushService()
-	ns := services.NewNotificationsService(db, expo)
+	httpClient := &http.Client{}
+	expo := services.NewExpoPushService(httpClient)
+	ns := services.NewNotificationsService(bbolt, expo)
 	nh := handlers.NewNotificationsHandler(ns)
 
 	handlers.SetupRoutes(e, nh)

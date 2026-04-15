@@ -6,25 +6,25 @@ import (
 	"testing"
 )
 
-const TmpCsv = "test_categories.csv"
-const TmpModel = "test_model.pkl"
+const tmpCsv = "test_categories.csv"
+const tmpModel = "test_model.pkl"
 
 func TestTrainModel(t *testing.T) {
 	t.Run("Given valid CSV, When training model, Then it returns accuracy and creates model file", func(t *testing.T) {
 		// given
-		defer removeFile(TmpCsv)
-		defer removeFile(TmpModel)
+		defer removeFile(tmpCsv)
+		defer removeFile(tmpModel)
 
 		origCsv := CategoriesCsv
 		origModel := ModelFile
-		CategoriesCsv = func() string { return TmpCsv }
-		ModelFile = func() string { return TmpModel }
+		CategoriesCsv = func() string { return tmpCsv }
+		ModelFile = func() string { return tmpModel }
 		defer func() {
 			CategoriesCsv = origCsv
 			ModelFile = origModel
 		}()
 
-		err := writeTestCSV(TmpCsv)
+		err := writeTestCSV(tmpCsv)
 		if err != nil {
 			t.Fatalf("failed to write test CSV: %v", err)
 		}
@@ -48,7 +48,7 @@ func TestTrainModel(t *testing.T) {
 			t.Fatalf("expected accuracy in result")
 		}
 
-		if _, err := os.Stat(TmpModel); err != nil {
+		if _, err := os.Stat(tmpModel); err != nil {
 			t.Fatalf("expected model file to be created")
 		}
 	})
@@ -57,19 +57,19 @@ func TestTrainModel(t *testing.T) {
 func TestLoadModel(t *testing.T) {
 	t.Run("Given no model file, When loading, Then it trains and saves model", func(t *testing.T) {
 		// given
-		defer removeFile(TmpCsv)
-		defer removeFile(TmpModel)
+		defer removeFile(tmpCsv)
+		defer removeFile(tmpModel)
 
 		origCsv := CategoriesCsv
 		origModel := ModelFile
-		CategoriesCsv = func() string { return TmpCsv }
-		ModelFile = func() string { return TmpModel }
+		CategoriesCsv = func() string { return tmpCsv }
+		ModelFile = func() string { return tmpModel }
 		defer func() {
 			CategoriesCsv = origCsv
 			ModelFile = origModel
 		}()
 
-		err := writeTestCSV(TmpCsv)
+		err := writeTestCSV(tmpCsv)
 		if err != nil {
 			t.Fatalf("failed to write test CSV: %v", err)
 		}
@@ -85,7 +85,7 @@ func TestLoadModel(t *testing.T) {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if _, err := os.Stat(TmpModel); err != nil {
+		if _, err := os.Stat(tmpModel); err != nil {
 			t.Fatalf("expected model file to be created")
 		}
 	})
@@ -95,12 +95,12 @@ func TestLoadModel(t *testing.T) {
 		tmpCsv := "test_categories.csv"
 
 		defer removeFile(tmpCsv)
-		defer removeFile(TmpModel)
+		defer removeFile(tmpModel)
 
 		origCsv := CategoriesCsv
 		origModel := ModelFile
 		CategoriesCsv = func() string { return tmpCsv }
-		ModelFile = func() string { return TmpModel }
+		ModelFile = func() string { return tmpModel }
 		defer func() {
 			CategoriesCsv = origCsv
 			ModelFile = origModel

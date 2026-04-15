@@ -3,13 +3,19 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
-type ExpoPushServiceImpl struct{}
+type ExpoPushServiceImpl struct {
+	client *http.Client
+}
 
-func NewExpoPushService() *ExpoPushServiceImpl {
-	return &ExpoPushServiceImpl{}
+func NewExpoPushService(client *http.Client) *ExpoPushServiceImpl {
+	if client == nil {
+		client = &http.Client{}
+	}
+	return &ExpoPushServiceImpl{client: client}
 }
 
 func (e *ExpoPushServiceImpl) SendPushToUser(token, title, body string) error {
@@ -19,8 +25,35 @@ func (e *ExpoPushServiceImpl) SendPushToUser(token, title, body string) error {
 		"body":  body,
 	}
 
-	data, _ := json.Marshal(payload)
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload: %w", err)
+	}
 
-	_, err := http.Post("https://exp.host/--/api/v2/push/send", "application/json", bytes.NewBuffer(data))
-	return err
+	req, err := http.NewRequest(
+		http.MethodPost,
+		"https://exp.host/--/api/v2/push/send",
+		bytes.NewBuffer(data),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := e.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}()
+
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("expo push failed: %s", resp.Status)
+	}
+
+	return nil
 }

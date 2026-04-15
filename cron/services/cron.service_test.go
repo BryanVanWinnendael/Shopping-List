@@ -19,7 +19,7 @@ type MockFirebase struct {
 	SetFunc func(path string, data interface{}) error
 }
 
-const TmpDB = "test.db"
+const tmpDB = "test.db"
 
 func TestAddCronItem(t *testing.T) {
 	t.Run("Given valid cron item, When AddCronItem, Then return id", func(t *testing.T) {
@@ -327,7 +327,7 @@ func (m *MockNotificationService) SendNotification(user string, notificationType
 }
 
 func setupDB(t *testing.T) *bbolt.DB {
-	db, err := bbolt.Open(TmpDB, 0600, nil)
+	db, err := bbolt.Open(tmpDB, 0600, nil)
 	if err != nil {
 		t.Fatalf("failed to open db: %v", err)
 	}
@@ -353,7 +353,7 @@ func cleanupDB(t *testing.T, db *bbolt.DB) {
 		t.Fatalf("failed to close db: %v", err)
 	}
 
-	if err := os.Remove(TmpDB); err != nil && !os.IsNotExist(err) {
+	if err := os.Remove(tmpDB); err != nil && !os.IsNotExist(err) {
 		t.Fatalf("failed to remove db file: %v", err)
 	}
 }
