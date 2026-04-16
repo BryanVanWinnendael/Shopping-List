@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"shopping-list/recipes/internal/config"
 
-	"shopping-list/recipes/internal/constants"
 	"shopping-list/recipes/models"
 	"sort"
 
@@ -19,7 +19,7 @@ type RecipeService struct {
 
 func NewRecipeService(db *bolt.DB) *RecipeService {
 	err := db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(constants.RecipesBucket))
+		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
 		return err
 	})
 	if err != nil {
@@ -51,7 +51,7 @@ func (s *RecipeService) CreateRecipe(data *models.RecipeCreate) (*models.RecipeR
 
 	recipeJSON, _ := json.MarshalIndent(recipe, "", "  ")
 	err := s.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.RecipesBucket))
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.Put([]byte(recipe.ID), recipeJSON)
 	})
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *RecipeService) GetRecipe(id string) (*models.RecipeResponse, error) {
 	var recipe models.Recipe
 
 	err := s.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.RecipesBucket))
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
 			return errors.New("recipe not found")
@@ -111,7 +111,7 @@ func (s *RecipeService) GetRecipes(skip, limit int) ([]models.RecipeResponse, er
 	var recipes []models.Recipe
 
 	err := s.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.RecipesBucket))
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(_, v []byte) error {
 			var r models.Recipe
 			if err := json.Unmarshal(v, &r); err != nil {
@@ -155,7 +155,7 @@ func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) ([]models
 	var recipes []models.Recipe
 
 	err := s.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.RecipesBucket))
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(_, v []byte) error {
 			var r models.Recipe
 			if err := json.Unmarshal(v, &r); err != nil {
@@ -203,7 +203,7 @@ func (s *RecipeService) UpdateRecipe(id string, data *models.RecipeUpdate) (*mod
 	var recipe models.Recipe
 
 	err := s.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.RecipesBucket))
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
 			return errors.New("recipe not found")
@@ -271,7 +271,7 @@ func (s *RecipeService) UpdateRecipe(id string, data *models.RecipeUpdate) (*mod
 func (s *RecipeService) DeleteRecipe(id string) (bool, error) {
 	var existed bool
 	err := s.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.RecipesBucket))
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
 			existed = false
@@ -287,7 +287,7 @@ func (s *RecipeService) GetAllDistinctCountries() ([]string, error) {
 	countrySet := make(map[string]struct{})
 
 	err := s.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(constants.RecipesBucket))
+		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(_, v []byte) error {
 			var r models.Recipe
 			if err := json.Unmarshal(v, &r); err != nil {

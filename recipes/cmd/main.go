@@ -13,7 +13,7 @@ import (
 func main() {
 	config.LoadEnv()
 
-	bbolt := db.InitBolt()
+	bbolt := db.InitBbolt()
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)

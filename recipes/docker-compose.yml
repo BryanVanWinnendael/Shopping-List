@@ -11,6 +11,8 @@ services:
     environment:
       ENV: production
       DATA_DIR: /app/data
+      BUCKET: recipes
+      DB: recipes.db
     env_file:
       - .env
     restart: unless-stopped
