@@ -6,10 +6,14 @@
 
 ```
 DATA_DIR=./data
+PRODUCTS_FILE=products.csv
 ```
 
 DATA_DIR:
 Directory used to store the csv of products. Intended for development environments only. Defaults to ./data if not specified.
+
+PRODUCTS_FILE:
+File name of the products csv. Intended for development environments only. Defaults to 'products.csv' if not specified.
 
 ## Setup
 

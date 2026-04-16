@@ -2,13 +2,13 @@ package services
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"shopping-list/products-search/internal/config"
-	"shopping-list/products-search/internal/constants"
 	"shopping-list/products-search/models"
 	"shopping-list/products-search/utils"
 
@@ -42,17 +42,9 @@ func (pss *ProductsSearchService) SearchProducts(
 		categorySet[strings.ToLower(c)] = struct{}{}
 	}
 
-	var ProductsCSV = filepath.Join(config.Vars.DataDir, constants.ProductsCSV)
-	file, err := os.Open(ProductsCSV)
-	if err != nil {
-		return models.ProductsSearchResult{}, err
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	records, err := reader.ReadAll()
-	if err != nil {
-		return models.ProductsSearchResult{}, err
+	records, result, err2 := getRecords()
+	if err2 != nil {
+		return result, err2
 	}
 
 	var matches []models.Product
@@ -133,17 +125,9 @@ func (pss *ProductsSearchService) FuzzySearch(
 		queryWords[i] = utils.Singularize(w)
 	}
 
-	var ProductsCSV = filepath.Join(config.Vars.DataDir, constants.ProductsCSV)
-	file, err := os.Open(ProductsCSV)
-	if err != nil {
-		return models.ProductsSearchResult{}, err
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	records, err := reader.ReadAll()
-	if err != nil {
-		return models.ProductsSearchResult{}, err
+	records, result, err2 := getRecords()
+	if err2 != nil {
+		return result, err2
 	}
 
 	categorySet := make(map[string]struct{})
@@ -244,6 +228,27 @@ func (pss *ProductsSearchService) FuzzySearch(
 		Item:        query,
 		Category:    category,
 	}, nil
+}
+
+func getRecords() ([][]string, models.ProductsSearchResult, error) {
+	var ProductsCSV = filepath.Join(config.Vars.DataDir, config.Vars.ProductsFile)
+	file, err := os.Open(ProductsCSV)
+	if err != nil {
+		return nil, models.ProductsSearchResult{}, err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Failed to close file:", err)
+		}
+	}(file)
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		return nil, models.ProductsSearchResult{}, err
+	}
+	return records, models.ProductsSearchResult{}, nil
 }
 
 func paginate[T any](items []T, page, pageSize int) ([]T, int) {
