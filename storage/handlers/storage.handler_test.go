@@ -342,7 +342,7 @@ func TestDeleteRecipesImage_Success(t *testing.T) {
 	})
 }
 
-func TestDeleteImage_BindError(t *testing.T) {
+func TestDeleteImage(t *testing.T) {
 	t.Run("Given invalid JSON body, When DeleteRecipesImage, Then returns 400 invalid request body", func(t *testing.T) {
 		// given
 		c, rec := setupEchoRaw(http.MethodDelete, "/recipes/1", []byte("{invalid-json"))
