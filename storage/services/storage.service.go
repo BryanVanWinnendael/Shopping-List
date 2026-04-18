@@ -11,107 +11,26 @@ import (
 	"strings"
 	"time"
 
+	"shopping-list/storage/internal/config"
+
 	"github.com/disintegration/imaging"
 )
+
+const (
+	MaxLargeSizeBytes = 1 * 1024 * 1024 // 1 MB
+	ThumbnailWidth    = 200
+	MaxLargeDimension = 1600
+	StartJPEGQuality  = 90
+	MinJPEGQuality    = 50
+)
+
+type StorageService struct{}
 
 func NewStorageService() *StorageService {
 	return &StorageService{}
 }
 
-type StorageService struct{}
-
-func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, itemID string) (string, error) {
-	src, err := fileHeader.Open()
-	if err != nil {
-		return "", err
-	}
-	defer src.Close()
-
-	dirPath := filepath.Join("storage", category, "images", itemID)
-	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
-		return "", fmt.Errorf("failed to create directory: %v", err)
-	}
-
-	img, format, err := image.Decode(src)
-	if err != nil {
-		return "", fmt.Errorf("invalid image: %v", err)
-	}
-
-	format = strings.ToLower(format)
-	if format != "jpeg" && format != "png" && format != "jpg" {
-		format = "jpeg"
-	}
-
-	timestamp := time.Now().Unix()
-	baseName := fmt.Sprintf("%d-%s", timestamp, fileHeader.Filename)
-
-	small := imaging.Resize(img, 200, 0, imaging.Lanczos)
-	smallPath := filepath.Join(dirPath, "small-"+baseName)
-	if err := imaging.Save(small, smallPath, imaging.JPEGQuality(40)); err != nil {
-		return "", fmt.Errorf("failed to save small image: %v", err)
-	}
-
-	large := imaging.Fit(img, 1600, 1600, imaging.Lanczos)
-	var buf bytes.Buffer
-	quality := 90
-	for {
-		buf.Reset()
-		if err := jpeg.Encode(&buf, large, &jpeg.Options{Quality: quality}); err != nil {
-			return "", fmt.Errorf("JPEG encode failed: %v", err)
-		}
-		if buf.Len() <= MaxLargeSizeBytes || quality <= 50 {
-			break
-		}
-		quality -= 5
-	}
-
-	largePath := filepath.Join(dirPath, "large-"+baseName)
-	if err := os.WriteFile(largePath, buf.Bytes(), 0644); err != nil {
-		return "", fmt.Errorf("failed to save large image: %v", err)
-	}
-
-	return "/" + largePath, nil
-}
-
-func (s *StorageService) deleteImage(category, itemID, imageURL string) error {
-	prefix := fmt.Sprintf("/storage/%s/images/", category)
-	parts := strings.SplitN(imageURL, prefix, 2)
-	if len(parts) != 2 {
-		return fmt.Errorf("invalid URL: must contain %s", prefix)
-	}
-
-	relativePath := parts[1]
-	fullPath := filepath.Join("storage", category, "images", relativePath)
-
-	if !strings.Contains(fullPath, filepath.Join("images", itemID)) {
-		return fmt.Errorf("image does not belong to %s %s", category, itemID)
-	}
-
-	if err := os.Remove(fullPath); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("file not found")
-		}
-		return fmt.Errorf("failed to delete image: %v", err)
-	}
-
-	if strings.Contains(fullPath, "large-") {
-		os.Remove(strings.Replace(fullPath, "large-", "small-", 1))
-	} else if strings.Contains(fullPath, "small-") {
-		os.Remove(strings.Replace(fullPath, "small-", "large-", 1))
-	}
-
-	return nil
-}
-
-func (s *StorageService) DeleteStorage(recipeID string, category string) error {
-	dirPath := filepath.Join("storage", category, "images", recipeID)
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		return fmt.Errorf("no storage found for recipe %s", recipeID)
-	}
-	return os.RemoveAll(dirPath)
-}
-
-func (s *StorageService) SaveRecipesImage(file *multipart.FileHeader, recipeID string) (string, error) {
+func (s *StorageService) SaveRecipesImage(file *multipart.FileHeader, recipeID string) (string, string, error) {
 	return s.saveImage(file, "recipes", recipeID)
 }
 
@@ -119,6 +38,132 @@ func (s *StorageService) DeleteRecipesImage(recipeID, imageURL string) error {
 	return s.deleteImage("recipes", recipeID, imageURL)
 }
 
-func (s *StorageService) SaveListImage(file *multipart.FileHeader, listID string) (string, error) {
+func (s *StorageService) SaveListImage(file *multipart.FileHeader, listID string) (string, string, error) {
 	return s.saveImage(file, "list", listID)
+}
+
+func (s *StorageService) DeleteStorage(itemID string, category string) error {
+	dirPath := filepath.Join(config.Vars.StorageDir, category, "images", itemID)
+
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		return fmt.Errorf("no storage found for %s %s", category, itemID)
+	}
+
+	return os.RemoveAll(dirPath)
+}
+
+func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, itemID string) (string, string, error) {
+	src, err := fileHeader.Open()
+	if err != nil {
+		return "", "", err
+	}
+	defer func() {
+		if err := src.Close(); err != nil {
+			fmt.Println("failed to close file:", err)
+		}
+	}()
+
+	img, _, err := image.Decode(src)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid image: %w", err)
+	}
+
+	dirPath := filepath.Join(config.Vars.StorageDir, category, "images", itemID)
+	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
+		return "", "", fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	timestamp := time.Now().Unix()
+	fileName := sanitizeFileName(fileHeader.Filename)
+	baseName := fmt.Sprintf("%d-%s", timestamp, fileName)
+
+	smallImg := imaging.Resize(img, ThumbnailWidth, 0, imaging.Lanczos)
+	smallFile := "small-" + baseName
+	smallPath := filepath.Join(dirPath, smallFile)
+
+	if err := imaging.Save(smallImg, smallPath, imaging.JPEGQuality(40)); err != nil {
+		return "", "", fmt.Errorf("failed to save small image: %w", err)
+	}
+
+	largeImg := imaging.Fit(img, MaxLargeDimension, MaxLargeDimension, imaging.Lanczos)
+
+	var buf bytes.Buffer
+	quality := StartJPEGQuality
+
+	for {
+		buf.Reset()
+
+		err := jpeg.Encode(&buf, largeImg, &jpeg.Options{Quality: quality})
+		if err != nil {
+			return "", "", fmt.Errorf("jpeg encode failed: %w", err)
+		}
+
+		if buf.Len() <= MaxLargeSizeBytes || quality <= MinJPEGQuality {
+			break
+		}
+
+		quality -= 5
+	}
+
+	largeFile := "large-" + baseName
+	largePath := filepath.Join(dirPath, largeFile)
+
+	if err := os.WriteFile(largePath, buf.Bytes(), 0644); err != nil {
+		return "", "", fmt.Errorf("failed to save large image: %w", err)
+	}
+
+	host := strings.TrimRight(config.Vars.Host, "/")
+	smallURL := fmt.Sprintf("%s/%s",
+		host,
+		filepath.ToSlash(filepath.Join(category, "images", itemID, smallFile)),
+	)
+	largeURL := fmt.Sprintf("%s/%s",
+		host,
+		filepath.ToSlash(filepath.Join(category, "images", itemID, largeFile)),
+	)
+
+	return smallURL, largeURL, nil
+}
+
+func (s *StorageService) deleteImage(category, itemID, imageURL string) error {
+	host := strings.TrimRight(config.Vars.Host, "/") + "/"
+	if !strings.HasPrefix(imageURL, host) {
+		return fmt.Errorf("invalid URL")
+	}
+
+	relativePath := strings.TrimPrefix(imageURL, host)
+	fullPath := filepath.Join(config.Vars.StorageDir, relativePath)
+	expectedDir := filepath.Join(config.Vars.StorageDir, category, "images", itemID)
+
+	if !strings.HasPrefix(fullPath, expectedDir) {
+		return fmt.Errorf("image does not belong to %s %s", category, itemID)
+	}
+
+	if err := os.Remove(fullPath); err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("file not found")
+		}
+		return fmt.Errorf("failed to delete image: %w", err)
+	}
+
+	var counterpart string
+
+	if strings.Contains(fullPath, "large-") {
+		counterpart = strings.Replace(fullPath, "large-", "small-", 1)
+	} else if strings.Contains(fullPath, "small-") {
+		counterpart = strings.Replace(fullPath, "small-", "large-", 1)
+	}
+
+	if counterpart != "" {
+		if err := os.Remove(counterpart); err != nil && !os.IsNotExist(err) {
+			fmt.Println("Failed to remove counterpart:", err)
+		}
+	}
+
+	return nil
+}
+
+func sanitizeFileName(name string) string {
+	name = strings.ReplaceAll(name, " ", "_")
+	return filepath.Base(name)
 }

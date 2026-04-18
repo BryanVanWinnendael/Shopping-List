@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -13,109 +12,18 @@ import (
 )
 
 type StorageService interface {
-	DeleteStorage(recipeID string, category string) error
-	SaveRecipesImage(file *multipart.FileHeader, recipeID string) (string, error)
+	DeleteStorage(itemID string, category string) error
+	SaveRecipesImage(file *multipart.FileHeader, recipeID string) (string, string, error)
 	DeleteRecipesImage(recipeID string, url string) error
-	SaveListImage(file *multipart.FileHeader, listID string) (string, error)
-}
-
-func NewStorageHandler(ss StorageService) *StorageHandler {
-	return &StorageHandler{StorageServices: ss}
+	SaveListImage(file *multipart.FileHeader, listID string) (string, string, error)
 }
 
 type StorageHandler struct {
-	StorageServices StorageService
+	storageService StorageService
 }
 
-func (sh *StorageHandler) uploadImage(c echo.Context, category string) error {
-	fileHeader, err := c.FormFile("image")
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing or invalid image file"})
-	}
-
-	id := c.Param("id")
-	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing ID"})
-	}
-
-	var filePath string
-	switch category {
-	case "recipes":
-		filePath, err = sh.StorageServices.SaveRecipesImage(fileHeader, id)
-	case "list":
-		filePath, err = sh.StorageServices.SaveListImage(fileHeader, id)
-	default:
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Unknown category"})
-	}
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-
-	host := config.Vars.HOST
-	largeURL := fmt.Sprintf("%s%s", host, filePath)
-	smallURL := fmt.Sprintf("%s%s", host, strings.Replace(filePath, "large-", "small-", 1))
-
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "Image uploaded successfully",
-		"large":   largeURL,
-		"small":   smallURL,
-	})
-}
-
-func (sh *StorageHandler) deleteImage(c echo.Context, category string) error {
-	id := c.Param("id")
-	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing ID"})
-	}
-
-	var request models.DeleteImageRequest
-	if err := json.NewDecoder(c.Request().Body).Decode(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid JSON"})
-	}
-	if request.URL == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing URL"})
-	}
-
-	if !strings.Contains(request.URL, config.Vars.HOST) {
-		return c.JSON(http.StatusOK, map[string]string{
-			"message": "Image is not stored in the configured storage",
-		})
-	}
-
-	var err error
-	switch category {
-	case "recipes":
-		err = sh.StorageServices.DeleteRecipesImage(id, request.URL)
-	default:
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Unknown category"})
-	}
-
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": fmt.Sprintf("Image for %s %s deleted successfully", category, id),
-	})
-}
-
-func (sh *StorageHandler) deleteStorage(c echo.Context, category string) error {
-	id := c.Param("id")
-	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing ID"})
-	}
-
-	if category != "recipes" && category != "list" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category"})
-	}
-
-	if err := sh.StorageServices.DeleteStorage(id, category); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": fmt.Sprintf("Deleted all images for %s %s", category, id),
-	})
+func NewStorageHandler(ss StorageService) *StorageHandler {
+	return &StorageHandler{storageService: ss}
 }
 
 func (sh *StorageHandler) UploadRecipesImage(c echo.Context) error {
@@ -136,4 +44,114 @@ func (sh *StorageHandler) UploadListImage(c echo.Context) error {
 
 func (sh *StorageHandler) DeleteListImage(c echo.Context) error {
 	return sh.deleteStorage(c, "list")
+}
+
+func (sh *StorageHandler) uploadImage(c echo.Context, category string) error {
+	if !isValidCategory(category) {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Category"})
+	}
+
+	fileHeader, err := c.FormFile("image")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing or invalid image file"})
+	}
+
+	id := c.Param("id")
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing ID"})
+	}
+
+	var smallURL, largeURL string
+
+	switch category {
+	case "recipes":
+		smallURL, largeURL, err = sh.storageService.SaveRecipesImage(fileHeader, id)
+	case "list":
+		smallURL, largeURL, err = sh.storageService.SaveListImage(fileHeader, id)
+	default:
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Unknown category"})
+	}
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Image uploaded successfully",
+		"large":   largeURL,
+		"small":   smallURL,
+	})
+}
+
+func (sh *StorageHandler) deleteImage(c echo.Context, category string) error {
+	if !isValidCategory(category) {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Category"})
+	}
+
+	id := c.Param("id")
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing ID"})
+	}
+
+	var request models.DeleteImageRequest
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid JSON"})
+	}
+
+	if request.URL == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing URL"})
+	}
+
+	if !isInternalURL(request.URL) {
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Image is not stored in the configured storage",
+		})
+	}
+
+	var err error
+
+	switch category {
+	case "recipes":
+		err = sh.storageService.DeleteRecipesImage(id, request.URL)
+	case "list":
+		return c.JSON(http.StatusNotImplemented, map[string]string{"error": "List image deletion not implemented"})
+	default:
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Unknown category"})
+	}
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": fmt.Sprintf("Image for %s %s deleted successfully", category, id),
+	})
+}
+
+func (sh *StorageHandler) deleteStorage(c echo.Context, category string) error {
+	if !isValidCategory(category) {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Category"})
+	}
+
+	id := c.Param("id")
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing ID"})
+	}
+
+	if err := sh.storageService.DeleteStorage(id, category); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": fmt.Sprintf("Deleted all images for %s %s", category, id),
+	})
+}
+
+func isValidCategory(category string) bool {
+	return category == "recipes" || category == "list"
+}
+
+func isInternalURL(url string) bool {
+	host := strings.TrimRight(config.Vars.Host, "/")
+	return strings.HasPrefix(url, host+"/")
 }

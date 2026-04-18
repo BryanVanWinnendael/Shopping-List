@@ -15,6 +15,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tests with coverage
+        working-directory: storage
+        run: |
+          go test ./handlers ./services \
+            -coverpkg=./handlers,./services \
+            -coverprofile=coverage.out
+
+      - name: Check coverage per package (80% rule)
+        working-directory: storage
+        run: |
+          echo "📊 Coverage Report"
+
+          HANDLERS_COV=$(go test ./handlers -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+          SERVICES_COV=$(go test ./services -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+
+          echo "--------------------------------"
+          echo "Handlers coverage: $HANDLERS_COV%"
+          echo "Services coverage: $SERVICES_COV%"
+          echo "--------------------------------"
+
+          FAIL=0
+
+          if (( $(echo "$HANDLERS_COV < 80" | bc -l) )); then
+            echo "❌ Handlers coverage below 80%"
+            FAIL=1
+          else
+            echo "✅ Handlers coverage OK"
+          fi
+
+          if (( $(echo "$SERVICES_COV < 80" | bc -l) )); then
+            echo "❌ Services coverage below 80%"
+            FAIL=1
+          else
+            echo "✅ Services coverage OK"
+          fi
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo "❌ Coverage check failed"
+            exit 1
+          fi
+
+          echo "All coverage thresholds passed"
+
       - name: Set up SSH
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
