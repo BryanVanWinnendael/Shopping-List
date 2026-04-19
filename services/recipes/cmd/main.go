@@ -4,8 +4,8 @@ import (
 	"shopping-list/recipes/db"
 	"shopping-list/recipes/handlers"
 	"shopping-list/recipes/internal/config"
-	"shopping-list/recipes/middlewares"
 	"shopping-list/recipes/services"
+	"shopping-list/shared/middlewares"
 
 	"github.com/labstack/echo/v4"
 )

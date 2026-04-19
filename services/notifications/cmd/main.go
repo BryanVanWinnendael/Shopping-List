@@ -5,8 +5,8 @@ import (
 	"shopping-list/notifications/db"
 	"shopping-list/notifications/handlers"
 	"shopping-list/notifications/internal/config"
-	"shopping-list/notifications/middlewares"
 	"shopping-list/notifications/services"
+	"shopping-list/shared/middlewares"
 
 	"github.com/labstack/echo/v4"
 )

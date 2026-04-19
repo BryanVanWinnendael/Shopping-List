@@ -4,8 +4,8 @@ import (
 	"log"
 	"shopping-list/category-model/handlers"
 	"shopping-list/category-model/internal/config"
-	"shopping-list/category-model/middlewares"
 	"shopping-list/category-model/services"
+	"shopping-list/shared/middlewares"
 
 	"github.com/labstack/echo/v4"
 )

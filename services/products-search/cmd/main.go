@@ -3,8 +3,8 @@ package main
 import (
 	"shopping-list/products-search/handlers"
 	"shopping-list/products-search/internal/config"
-	"shopping-list/products-search/middlewares"
 	"shopping-list/products-search/services"
+	"shopping-list/shared/middlewares"
 
 	"github.com/labstack/echo/v4"
 )

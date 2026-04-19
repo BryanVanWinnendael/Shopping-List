@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"shopping-list/logs/handlers"
 	"shopping-list/logs/internal/config"
-	"shopping-list/logs/middlewares"
 	"shopping-list/logs/services"
+	"shopping-list/shared/middlewares"
 
 	"github.com/labstack/echo/v4"
 )

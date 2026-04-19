@@ -1,9 +1,9 @@
 package main
 
 import (
+	"shopping-list/shared/middlewares"
 	"shopping-list/storage/handlers"
 	"shopping-list/storage/internal/config"
-	"shopping-list/storage/middlewares"
 	"shopping-list/storage/services"
 
 	"github.com/labstack/echo/v4"
@@ -19,7 +19,9 @@ func main() {
 
 	private := e.Group("")
 	private.Use(middlewares.RequestLogger)
-	private.Use(middlewares.AuthMiddleware)
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return middlewares.AuthMiddleware(next, config.Vars.APIAuthToken)
+	})
 
 	ss := services.NewStorageService()
 	sh := handlers.NewStorageHandler(ss)

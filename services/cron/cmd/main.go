@@ -6,8 +6,8 @@ import (
 	"shopping-list/cron/db"
 	"shopping-list/cron/handlers"
 	"shopping-list/cron/internal/config"
-	"shopping-list/cron/middlewares"
 	"shopping-list/cron/services"
+	"shopping-list/shared/middlewares"
 
 	"github.com/labstack/echo/v4"
 )

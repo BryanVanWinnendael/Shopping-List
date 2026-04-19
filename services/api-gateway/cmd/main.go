@@ -4,8 +4,8 @@ import (
 	"shopping-list/api-gateway/handlers"
 	httphelper "shopping-list/api-gateway/http-helper"
 	"shopping-list/api-gateway/internal/config"
-	"shopping-list/api-gateway/middlewares"
 	"shopping-list/api-gateway/services"
+	"shopping-list/shared/middlewares"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -17,7 +17,9 @@ func main() {
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
 	e.Use(middlewares.ResponseLogger)
-	e.Use(middlewares.AuthMiddleware)
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return middlewares.AuthMiddleware(next, config.Vars.APIAuthToken)
+	})
 
 	httpClient := httphelper.NewClient(60 * time.Second)
 

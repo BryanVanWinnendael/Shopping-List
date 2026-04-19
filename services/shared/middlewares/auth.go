@@ -2,13 +2,12 @@ package middlewares
 
 import (
 	"net/http"
-	"shopping-list/storage/internal/config"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
-func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func AuthMiddleware(next echo.HandlerFunc, apiAuthToken string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authHeader := c.Request().Header.Get("Authorization")
 		if authHeader == "" {
@@ -19,14 +18,13 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 		token = strings.TrimSpace(token)
 
-		validToken := config.Vars.APIAuthToken
-		if validToken == "" {
+		if apiAuthToken == "" {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Server misconfiguration: API_TOKEN missing",
 			})
 		}
 
-		if token != validToken {
+		if token != apiAuthToken {
 			return c.JSON(http.StatusUnauthorized, map[string]string{
 				"error": "Invalid token",
 			})
