@@ -1,12 +1,14 @@
 FROM golang:1.25.0-alpine AS builder
 
 WORKDIR /app
+
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY cron/. .
+COPY cron ./cron
+
 RUN CGO_ENABLED=0 GOOS=linux \
-    go build -ldflags="-s -w" -o app ./cmd
+    go build -ldflags="-s -w" -o app ./cron/cmd
 
 FROM alpine:3.20
 
