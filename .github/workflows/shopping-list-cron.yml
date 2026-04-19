@@ -74,10 +74,10 @@ jobs:
       - name: Deploy Cron
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/services/cron
+          cd ~/projects/shopping-list/services
           git fetch origin main
           git reset --hard origin/main
-          docker compose build
-          docker compose up -d
+          docker compose -f cron/docker-compose.yml build
+          docker compose -f cron/docker-compose.yml up -d
           docker image prune -af
           EOF
