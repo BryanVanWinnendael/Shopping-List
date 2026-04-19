@@ -2,8 +2,8 @@ services:
   shopping-list:
     container_name: shopping-list-category-model
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: category-model/Dockerfile
     expose:
       - "3000"
     volumes:

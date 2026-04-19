@@ -2,8 +2,8 @@ services:
   shopping-list:
     container_name: shopping-list-storage
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: storage/Dockerfile
     ports:
       - "8010:3000"
     volumes:

@@ -2,8 +2,8 @@ services:
   shopping-list:
     container_name: shopping-list-logs
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: logs/Dockerfile
     expose:
       - "3000"
     volumes:

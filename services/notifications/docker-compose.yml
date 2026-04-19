@@ -2,8 +2,8 @@ services:
   shopping-list:
     container_name: shopping-list-notifications
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: notifications/Dockerfile
     expose:
       - "3000"
     volumes:
