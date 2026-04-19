@@ -15,7 +15,6 @@ import (
 
 type MockNotificationsService struct {
 	CreateFunc   func(*models.NotificationCreate) (*models.Notification, error)
-	GetFunc      func(string) (*models.Notification, error)
 	GetAllFunc   func() ([]models.Notification, error)
 	GetUserFunc  func(string) ([]models.Notification, error)
 	DeleteFunc   func(string, string) error
@@ -23,13 +22,13 @@ type MockNotificationsService struct {
 }
 
 func TestAdd(t *testing.T) {
-	t.Run("Given invalid body, When Add, Then returns 400", func(t *testing.T) {
+	t.Run("Given invalid body, When Subscribe, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := setupEcho(http.MethodPost, "/notifications", []byte("invalid"))
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
-		_ = handler.Add(c)
+		_ = handler.Subscribe(c)
 
 		// then
 		if rec.Code != http.StatusBadRequest {
@@ -37,7 +36,7 @@ func TestAdd(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When Add, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When Subscribe, Then returns 500", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.NotificationCreate{})
 		c, rec := setupEcho(http.MethodPost, "/notifications", body)
@@ -49,7 +48,7 @@ func TestAdd(t *testing.T) {
 		})
 
 		// when
-		_ = handler.Add(c)
+		_ = handler.Subscribe(c)
 
 		// then
 		if rec.Code != http.StatusInternalServerError {
@@ -57,7 +56,7 @@ func TestAdd(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When Add, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When Subscribe, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.NotificationCreate{})
 		c, rec := setupEcho(http.MethodPost, "/notifications", body)
@@ -65,47 +64,7 @@ func TestAdd(t *testing.T) {
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
-		_ = handler.Add(c)
-
-		// then
-		if rec.Code != http.StatusOK {
-			t.Fatalf("expected 200, got %d", rec.Code)
-		}
-	})
-}
-
-func TestGet(t *testing.T) {
-	t.Run("Given service error, When Get, Then returns 404", func(t *testing.T) {
-		// given
-		c, rec := setupEcho(http.MethodGet, "/notifications/1", nil)
-		c.SetParamNames("id")
-		c.SetParamValues("1")
-
-		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetFunc: func(id string) (*models.Notification, error) {
-				return nil, errors.New("not found")
-			},
-		})
-
-		// when
-		_ = handler.Get(c)
-
-		// then
-		if rec.Code != http.StatusNotFound {
-			t.Fatalf("expected 404, got %d", rec.Code)
-		}
-	})
-
-	t.Run("Given valid id, When Get, Then returns 200", func(t *testing.T) {
-		// given
-		c, rec := setupEcho(http.MethodGet, "/notifications/1", nil)
-		c.SetParamNames("id")
-		c.SetParamValues("1")
-
-		handler := NewNotificationsHandler(&MockNotificationsService{})
-
-		// when
-		_ = handler.Get(c)
+		_ = handler.Subscribe(c)
 
 		// then
 		if rec.Code != http.StatusOK {
@@ -276,14 +235,14 @@ func TestGetUserNotifications(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("Given missing params, When Delete, Then returns 400", func(t *testing.T) {
+	t.Run("Given missing params, When DeleteNotification, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := setupEcho(http.MethodDelete, "/notifications", nil)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
-		_ = handler.Delete(c)
+		_ = handler.DeleteNotification(c)
 
 		// then
 		if rec.Code != http.StatusBadRequest {
@@ -291,7 +250,7 @@ func TestDelete(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When Delete, Then returns 404", func(t *testing.T) {
+	t.Run("Given service error, When DeleteNotification, Then returns 404", func(t *testing.T) {
 		// given
 		c, rec := setupEcho(http.MethodDelete, "/notifications/a/b", nil)
 		c.SetParamNames("type", "user")
@@ -304,7 +263,7 @@ func TestDelete(t *testing.T) {
 		})
 
 		// when
-		_ = handler.Delete(c)
+		_ = handler.DeleteNotification(c)
 
 		// then
 		if rec.Code != http.StatusNotFound {
@@ -312,7 +271,7 @@ func TestDelete(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When Delete, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When DeleteNotification, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := setupEcho(http.MethodDelete, "/notifications/a/b", nil)
 		c.SetParamNames("type", "user")
@@ -325,7 +284,7 @@ func TestDelete(t *testing.T) {
 		})
 
 		// when
-		_ = handler.Delete(c)
+		_ = handler.DeleteNotification(c)
 
 		// then
 		if rec.Code != http.StatusOK {
@@ -356,13 +315,6 @@ func (m *MockNotificationsService) CreateNotification(n *models.NotificationCrea
 		return m.CreateFunc(n)
 	}
 	return &models.Notification{ID: "1"}, nil
-}
-
-func (m *MockNotificationsService) GetNotification(id string) (*models.Notification, error) {
-	if m.GetFunc != nil {
-		return m.GetFunc(id)
-	}
-	return &models.Notification{ID: id}, nil
 }
 
 func (m *MockNotificationsService) GetAllNotifications() ([]models.Notification, error) {

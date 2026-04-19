@@ -20,14 +20,14 @@ func NewLogsService(client *httphelper.Client, baseURL string) *LogsService {
 }
 
 func (ls *LogsService) GetAppLogs(ctx context.Context) (*models.GetAppLogsResponse, error) {
-	url := ls.baseURL
+	requestUrl := ls.baseURL
 
 	var response models.GetAppLogsResponse
 
 	_, err := ls.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		&response,
@@ -41,14 +41,14 @@ func (ls *LogsService) GetAppLogs(ctx context.Context) (*models.GetAppLogsRespon
 }
 
 func (ls *LogsService) CreateAppLog(ctx context.Context, request models.CreateLogRequest) error {
-	url := ls.baseURL
+	requestUrl := ls.baseURL
 
 	var response models.CreateLogResponse
 
 	_, err := ls.client.DoRequest(
 		ctx,
 		http.MethodPost,
-		url,
+		requestUrl,
 		nil,
 		request,
 		&response,
@@ -58,14 +58,14 @@ func (ls *LogsService) CreateAppLog(ctx context.Context, request models.CreateLo
 }
 
 func (ls *LogsService) DeleteAppLog(ctx context.Context) error {
-	url := ls.baseURL
+	requestUrl := ls.baseURL
 
 	var response models.DeleteLogResponse
 
 	_, err := ls.client.DoRequest(
 		ctx,
 		http.MethodDelete,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		&response,

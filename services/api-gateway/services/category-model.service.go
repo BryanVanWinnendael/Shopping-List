@@ -22,14 +22,14 @@ func NewCategoryModelService(client *httphelper.Client, baseURL string) *Categor
 }
 
 func (cms *CategoryModelService) TrainModel(ctx context.Context) (*models.TrainModelResponse, error) {
-	url := fmt.Sprintf("%s/model", cms.baseURL)
+	requestUrl := fmt.Sprintf("%s/model", cms.baseURL)
 
 	var response models.TrainModelResponse
 
 	_, err := cms.client.DoRequest(
 		ctx,
 		http.MethodPost,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		&response,
@@ -43,7 +43,7 @@ func (cms *CategoryModelService) TrainModel(ctx context.Context) (*models.TrainM
 }
 
 func (cms *CategoryModelService) GetCategory(ctx context.Context, item string) (*models.CategoryResponse, error) {
-	url := fmt.Sprintf("%s/category?item=%s",
+	requestUrl := fmt.Sprintf("%s/category?item=%s",
 		cms.baseURL,
 		url.QueryEscape(item),
 	)
@@ -53,7 +53,7 @@ func (cms *CategoryModelService) GetCategory(ctx context.Context, item string) (
 	_, err := cms.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		&response,
@@ -71,14 +71,14 @@ func (cms *CategoryModelService) AddCategory(
 	ctx context.Context,
 	request models.AddCategoryRequest,
 ) (*models.AddCategoryResponse, error) {
-	url := fmt.Sprintf("%s/category", cms.baseURL)
+	requestUrl := fmt.Sprintf("%s/category", cms.baseURL)
 
 	var response models.AddCategoryResponse
 
 	_, err := cms.client.DoRequest(
 		ctx,
 		http.MethodPost,
-		url,
+		requestUrl,
 		nil,
 		request,
 		&response,

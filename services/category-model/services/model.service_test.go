@@ -55,7 +55,7 @@ func TestTrainModel(t *testing.T) {
 }
 
 func TestLoadModel(t *testing.T) {
-	t.Run("Given no model file, When loading, Then it trains and saves model", func(t *testing.T) {
+	t.Run("Given no model file, When LoadModel, Then it trains and saves model", func(t *testing.T) {
 		// given
 		defer removeFile(tmpCsv)
 		defer removeFile(tmpModel)
@@ -90,7 +90,7 @@ func TestLoadModel(t *testing.T) {
 		}
 	})
 
-	t.Run("Given existing model file, When loading, Then it decodes successfully", func(t *testing.T) {
+	t.Run("Given existing model file, When TrainModel, Then it decodes successfully", func(t *testing.T) {
 		// given
 		tmpCsv := "test_categories.csv"
 
@@ -126,7 +126,7 @@ func TestLoadModel(t *testing.T) {
 }
 
 func TestPredict(t *testing.T) {
-	t.Run("Given trained model, When predicting, Then it returns category", func(t *testing.T) {
+	t.Run("Given trained model, When Predict, Then it returns category", func(t *testing.T) {
 		// given
 		nb := createTestNaiveBayes()
 
@@ -152,7 +152,7 @@ func TestPredict(t *testing.T) {
 		}
 	})
 
-	t.Run("Given nil model, When predicting, Then it returns error", func(t *testing.T) {
+	t.Run("Given nil model, When Predict, Then it returns error", func(t *testing.T) {
 		// given
 		ms := &ModelService{}
 
@@ -167,7 +167,7 @@ func TestPredict(t *testing.T) {
 }
 
 func TestTokenize(t *testing.T) {
-	t.Run("Given text with punctuation, When tokenizing, Then it splits correctly", func(t *testing.T) {
+	t.Run("Given text with punctuation, When tokenize, Then it splits correctly", func(t *testing.T) {
 		// given/when
 		result := tokenize("Apple, banana. carrot")
 

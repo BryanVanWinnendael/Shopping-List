@@ -116,7 +116,7 @@ func TestGetAllNotifications(t *testing.T) {
 }
 
 func TestGetUserNotifications(t *testing.T) {
-	t.Run("Given multiple notifications, When filtering, Then return user notifications", func(t *testing.T) {
+	t.Run("Given multiple notifications, When GetUserNotifications, Then return user notifications", func(t *testing.T) {
 		// given
 		db := setupDB(t)
 		defer cleanupDB(t, db)

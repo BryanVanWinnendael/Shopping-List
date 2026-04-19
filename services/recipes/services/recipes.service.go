@@ -319,7 +319,7 @@ func convertList(list models.JSONList) []models.RecipeListItem {
 	}
 	items := make([]models.RecipeListItem, len(list))
 	for i, v := range list {
-		items[i] = models.RecipeListItem(v)
+		items[i] = v
 	}
 	return items
 }

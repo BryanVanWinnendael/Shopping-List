@@ -20,15 +20,15 @@ func NewNotificationsService(client *httphelper.Client, baseURL string) *Notific
 	}
 }
 
-func (ns *NotificationsService) CreateNotification(ctx context.Context, request *models.NotificationCreateRequest) (*models.Notification, error) {
-	url := ns.baseURL
+func (ns *NotificationsService) Subscribe(ctx context.Context, request *models.NotificationCreateRequest) (*models.Notification, error) {
+	requestUrl := ns.baseURL
 
 	var response models.Notification
 
 	_, err := ns.client.DoRequest(
 		ctx,
 		http.MethodPost,
-		url,
+		requestUrl,
 		nil,
 		request,
 		&response,
@@ -42,14 +42,14 @@ func (ns *NotificationsService) CreateNotification(ctx context.Context, request 
 }
 
 func (ns *NotificationsService) GetAll(ctx context.Context) ([]models.Notification, error) {
-	url := ns.baseURL
+	requestUrl := ns.baseURL
 
 	var response []models.Notification
 
 	_, err := ns.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		&response,
@@ -63,14 +63,14 @@ func (ns *NotificationsService) GetAll(ctx context.Context) ([]models.Notificati
 }
 
 func (ns *NotificationsService) GetUserNotifications(ctx context.Context, user string) ([]models.Notification, error) {
-	url := fmt.Sprintf("%s/users/%s", ns.baseURL, user)
+	requestUrl := fmt.Sprintf("%s/users/%s", ns.baseURL, user)
 
 	var response []models.Notification
 
 	_, err := ns.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		&response,
@@ -84,12 +84,12 @@ func (ns *NotificationsService) GetUserNotifications(ctx context.Context, user s
 }
 
 func (ns *NotificationsService) DeleteUserNotification(ctx context.Context, user string, notificationType string) error {
-	url := fmt.Sprintf("%s/%s/%s", ns.baseURL, user, notificationType)
+	requestUrl := fmt.Sprintf("%s/%s/%s", ns.baseURL, user, notificationType)
 
 	_, err := ns.client.DoRequest(
 		ctx,
 		http.MethodDelete,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		nil,
@@ -99,12 +99,12 @@ func (ns *NotificationsService) DeleteUserNotification(ctx context.Context, user
 }
 
 func (ns *NotificationsService) SendPushNotificationByType(ctx context.Context, notifType string, user string, request models.PushNotificationRequest) error {
-	url := fmt.Sprintf("%s/push/%s/%s", ns.baseURL, notifType, user)
+	requestUrl := fmt.Sprintf("%s/push/%s/%s", ns.baseURL, notifType, user)
 
 	_, err := ns.client.DoRequest(
 		ctx,
 		http.MethodPost,
-		url,
+		requestUrl,
 		nil,
 		request,
 		nil,

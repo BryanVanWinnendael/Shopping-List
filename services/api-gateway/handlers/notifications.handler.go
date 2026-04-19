@@ -10,7 +10,7 @@ import (
 )
 
 type NotificationsService interface {
-	CreateNotification(ctx context.Context, request *models.NotificationCreateRequest) (*models.Notification, error)
+	Subscribe(ctx context.Context, request *models.NotificationCreateRequest) (*models.Notification, error)
 	GetAll(ctx context.Context) ([]models.Notification, error)
 	GetUserNotifications(ctx context.Context, user string) ([]models.Notification, error)
 	DeleteUserNotification(ctx context.Context, user string, notificationType string) error
@@ -36,7 +36,7 @@ func (nh *NotificationsHandler) CreateNotification(c echo.Context) error {
 		return response.Missing(c, response.SourceBody, missingFields...)
 	}
 
-	result, err := nh.NotificationsService.CreateNotification(c.Request().Context(), &request)
+	result, err := nh.NotificationsService.Subscribe(c.Request().Context(), &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

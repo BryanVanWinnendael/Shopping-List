@@ -12,7 +12,7 @@ type mockRoundTripper struct {
 }
 
 func TestSendPushToUser(t *testing.T) {
-	t.Run("Given valid request, When Expo returns 200, Then no error", func(t *testing.T) {
+	t.Run("Given valid request, When SendPushToUser, Then no error", func(t *testing.T) {
 		// given
 		client := newMockClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
@@ -33,7 +33,7 @@ func TestSendPushToUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Given HTTP client error, When sending push, Then return error", func(t *testing.T) {
+	t.Run("Given HTTP client error, When SendPushToUser, Then return error", func(t *testing.T) {
 		// given
 		client := newMockClient(func(req *http.Request) (*http.Response, error) {
 			return nil, io.ErrUnexpectedEOF
@@ -50,7 +50,7 @@ func TestSendPushToUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Given Expo returns 500, When sending push, Then return error", func(t *testing.T) {
+	t.Run("Given Expo returns 500, When SendPushToUser, Then return error", func(t *testing.T) {
 		// given
 		client := newMockClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
@@ -71,7 +71,7 @@ func TestSendPushToUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Given request is created, When sending push, Then correct method and URL used", func(t *testing.T) {
+	t.Run("Given request is created, When SendPushToUser, Then correct method and URL used", func(t *testing.T) {
 		// given
 		var capturedReq *http.Request
 
@@ -104,7 +104,7 @@ func TestSendPushToUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Given payload is sent, Then body contains expected data", func(t *testing.T) {
+	t.Run("Given payload is sent, When SendPushToUser, Then body contains expected data", func(t *testing.T) {
 		// given
 		var bodyBytes []byte
 

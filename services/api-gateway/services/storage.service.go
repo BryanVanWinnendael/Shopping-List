@@ -22,14 +22,14 @@ func NewStorageService(client *httphelper.Client, baseURL string) *StorageServic
 }
 
 func (ss *StorageService) UploadRecipesImage(ctx context.Context, recipeID string, file *multipart.FileHeader) (models.UploadImageResponse, error) {
-	url := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, recipeID)
+	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, recipeID)
 
 	var response models.UploadImageResponse
 
 	_, err := ss.client.DoMultipartRequest(
 		ctx,
 		http.MethodPost,
-		url,
+		requestUrl,
 		"image",
 		file,
 		nil,
@@ -44,12 +44,12 @@ func (ss *StorageService) UploadRecipesImage(ctx context.Context, recipeID strin
 }
 
 func (ss *StorageService) DeleteRecipesImage(ctx context.Context, recipeID string, request models.DeleteImageRequest) error {
-	url := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, recipeID)
+	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, recipeID)
 
 	_, err := ss.client.DoRequest(
 		ctx,
 		http.MethodDelete,
-		url,
+		requestUrl,
 		nil,
 		request,
 		nil,
@@ -59,12 +59,12 @@ func (ss *StorageService) DeleteRecipesImage(ctx context.Context, recipeID strin
 }
 
 func (ss *StorageService) DeleteRecipeStorage(ctx context.Context, recipeID string) error {
-	url := fmt.Sprintf("%s/recipes/%s", ss.baseURL, recipeID)
+	requestUrl := fmt.Sprintf("%s/recipes/%s", ss.baseURL, recipeID)
 
 	_, err := ss.client.DoRequest(
 		ctx,
 		http.MethodDelete,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		nil,
@@ -74,14 +74,14 @@ func (ss *StorageService) DeleteRecipeStorage(ctx context.Context, recipeID stri
 }
 
 func (ss *StorageService) UploadListImage(ctx context.Context, itemID string, file *multipart.FileHeader) (models.UploadImageResponse, error) {
-	url := fmt.Sprintf("%s/list/images/%s", ss.baseURL, itemID)
+	requestUrl := fmt.Sprintf("%s/list/images/%s", ss.baseURL, itemID)
 
 	var response models.UploadImageResponse
 
 	_, err := ss.client.DoMultipartRequest(
 		ctx,
 		http.MethodPost,
-		url,
+		requestUrl,
 		"image",
 		file,
 		nil,
@@ -96,12 +96,12 @@ func (ss *StorageService) UploadListImage(ctx context.Context, itemID string, fi
 }
 
 func (ss *StorageService) DeleteListImage(ctx context.Context, itemID string) error {
-	url := fmt.Sprintf("%s/list/images/%s", ss.baseURL, itemID)
+	requestUrl := fmt.Sprintf("%s/list/images/%s", ss.baseURL, itemID)
 
 	_, err := ss.client.DoRequest(
 		ctx,
 		http.MethodDelete,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		nil,

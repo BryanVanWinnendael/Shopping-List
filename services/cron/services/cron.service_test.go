@@ -170,7 +170,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestGetCronItemsByAddedBy(t *testing.T) {
-	t.Run("Given multiple items, When filtering by user, Then return only user items", func(t *testing.T) {
+	t.Run("Given multiple items, When GetCronItemsByAddedBy, Then return only user items", func(t *testing.T) {
 		// given
 		db := setupDB(t)
 		defer cleanupDB(t, db)
@@ -255,7 +255,7 @@ func TestRunCronJob(t *testing.T) {
 }
 
 func TestGetAllCronItems_UnmarshalError(t *testing.T) {
-	t.Run("Given invalid JSON in DB, Then return error", func(t *testing.T) {
+	t.Run("Given invalid JSON in DB, When GetAllCronItems, Then return error", func(t *testing.T) {
 		// given
 		db := setupDB(t)
 		defer cleanupDB(t, db)
@@ -279,7 +279,7 @@ func TestGetAllCronItems_UnmarshalError(t *testing.T) {
 }
 
 func TestRunCronJob_NotificationError(t *testing.T) {
-	t.Run("Given notification fails, Then still completes", func(t *testing.T) {
+	t.Run("Given notification fails, When RunCronJob, Then still completes", func(t *testing.T) {
 		// given
 		db := setupDB(t)
 		defer cleanupDB(t, db)

@@ -22,7 +22,10 @@ func (r *ResponseRecorder) WriteHeader(statusCode int) {
 }
 
 func (r *ResponseRecorder) Write(b []byte) (int, error) {
-	r.Writer.Write(b)
+	n, err := r.Writer.Write(b)
+	if err != nil {
+		return n, err
+	}
 	return r.ResponseWriter.Write(b)
 }
 

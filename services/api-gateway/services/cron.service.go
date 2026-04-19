@@ -21,14 +21,14 @@ func NewCronService(client *httphelper.Client, baseURL string) *CronService {
 }
 
 func (cs *CronService) CreateCronItem(ctx context.Context, request *models.CreateCronItemRequest) (*models.CronItem, error) {
-	url := cs.baseURL
+	requestUrl := cs.baseURL
 
 	var response models.CronItem
 
 	_, err := cs.client.DoRequest(
 		ctx,
 		http.MethodPost,
-		url,
+		requestUrl,
 		nil,
 		request,
 		&response,
@@ -42,14 +42,14 @@ func (cs *CronService) CreateCronItem(ctx context.Context, request *models.Creat
 }
 
 func (cs *CronService) GetAllCronItems(ctx context.Context) ([]models.CronItem, error) {
-	url := fmt.Sprintf("%s/items", cs.baseURL)
+	requestUrl := fmt.Sprintf("%s/items", cs.baseURL)
 
 	var response []models.CronItem
 
 	_, err := cs.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		&response,
@@ -63,12 +63,12 @@ func (cs *CronService) GetAllCronItems(ctx context.Context) ([]models.CronItem, 
 }
 
 func (cs *CronService) DeleteCronItem(ctx context.Context, itemID string) error {
-	url := fmt.Sprintf("%s/%s", cs.baseURL, itemID)
+	requestUrl := fmt.Sprintf("%s/%s", cs.baseURL, itemID)
 
 	_, err := cs.client.DoRequest(
 		ctx,
 		http.MethodDelete,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		nil,
@@ -78,14 +78,14 @@ func (cs *CronService) DeleteCronItem(ctx context.Context, itemID string) error 
 }
 
 func (cs *CronService) GetCronItemsByUser(ctx context.Context, user string) ([]models.CronItem, error) {
-	url := fmt.Sprintf("%s/items/%s", cs.baseURL, user)
+	requestUrl := fmt.Sprintf("%s/items/%s", cs.baseURL, user)
 
 	var response []models.CronItem
 
 	_, err := cs.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		url,
+		requestUrl,
 		nil,
 		nil,
 		&response,
@@ -99,12 +99,12 @@ func (cs *CronService) GetCronItemsByUser(ctx context.Context, user string) ([]m
 }
 
 func (cs *CronService) UpdateCronItemCategory(ctx context.Context, itemID string, request models.UpdateCronItemRequest) error {
-	url := fmt.Sprintf("%s/%s", cs.baseURL, itemID)
+	requestUrl := fmt.Sprintf("%s/%s", cs.baseURL, itemID)
 
 	_, err := cs.client.DoRequest(
 		ctx,
 		http.MethodPut,
-		url,
+		requestUrl,
 		nil,
 		request,
 		nil,

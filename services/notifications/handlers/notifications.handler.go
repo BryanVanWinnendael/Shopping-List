@@ -10,7 +10,6 @@ import (
 
 type NotificationsService interface {
 	CreateNotification(recipe *models.NotificationCreate) (*models.Notification, error)
-	GetNotification(id string) (*models.Notification, error)
 	GetAllNotifications() ([]models.Notification, error)
 	GetUserNotifications(userID string) ([]models.Notification, error)
 	DeleteNotification(user string, notifType string) error
@@ -25,7 +24,7 @@ func NewNotificationsHandler(ns NotificationsService) *NotificationsHandler {
 	return &NotificationsHandler{NotificationsService: ns}
 }
 
-func (nh *NotificationsHandler) Add(c echo.Context) error {
+func (nh *NotificationsHandler) Subscribe(c echo.Context) error {
 	var request models.NotificationCreate
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -37,17 +36,6 @@ func (nh *NotificationsHandler) Add(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, created)
-}
-
-func (nh *NotificationsHandler) Get(c echo.Context) error {
-	id := c.Param("id")
-
-	notification, err := nh.NotificationsService.GetNotification(id)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, notification)
 }
 
 func (nh *NotificationsHandler) GetAll(c echo.Context) error {
@@ -70,7 +58,7 @@ func (nh *NotificationsHandler) GetUserNotifications(c echo.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
-func (nh *NotificationsHandler) Delete(c echo.Context) error {
+func (nh *NotificationsHandler) DeleteNotification(c echo.Context) error {
 	notifType := c.Param("type")
 	user := c.Param("user")
 	if notifType == "" || user == "" {

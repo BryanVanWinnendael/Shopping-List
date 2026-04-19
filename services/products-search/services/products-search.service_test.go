@@ -151,7 +151,7 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func TestPagination(t *testing.T) {
-	t.Run("Given many items, When page applied, Then paginate correctly", func(t *testing.T) {
+	t.Run("Given many items, When SearchProducts, Then paginate correctly", func(t *testing.T) {
 		// given
 		setupCSV(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
