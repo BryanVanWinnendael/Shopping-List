@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "cron/**"
-      - "!cron/README.md"
-      - "!cron/.env.example"
-      - "!cron/.gitignore"
+      - "services/cron/**"
+      - "!services/cron/README.md"
+      - "!services/cron/.env.example"
+      - "!services/cron/.gitignore"
 
 jobs:
   deploy:
@@ -24,14 +24,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests with coverage
-        working-directory: cron
+        working-directory: services/cron
         run: |
           go test ./handlers ./services \
             -coverpkg=./handlers,./services \
             -coverprofile=coverage.out
 
       - name: Check coverage per package (80% rule)
-        working-directory: cron
+        working-directory: services/cron
         run: |
           echo "📊 Coverage Report"
 
@@ -74,7 +74,7 @@ jobs:
       - name: Deploy Cron
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/cron
+          cd ~/projects/shopping-list/services/cron
           git fetch origin main
           git reset --hard origin/main
           docker compose build

@@ -17,15 +17,15 @@ type CategoryModelService interface {
 }
 
 func NewCategoryModelHandler(cms CategoryModelService) *CategoryModelHandler {
-	return &CategoryModelHandler{categoryModelService: cms}
+	return &CategoryModelHandler{CategoryModelService: cms}
 }
 
 type CategoryModelHandler struct {
-	categoryModelService CategoryModelService
+	CategoryModelService CategoryModelService
 }
 
 func (cmh *CategoryModelHandler) TrainModel(c echo.Context) error {
-	result, err := cmh.categoryModelService.TrainModel(c.Request().Context())
+	result, err := cmh.CategoryModelService.TrainModel(c.Request().Context())
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -41,7 +41,7 @@ func (cmh *CategoryModelHandler) GetCategory(c echo.Context) error {
 		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
 
-	result, err := cmh.categoryModelService.GetCategory(
+	result, err := cmh.CategoryModelService.GetCategory(
 		c.Request().Context(),
 		item,
 	)
@@ -63,7 +63,7 @@ func (cmh *CategoryModelHandler) AddCategory(c echo.Context) error {
 		return response.Missing(c, response.SourceBody, missingRequestFields...)
 	}
 
-	result, err := cmh.categoryModelService.AddCategory(
+	result, err := cmh.CategoryModelService.AddCategory(
 		c.Request().Context(),
 		request,
 	)

@@ -15,6 +15,7 @@ func main() {
 	e := echo.New()
 	e.Static("/storage", "storage")
 	e.Use(middlewares.RequestLogger)
+	e.Use(middlewares.AuthMiddleware)
 
 	ss := services.NewStorageService()
 	sh := handlers.NewStorageHandler(ss)

@@ -19,11 +19,11 @@ type StorageService interface {
 }
 
 type StorageHandler struct {
-	storageService StorageService
+	StorageService StorageService
 }
 
 func NewStorageHandler(ss StorageService) *StorageHandler {
-	return &StorageHandler{storageService: ss}
+	return &StorageHandler{StorageService: ss}
 }
 
 func (sh *StorageHandler) UploadRecipesImage(c echo.Context) error {
@@ -61,9 +61,9 @@ func (sh *StorageHandler) uploadImage(c echo.Context, category string) error {
 
 	switch category {
 	case "recipes":
-		smallURL, largeURL, err = sh.storageService.SaveRecipesImage(fileHeader, id)
+		smallURL, largeURL, err = sh.StorageService.SaveRecipesImage(fileHeader, id)
 	case "list":
-		smallURL, largeURL, err = sh.storageService.SaveListImage(fileHeader, id)
+		smallURL, largeURL, err = sh.StorageService.SaveListImage(fileHeader, id)
 	}
 
 	if err != nil {
@@ -102,7 +102,7 @@ func (sh *StorageHandler) deleteImage(c echo.Context, category string) error {
 
 	switch category {
 	case "recipes":
-		err = sh.storageService.DeleteRecipesImage(id, request.URL)
+		err = sh.StorageService.DeleteRecipesImage(id, request.URL)
 	case "list":
 		return c.JSON(http.StatusNotImplemented, map[string]string{"error": "List image deletion not implemented"})
 	}
@@ -122,7 +122,7 @@ func (sh *StorageHandler) deleteStorage(c echo.Context, category string) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing ID"})
 	}
 
-	if err := sh.storageService.DeleteStorage(id, category); err != nil {
+	if err := sh.StorageService.DeleteStorage(id, category); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 

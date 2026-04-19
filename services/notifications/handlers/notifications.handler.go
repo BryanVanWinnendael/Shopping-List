@@ -18,11 +18,11 @@ type NotificationsService interface {
 }
 
 type NotificationsHandler struct {
-	Service NotificationsService
+	NotificationsService NotificationsService
 }
 
 func NewNotificationsHandler(ns NotificationsService) *NotificationsHandler {
-	return &NotificationsHandler{Service: ns}
+	return &NotificationsHandler{NotificationsService: ns}
 }
 
 func (nh *NotificationsHandler) Add(c echo.Context) error {
@@ -31,7 +31,7 @@ func (nh *NotificationsHandler) Add(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	created, err := nh.Service.CreateNotification(&request)
+	created, err := nh.NotificationsService.CreateNotification(&request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -42,7 +42,7 @@ func (nh *NotificationsHandler) Add(c echo.Context) error {
 func (nh *NotificationsHandler) Get(c echo.Context) error {
 	id := c.Param("id")
 
-	notification, err := nh.Service.GetNotification(id)
+	notification, err := nh.NotificationsService.GetNotification(id)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
@@ -51,7 +51,7 @@ func (nh *NotificationsHandler) Get(c echo.Context) error {
 }
 
 func (nh *NotificationsHandler) GetAll(c echo.Context) error {
-	list, err := nh.Service.GetAllNotifications()
+	list, err := nh.NotificationsService.GetAllNotifications()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -62,7 +62,7 @@ func (nh *NotificationsHandler) GetAll(c echo.Context) error {
 func (nh *NotificationsHandler) GetUserNotifications(c echo.Context) error {
 	userID := c.Param("user")
 
-	list, err := nh.Service.GetUserNotifications(userID)
+	list, err := nh.NotificationsService.GetUserNotifications(userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -77,7 +77,7 @@ func (nh *NotificationsHandler) Delete(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "type and user are required"})
 	}
 
-	if err := nh.Service.DeleteNotification(user, notifType); err != nil {
+	if err := nh.NotificationsService.DeleteNotification(user, notifType); err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
 
@@ -104,7 +104,7 @@ func (nh *NotificationsHandler) SendPushByType(c echo.Context) error {
 		}
 	}
 
-	if err := nh.Service.SendPushNotification(notifType, user, env); err != nil {
+	if err := nh.NotificationsService.SendPushNotification(notifType, user, env); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 

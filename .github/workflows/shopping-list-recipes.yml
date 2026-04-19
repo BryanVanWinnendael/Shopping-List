@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "recipes/**"
-      - "!recipes/README.md"
-      - "!recipes/.env.example"
-      - "!recipes/.gitignore"
+      - "services/recipes/**"
+      - "!services/recipes/README.md"
+      - "!services/recipes/.env.example"
+      - "!services/recipes/.gitignore"
 
 jobs:
   deploy:
@@ -24,14 +24,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests with coverage
-        working-directory: recipes
+        working-directory: services/recipes
         run: |
           go test ./handlers ./services \
             -coverpkg=./handlers,./services \
             -coverprofile=coverage.out
 
       - name: Check coverage per package (80% rule)
-        working-directory: recipes
+        working-directory: services/recipes
         run: |
           echo "📊 Coverage Report"
 
@@ -75,7 +75,7 @@ jobs:
       - name: Deploy Recipes
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/recipes
+          cd ~/projects/shopping-list/services/recipes
           git fetch origin main
           git reset --hard origin/main
           docker compose build

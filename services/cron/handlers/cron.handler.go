@@ -16,11 +16,11 @@ type CronService interface {
 }
 
 type CronHandler struct {
-	Service CronService
+	CronService CronService
 }
 
 func NewCronHandler(cs CronService) *CronHandler {
-	return &CronHandler{Service: cs}
+	return &CronHandler{CronService: cs}
 }
 
 func (ch *CronHandler) AddCronItem(c echo.Context) error {
@@ -32,7 +32,7 @@ func (ch *CronHandler) AddCronItem(c echo.Context) error {
 		})
 	}
 
-	id, err := ch.Service.AddCronItem(request)
+	id, err := ch.CronService.AddCronItem(request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -48,7 +48,7 @@ func (ch *CronHandler) AddCronItem(c echo.Context) error {
 }
 
 func (ch *CronHandler) GetAllCronItems(c echo.Context) error {
-	items, err := ch.Service.GetAllCronItems()
+	items, err := ch.CronService.GetAllCronItems()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -74,7 +74,7 @@ func (ch *CronHandler) UpdateCategory(c echo.Context) error {
 		})
 	}
 
-	if err := ch.Service.UpdateCategory(idParam, request.Category); err != nil {
+	if err := ch.CronService.UpdateCategory(idParam, request.Category); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
@@ -88,7 +88,8 @@ func (ch *CronHandler) UpdateCategory(c echo.Context) error {
 
 func (ch *CronHandler) DeleteCronItem(c echo.Context) error {
 	idParam := c.Param("id")
-	if err := ch.Service.Delete(idParam); err != nil {
+
+	if err := ch.CronService.Delete(idParam); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
@@ -103,7 +104,7 @@ func (ch *CronHandler) DeleteCronItem(c echo.Context) error {
 func (ch *CronHandler) GetByAddedBy(c echo.Context) error {
 	addedBy := c.Param("name")
 
-	items, err := ch.Service.GetCronItemsByAddedBy(addedBy)
+	items, err := ch.CronService.GetCronItemsByAddedBy(addedBy)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

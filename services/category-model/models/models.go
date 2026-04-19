@@ -11,4 +11,3 @@ type TrainingData struct {
 	Item     string
 	Category string
 }
-

@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "api-gateway/**"
-      - "!api-gateway/README.md"
-      - "!api-gateway/.env.example"
-      - "!api-gateway/.gitignore"
+      - "services/api-gateway/**"
+      - "!services/api-gateway/README.md"
+      - "!services/api-gateway/.env.example"
+      - "!services/api-gateway/.gitignore"
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,7 +23,7 @@ jobs:
       - name: Deploy API Gateway
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/api-gateway
+          cd ~/projects/shopping-list/services/api-gateway
           git fetch origin main
           git reset --hard origin/main
           docker compose build

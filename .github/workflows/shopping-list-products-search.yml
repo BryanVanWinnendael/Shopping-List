@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "products-search/**"
-      - "!products-search/README.md"
-      - "!products-search/.env.example"
-      - "!products-search/.gitignore"
+      - "services/products-search/**"
+      - "!services/products-search/README.md"
+      - "!services/products-search/.env.example"
+      - "!services/products-search/.gitignore"
 
 jobs:
   deploy:
@@ -24,14 +24,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests with coverage
-        working-directory: products-search
+        working-directory: services/products-search
         run: |
           go test ./handlers ./services \
             -coverpkg=./handlers,./services \
             -coverprofile=coverage.out
 
       - name: Check coverage per package (80% rule)
-        working-directory: products-search
+        working-directory: services/products-search
         run: |
           echo "📊 Coverage Report"
 
@@ -75,7 +75,7 @@ jobs:
       - name: Deploy Products Search
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/products-search
+          cd ~/projects/shopping-list/services/products-search
           git fetch origin main
           git reset --hard origin/main
           docker compose build

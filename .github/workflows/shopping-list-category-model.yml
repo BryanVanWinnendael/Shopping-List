@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "category-model/**"
-      - "!category-model/README.md"
-      - "!category-model/.env.example"
-      - "!category-model/.gitignore"
+      - "services/category-model/**"
+      - "!services/category-model/README.md"
+      - "!services/category-model/.env.example"
+      - "!services/category-model/.gitignore"
 
 jobs:
   deploy:
@@ -24,14 +24,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests with coverage
-        working-directory: category-model
+        working-directory: services/category-model
         run: |
           go test ./handlers ./services \
             -coverpkg=./handlers,./services \
             -coverprofile=coverage.out
 
       - name: Check coverage per package (80% rule)
-        working-directory: category-model
+        working-directory: services/category-model
         run: |
           echo "📊 Coverage Report"
 
@@ -75,7 +75,7 @@ jobs:
       - name: Deploy Category Model
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/category-model
+          cd ~/projects/shopping-list/services/category-model
           git fetch origin main
           git reset --hard origin/main
           docker compose build

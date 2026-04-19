@@ -19,11 +19,11 @@ type RecipeService interface {
 }
 
 type RecipeHandler struct {
-	Service RecipeService
+	RecipeService RecipeService
 }
 
 func NewRecipeHandler(rs RecipeService) *RecipeHandler {
-	return &RecipeHandler{Service: rs}
+	return &RecipeHandler{RecipeService: rs}
 }
 
 func (rh *RecipeHandler) AddRecipe(c echo.Context) error {
@@ -32,7 +32,7 @@ func (rh *RecipeHandler) AddRecipe(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	created, err := rh.Service.CreateRecipe(&request)
+	created, err := rh.RecipeService.CreateRecipe(&request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -47,7 +47,7 @@ func (rh *RecipeHandler) GetRecipes(c echo.Context) error {
 		limit = 100
 	}
 
-	recipes, err := rh.Service.GetRecipes(skip, limit)
+	recipes, err := rh.RecipeService.GetRecipes(skip, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -56,7 +56,7 @@ func (rh *RecipeHandler) GetRecipes(c echo.Context) error {
 }
 
 func (rh *RecipeHandler) GetDistinctCountries(c echo.Context) error {
-	countries, err := rh.Service.GetAllDistinctCountries()
+	countries, err := rh.RecipeService.GetAllDistinctCountries()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -71,7 +71,7 @@ func (rh *RecipeHandler) GetRecipesByUser(c echo.Context) error {
 		limit = 100
 	}
 
-	recipes, err := rh.Service.GetRecipesByUser(user, skip, limit)
+	recipes, err := rh.RecipeService.GetRecipesByUser(user, skip, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -82,7 +82,7 @@ func (rh *RecipeHandler) GetRecipesByUser(c echo.Context) error {
 func (rh *RecipeHandler) GetRecipeByID(c echo.Context) error {
 	id := c.Param("recipeId")
 
-	recipe, err := rh.Service.GetRecipe(id)
+	recipe, err := rh.RecipeService.GetRecipe(id)
 	if err != nil || recipe == nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Recipe not found"})
 	}
@@ -98,7 +98,7 @@ func (rh *RecipeHandler) UpdateRecipe(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid JSON"})
 	}
 
-	updated, err := rh.Service.UpdateRecipe(id, &req)
+	updated, err := rh.RecipeService.UpdateRecipe(id, &req)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
@@ -109,7 +109,7 @@ func (rh *RecipeHandler) UpdateRecipe(c echo.Context) error {
 func (rh *RecipeHandler) DeleteRecipe(c echo.Context) error {
 	id := c.Param("recipeId")
 
-	deleted, err := rh.Service.DeleteRecipe(id)
+	deleted, err := rh.RecipeService.DeleteRecipe(id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
