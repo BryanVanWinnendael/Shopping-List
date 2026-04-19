@@ -13,16 +13,17 @@ func main() {
 	config.LoadEnv()
 
 	e := echo.New()
-	e.Static("/storage", "storage")
-	e.Use(middlewares.RequestLogger)
-	e.Use(middlewares.AuthMiddleware)
+
+	public := e.Group("")
+	public.Static("/storage", "storage")
+
+	private := e.Group("")
+	private.Use(middlewares.RequestLogger)
+	private.Use(middlewares.AuthMiddleware)
 
 	ss := services.NewStorageService()
 	sh := handlers.NewStorageHandler(ss)
 
-	api := e.Group("")
-
-	handlers.SetupRoutes(api, sh)
-
+	handlers.SetupRoutes(private, sh)
 	e.Logger.Fatal(e.Start(":3000"))
 }
