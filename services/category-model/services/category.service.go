@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"shopping-list/category-model/internal/config"
 )
 
 type Modeler interface {
@@ -32,7 +34,8 @@ func (cs *CategoryService) GetCategory(item string) (string, error) {
 }
 
 func (cs *CategoryService) AddCategory(item string, category string) error {
-	file, err := os.OpenFile(CategoriesCsv(), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	categoriesPath := filepath.Join(config.Vars.DataDir, config.Vars.CategoriesFile)
+	file, err := os.OpenFile(categoriesPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}

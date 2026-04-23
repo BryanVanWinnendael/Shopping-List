@@ -9,7 +9,7 @@ import (
 )
 
 type NotificationsService interface {
-	CreateNotification(recipe *models.NotificationCreate) (*models.Notification, error)
+	Subscribe(recipe *models.NotificationCreate) (*models.Notification, error)
 	GetAllNotifications() ([]models.Notification, error)
 	GetUserNotifications(userID string) ([]models.Notification, error)
 	DeleteNotification(user string, notifType string) error
@@ -30,7 +30,7 @@ func (nh *NotificationsHandler) Subscribe(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	created, err := nh.NotificationsService.CreateNotification(&request)
+	created, err := nh.NotificationsService.Subscribe(&request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -38,7 +38,7 @@ func (nh *NotificationsHandler) Subscribe(c echo.Context) error {
 	return c.JSON(http.StatusOK, created)
 }
 
-func (nh *NotificationsHandler) GetAll(c echo.Context) error {
+func (nh *NotificationsHandler) GetAllNotifications(c echo.Context) error {
 	list, err := nh.NotificationsService.GetAllNotifications()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -58,7 +58,7 @@ func (nh *NotificationsHandler) GetUserNotifications(c echo.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
-func (nh *NotificationsHandler) DeleteNotification(c echo.Context) error {
+func (nh *NotificationsHandler) Unsubscribe(c echo.Context) error {
 	notifType := c.Param("type")
 	user := c.Param("user")
 	if notifType == "" || user == "" {

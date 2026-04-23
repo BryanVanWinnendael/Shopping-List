@@ -1,23 +1,21 @@
 package services
 
 import (
+	"bytes"
 	"encoding/csv"
-	"os"
 	"shopping-list/products-search/internal/config"
+	"shopping-list/shared/tests"
 	"testing"
 )
-
-const tmpCSV = "test.csv"
 
 func TestSearchProducts(t *testing.T) {
 	t.Run("Given matching query, When SearchProducts, Then return results", func(t *testing.T) {
 		// given
-		setupCSV(t, [][]string{
+		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
 			{"2", "Bread", "BrandB", "bakery", "img"},
 		})
-		defer cleanupFile(t)
 
 		service := NewProductsSearchService()
 
@@ -35,12 +33,11 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given category filter, When SearchProducts, Then filter results", func(t *testing.T) {
 		// given
-		setupCSV(t, [][]string{
+		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
 			{"2", "Bread", "BrandB", "bakery", "img"},
 		})
-		defer cleanupFile(t)
 
 		service := NewProductsSearchService()
 
@@ -61,10 +58,9 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given no matches, When SearchProducts, Then return empty", func(t *testing.T) {
 		// given
-		setupCSV(t, [][]string{
+		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
 		})
-		defer cleanupFile(t)
 
 		service := NewProductsSearchService()
 
@@ -84,12 +80,11 @@ func TestSearchProducts(t *testing.T) {
 func TestFuzzySearch(t *testing.T) {
 	t.Run("Given fuzzy match, When FuzzySearch, Then return ranked results", func(t *testing.T) {
 		// given
-		setupCSV(t, [][]string{
+		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
 			{"2", "Milky Bar", "BrandB", "snack", "img"},
 		})
-		defer cleanupFile(t)
 
 		service := NewProductsSearchService()
 
@@ -107,12 +102,11 @@ func TestFuzzySearch(t *testing.T) {
 
 	t.Run("Given category filter, When FuzzySearch, Then filter results", func(t *testing.T) {
 		// given
-		setupCSV(t, [][]string{
+		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
 			{"2", "Milk", "BrandB", "bakery", "img"},
 		})
-		defer cleanupFile(t)
 
 		service := NewProductsSearchService()
 
@@ -130,10 +124,9 @@ func TestFuzzySearch(t *testing.T) {
 
 	t.Run("Given no matches, When FuzzySearch, Then return empty", func(t *testing.T) {
 		// given
-		setupCSV(t, [][]string{
+		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
 		})
-		defer cleanupFile(t)
 
 		service := NewProductsSearchService()
 
@@ -153,13 +146,12 @@ func TestFuzzySearch(t *testing.T) {
 func TestPagination(t *testing.T) {
 	t.Run("Given many items, When SearchProducts, Then paginate correctly", func(t *testing.T) {
 		// given
-		setupCSV(t, [][]string{
+		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
 			{"1", "A", "B", "c", "img"},
 			{"2", "B", "B", "c", "img"},
 			{"3", "C", "B", "c", "img"},
 		})
-		defer cleanupFile(t)
 
 		service := NewProductsSearchService()
 
@@ -179,28 +171,16 @@ func TestPagination(t *testing.T) {
 	})
 }
 
-func setupCSV(t *testing.T, records [][]string) {
-	config.Vars.ProductsFile = tmpCSV
+func setup(t *testing.T, data [][]string) {
+	config.Vars.ProductsFile = "tests.csv"
 
-	file, err := os.Create(tmpCSV)
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	err := writer.WriteAll(data)
 	if err != nil {
-		t.Fatalf("failed to create csv: %v", err)
+		t.Fatal(err)
 	}
 
-	writer := csv.NewWriter(file)
-	if err := writer.WriteAll(records); err != nil {
-		t.Fatalf("failed to write csv: %v", err)
-	}
-	writer.Flush()
-	err = file.Close()
-	if err != nil {
-		t.Fatalf("failed to close file: %v", err)
-	}
-}
-
-func cleanupFile(t *testing.T) {
-	err := os.Remove(tmpCSV)
-	if err != nil && !os.IsNotExist(err) {
-		t.Fatalf("failed to remove file: %v", err)
-	}
+	tests.SetupFile(t, "tests.csv", buf.Bytes())
 }

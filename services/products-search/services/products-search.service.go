@@ -231,8 +231,8 @@ func (pss *ProductsSearchService) FuzzySearch(
 }
 
 func getRecords() ([][]string, models.ProductsSearchResult, error) {
-	var ProductsCSV = filepath.Join(config.Vars.DataDir, config.Vars.ProductsFile)
-	file, err := os.Open(ProductsCSV)
+	productsPath := filepath.Join(config.Vars.DataDir, config.Vars.ProductsFile)
+	file, err := os.Open(productsPath)
 	if err != nil {
 		return nil, models.ProductsSearchResult{}, err
 	}

@@ -1,11 +1,10 @@
 package services
 
 import (
-	"encoding/json"
 	"errors"
-	"os"
 	"shopping-list/cron/internal/config"
 	"shopping-list/cron/models"
+	"shopping-list/shared/tests"
 	"testing"
 
 	"go.etcd.io/bbolt"
@@ -19,13 +18,10 @@ type MockFirebase struct {
 	SetFunc func(path string, data interface{}) error
 }
 
-const tmpDB = "test.db"
-
 func TestAddCronItem(t *testing.T) {
 	t.Run("Given valid cron item, When AddCronItem, Then return id", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := &CronService{db: db}
 
@@ -52,20 +48,12 @@ func TestAddCronItem(t *testing.T) {
 func TestGetAllCronItems(t *testing.T) {
 	t.Run("Given items in db, When GetAllCronItems, Then return items", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := &CronService{db: db}
 
 		item := models.CronItem{ID: "1", Item: "a"}
-		data, err := json.Marshal(item)
-		if err != nil {
-			t.Fatalf("failed to marshal item: %v", err)
-		}
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
 
 		// when
 		items, err := service.GetAllCronItems()
@@ -84,23 +72,15 @@ func TestGetAllCronItems(t *testing.T) {
 func TestUpdateCategory(t *testing.T) {
 	t.Run("Given existing item, When UpdateCategory, Then update success", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := &CronService{db: db}
 
 		item := models.CronItem{ID: "1", Category: "old"}
-		data, err := json.Marshal(item)
-		if err != nil {
-			t.Fatalf("failed to marshal item: %v", err)
-		}
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
 
 		// when
-		err = service.UpdateCategory("1", "new")
+		err := service.UpdateCategory("1", "new")
 
 		// then
 		if err != nil {
@@ -110,8 +90,7 @@ func TestUpdateCategory(t *testing.T) {
 
 	t.Run("Given missing item, When UpdateCategory, Then return error", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := &CronService{db: db}
 
@@ -126,25 +105,17 @@ func TestUpdateCategory(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("Given existing item, When Delete, Then success", func(t *testing.T) {
+	t.Run("Given existing item, When DeleteCronItem, Then success", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := &CronService{db: db}
 
 		item := models.CronItem{ID: "1"}
-		data, err := json.Marshal(item)
-		if err != nil {
-			t.Fatalf("failed to marshal item: %v", err)
-		}
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
 
 		// when
-		err = service.Delete("1")
+		err := service.DeleteCronItem("1")
 
 		// then
 		if err != nil {
@@ -152,15 +123,14 @@ func TestDelete(t *testing.T) {
 		}
 	})
 
-	t.Run("Given missing item, When Delete, Then return error", func(t *testing.T) {
+	t.Run("Given missing item, When DeleteCronItem, Then return error", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := &CronService{db: db}
 
 		// when
-		err := service.Delete("missing")
+		err := service.DeleteCronItem("missing")
 
 		// then
 		if err == nil {
@@ -172,29 +142,14 @@ func TestDelete(t *testing.T) {
 func TestGetCronItemsByAddedBy(t *testing.T) {
 	t.Run("Given multiple items, When GetCronItemsByAddedBy, Then return only user items", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := &CronService{db: db}
 
 		item1 := models.CronItem{ID: "1", AddedBy: "user1"}
 		item2 := models.CronItem{ID: "2", AddedBy: "user2"}
-
-		b1, _ := json.Marshal(item1)
-		b2, _ := json.Marshal(item2)
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			b := tx.Bucket([]byte(config.Vars.Bucket))
-
-			if err := b.Put([]byte("1"), b1); err != nil {
-				return err
-			}
-			if err := b.Put([]byte("2"), b2); err != nil {
-				return err
-			}
-
-			return nil
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item1)
+		tests.Put(t, db, config.Vars.Bucket, []byte("2"), item2)
 
 		// when
 		items, err := service.GetCronItemsByAddedBy("user1")
@@ -213,8 +168,7 @@ func TestGetCronItemsByAddedBy(t *testing.T) {
 func TestRunCronJob(t *testing.T) {
 	t.Run("Given cron items, When RunCronJob, Then process and notify users", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		mockNotif := &MockNotificationService{
 			SendFunc: func(user string, t string) error {
@@ -234,18 +188,10 @@ func TestRunCronJob(t *testing.T) {
 			Category: "work",
 			AddedBy:  "user1",
 		}
-
-		data, err := json.Marshal(item)
-		if err != nil {
-			t.Fatalf("failed to marshal item: %v", err)
-		}
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
 
 		// when
-		err = service.RunCronJob()
+		err := service.RunCronJob()
 
 		// then
 		if err != nil {
@@ -257,16 +203,13 @@ func TestRunCronJob(t *testing.T) {
 func TestGetAllCronItems_UnmarshalError(t *testing.T) {
 	t.Run("Given invalid JSON in DB, When GetAllCronItems, Then return error", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := &CronService{db: db}
 
 		invalidJSON := []byte("not-json")
 
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), invalidJSON)
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), invalidJSON)
 
 		// when
 		_, err := service.GetAllCronItems()
@@ -281,8 +224,7 @@ func TestGetAllCronItems_UnmarshalError(t *testing.T) {
 func TestRunCronJob_NotificationError(t *testing.T) {
 	t.Run("Given notification fails, When RunCronJob, Then still completes", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		mockNotif := &MockNotificationService{
 			SendFunc: func(user, t string) error {
@@ -302,12 +244,7 @@ func TestRunCronJob_NotificationError(t *testing.T) {
 			Category: "work",
 			AddedBy:  "user1",
 		}
-
-		data, _ := json.Marshal(item)
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
 
 		// when
 		err := service.RunCronJob()
@@ -326,43 +263,14 @@ func (m *MockNotificationService) SendNotification(user string, notificationType
 	return nil
 }
 
-func setupDB(t *testing.T) *bbolt.DB {
-	db, err := bbolt.Open(tmpDB, 0600, nil)
-	if err != nil {
-		t.Fatalf("failed to open db: %v", err)
-	}
-
+func setup(t *testing.T) *bbolt.DB {
 	bucket := "test-bucket"
+	tmpDB := "test.db"
 
-	err = db.Update(func(tx *bbolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(bucket))
-		return err
-	})
-	if err != nil {
-		t.Fatalf("failed to create bucket: %v", err)
-	}
-
+	db := tests.SetupDB(t, tmpDB, bucket)
 	config.Vars.Bucket = bucket
 
 	return db
-}
-
-func cleanupDB(t *testing.T, db *bbolt.DB) {
-	err := db.Close()
-	if err != nil {
-		t.Fatalf("failed to close db: %v", err)
-	}
-
-	if err := os.Remove(tmpDB); err != nil && !os.IsNotExist(err) {
-		t.Fatalf("failed to remove db file: %v", err)
-	}
-}
-
-func mustUpdate(t *testing.T, db *bbolt.DB, fn func(tx *bbolt.Tx) error) {
-	err := db.Update(fn)
-	if err != nil {
-		t.Fatalf("db update failed: %v", err)
-	}
 }
 
 func (m *MockFirebase) Set(path string, data interface{}) error {

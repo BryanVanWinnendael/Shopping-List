@@ -1,16 +1,13 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/http/httptest"
+	"shopping-list/shared/tests"
 	"testing"
 
 	"shopping-list/logs/models"
-
-	"github.com/labstack/echo/v4"
 )
 
 type MockLogsService struct {
@@ -22,7 +19,7 @@ type MockLogsService struct {
 func TestGetShoppingListLogs(t *testing.T) {
 	t.Run("Given service returns logs, When GetShoppingListLogs, Then returns 200 with logs", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/logs", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
 			GetLogsFunc: func() ([]string, error) {
@@ -44,7 +41,7 @@ func TestGetShoppingListLogs(t *testing.T) {
 
 	t.Run("Given service error, When GetShoppingListLogs, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/logs", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
 			GetLogsFunc: func() ([]string, error) {
@@ -68,7 +65,7 @@ func TestGetShoppingListLogs(t *testing.T) {
 func TestWriteShoppingListLog(t *testing.T) {
 	t.Run("Given invalid JSON, When WriteShoppingListLog, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodPost, "/logs", []byte("invalid"))
+		c, rec := tests.SetupEcho(http.MethodPost, "/logs", []byte("invalid"))
 		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
@@ -86,7 +83,7 @@ func TestWriteShoppingListLog(t *testing.T) {
 	t.Run("Given empty text, When WriteShoppingListLog, Then returns 400", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.LogBody{Text: ""})
-		c, rec := setupEcho(http.MethodPost, "/logs", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
@@ -104,7 +101,7 @@ func TestWriteShoppingListLog(t *testing.T) {
 	t.Run("Given valid request, When WriteShoppingListLog, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.LogBody{Text: "hello"})
-		c, rec := setupEcho(http.MethodPost, "/logs", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 
 		handler := NewLogsHandler(&MockLogsService{
 			WriteLogFunc: func(text string) error {
@@ -127,7 +124,7 @@ func TestWriteShoppingListLog(t *testing.T) {
 	t.Run("Given service error, When WriteShoppingListLog, Then returns 500", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.LogBody{Text: "hello"})
-		c, rec := setupEcho(http.MethodPost, "/logs", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 
 		handler := NewLogsHandler(&MockLogsService{
 			WriteLogFunc: func(text string) error {
@@ -151,7 +148,7 @@ func TestWriteShoppingListLog(t *testing.T) {
 func TestClearShoppingListLogs(t *testing.T) {
 	t.Run("Given success, When ClearShoppingListLogs, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodDelete, "/logs", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/logs", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
 			ClearFunc: func() error {
@@ -173,7 +170,7 @@ func TestClearShoppingListLogs(t *testing.T) {
 
 	t.Run("Given service error, When ClearShoppingListLogs, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodDelete, "/logs", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/logs", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
 			ClearFunc: func() error {
@@ -192,23 +189,6 @@ func TestClearShoppingListLogs(t *testing.T) {
 			t.Fatalf("expected 500, got %d", rec.Code)
 		}
 	})
-}
-
-func setupEcho(method, url string, body []byte) (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	var req *http.Request
-	if body != nil {
-		req = httptest.NewRequest(method, url, bytes.NewBuffer(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	} else {
-		req = httptest.NewRequest(method, url, nil)
-	}
-
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	return c, rec
 }
 
 func (m *MockLogsService) GetLogs() ([]string, error) {

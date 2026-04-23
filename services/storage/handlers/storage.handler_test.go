@@ -1,18 +1,15 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"mime/multipart"
 	"net/http"
-	"net/http/httptest"
+	"shopping-list/shared/tests"
 	"testing"
 
 	"shopping-list/storage/internal/config"
 	"shopping-list/storage/models"
-
-	"github.com/labstack/echo/v4"
 )
 
 type MockStorageService struct {
@@ -25,7 +22,7 @@ type MockStorageService struct {
 func TestUploadRecipesImage(t *testing.T) {
 	t.Run("Given missing file, When UploadRecipesImage, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEchoJSON(http.MethodPost, "/recipes/1", nil)
+		c, rec := tests.SetupEcho(http.MethodPost, "/recipes/1", nil)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -42,7 +39,14 @@ func TestUploadRecipesImage(t *testing.T) {
 
 	t.Run("Given missing id, When UploadRecipesImage, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupMultipartRequest(t, http.MethodPost, "/recipes")
+		files := []tests.MultipartFile{
+			{
+				FieldName: "image",
+				FileName:  "test.jpg",
+				Content:   []byte("fake-image"),
+			},
+		}
+		c, rec := tests.SetupMultipartEcho(t, http.MethodPost, "/recipes", files, nil)
 		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
@@ -56,7 +60,14 @@ func TestUploadRecipesImage(t *testing.T) {
 
 	t.Run("Given service error, When UploadRecipesImage, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupMultipartRequest(t, http.MethodPost, "/recipes/1")
+		files := []tests.MultipartFile{
+			{
+				FieldName: "image",
+				FileName:  "test.jpg",
+				Content:   []byte("fake-image"),
+			},
+		}
+		c, rec := tests.SetupMultipartEcho(t, http.MethodPost, "/recipes/1", files, nil)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -77,7 +88,14 @@ func TestUploadRecipesImage(t *testing.T) {
 
 	t.Run("Given valid request, When UploadRecipesImage, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupMultipartRequest(t, http.MethodPost, "/recipes/1")
+		files := []tests.MultipartFile{
+			{
+				FieldName: "image",
+				FileName:  "test.jpg",
+				Content:   []byte("fake-image"),
+			},
+		}
+		c, rec := tests.SetupMultipartEcho(t, http.MethodPost, "/recipes/1", files, nil)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -100,7 +118,7 @@ func TestUploadRecipesImage(t *testing.T) {
 func TestDeleteRecipesImage(t *testing.T) {
 	t.Run("Given missing id, When DeleteRecipesImage, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEchoJSON(http.MethodDelete, "/recipes", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes", nil)
 
 		handler := NewStorageHandler(&MockStorageService{})
 
@@ -121,7 +139,7 @@ func TestDeleteRecipesImage(t *testing.T) {
 			URL: "http://external.com/image.jpg",
 		})
 
-		c, rec := setupEchoJSON(http.MethodDelete, "/recipes/1", body)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", body)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -144,7 +162,7 @@ func TestDeleteRecipesImage(t *testing.T) {
 			URL: "http://localhost/image.jpg",
 		})
 
-		c, rec := setupEchoJSON(http.MethodDelete, "/recipes/1", body)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", body)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -167,7 +185,7 @@ func TestDeleteRecipesImage(t *testing.T) {
 func TestDeleteRecipesStorage(t *testing.T) {
 	t.Run("Given missing id, When DeleteRecipesStorage, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEchoJSON(http.MethodDelete, "/recipes", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes", nil)
 
 		handler := NewStorageHandler(&MockStorageService{})
 
@@ -182,7 +200,7 @@ func TestDeleteRecipesStorage(t *testing.T) {
 
 	t.Run("Given service error, When DeleteRecipesStorage, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEchoJSON(http.MethodDelete, "/recipes/1", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", nil)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -203,7 +221,7 @@ func TestDeleteRecipesStorage(t *testing.T) {
 
 	t.Run("Given valid request, When DeleteRecipesStorage, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEchoJSON(http.MethodDelete, "/recipes/1", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", nil)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -222,7 +240,7 @@ func TestDeleteRecipesStorage(t *testing.T) {
 func TestDeleteListImage(t *testing.T) {
 	t.Run("Given missing id, When DeleteListImage, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEchoJSON(http.MethodDelete, "/list", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/list", nil)
 
 		handler := NewStorageHandler(&MockStorageService{})
 
@@ -237,7 +255,7 @@ func TestDeleteListImage(t *testing.T) {
 
 	t.Run("Given valid request, When DeleteListImage, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEchoJSON(http.MethodDelete, "/list/1", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/list/1", nil)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -258,7 +276,7 @@ func TestDeleteListImage(t *testing.T) {
 
 	t.Run("Given service error, When DeleteListImage, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEchoJSON(http.MethodDelete, "/list/1", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/list/1", nil)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -281,7 +299,14 @@ func TestDeleteListImage(t *testing.T) {
 func TestUploadListImage_Coverage(t *testing.T) {
 	t.Run("Given valid request, When UploadListImage, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupMultipartRequest(t, http.MethodPost, "/list/1")
+		files := []tests.MultipartFile{
+			{
+				FieldName: "image",
+				FileName:  "test.jpg",
+				Content:   []byte("fake-image"),
+			},
+		}
+		c, rec := tests.SetupMultipartEcho(t, http.MethodPost, "/list/1", files, nil)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -314,7 +339,7 @@ func TestDeleteRecipesImage_Success(t *testing.T) {
 			URL: "http://localhost/storage/recipes/images/1/large.jpg",
 		})
 
-		c, rec := setupEchoJSON(http.MethodDelete, "/recipes/1", body)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", body)
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -345,7 +370,7 @@ func TestDeleteRecipesImage_Success(t *testing.T) {
 func TestDeleteImage(t *testing.T) {
 	t.Run("Given invalid JSON body, When DeleteRecipesImage, Then returns 400 invalid request body", func(t *testing.T) {
 		// given
-		c, rec := setupEchoRaw(http.MethodDelete, "/recipes/1", []byte("{invalid-json"))
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", []byte("{invalid-json"))
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
@@ -359,16 +384,6 @@ func TestDeleteImage(t *testing.T) {
 			t.Fatalf("expected 400, got %d", rec.Code)
 		}
 	})
-}
-
-func setupEchoRaw(method, url string, body []byte) (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	req := httptest.NewRequest(method, url, bytes.NewReader(body))
-	req.Header.Set(echo.HeaderContentType, "application/json")
-
-	rec := httptest.NewRecorder()
-	return e.NewContext(req, rec), rec
 }
 
 func (m *MockStorageService) SaveRecipesImage(f *multipart.FileHeader, id string) (string, string, error) {
@@ -397,44 +412,4 @@ func (m *MockStorageService) DeleteStorage(id, category string) error {
 		return m.DeleteFunc(id, category)
 	}
 	return nil
-}
-
-func setupEchoJSON(method, url string, body []byte) (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	req := httptest.NewRequest(method, url, bytes.NewBuffer(body))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-
-	rec := httptest.NewRecorder()
-	return e.NewContext(req, rec), rec
-}
-
-func setupMultipartRequest(t *testing.T, method, url string) (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("image", "test.jpg")
-	if err != nil {
-		t.Fatalf("failed to create form file: %v", err)
-	}
-
-	_, err = part.Write([]byte("fake-image"))
-	if err != nil {
-		t.Fatalf("failed to write image: %v", err)
-	}
-
-	err = writer.Close()
-	if err != nil {
-		t.Fatalf("failed to close writer: %v", err)
-	}
-
-	req := httptest.NewRequest(method, url, body)
-	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
-
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	return c, rec
 }

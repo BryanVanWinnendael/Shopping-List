@@ -3,10 +3,8 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"net/http/httptest"
+	"shopping-list/shared/tests"
 	"testing"
-
-	"github.com/labstack/echo/v4"
 )
 
 type MockModelService struct {
@@ -14,9 +12,9 @@ type MockModelService struct {
 }
 
 func TestTrainModel(t *testing.T) {
-	t.Run("Given valid training, When service succeeds, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid training, When TrainModel, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho()
+		c, rec := tests.SetupEcho(http.MethodPost, "/train", nil)
 
 		mock := &MockModelService{
 			TrainFunc: func() (map[string]interface{}, error) {
@@ -46,9 +44,9 @@ func TestTrainModel(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service failure, When training fails, Then returns 500", func(t *testing.T) {
+	t.Run("Given service failure, When TrainModel, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho()
+		c, rec := tests.SetupEcho(http.MethodPost, "/train", nil)
 
 		mock := &MockModelService{
 			TrainFunc: func() (map[string]interface{}, error) {
@@ -81,13 +79,6 @@ func (m *MockModelService) TrainModel() (map[string]interface{}, error) {
 		"model":    "mock",
 		"accuracy": 1.0,
 	}, nil
-}
-
-func setupEcho() (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/train", nil)
-	rec := httptest.NewRecorder()
-	return e.NewContext(req, rec), rec
 }
 
 func newModelHandler(mock *MockModelService) *ModelHandler {

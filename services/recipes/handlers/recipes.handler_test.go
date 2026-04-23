@@ -1,16 +1,13 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/http/httptest"
+	"shopping-list/shared/tests"
 	"testing"
 
 	"shopping-list/recipes/models"
-
-	"github.com/labstack/echo/v4"
 )
 
 type MockRecipeService struct {
@@ -26,7 +23,7 @@ type MockRecipeService struct {
 func TestAddRecipe(t *testing.T) {
 	t.Run("Given invalid body, When AddRecipe, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodPost, "/recipes", []byte("invalid"))
+		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", []byte("invalid"))
 		handler := NewRecipeHandler(&MockRecipeService{})
 
 		// when
@@ -41,7 +38,7 @@ func TestAddRecipe(t *testing.T) {
 	t.Run("Given service error, When AddRecipe, Then returns 500", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.RecipeCreate{})
-		c, rec := setupEcho(http.MethodPost, "/recipes", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", body)
 
 		handler := NewRecipeHandler(&MockRecipeService{
 			CreateFunc: func(r *models.RecipeCreate) (*models.RecipeResponse, error) {
@@ -61,7 +58,7 @@ func TestAddRecipe(t *testing.T) {
 	t.Run("Given valid request, When AddRecipe, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.RecipeCreate{})
-		c, rec := setupEcho(http.MethodPost, "/recipes", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", body)
 
 		handler := NewRecipeHandler(&MockRecipeService{})
 
@@ -78,7 +75,7 @@ func TestAddRecipe(t *testing.T) {
 func TestGetRecipes(t *testing.T) {
 	t.Run("Given service error, When GetRecipes, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
 			GetAllFunc: func(skip, limit int) ([]models.RecipeResponse, error) {
@@ -97,7 +94,7 @@ func TestGetRecipes(t *testing.T) {
 
 	t.Run("Given valid request, When GetRecipes, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{})
 
@@ -114,7 +111,7 @@ func TestGetRecipes(t *testing.T) {
 func TestGetRecipeByID(t *testing.T) {
 	t.Run("Given not found, When GetRecipeByID, Then returns 404", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes/1", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/1", nil)
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
@@ -135,7 +132,7 @@ func TestGetRecipeByID(t *testing.T) {
 
 	t.Run("Given valid id, When GetRecipeByID, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes/1", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/1", nil)
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
@@ -154,7 +151,7 @@ func TestGetRecipeByID(t *testing.T) {
 func TestUpdateRecipe(t *testing.T) {
 	t.Run("Given invalid body, When UpdateRecipe, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodPut, "/recipes/1", []byte("invalid"))
+		c, rec := tests.SetupEcho(http.MethodPut, "/recipes/1", []byte("invalid"))
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
@@ -172,7 +169,7 @@ func TestUpdateRecipe(t *testing.T) {
 	t.Run("Given service error, When UpdateRecipe, Then returns 404", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.RecipeUpdate{})
-		c, rec := setupEcho(http.MethodPut, "/recipes/1", body)
+		c, rec := tests.SetupEcho(http.MethodPut, "/recipes/1", body)
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
@@ -194,7 +191,7 @@ func TestUpdateRecipe(t *testing.T) {
 	t.Run("Given valid request, When UpdateRecipe, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.RecipeUpdate{})
-		c, rec := setupEcho(http.MethodPut, "/recipes/1", body)
+		c, rec := tests.SetupEcho(http.MethodPut, "/recipes/1", body)
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
@@ -213,7 +210,7 @@ func TestUpdateRecipe(t *testing.T) {
 func TestDeleteRecipe(t *testing.T) {
 	t.Run("Given service error, When DeleteRecipe, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodDelete, "/recipes/1", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", nil)
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
@@ -234,7 +231,7 @@ func TestDeleteRecipe(t *testing.T) {
 
 	t.Run("Given not found, When DeleteRecipe, Then returns 404", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodDelete, "/recipes/1", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", nil)
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
@@ -255,7 +252,7 @@ func TestDeleteRecipe(t *testing.T) {
 
 	t.Run("Given success, When DeleteRecipe, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodDelete, "/recipes/1", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes/1", nil)
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
@@ -278,7 +275,7 @@ func TestDeleteRecipe(t *testing.T) {
 func TestGetDistinctCountries(t *testing.T) {
 	t.Run("Given service error, When GetDistinctCountries, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes/countries", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/countries", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
 			GetCountriesFunc: func() ([]string, error) {
@@ -297,7 +294,7 @@ func TestGetDistinctCountries(t *testing.T) {
 
 	t.Run("Given success, When GetDistinctCountries, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes/countries", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/countries", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
 			GetCountriesFunc: func() ([]string, error) {
@@ -318,7 +315,7 @@ func TestGetDistinctCountries(t *testing.T) {
 func TestGetRecipesByUser(t *testing.T) {
 	t.Run("Given service error, When GetRecipesByUser, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes/user/john", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/user/john", nil)
 		c.SetParamNames("username")
 		c.SetParamValues("john")
 
@@ -339,7 +336,7 @@ func TestGetRecipesByUser(t *testing.T) {
 
 	t.Run("Given valid request, When GetRecipesByUser, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes/user/john?skip=0&limit=10", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/user/john?skip=0&limit=10", nil)
 		c.SetParamNames("username")
 		c.SetParamValues("john")
 
@@ -363,7 +360,7 @@ func TestGetRecipesByUser(t *testing.T) {
 
 	t.Run("Given no limit provided, When GetRecipesByUser, Then defaults to 100", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/recipes/user/john?skip=0", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/user/john?skip=0", nil)
 		c.SetParamNames("username")
 		c.SetParamValues("john")
 
@@ -384,23 +381,6 @@ func TestGetRecipesByUser(t *testing.T) {
 			t.Fatalf("expected 200, got %d", rec.Code)
 		}
 	})
-}
-
-func setupEcho(method, url string, body []byte) (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	var req *http.Request
-	if body != nil {
-		req = httptest.NewRequest(method, url, bytes.NewBuffer(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	} else {
-		req = httptest.NewRequest(method, url, nil)
-	}
-
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	return c, rec
 }
 
 func (m *MockRecipeService) CreateRecipe(r *models.RecipeCreate) (*models.RecipeResponse, error) {

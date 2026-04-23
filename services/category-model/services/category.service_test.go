@@ -3,6 +3,8 @@ package services
 import (
 	"errors"
 	"os"
+	"shopping-list/category-model/internal/config"
+	"shopping-list/shared/tests"
 	"testing"
 )
 
@@ -91,12 +93,7 @@ func TestGetCategory(t *testing.T) {
 func TestAddCategory(t *testing.T) {
 	t.Run("Given temporary CSV file, When AddCategory, Then write correctly", func(t *testing.T) {
 		// given
-		tmpFile := "test_categories.csv"
-		defer removeFile(tmpFile)
-
-		originalCategoriesCsv := CategoriesCsv
-		CategoriesCsv = func() string { return tmpFile }
-		defer func() { CategoriesCsv = originalCategoriesCsv }()
+		setupCategories(t, nil)
 
 		cs := &CategoryService{}
 
@@ -108,7 +105,7 @@ func TestAddCategory(t *testing.T) {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		data, err := os.ReadFile(tmpFile)
+		data, err := os.ReadFile(config.Vars.CategoriesFile)
 		if err != nil {
 			t.Fatalf("failed to read temp file: %v", err)
 		}
@@ -132,4 +129,12 @@ func (m *MockModelService) Predict(item string) (string, error) {
 		return m.PredictFunc(item)
 	}
 	return "mock-category", nil
+}
+
+func setupCategories(t *testing.T, data []byte) {
+	config.Vars.CategoriesFile = "test.csv"
+	config.Vars.ModelFile = "test.pkl"
+	tests.SetupFile(t, "test.csv", data)
+
+	t.Cleanup(func() { tests.RemoveFile(t, "test.pkl") })
 }

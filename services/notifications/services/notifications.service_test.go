@@ -1,10 +1,9 @@
 package services
 
 import (
-	"encoding/json"
-	"os"
 	"shopping-list/notifications/internal/config"
 	"shopping-list/notifications/models"
+	"shopping-list/shared/tests"
 	"testing"
 
 	"go.etcd.io/bbolt"
@@ -14,13 +13,10 @@ type MockExpo struct {
 	SendFunc func(token, title, body string) error
 }
 
-const tmpDB = "test.db"
-
 func TestCreateNotification(t *testing.T) {
-	t.Run("Given valid data, When CreateNotification, Then store and return notification", func(t *testing.T) {
+	t.Run("Given valid data, When Subscribe, Then store and return notification", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := NewNotificationsService(db, &MockExpo{})
 
@@ -31,7 +27,7 @@ func TestCreateNotification(t *testing.T) {
 		}
 
 		// when
-		notif, err := service.CreateNotification(data)
+		notif, err := service.Subscribe(data)
 
 		// then
 		if err != nil {
@@ -46,17 +42,12 @@ func TestCreateNotification(t *testing.T) {
 func TestGetNotification(t *testing.T) {
 	t.Run("Given existing notification, When GetNotification, Then return it", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := NewNotificationsService(db, &MockExpo{})
 
-		n := models.Notification{ID: "1", User: "user1", Type: "added"}
-		data, _ := json.Marshal(n)
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		notification := models.Notification{ID: "1", User: "user1", Type: "added"}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
 		result, err := service.GetNotification("1")
@@ -72,8 +63,7 @@ func TestGetNotification(t *testing.T) {
 
 	t.Run("Given missing notification, When GetNotification, Then return error", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := NewNotificationsService(db, &MockExpo{})
 
@@ -90,17 +80,12 @@ func TestGetNotification(t *testing.T) {
 func TestGetAllNotifications(t *testing.T) {
 	t.Run("Given notifications in DB, When GetAllNotifications, Then return list", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := NewNotificationsService(db, &MockExpo{})
 
-		n := models.Notification{ID: "1", User: "user1"}
-		data, _ := json.Marshal(n)
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		notification := models.Notification{ID: "1", User: "user1"}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
 		list, err := service.GetAllNotifications()
@@ -118,30 +103,14 @@ func TestGetAllNotifications(t *testing.T) {
 func TestGetUserNotifications(t *testing.T) {
 	t.Run("Given multiple notifications, When GetUserNotifications, Then return user notifications", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := NewNotificationsService(db, &MockExpo{})
 
-		n1 := models.Notification{ID: "1", User: "user1"}
-		n2 := models.Notification{ID: "2", User: "user2"}
-
-		b1, _ := json.Marshal(n1)
-		b2, _ := json.Marshal(n2)
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			b := tx.Bucket([]byte(config.Vars.Bucket))
-
-			if err := b.Put([]byte("1"), b1); err != nil {
-				return err
-			}
-
-			if err := b.Put([]byte("2"), b2); err != nil {
-				return err
-			}
-
-			return nil
-		})
+		notification1 := models.Notification{ID: "1", User: "user1"}
+		notification2 := models.Notification{ID: "2", User: "user2"}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification1)
+		tests.Put(t, db, config.Vars.Bucket, []byte("2"), notification2)
 
 		// when
 		list, err := service.GetUserNotifications("user1")
@@ -159,17 +128,12 @@ func TestGetUserNotifications(t *testing.T) {
 func TestDeleteNotification(t *testing.T) {
 	t.Run("Given existing notification, When DeleteNotification, Then success", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := NewNotificationsService(db, &MockExpo{})
 
-		n := models.Notification{ID: "1", User: "user1", Type: "added"}
-		data, _ := json.Marshal(n)
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		notification := models.Notification{ID: "1", User: "user1", Type: "added"}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
 		err := service.DeleteNotification("user1", "added")
@@ -182,8 +146,7 @@ func TestDeleteNotification(t *testing.T) {
 
 	t.Run("Given missing notification, When DeleteNotification, Then return error", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		service := NewNotificationsService(db, &MockExpo{})
 
@@ -200,8 +163,7 @@ func TestDeleteNotification(t *testing.T) {
 func TestSendPushNotification(t *testing.T) {
 	t.Run("Given notifications, When SendPushNotification, Then send push", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		mockExpo := &MockExpo{
 			SendFunc: func(token, title, body string) error {
@@ -211,18 +173,13 @@ func TestSendPushNotification(t *testing.T) {
 
 		service := NewNotificationsService(db, mockExpo)
 
-		n := models.Notification{
+		notification := models.Notification{
 			ID:    "1",
 			User:  "user1",
 			Type:  "added",
 			Token: "token123",
 		}
-
-		data, _ := json.Marshal(n)
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
 		err := service.SendPushNotification("added", "user1", "")
@@ -235,8 +192,7 @@ func TestSendPushNotification(t *testing.T) {
 
 	t.Run("Given dev env, When SendPushNotification, Then use dev path", func(t *testing.T) {
 		// given
-		db := setupDB(t)
-		defer cleanupDB(t, db)
+		db := setup(t)
 
 		mockExpo := &MockExpo{
 			SendFunc: func(token, title, body string) error {
@@ -246,18 +202,13 @@ func TestSendPushNotification(t *testing.T) {
 
 		service := NewNotificationsService(db, mockExpo)
 
-		n := models.Notification{
+		notification := models.Notification{
 			ID:    "1",
 			User:  "user1",
 			Type:  "added",
 			Token: "token123",
 		}
-
-		data, _ := json.Marshal(n)
-
-		mustUpdate(t, db, func(tx *bbolt.Tx) error {
-			return tx.Bucket([]byte(config.Vars.Bucket)).Put([]byte("1"), data)
-		})
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
 		err := service.SendPushNotification("added", "user1", "dev")
@@ -276,40 +227,8 @@ func (m *MockExpo) SendPushToUser(token, title, body string) error {
 	return nil
 }
 
-func setupDB(t *testing.T) *bbolt.DB {
-	db, err := bbolt.Open(tmpDB, 0600, nil)
-	if err != nil {
-		t.Fatalf("failed to open db: %v", err)
-	}
-
-	bucket := "test-bucket"
-
-	err = db.Update(func(tx *bbolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(bucket))
-		return err
-	})
-	if err != nil {
-		t.Fatalf("failed to create bucket: %v", err)
-	}
-
-	config.Vars.Bucket = bucket
-
+func setup(t *testing.T) *bbolt.DB {
+	config.Vars.Bucket = "test-bucket"
+	db := tests.SetupDB(t, "test.db", "test-bucket")
 	return db
-}
-
-func cleanupDB(t *testing.T, db *bbolt.DB) {
-	err := db.Close()
-	if err != nil {
-		t.Fatalf("failed to close db: %v", err)
-	}
-
-	if err := os.Remove(tmpDB); err != nil && !os.IsNotExist(err) {
-		t.Fatalf("failed to remove db file: %v", err)
-	}
-}
-
-func mustUpdate(t *testing.T, db *bbolt.DB, fn func(tx *bbolt.Tx) error) {
-	if err := db.Update(fn); err != nil {
-		t.Fatalf("db update failed: %v", err)
-	}
 }

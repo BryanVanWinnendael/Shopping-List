@@ -1,15 +1,12 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/http/httptest"
 	"shopping-list/category-model/models"
+	"shopping-list/shared/tests"
 	"testing"
-
-	"github.com/labstack/echo/v4"
 )
 
 type MockCategoryService struct {
@@ -18,9 +15,9 @@ type MockCategoryService struct {
 }
 
 func TestGetCategory(t *testing.T) {
-	t.Run("Given missing item, When calling endpoint, Then returns 400", func(t *testing.T) {
+	t.Run("Given missing item, When GetCategory, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEchoContext(http.MethodGet, "/category", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/category", nil)
 
 		handler := newHandler(&MockCategoryService{})
 
@@ -37,9 +34,9 @@ func TestGetCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid item, When service succeeds, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid item, When GetCategory, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEchoContext(http.MethodGet, "/category?item=apple", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/category?item=apple", nil)
 
 		handler := newHandler(&MockCategoryService{
 			GetCategoryFunc: func(item string) (string, error) {
@@ -60,9 +57,9 @@ func TestGetCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When calling endpoint, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When GetCategory, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEchoContext(http.MethodGet, "/category?item=apple", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/category?item=apple", nil)
 
 		handler := newHandler(&MockCategoryService{
 			GetCategoryFunc: func(item string) (string, error) {
@@ -85,9 +82,9 @@ func TestGetCategory(t *testing.T) {
 }
 
 func TestAddCategory(t *testing.T) {
-	t.Run("Given invalid JSON, When calling endpoint, Then returns 400", func(t *testing.T) {
+	t.Run("Given invalid JSON, When AddCategory, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEchoContext(http.MethodPost, "/category", []byte("invalid-json"))
+		c, rec := tests.SetupEcho(http.MethodPost, "/category", []byte("invalid-json"))
 
 		handler := newHandler(&MockCategoryService{})
 
@@ -104,14 +101,14 @@ func TestAddCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given missing fields, When calling endpoint, Then returns 400", func(t *testing.T) {
+	t.Run("Given missing fields, When AddCategory, Then returns 400", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.AddCategoryRequest{
 			Item:     "",
 			Category: "",
 		})
 
-		c, rec := setupEchoContext(http.MethodPost, "/category", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/category", body)
 
 		handler := newHandler(&MockCategoryService{})
 
@@ -128,14 +125,14 @@ func TestAddCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When service succeeds, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When AddCategory, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.AddCategoryRequest{
 			Item:     " apple ",
 			Category: " fruit ",
 		})
 
-		c, rec := setupEchoContext(http.MethodPost, "/category", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/category", body)
 
 		handler := newHandler(&MockCategoryService{
 			AddCategoryFunc: func(item, category string) error {
@@ -156,14 +153,14 @@ func TestAddCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When calling endpoint, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When AddCategory, Then returns 500", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.AddCategoryRequest{
 			Item:     "apple",
 			Category: "fruit",
 		})
 
-		c, rec := setupEchoContext(http.MethodPost, "/category", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/category", body)
 
 		handler := newHandler(&MockCategoryService{
 			AddCategoryFunc: func(item, category string) error {
@@ -197,23 +194,6 @@ func (m *MockCategoryService) AddCategory(item, category string) error {
 		return m.AddCategoryFunc(item, category)
 	}
 	return nil
-}
-
-func setupEchoContext(method, url string, body []byte) (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	var req *http.Request
-	if body != nil {
-		req = httptest.NewRequest(method, url, bytes.NewBuffer(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	} else {
-		req = httptest.NewRequest(method, url, nil)
-	}
-
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	return c, rec
 }
 
 func newHandler(mock *MockCategoryService) *CategoryHandler {

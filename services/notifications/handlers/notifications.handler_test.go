@@ -1,16 +1,13 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/http/httptest"
+	"shopping-list/shared/tests"
 	"testing"
 
 	"shopping-list/notifications/models"
-
-	"github.com/labstack/echo/v4"
 )
 
 type MockNotificationsService struct {
@@ -24,7 +21,7 @@ type MockNotificationsService struct {
 func TestAdd(t *testing.T) {
 	t.Run("Given invalid body, When Subscribe, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodPost, "/notifications", []byte("invalid"))
+		c, rec := tests.SetupEcho(http.MethodPost, "/notifications", []byte("invalid"))
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
@@ -39,7 +36,7 @@ func TestAdd(t *testing.T) {
 	t.Run("Given service error, When Subscribe, Then returns 500", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.NotificationCreate{})
-		c, rec := setupEcho(http.MethodPost, "/notifications", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/notifications", body)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
 			CreateFunc: func(n *models.NotificationCreate) (*models.Notification, error) {
@@ -59,7 +56,7 @@ func TestAdd(t *testing.T) {
 	t.Run("Given valid request, When Subscribe, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.NotificationCreate{})
-		c, rec := setupEcho(http.MethodPost, "/notifications", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/notifications", body)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
@@ -76,7 +73,7 @@ func TestAdd(t *testing.T) {
 func TestSendPushByType(t *testing.T) {
 	t.Run("Given missing params, When SendPushByType, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodPost, "/push", nil)
+		c, rec := tests.SetupEcho(http.MethodPost, "/push", nil)
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
@@ -90,7 +87,7 @@ func TestSendPushByType(t *testing.T) {
 
 	t.Run("Given invalid body, When SendPushByType, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodPost, "/push", []byte("{invalid"))
+		c, rec := tests.SetupEcho(http.MethodPost, "/push", []byte("{invalid"))
 		c.SetParamNames("type", "user")
 		c.SetParamValues("a", "b")
 
@@ -108,7 +105,7 @@ func TestSendPushByType(t *testing.T) {
 	t.Run("Given service error, When SendPushByType, Then returns 500", func(t *testing.T) {
 		// given
 		body := []byte(`{"env":"prod"}`)
-		c, rec := setupEcho(http.MethodPost, "/push", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/push", body)
 		c.SetParamNames("type", "user")
 		c.SetParamValues("a", "b")
 
@@ -130,7 +127,7 @@ func TestSendPushByType(t *testing.T) {
 	t.Run("Given valid request, When SendPushByType, Then returns 200", func(t *testing.T) {
 		// given
 		body := []byte(`{"env":"prod"}`)
-		c, rec := setupEcho(http.MethodPost, "/push", body)
+		c, rec := tests.SetupEcho(http.MethodPost, "/push", body)
 		c.SetParamNames("type", "user")
 		c.SetParamValues("a", "b")
 
@@ -147,9 +144,9 @@ func TestSendPushByType(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	t.Run("Given service error, When GetAll, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When GetAllNotifications, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/notifications", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/notifications", nil)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
 			GetAllFunc: func() ([]models.Notification, error) {
@@ -158,7 +155,7 @@ func TestGetAll(t *testing.T) {
 		})
 
 		// when
-		_ = handler.GetAll(c)
+		_ = handler.GetAllNotifications(c)
 
 		// then
 		if rec.Code != http.StatusInternalServerError {
@@ -166,9 +163,9 @@ func TestGetAll(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid data, When GetAll, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid data, When GetAllNotifications, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/notifications", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/notifications", nil)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
 			GetAllFunc: func() ([]models.Notification, error) {
@@ -179,7 +176,7 @@ func TestGetAll(t *testing.T) {
 		})
 
 		// when
-		_ = handler.GetAll(c)
+		_ = handler.GetAllNotifications(c)
 
 		// then
 		if rec.Code != http.StatusOK {
@@ -191,7 +188,7 @@ func TestGetAll(t *testing.T) {
 func TestGetUserNotifications(t *testing.T) {
 	t.Run("Given service error, When GetUserNotifications, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/notifications/user1", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/notifications/user1", nil)
 		c.SetParamNames("user")
 		c.SetParamValues("user1")
 
@@ -212,7 +209,7 @@ func TestGetUserNotifications(t *testing.T) {
 
 	t.Run("Given valid user, When GetUserNotifications, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/notifications/user1", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/notifications/user1", nil)
 		c.SetParamNames("user")
 		c.SetParamValues("user1")
 
@@ -235,14 +232,14 @@ func TestGetUserNotifications(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("Given missing params, When DeleteNotification, Then returns 400", func(t *testing.T) {
+	t.Run("Given missing params, When Unsubscribe, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodDelete, "/notifications", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/notifications", nil)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
-		_ = handler.DeleteNotification(c)
+		_ = handler.Unsubscribe(c)
 
 		// then
 		if rec.Code != http.StatusBadRequest {
@@ -250,9 +247,9 @@ func TestDelete(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When DeleteNotification, Then returns 404", func(t *testing.T) {
+	t.Run("Given service error, When Unsubscribe, Then returns 404", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodDelete, "/notifications/a/b", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/notifications/a/b", nil)
 		c.SetParamNames("type", "user")
 		c.SetParamValues("a", "b")
 
@@ -263,7 +260,7 @@ func TestDelete(t *testing.T) {
 		})
 
 		// when
-		_ = handler.DeleteNotification(c)
+		_ = handler.Unsubscribe(c)
 
 		// then
 		if rec.Code != http.StatusNotFound {
@@ -271,9 +268,9 @@ func TestDelete(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When DeleteNotification, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When Unsubscribe, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodDelete, "/notifications/a/b", nil)
+		c, rec := tests.SetupEcho(http.MethodDelete, "/notifications/a/b", nil)
 		c.SetParamNames("type", "user")
 		c.SetParamValues("a", "b")
 
@@ -284,30 +281,13 @@ func TestDelete(t *testing.T) {
 		})
 
 		// when
-		_ = handler.DeleteNotification(c)
+		_ = handler.Unsubscribe(c)
 
 		// then
 		if rec.Code != http.StatusOK {
 			t.Fatalf("expected 200, got %d", rec.Code)
 		}
 	})
-}
-
-func setupEcho(method, url string, body []byte) (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	var req *http.Request
-	if body != nil {
-		req = httptest.NewRequest(method, url, bytes.NewBuffer(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	} else {
-		req = httptest.NewRequest(method, url, nil)
-	}
-
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	return c, rec
 }
 
 func (m *MockNotificationsService) CreateNotification(n *models.NotificationCreate) (*models.Notification, error) {

@@ -11,7 +11,7 @@ type CronService interface {
 	AddCronItem(item models.CronItem) (string, error)
 	GetAllCronItems() ([]models.CronItem, error)
 	UpdateCategory(id string, newCategory string) error
-	Delete(id string) error
+	DeleteCronItem(id string) error
 	GetCronItemsByAddedBy(addedBy string) ([]models.CronItem, error)
 }
 
@@ -89,7 +89,7 @@ func (ch *CronHandler) UpdateCategory(c echo.Context) error {
 func (ch *CronHandler) DeleteCronItem(c echo.Context) error {
 	idParam := c.Param("id")
 
-	if err := ch.CronService.Delete(idParam); err != nil {
+	if err := ch.CronService.DeleteCronItem(idParam); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})

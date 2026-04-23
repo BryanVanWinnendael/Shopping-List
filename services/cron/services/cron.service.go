@@ -121,7 +121,7 @@ func (c *CronService) UpdateCategory(id string, newCategory string) error {
 	})
 }
 
-func (c *CronService) Delete(id string) error {
+func (c *CronService) DeleteCronItem(id string) error {
 	return c.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
@@ -132,7 +132,7 @@ func (c *CronService) Delete(id string) error {
 	})
 }
 
-func (c *CronService) AddItemToList(item models.Item) (string, error) {
+func (c *CronService) AddCronItemToList(item models.Item) (string, error) {
 	path := fmt.Sprintf("items/%s", item.ID)
 	if err := c.firebase.Set(path, item); err != nil {
 		return "", err
@@ -162,7 +162,7 @@ func (c *CronService) RunCronJob() error {
 			Category: cronItem.Category,
 		}
 
-		_, err := c.AddItemToList(item)
+		_, err := c.AddCronItemToList(item)
 		if err != nil {
 			fmt.Printf("failed to add item '%s' to Firebase: %v\n", item.Item, err)
 		}

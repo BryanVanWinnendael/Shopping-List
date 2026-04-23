@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
+	"shopping-list/category-model/internal/config"
 	"shopping-list/category-model/models"
 	"strings"
 )
@@ -29,7 +31,8 @@ func (ms *ModelService) TrainModel() (map[string]any, error) {
 
 	train(data, ms.naiveBayes)
 
-	file, err := os.Create(ModelFile())
+	modelPath := filepath.Join(config.Vars.DataDir, config.Vars.ModelFile)
+	file, err := os.Create(modelPath)
 	if err != nil {
 		return nil, err
 	}
@@ -58,9 +61,8 @@ func (ms *ModelService) TrainModel() (map[string]any, error) {
 }
 
 func (ms *ModelService) LoadModel() error {
-	modelFile := ModelFile()
-
-	file, err := os.Open(modelFile)
+	modelPath := filepath.Join(config.Vars.DataDir, config.Vars.ModelFile)
+	file, err := os.Open(modelPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return ms.trainAndSave()
@@ -130,7 +132,8 @@ func tokenize(text string) []string {
 }
 
 func loadCSV() ([]models.TrainingData, error) {
-	file, err := os.Open(CategoriesCsv())
+	categoriesPath := filepath.Join(config.Vars.DataDir, config.Vars.CategoriesFile)
+	file, err := os.Open(categoriesPath)
 	if err != nil {
 		return nil, err
 	}

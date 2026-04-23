@@ -2,32 +2,18 @@ package services
 
 import (
 	"os"
+	"shopping-list/category-model/internal/config"
 	"shopping-list/category-model/models"
+	"shopping-list/shared/tests"
 	"testing"
 )
 
-const tmpCsv = "test_categories.csv"
-const tmpModel = "test_model.pkl"
-
 func TestTrainModel(t *testing.T) {
-	t.Run("Given valid CSV, When training model, Then it returns accuracy and creates model file", func(t *testing.T) {
+	t.Run("Given valid CSV, When TrainModel, Then returns accuracy and creates model file", func(t *testing.T) {
 		// given
-		defer removeFile(tmpCsv)
-		defer removeFile(tmpModel)
-
-		origCsv := CategoriesCsv
-		origModel := ModelFile
-		CategoriesCsv = func() string { return tmpCsv }
-		ModelFile = func() string { return tmpModel }
-		defer func() {
-			CategoriesCsv = origCsv
-			ModelFile = origModel
-		}()
-
-		err := writeTestCSV(tmpCsv)
-		if err != nil {
-			t.Fatalf("failed to write test CSV: %v", err)
-		}
+		data := "item,category\napple,fruit\nbanana,fruit\ncarrot,vegetable"
+		setupCategories(t, []byte(data))
+		setupModel(t)
 
 		nb := createTestNaiveBayes()
 		ms := NewModelService(nb)
@@ -48,7 +34,7 @@ func TestTrainModel(t *testing.T) {
 			t.Fatalf("expected accuracy in result")
 		}
 
-		if _, err := os.Stat(tmpModel); err != nil {
+		if _, err := os.Stat(config.Vars.ModelFile); err != nil {
 			t.Fatalf("expected model file to be created")
 		}
 	})
@@ -57,59 +43,29 @@ func TestTrainModel(t *testing.T) {
 func TestLoadModel(t *testing.T) {
 	t.Run("Given no model file, When LoadModel, Then it trains and saves model", func(t *testing.T) {
 		// given
-		defer removeFile(tmpCsv)
-		defer removeFile(tmpModel)
-
-		origCsv := CategoriesCsv
-		origModel := ModelFile
-		CategoriesCsv = func() string { return tmpCsv }
-		ModelFile = func() string { return tmpModel }
-		defer func() {
-			CategoriesCsv = origCsv
-			ModelFile = origModel
-		}()
-
-		err := writeTestCSV(tmpCsv)
-		if err != nil {
-			t.Fatalf("failed to write test CSV: %v", err)
-		}
+		data := "item,category\napple,fruit\nbanana,fruit\ncarrot,vegetable"
+		setupCategories(t, []byte(data))
 
 		nb := createTestNaiveBayes()
 		ms := NewModelService(nb)
 
 		// when
-		err = ms.LoadModel()
+		err := ms.LoadModel()
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if _, err := os.Stat(tmpModel); err != nil {
+		if _, err := os.Stat(config.Vars.ModelFile); err != nil {
 			t.Fatalf("expected model file to be created")
 		}
 	})
 
 	t.Run("Given existing model file, When TrainModel, Then it decodes successfully", func(t *testing.T) {
 		// given
-		tmpCsv := "test_categories.csv"
-
-		defer removeFile(tmpCsv)
-		defer removeFile(tmpModel)
-
-		origCsv := CategoriesCsv
-		origModel := ModelFile
-		CategoriesCsv = func() string { return tmpCsv }
-		ModelFile = func() string { return tmpModel }
-		defer func() {
-			CategoriesCsv = origCsv
-			ModelFile = origModel
-		}()
-
-		err := writeTestCSV(tmpCsv)
-		if err != nil {
-			t.Fatalf("failed to write test CSV: %v", err)
-		}
+		data := "item,category\napple,fruit\nbanana,fruit\ncarrot,vegetable"
+		setupCategories(t, []byte(data))
 
 		nb := createTestNaiveBayes()
 		ms := NewModelService(nb)
@@ -118,7 +74,7 @@ func TestLoadModel(t *testing.T) {
 		_, _ = ms.TrainModel()
 
 		// then
-		err = ms.LoadModel()
+		err := ms.LoadModel()
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -186,12 +142,6 @@ func TestTokenize(t *testing.T) {
 	})
 }
 
-func removeFile(path string) {
-	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
-		panic("failed to remove file: " + err.Error())
-	}
-}
-
 func createTestNaiveBayes() *models.NaiveBayes {
 	return &models.NaiveBayes{
 		ClassCounts: make(map[string]int),
@@ -201,7 +151,10 @@ func createTestNaiveBayes() *models.NaiveBayes {
 	}
 }
 
-func writeTestCSV(path string) error {
-	data := "item,category\napple,fruit\nbanana,fruit\ncarrot,vegetable"
-	return os.WriteFile(path, []byte(data), 0644)
+func setupModel(t *testing.T) {
+	config.Vars.ModelFile = "test.pkl"
+	config.Vars.CategoriesFile = "test.csv"
+	tests.SetupFile(t, "test.pkl", nil)
+
+	t.Cleanup(func() { tests.RemoveFile(t, "test.csv") })
 }

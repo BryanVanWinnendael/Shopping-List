@@ -35,7 +35,7 @@ func NewNotificationsService(db *bbolt.DB, expo ExpoPushService) *NotificationsS
 	}
 }
 
-func (ns *NotificationsService) CreateNotification(data *models.NotificationCreate) (*models.Notification, error) {
+func (ns *NotificationsService) Subscribe(data *models.NotificationCreate) (*models.Notification, error) {
 	notif := &models.Notification{
 		ID:    uuid.New().String(),
 		User:  data.User,

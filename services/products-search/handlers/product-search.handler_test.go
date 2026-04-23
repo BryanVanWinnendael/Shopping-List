@@ -1,15 +1,12 @@
 package handlers
 
 import (
-	"bytes"
 	"errors"
 	"net/http"
-	"net/http/httptest"
+	"shopping-list/shared/tests"
 	"testing"
 
 	"shopping-list/products-search/models"
-
-	"github.com/labstack/echo/v4"
 )
 
 type MockProductsSearchService struct {
@@ -20,7 +17,7 @@ type MockProductsSearchService struct {
 func TestSearchProducts(t *testing.T) {
 	t.Run("Given missing query, When SearchProducts, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/search", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search", nil)
 		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
 		// when
@@ -34,7 +31,7 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given service error, When SearchProducts, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			SearchFunc: func(q string, cat []string, page, size int) (models.ProductsSearchResult, error) {
@@ -53,7 +50,7 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given fish category, When SearchProducts, Then maps to meat", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			SearchFunc: func(q string, cat []string, page, size int) (models.ProductsSearchResult, error) {
@@ -75,7 +72,7 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given invalid pagination, When SearchProducts, Then defaults applied", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/search?q=apple&page=0&pageSize=-1", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&page=0&pageSize=-1", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			SearchFunc: func(q string, cat []string, page, size int) (models.ProductsSearchResult, error) {
@@ -97,7 +94,7 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given large pageSize, When SearchProducts, Then capped at 100", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/search?q=apple&pageSize=999", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&pageSize=999", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			SearchFunc: func(q string, cat []string, page, size int) (models.ProductsSearchResult, error) {
@@ -121,7 +118,7 @@ func TestSearchProducts(t *testing.T) {
 func TestSearchProduct(t *testing.T) {
 	t.Run("Given missing query, When SearchProduct, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/search", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search", nil)
 		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
 		// when
@@ -133,9 +130,9 @@ func TestSearchProduct(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When SearchProduct, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When SearchProduct fuzzy, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			FuzzyFunc: func(q, cat string, page, size int) (models.ProductsSearchResult, error) {
@@ -152,9 +149,9 @@ func TestSearchProduct(t *testing.T) {
 		}
 	})
 
-	t.Run("Given fish category, When SearchProduct, Then maps to meat", func(t *testing.T) {
+	t.Run("Given fish category, When SearchProduct fuzzy, Then maps to meat", func(t *testing.T) {
 		// given
-		c, rec := setupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			FuzzyFunc: func(q, cat string, page, size int) (models.ProductsSearchResult, error) {
@@ -173,23 +170,6 @@ func TestSearchProduct(t *testing.T) {
 			t.Fatalf("expected 200, got %d", rec.Code)
 		}
 	})
-}
-
-func setupEcho(method, url string, body []byte) (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	var req *http.Request
-	if body != nil {
-		req = httptest.NewRequest(method, url, bytes.NewBuffer(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	} else {
-		req = httptest.NewRequest(method, url, nil)
-	}
-
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	return c, rec
 }
 
 func (m *MockProductsSearchService) SearchProducts(q string, c []string, p, s int) (models.ProductsSearchResult, error) {

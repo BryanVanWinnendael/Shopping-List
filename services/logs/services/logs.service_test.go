@@ -3,21 +3,14 @@ package services
 import (
 	"os"
 	"shopping-list/logs/internal/config"
+	"shopping-list/shared/tests"
 	"testing"
 )
-
-const tmpFile = "test.txt"
 
 func TestGetLogs(t *testing.T) {
 	t.Run("Given logs file with content, When GetLogs, Then returns logs", func(t *testing.T) {
 		// given
-		config.Vars.LogsFile = tmpFile
-		defer cleanupFile(t)
-
-		err := os.WriteFile(tmpFile, []byte("log1\nlog2\n"), 0644)
-		if err != nil {
-			t.Fatalf("failed to write test file: %v", err)
-		}
+		setup(t, []byte("log1\nlog2\n"))
 
 		service := NewLogsService()
 
@@ -35,9 +28,6 @@ func TestGetLogs(t *testing.T) {
 
 	t.Run("Given missing file, When GetLogs, Then returns error", func(t *testing.T) {
 		// given
-		config.Vars.LogsFile = tmpFile
-		defer cleanupFile(t)
-
 		service := NewLogsService()
 
 		// when
@@ -53,8 +43,7 @@ func TestGetLogs(t *testing.T) {
 func TestWriteLog(t *testing.T) {
 	t.Run("Given valid text, When WriteLog, Then writes to file", func(t *testing.T) {
 		// given
-		config.Vars.LogsFile = tmpFile
-		defer cleanupFile(t)
+		setup(t, nil)
 
 		service := NewLogsService()
 
@@ -66,7 +55,7 @@ func TestWriteLog(t *testing.T) {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		data, err := os.ReadFile(tmpFile)
+		data, err := os.ReadFile(config.Vars.LogsFile)
 		if err != nil {
 			t.Fatalf("failed to read file: %v", err)
 		}
@@ -79,8 +68,7 @@ func TestWriteLog(t *testing.T) {
 
 	t.Run("Given multiple writes, When WriteLog, Then appends correctly", func(t *testing.T) {
 		// given
-		config.Vars.LogsFile = tmpFile
-		defer cleanupFile(t)
+		setup(t, nil)
 
 		service := NewLogsService()
 
@@ -95,7 +83,7 @@ func TestWriteLog(t *testing.T) {
 		}
 
 		// then
-		data, err := os.ReadFile(tmpFile)
+		data, err := os.ReadFile(config.Vars.LogsFile)
 		if err != nil {
 			t.Fatalf("failed to read file: %v", err)
 		}
@@ -110,25 +98,19 @@ func TestWriteLog(t *testing.T) {
 func TestClearLogs(t *testing.T) {
 	t.Run("Given existing logs, When ClearLogs, Then clears file", func(t *testing.T) {
 		// given
-		config.Vars.LogsFile = tmpFile
-		defer cleanupFile(t)
-
-		err := os.WriteFile(tmpFile, []byte("log1\nlog2\n"), 0644)
-		if err != nil {
-			t.Fatalf("failed to write file: %v", err)
-		}
+		setup(t, []byte("log1\nlog2\n"))
 
 		service := NewLogsService()
 
 		// when
-		err = service.ClearLogs()
+		err := service.ClearLogs()
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		data, err := os.ReadFile(tmpFile)
+		data, err := os.ReadFile(config.Vars.LogsFile)
 		if err != nil {
 			t.Fatalf("failed to read file: %v", err)
 		}
@@ -139,9 +121,7 @@ func TestClearLogs(t *testing.T) {
 	})
 }
 
-func cleanupFile(t *testing.T) {
-	err := os.Remove(tmpFile)
-	if err != nil && !os.IsNotExist(err) {
-		t.Fatalf("failed to remove file: %v", err)
-	}
+func setup(t *testing.T, data []byte) {
+	config.Vars.LogsFile = "test.txt"
+	tests.SetupFile(t, "test.txt", data)
 }
