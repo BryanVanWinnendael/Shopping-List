@@ -59,7 +59,7 @@ func (f *FirebaseClientImpl) Set(path string, data interface{}) error {
 	return ref.Set(ctx, data)
 }
 
-func (c *CronService) AddCronItem(item models.CronItem) (string, error) {
+func (c *CronService) CreateCronItem(item models.CronItem) (string, error) {
 	if item.ID == "" {
 		item.ID = uuid.New().String()
 	}
@@ -98,7 +98,7 @@ func (c *CronService) GetAllCronItems() ([]models.CronItem, error) {
 	return items, err
 }
 
-func (c *CronService) UpdateCategory(id string, newCategory string) error {
+func (c *CronService) UpdateCronItemCategory(id string, newCategory string) error {
 	return c.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
@@ -132,13 +132,19 @@ func (c *CronService) DeleteCronItem(id string) error {
 	})
 }
 
-func (c *CronService) AddCronItemToList(item models.Item) (string, error) {
-	path := fmt.Sprintf("items/%s", item.ID)
-	if err := c.firebase.Set(path, item); err != nil {
-		return "", err
+func (c *CronService) GetCronItemsByUser(addedBy string) ([]models.CronItem, error) {
+	all, err := c.GetAllCronItems()
+	if err != nil {
+		return nil, err
 	}
 
-	return item.ID, nil
+	var userItems []models.CronItem
+	for _, item := range all {
+		if item.AddedBy == addedBy {
+			userItems = append(userItems, item)
+		}
+	}
+	return userItems, nil
 }
 
 func (c *CronService) RunCronJob() error {
@@ -162,7 +168,7 @@ func (c *CronService) RunCronJob() error {
 			Category: cronItem.Category,
 		}
 
-		_, err := c.AddCronItemToList(item)
+		_, err := c.addCronItemToList(item)
 		if err != nil {
 			fmt.Printf("failed to add item '%s' to Firebase: %v\n", item.Item, err)
 		}
@@ -180,17 +186,11 @@ func (c *CronService) RunCronJob() error {
 	return nil
 }
 
-func (c *CronService) GetCronItemsByAddedBy(addedBy string) ([]models.CronItem, error) {
-	all, err := c.GetAllCronItems()
-	if err != nil {
-		return nil, err
+func (c *CronService) addCronItemToList(item models.Item) (string, error) {
+	path := fmt.Sprintf("items/%s", item.ID)
+	if err := c.firebase.Set(path, item); err != nil {
+		return "", err
 	}
 
-	var userItems []models.CronItem
-	for _, item := range all {
-		if item.AddedBy == addedBy {
-			userItems = append(userItems, item)
-		}
-	}
-	return userItems, nil
+	return item.ID, nil
 }

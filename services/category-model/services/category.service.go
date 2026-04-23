@@ -33,7 +33,7 @@ func (cs *CategoryService) GetCategory(item string) (string, error) {
 	return category, nil
 }
 
-func (cs *CategoryService) AddCategory(item string, category string) error {
+func (cs *CategoryService) CreateCategory(item string, category string) error {
 	categoriesPath := filepath.Join(config.Vars.DataDir, config.Vars.CategoriesFile)
 	file, err := os.OpenFile(categoriesPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {

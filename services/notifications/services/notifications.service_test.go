@@ -10,10 +10,10 @@ import (
 )
 
 type MockExpo struct {
-	SendFunc func(token, title, body string) error
+	PushNotificationToUserFunc func(token, title, body string) error
 }
 
-func TestCreateNotification(t *testing.T) {
+func TestSubscribe(t *testing.T) {
 	t.Run("Given valid data, When Subscribe, Then store and return notification", func(t *testing.T) {
 		// given
 		db := setup(t)
@@ -125,8 +125,8 @@ func TestGetUserNotifications(t *testing.T) {
 	})
 }
 
-func TestDeleteNotification(t *testing.T) {
-	t.Run("Given existing notification, When DeleteNotification, Then success", func(t *testing.T) {
+func TestUnsubscribe(t *testing.T) {
+	t.Run("Given existing notification, When Unsubscribe, Then success", func(t *testing.T) {
 		// given
 		db := setup(t)
 
@@ -136,7 +136,7 @@ func TestDeleteNotification(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
-		err := service.DeleteNotification("user1", "added")
+		err := service.Unsubscribe("user1", "added")
 
 		// then
 		if err != nil {
@@ -144,14 +144,14 @@ func TestDeleteNotification(t *testing.T) {
 		}
 	})
 
-	t.Run("Given missing notification, When DeleteNotification, Then return error", func(t *testing.T) {
+	t.Run("Given missing notification, When Unsubscribe, Then return error", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := NewNotificationsService(db, &MockExpo{})
 
 		// when
-		err := service.DeleteNotification("user1", "added")
+		err := service.Unsubscribe("user1", "added")
 
 		// then
 		if err == nil {
@@ -160,13 +160,13 @@ func TestDeleteNotification(t *testing.T) {
 	})
 }
 
-func TestSendPushNotification(t *testing.T) {
-	t.Run("Given notifications, When SendPushNotification, Then send push", func(t *testing.T) {
+func TestPushUserNotificationByType(t *testing.T) {
+	t.Run("Given notifications, When PushUserNotificationByType, Then send push", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		mockExpo := &MockExpo{
-			SendFunc: func(token, title, body string) error {
+			PushNotificationToUserFunc: func(token, title, body string) error {
 				return nil
 			},
 		}
@@ -182,7 +182,7 @@ func TestSendPushNotification(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
-		err := service.SendPushNotification("added", "user1", "")
+		err := service.PushUserNotificationByType("added", "user1", "")
 
 		// then
 		if err != nil {
@@ -190,12 +190,12 @@ func TestSendPushNotification(t *testing.T) {
 		}
 	})
 
-	t.Run("Given dev env, When SendPushNotification, Then use dev path", func(t *testing.T) {
+	t.Run("Given dev env, When PushUserNotificationByType, Then use dev path", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		mockExpo := &MockExpo{
-			SendFunc: func(token, title, body string) error {
+			PushNotificationToUserFunc: func(token, title, body string) error {
 				return nil
 			},
 		}
@@ -211,7 +211,7 @@ func TestSendPushNotification(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
-		err := service.SendPushNotification("added", "user1", "dev")
+		err := service.PushUserNotificationByType("added", "user1", "dev")
 
 		// then
 		if err != nil {
@@ -220,9 +220,9 @@ func TestSendPushNotification(t *testing.T) {
 	})
 }
 
-func (m *MockExpo) SendPushToUser(token, title, body string) error {
-	if m.SendFunc != nil {
-		return m.SendFunc(token, title, body)
+func (m *MockExpo) PushNotificationToUser(token, title, body string) error {
+	if m.PushNotificationToUserFunc != nil {
+		return m.PushNotificationToUserFunc(token, title, body)
 	}
 	return nil
 }

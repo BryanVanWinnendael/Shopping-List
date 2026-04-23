@@ -38,6 +38,24 @@ func TestTrainModel(t *testing.T) {
 			t.Fatalf("expected model file to be created")
 		}
 	})
+
+	t.Run("Given existing model file, When TrainModel, Then it decodes successfully", func(t *testing.T) {
+		// given
+		data := "item,category\napple,fruit\nbanana,fruit\ncarrot,vegetable"
+		setupCategories(t, []byte(data))
+
+		nb := createTestNaiveBayes()
+		ms := NewModelService(nb)
+
+		// when
+		_, _ = ms.TrainModel()
+
+		// then
+		err := ms.LoadModel()
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	})
 }
 
 func TestLoadModel(t *testing.T) {
@@ -59,24 +77,6 @@ func TestLoadModel(t *testing.T) {
 
 		if _, err := os.Stat(config.Vars.ModelFile); err != nil {
 			t.Fatalf("expected model file to be created")
-		}
-	})
-
-	t.Run("Given existing model file, When TrainModel, Then it decodes successfully", func(t *testing.T) {
-		// given
-		data := "item,category\napple,fruit\nbanana,fruit\ncarrot,vegetable"
-		setupCategories(t, []byte(data))
-
-		nb := createTestNaiveBayes()
-		ms := NewModelService(nb)
-
-		// when
-		_, _ = ms.TrainModel()
-
-		// then
-		err := ms.LoadModel()
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
 		}
 	})
 }

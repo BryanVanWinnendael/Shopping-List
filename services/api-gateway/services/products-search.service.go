@@ -55,7 +55,7 @@ func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query stri
 	return response, nil
 }
 
-func (pss *ProductsSearchService) SearchProduct(ctx context.Context, query string, category string, page string, pageSize string) (models.ProductsSearchResult, error) {
+func (pss *ProductsSearchService) FuzzySearchProducts(ctx context.Context, query string, category string, page string, pageSize string) (models.ProductsSearchResult, error) {
 	requestUrl := fmt.Sprintf("%s/search/fuzzy?q=%s&category=%s&page=%s&pageSize=%s", pss.baseURL, url.QueryEscape(query), category, page, pageSize)
 
 	var response models.ProductsSearchResult

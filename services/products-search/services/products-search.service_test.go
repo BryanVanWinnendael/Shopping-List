@@ -77,8 +77,8 @@ func TestSearchProducts(t *testing.T) {
 	})
 }
 
-func TestFuzzySearch(t *testing.T) {
-	t.Run("Given fuzzy match, When FuzzySearch, Then return ranked results", func(t *testing.T) {
+func TestFuzzySearchProducts(t *testing.T) {
+	t.Run("Given fuzzy match, When FuzzySearchProducts, Then return ranked results", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
@@ -89,7 +89,7 @@ func TestFuzzySearch(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearch("milk", "", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "", 1, 10)
 
 		// then
 		if err != nil {
@@ -100,7 +100,7 @@ func TestFuzzySearch(t *testing.T) {
 		}
 	})
 
-	t.Run("Given category filter, When FuzzySearch, Then filter results", func(t *testing.T) {
+	t.Run("Given category filter, When FuzzySearchProducts, Then filter results", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
@@ -111,7 +111,7 @@ func TestFuzzySearch(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearch("milk", "dairy", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "dairy", 1, 10)
 
 		// then
 		if err != nil {
@@ -122,7 +122,7 @@ func TestFuzzySearch(t *testing.T) {
 		}
 	})
 
-	t.Run("Given no matches, When FuzzySearch, Then return empty", func(t *testing.T) {
+	t.Run("Given no matches, When FuzzySearchProducts, Then return empty", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
 			{"pid", "item", "brand", "category", "image"},
@@ -131,7 +131,7 @@ func TestFuzzySearch(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearch("milk", "", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "", 1, 10)
 
 		// then
 		if err != nil {

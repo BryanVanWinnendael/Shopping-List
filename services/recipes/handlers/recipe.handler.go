@@ -11,7 +11,7 @@ import (
 type RecipeService interface {
 	CreateRecipe(recipe *models.RecipeCreate) (*models.RecipeResponse, error)
 	GetRecipe(id string) (*models.RecipeResponse, error)
-	GetRecipes(skip, limit int) ([]models.RecipeResponse, error)
+	GetAllRecipes(skip, limit int) ([]models.RecipeResponse, error)
 	GetRecipesByUser(user string, skip, limit int) ([]models.RecipeResponse, error)
 	UpdateRecipe(id string, update *models.RecipeUpdate) (*models.RecipeResponse, error)
 	DeleteRecipe(id string) (bool, error)
@@ -26,7 +26,7 @@ func NewRecipeHandler(rs RecipeService) *RecipeHandler {
 	return &RecipeHandler{RecipeService: rs}
 }
 
-func (rh *RecipeHandler) AddRecipe(c echo.Context) error {
+func (rh *RecipeHandler) CreateRecipe(c echo.Context) error {
 	var request models.RecipeCreate
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -40,14 +40,14 @@ func (rh *RecipeHandler) AddRecipe(c echo.Context) error {
 	return c.JSON(http.StatusOK, created)
 }
 
-func (rh *RecipeHandler) GetRecipes(c echo.Context) error {
+func (rh *RecipeHandler) GetAllRecipes(c echo.Context) error {
 	skip, _ := strconv.Atoi(c.QueryParam("skip"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
 	if limit == 0 {
 		limit = 100
 	}
 
-	recipes, err := rh.RecipeService.GetRecipes(skip, limit)
+	recipes, err := rh.RecipeService.GetAllRecipes(skip, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -79,7 +79,7 @@ func (rh *RecipeHandler) GetRecipesByUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, recipes)
 }
 
-func (rh *RecipeHandler) GetRecipeByID(c echo.Context) error {
+func (rh *RecipeHandler) GetRecipe(c echo.Context) error {
 	id := c.Param("recipeId")
 
 	recipe, err := rh.RecipeService.GetRecipe(id)

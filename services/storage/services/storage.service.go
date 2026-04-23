@@ -30,16 +30,16 @@ func NewStorageService() *StorageService {
 	return &StorageService{}
 }
 
-func (s *StorageService) SaveRecipesImage(file *multipart.FileHeader, recipeID string) (string, string, error) {
-	return s.saveImage(file, "recipes", recipeID)
+func (s *StorageService) UploadRecipeImage(file *multipart.FileHeader, recipeID string) (string, string, error) {
+	return s.uploadImage(file, "recipes", recipeID)
 }
 
-func (s *StorageService) DeleteRecipesImage(recipeID, imageURL string) error {
+func (s *StorageService) DeleteRecipeImage(recipeID, imageURL string) error {
 	return s.deleteImage("recipes", recipeID, imageURL)
 }
 
-func (s *StorageService) SaveListImage(file *multipart.FileHeader, listID string) (string, string, error) {
-	return s.saveImage(file, "list", listID)
+func (s *StorageService) UploadListImage(file *multipart.FileHeader, listID string) (string, string, error) {
+	return s.uploadImage(file, "list", listID)
 }
 
 func (s *StorageService) DeleteStorage(itemID string, category string) error {
@@ -52,7 +52,7 @@ func (s *StorageService) DeleteStorage(itemID string, category string) error {
 	return os.RemoveAll(dirPath)
 }
 
-func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, itemID string) (string, string, error) {
+func (s *StorageService) uploadImage(fileHeader *multipart.FileHeader, category, itemID string) (string, string, error) {
 	src, err := fileHeader.Open()
 	if err != nil {
 		return "", "", err
@@ -82,7 +82,7 @@ func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, i
 	smallPath := filepath.Join(dirPath, smallFile)
 
 	if err := imaging.Save(smallImg, smallPath, imaging.JPEGQuality(40)); err != nil {
-		return "", "", fmt.Errorf("failed to save small image: %w", err)
+		return "", "", fmt.Errorf("failed to upload small image: %w", err)
 	}
 
 	largeImg := imaging.Fit(img, MaxLargeDimension, MaxLargeDimension, imaging.Lanczos)
@@ -109,7 +109,7 @@ func (s *StorageService) saveImage(fileHeader *multipart.FileHeader, category, i
 	largePath := filepath.Join(dirPath, largeFile)
 
 	if err := os.WriteFile(largePath, buf.Bytes(), 0644); err != nil {
-		return "", "", fmt.Errorf("failed to save large image: %w", err)
+		return "", "", fmt.Errorf("failed to upload large image: %w", err)
 	}
 
 	host := strings.TrimRight(config.Vars.Host, "/")

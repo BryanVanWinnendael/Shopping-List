@@ -8,5 +8,5 @@ func SetupRoutes(e *echo.Echo, mh *ModelHandler, ch *CategoryHandler) {
 
 	Category := e.Group("/api/category")
 	Category.GET("", ch.GetCategory)
-	Category.POST("", ch.AddCategory)
+	Category.POST("", ch.CreateCategory)
 }

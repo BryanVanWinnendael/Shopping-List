@@ -10,6 +10,13 @@ services:
       - ./data:/app/data
     environment:
       ENV: production
+      CATEGORY_MODEL_API_URL: http://shopping-list-category-model:3000/api
+      LOGS_API_URL: http://shopping-list-logs:3000/api/logs
+      NOTIFICATIONS_API_URL: http://shopping-list-notifications:3000/api/notifications
+      PRODUCTS_SEARCH_API_URL: http://shopping-list-products-search:3000/api/products
+      STORAGE_API_URL: http://shopping-list-storage:3000/api/storage
+      RECIPES_API_URL: http://shopping-list-recipes:3000/api/recipes
+      CRON_API_URL: http://shopping-list-cron:3000/api/cron
     env_file:
       - .env
     restart: unless-stopped

@@ -9,9 +9,9 @@ import (
 )
 
 type LogsService interface {
-	GetLogs() ([]string, error)
-	WriteLog(text string) error
-	ClearLogs() error
+	GetAppLogs() ([]string, error)
+	CreateAppLog(text string) error
+	DeleteAppLogs() error
 }
 
 func NewLogsHandler(ls LogsService) *LogsHandler {
@@ -22,8 +22,8 @@ type LogsHandler struct {
 	LogsService LogsService
 }
 
-func (lh *LogsHandler) GetShoppingListLogs(c echo.Context) error {
-	logs, err := lh.LogsService.GetLogs()
+func (lh *LogsHandler) GetAppLogs(c echo.Context) error {
+	logs, err := lh.LogsService.GetAppLogs()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -35,7 +35,7 @@ func (lh *LogsHandler) GetShoppingListLogs(c echo.Context) error {
 	})
 }
 
-func (lh *LogsHandler) WriteShoppingListLog(c echo.Context) error {
+func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
 	var request models.LogBody
 
 	if err := c.Bind(&request); err != nil {
@@ -50,7 +50,7 @@ func (lh *LogsHandler) WriteShoppingListLog(c echo.Context) error {
 		})
 	}
 
-	if err := lh.LogsService.WriteLog(request.Text); err != nil {
+	if err := lh.LogsService.CreateAppLog(request.Text); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
@@ -61,8 +61,8 @@ func (lh *LogsHandler) WriteShoppingListLog(c echo.Context) error {
 	})
 }
 
-func (lh *LogsHandler) ClearShoppingListLogs(c echo.Context) error {
-	if err := lh.LogsService.ClearLogs(); err != nil {
+func (lh *LogsHandler) DeleteAppLogs(c echo.Context) error {
+	if err := lh.LogsService.DeleteAppLogs(); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})

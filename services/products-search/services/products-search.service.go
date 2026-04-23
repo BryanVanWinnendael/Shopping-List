@@ -110,7 +110,7 @@ func (pss *ProductsSearchService) SearchProducts(
 	}, nil
 }
 
-func (pss *ProductsSearchService) FuzzySearch(
+func (pss *ProductsSearchService) FuzzySearchProducts(
 	query string,
 	category string,
 	page int,

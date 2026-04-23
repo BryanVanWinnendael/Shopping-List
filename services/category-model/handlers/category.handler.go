@@ -10,7 +10,7 @@ import (
 
 type CategoryService interface {
 	GetCategory(item string) (string, error)
-	AddCategory(item string, category string) error
+	CreateCategory(item string, category string) error
 }
 
 type CategoryHandler struct {
@@ -39,8 +39,8 @@ func (cms *CategoryHandler) GetCategory(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func (cms *CategoryHandler) AddCategory(c echo.Context) error {
-	var request models.AddCategoryRequest
+func (cms *CategoryHandler) CreateCategory(c echo.Context) error {
+	var request models.CreateCategoryRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
@@ -56,7 +56,7 @@ func (cms *CategoryHandler) AddCategory(c echo.Context) error {
 		})
 	}
 
-	err := cms.CategoryService.AddCategory(request.Item, request.Category)
+	err := cms.CategoryService.CreateCategory(request.Item, request.Category)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

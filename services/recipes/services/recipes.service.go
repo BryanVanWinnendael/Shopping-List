@@ -107,7 +107,7 @@ func (s *RecipeService) GetRecipe(id string) (*models.RecipeResponse, error) {
 	return &resp, nil
 }
 
-func (s *RecipeService) GetRecipes(skip, limit int) ([]models.RecipeResponse, error) {
+func (s *RecipeService) GetAllRecipes(skip, limit int) ([]models.RecipeResponse, error) {
 	var recipes []models.Recipe
 
 	err := s.db.View(func(tx *bolt.Tx) error {

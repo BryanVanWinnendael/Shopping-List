@@ -8,11 +8,11 @@ import (
 )
 
 type CronService interface {
-	AddCronItem(item models.CronItem) (string, error)
+	CreateCronItem(item models.CronItem) (string, error)
 	GetAllCronItems() ([]models.CronItem, error)
-	UpdateCategory(id string, newCategory string) error
+	UpdateCronItemCategory(id string, newCategory string) error
 	DeleteCronItem(id string) error
-	GetCronItemsByAddedBy(addedBy string) ([]models.CronItem, error)
+	GetCronItemsByUser(addedBy string) ([]models.CronItem, error)
 }
 
 type CronHandler struct {
@@ -23,7 +23,7 @@ func NewCronHandler(cs CronService) *CronHandler {
 	return &CronHandler{CronService: cs}
 }
 
-func (ch *CronHandler) AddCronItem(c echo.Context) error {
+func (ch *CronHandler) CreateCronItem(c echo.Context) error {
 	var request models.CronItem
 
 	if err := c.Bind(&request); err != nil {
@@ -32,7 +32,7 @@ func (ch *CronHandler) AddCronItem(c echo.Context) error {
 		})
 	}
 
-	id, err := ch.CronService.AddCronItem(request)
+	id, err := ch.CronService.CreateCronItem(request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -58,7 +58,7 @@ func (ch *CronHandler) GetAllCronItems(c echo.Context) error {
 	return c.JSON(http.StatusOK, items)
 }
 
-func (ch *CronHandler) UpdateCategory(c echo.Context) error {
+func (ch *CronHandler) UpdateCronItemCategory(c echo.Context) error {
 	idParam := c.Param("id")
 
 	var request models.UpdateCronItemRequest
@@ -74,7 +74,7 @@ func (ch *CronHandler) UpdateCategory(c echo.Context) error {
 		})
 	}
 
-	if err := ch.CronService.UpdateCategory(idParam, request.Category); err != nil {
+	if err := ch.CronService.UpdateCronItemCategory(idParam, request.Category); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
@@ -101,10 +101,10 @@ func (ch *CronHandler) DeleteCronItem(c echo.Context) error {
 	})
 }
 
-func (ch *CronHandler) GetByAddedBy(c echo.Context) error {
+func (ch *CronHandler) GetCronItemsByUser(c echo.Context) error {
 	addedBy := c.Param("name")
 
-	items, err := ch.CronService.GetCronItemsByAddedBy(addedBy)
+	items, err := ch.CronService.GetCronItemsByUser(addedBy)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

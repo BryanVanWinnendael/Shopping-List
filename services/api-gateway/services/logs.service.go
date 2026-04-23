@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	httphelper "shopping-list/api-gateway/http-helper"
 	"shopping-list/api-gateway/models"
@@ -20,7 +21,7 @@ func NewLogsService(client *httphelper.Client, baseURL string) *LogsService {
 }
 
 func (ls *LogsService) GetAppLogs(ctx context.Context) (*models.GetAppLogsResponse, error) {
-	requestUrl := ls.baseURL
+	requestUrl := fmt.Sprintf("%s/%s", ls.baseURL, "app")
 
 	var response models.GetAppLogsResponse
 
@@ -41,7 +42,7 @@ func (ls *LogsService) GetAppLogs(ctx context.Context) (*models.GetAppLogsRespon
 }
 
 func (ls *LogsService) CreateAppLog(ctx context.Context, request models.CreateLogRequest) error {
-	requestUrl := ls.baseURL
+	requestUrl := fmt.Sprintf("%s/%s", ls.baseURL, "app")
 
 	var response models.CreateLogResponse
 
@@ -57,8 +58,8 @@ func (ls *LogsService) CreateAppLog(ctx context.Context, request models.CreateLo
 	return err
 }
 
-func (ls *LogsService) DeleteAppLog(ctx context.Context) error {
-	requestUrl := ls.baseURL
+func (ls *LogsService) DeleteAppLogs(ctx context.Context) error {
+	requestUrl := fmt.Sprintf("%s/%s", ls.baseURL, "app")
 
 	var response models.DeleteLogResponse
 

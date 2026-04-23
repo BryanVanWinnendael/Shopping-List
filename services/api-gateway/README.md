@@ -5,7 +5,7 @@
 #### .env
 
 ```
-LOGS_API_URL=http://shopping-list-logs:3000/api/logs/shopping-list
+LOGS_API_URL=http://shopping-list-logs:3000/api/logs
 PRODUCTS_SEARCH_API_URL=http://shopping-list-products-search:3000/api/products
 CATEGORY_MODEL_API_URL=http://shopping-list-category-model:3000/api
 RECIPES_API_URL=http://shopping-list-recipes:3000/api/recipes
@@ -16,7 +16,7 @@ API_TOKEN=***
 ```
 
 \*\*\*\_API_URL:
-Base URL of the mircroservice within the Docker network. Can be left unchanged.
+Base URL of the microservice within the Docker network. Intended for development environments only. Defaults to given url if not specified.
 
 API_TOKEN:
 Generated API token.

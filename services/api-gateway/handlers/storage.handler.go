@@ -11,8 +11,8 @@ import (
 )
 
 type StorageService interface {
-	UploadRecipesImage(ctx context.Context, recipeID string, file *multipart.FileHeader) (models.UploadImageResponse, error)
-	DeleteRecipesImage(ctx context.Context, recipeID string, request models.DeleteImageRequest) error
+	UploadRecipeImage(ctx context.Context, recipeID string, file *multipart.FileHeader) (models.UploadImageResponse, error)
+	DeleteRecipeImage(ctx context.Context, recipeID string, request models.DeleteImageRequest) error
 	DeleteRecipeStorage(ctx context.Context, recipeID string) error
 	UploadListImage(ctx context.Context, itemID string, file *multipart.FileHeader) (models.UploadImageResponse, error)
 	DeleteListImage(ctx context.Context, itemID string) error
@@ -26,7 +26,7 @@ type StorageHandler struct {
 	StorageService StorageService
 }
 
-func (sh *StorageHandler) UploadRecipesImage(c echo.Context) error {
+func (sh *StorageHandler) UploadRecipeImage(c echo.Context) error {
 	recipesID := c.Param("recipesID")
 
 	missingPathParams := response.GetMissingPathParams(c, "recipesID")
@@ -39,7 +39,7 @@ func (sh *StorageHandler) UploadRecipesImage(c echo.Context) error {
 		return response.Missing(c, response.SourceImage, "image")
 	}
 
-	result, err := sh.StorageService.UploadRecipesImage(c.Request().Context(), recipesID, fileHeader)
+	result, err := sh.StorageService.UploadRecipeImage(c.Request().Context(), recipesID, fileHeader)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -47,7 +47,7 @@ func (sh *StorageHandler) UploadRecipesImage(c echo.Context) error {
 	return response.Success(c, http.StatusOK, result)
 }
 
-func (sh *StorageHandler) DeleteRecipesImage(c echo.Context) error {
+func (sh *StorageHandler) DeleteRecipeImage(c echo.Context) error {
 	recipesID := c.Param("recipesID")
 
 	missingPathParams := response.GetMissingPathParams(c, "recipesID")
@@ -65,7 +65,7 @@ func (sh *StorageHandler) DeleteRecipesImage(c echo.Context) error {
 		return response.Missing(c, response.SourceBody, missingRequestFields...)
 	}
 
-	err := sh.StorageService.DeleteRecipesImage(c.Request().Context(), recipesID, request)
+	err := sh.StorageService.DeleteRecipeImage(c.Request().Context(), recipesID, request)
 
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())

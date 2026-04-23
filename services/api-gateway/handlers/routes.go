@@ -15,25 +15,25 @@ func SetupRoutes(e *echo.Echo, cmh *CategoryModelHandler, lh *LogsHandler,
 	logs := e.Group("/api/logs")
 	logs.GET("/app", lh.GetAppLogs)
 	logs.POST("/app", lh.CreateAppLog)
-	logs.DELETE("/app", lh.DeleteAppLog)
+	logs.DELETE("/app", lh.DeleteAppLogs)
 
 	// Notifications routes
 	notifications := e.Group("/api/notifications")
-	notifications.POST("", nh.CreateNotification)
+	notifications.POST("", nh.Subscribe)
 	notifications.GET("/users/:user", nh.GetUserNotifications)
-	notifications.GET("", nh.GetAll)
+	notifications.GET("", nh.GetAllNotifications)
 	notifications.DELETE("/:user/:notificationType", nh.DeleteUserNotification)
-	notifications.POST("/push/:type/:user", nh.SendPushNotificationByType)
+	notifications.POST("/push/:type/:user", nh.PushUserNotificationByType)
 
 	// Products Search routes
 	productsSearch := e.Group("/api/products-search")
 	productsSearch.GET("/search", psh.SearchProducts)
-	productsSearch.GET("/search/fuzzy", psh.SearchProduct)
+	productsSearch.GET("/search/fuzzy", psh.FuzzySearchProducts)
 
 	// Storage routes
 	storage := e.Group("/api/storage")
-	storage.POST("/recipes/images/:recipesID", sh.UploadRecipesImage)
-	storage.DELETE("/recipes/images/:recipesID", sh.DeleteRecipesImage)
+	storage.POST("/recipes/images/:recipesID", sh.UploadRecipeImage)
+	storage.DELETE("/recipes/images/:recipesID", sh.DeleteRecipeImage)
 	storage.DELETE("/recipes/:recipesID", sh.DeleteRecipeStorage)
 	storage.POST("/list/images/:itemID", sh.UploadListImage)
 	storage.DELETE("/list/images/:itemID", sh.DeleteListImage)

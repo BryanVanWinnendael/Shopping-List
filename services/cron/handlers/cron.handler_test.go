@@ -11,22 +11,22 @@ import (
 )
 
 type MockCronService struct {
-	AddFunc            func(item models.CronItem) (string, error)
-	GetAllFunc         func() ([]models.CronItem, error)
-	UpdateCategoryFunc func(id string, newCategory string) error
-	DeleteFunc         func(id string) error
-	GetByAddedByFunc   func(addedBy string) ([]models.CronItem, error)
+	CreateCronItemFunc         func(item models.CronItem) (string, error)
+	GetAllCronItemsFunc        func() ([]models.CronItem, error)
+	UpdateCronItemCategoryFunc func(id string, newCategory string) error
+	DeleteCronItemFunc         func(id string) error
+	GetCronItemsByUserFunc     func(addedBy string) ([]models.CronItem, error)
 }
 
-func TestAddCronItem(t *testing.T) {
-	t.Run("Given invalid body, When AddCronItem, Then returns 400", func(t *testing.T) {
+func TestCreateCronItem(t *testing.T) {
+	t.Run("Given invalid body, When CreateCronItem, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/cron", []byte("invalid-json"))
 
 		handler := newHandler(&MockCronService{})
 
 		// when
-		err := handler.AddCronItem(c)
+		err := handler.CreateCronItem(c)
 
 		// then
 		if err != nil {
@@ -38,7 +38,7 @@ func TestAddCronItem(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When AddCronItem, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When CreateCronItem, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.CronItem{
 			Item:     "test",
@@ -49,13 +49,13 @@ func TestAddCronItem(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodPost, "/cron", body)
 
 		handler := newHandler(&MockCronService{
-			AddFunc: func(item models.CronItem) (string, error) {
+			CreateCronItemFunc: func(item models.CronItem) (string, error) {
 				return "123", nil
 			},
 		})
 
 		// when
-		err := handler.AddCronItem(c)
+		err := handler.CreateCronItem(c)
 
 		// then
 		if err != nil {
@@ -67,7 +67,7 @@ func TestAddCronItem(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When AddCronItem, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When CreateCronItem, Then returns 500", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.CronItem{
 			Item: "test",
@@ -76,13 +76,13 @@ func TestAddCronItem(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodPost, "/cron", body)
 
 		handler := newHandler(&MockCronService{
-			AddFunc: func(item models.CronItem) (string, error) {
+			CreateCronItemFunc: func(item models.CronItem) (string, error) {
 				return "", errors.New("db error")
 			},
 		})
 
 		// when
-		err := handler.AddCronItem(c)
+		err := handler.CreateCronItem(c)
 
 		// then
 		if err != nil {
@@ -101,7 +101,7 @@ func TestGetAllCronItems(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/cron", nil)
 
 		handler := newHandler(&MockCronService{
-			GetAllFunc: func() ([]models.CronItem, error) {
+			GetAllCronItemsFunc: func() ([]models.CronItem, error) {
 				return []models.CronItem{
 					{Item: "a"},
 				}, nil
@@ -126,7 +126,7 @@ func TestGetAllCronItems(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/cron", nil)
 
 		handler := newHandler(&MockCronService{
-			GetAllFunc: func() ([]models.CronItem, error) {
+			GetAllCronItemsFunc: func() ([]models.CronItem, error) {
 				return nil, errors.New("error")
 			},
 		})
@@ -145,8 +145,8 @@ func TestGetAllCronItems(t *testing.T) {
 	})
 }
 
-func TestUpdateCategory(t *testing.T) {
-	t.Run("Given empty category, When UpdateCategory, Then returns 400", func(t *testing.T) {
+func TestUpdateCronItemCategory(t *testing.T) {
+	t.Run("Given empty category, When UpdateCronItemCategory, Then returns 400", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.UpdateCronItemRequest{
 			Category: "",
@@ -159,7 +159,7 @@ func TestUpdateCategory(t *testing.T) {
 		handler := newHandler(&MockCronService{})
 
 		// when
-		err := handler.UpdateCategory(c)
+		err := handler.UpdateCronItemCategory(c)
 
 		// then
 		if err != nil {
@@ -171,7 +171,7 @@ func TestUpdateCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When UpdateCategory, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When UpdateCronItemCategory, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.UpdateCronItemRequest{
 			Category: "new",
@@ -182,13 +182,13 @@ func TestUpdateCategory(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := newHandler(&MockCronService{
-			UpdateCategoryFunc: func(id, category string) error {
+			UpdateCronItemCategoryFunc: func(id, category string) error {
 				return nil
 			},
 		})
 
 		// when
-		err := handler.UpdateCategory(c)
+		err := handler.UpdateCronItemCategory(c)
 
 		// then
 		if err != nil {
@@ -197,6 +197,56 @@ func TestUpdateCategory(t *testing.T) {
 
 		if rec.Code != http.StatusOK {
 			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given invalid body, When UpdateCronItemCategory, Then returns 400", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodPut, "/cron/1", []byte("invalid-json"))
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		handler := newHandler(&MockCronService{})
+
+		// when
+		err := handler.UpdateCronItemCategory(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given service error, When UpdateCronItemCategory, Then returns 500", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(models.UpdateCronItemRequest{
+			Category: "new",
+		})
+
+		c, rec := tests.SetupEcho(http.MethodPut, "/cron/1", body)
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		handler := newHandler(&MockCronService{
+			UpdateCronItemCategoryFunc: func(id, category string) error {
+				return errors.New("fail")
+			},
+		})
+
+		// when
+		err := handler.UpdateCronItemCategory(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("expected 500, got %d", rec.Code)
 		}
 	})
 }
@@ -209,7 +259,7 @@ func TestDeleteCronItem(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := newHandler(&MockCronService{
-			DeleteFunc: func(id string) error {
+			DeleteCronItemFunc: func(id string) error {
 				return nil
 			},
 		})
@@ -234,7 +284,7 @@ func TestDeleteCronItem(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := newHandler(&MockCronService{
-			DeleteFunc: func(id string) error {
+			DeleteCronItemFunc: func(id string) error {
 				return errors.New("fail")
 			},
 		})
@@ -253,21 +303,21 @@ func TestDeleteCronItem(t *testing.T) {
 	})
 }
 
-func TestGetByAddedBy(t *testing.T) {
-	t.Run("Given valid name, When GetByAddedBy, Then returns 200", func(t *testing.T) {
+func TestGetCronItemsByUser(t *testing.T) {
+	t.Run("Given valid name, When GetCronItemsByUser, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/cron/user1", nil)
 		c.SetParamNames("name")
 		c.SetParamValues("user1")
 
 		handler := newHandler(&MockCronService{
-			GetByAddedByFunc: func(name string) ([]models.CronItem, error) {
+			GetCronItemsByUserFunc: func(name string) ([]models.CronItem, error) {
 				return []models.CronItem{{Item: "x"}}, nil
 			},
 		})
 
 		// when
-		err := handler.GetByAddedBy(c)
+		err := handler.GetCronItemsByUser(c)
 
 		// then
 		if err != nil {
@@ -279,20 +329,20 @@ func TestGetByAddedBy(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When GetByAddedBy, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When GetCronItemsByUser, Then returns 500", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/cron/user1", nil)
 		c.SetParamNames("name")
 		c.SetParamValues("user1")
 
 		handler := newHandler(&MockCronService{
-			GetByAddedByFunc: func(name string) ([]models.CronItem, error) {
+			GetCronItemsByUserFunc: func(name string) ([]models.CronItem, error) {
 				return nil, errors.New("fail")
 			},
 		})
 
 		// when
-		err := handler.GetByAddedBy(c)
+		err := handler.GetCronItemsByUser(c)
 
 		// then
 		if err != nil {
@@ -305,89 +355,37 @@ func TestGetByAddedBy(t *testing.T) {
 	})
 }
 
-func TestUpdateCategory_Errors(t *testing.T) {
-	t.Run("Given invalid body, When UpdateCategory, Then returns 400", func(t *testing.T) {
-		// given
-		c, rec := tests.SetupEcho(http.MethodPut, "/cron/1", []byte("invalid-json"))
-		c.SetParamNames("id")
-		c.SetParamValues("1")
-
-		handler := newHandler(&MockCronService{})
-
-		// when
-		err := handler.UpdateCategory(c)
-
-		// then
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		if rec.Code != http.StatusBadRequest {
-			t.Fatalf("expected 400, got %d", rec.Code)
-		}
-	})
-
-	t.Run("Given service error, When UpdateCategory, Then returns 500", func(t *testing.T) {
-		// given
-		body, _ := json.Marshal(models.UpdateCronItemRequest{
-			Category: "new",
-		})
-
-		c, rec := tests.SetupEcho(http.MethodPut, "/cron/1", body)
-		c.SetParamNames("id")
-		c.SetParamValues("1")
-
-		handler := newHandler(&MockCronService{
-			UpdateCategoryFunc: func(id, category string) error {
-				return errors.New("fail")
-			},
-		})
-
-		// when
-		err := handler.UpdateCategory(c)
-
-		// then
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		if rec.Code != http.StatusInternalServerError {
-			t.Fatalf("expected 500, got %d", rec.Code)
-		}
-	})
-}
-
-func (m *MockCronService) AddCronItem(item models.CronItem) (string, error) {
-	if m.AddFunc != nil {
-		return m.AddFunc(item)
+func (m *MockCronService) CreateCronItem(item models.CronItem) (string, error) {
+	if m.CreateCronItemFunc != nil {
+		return m.CreateCronItemFunc(item)
 	}
 	return "mock-id", nil
 }
 
 func (m *MockCronService) GetAllCronItems() ([]models.CronItem, error) {
-	if m.GetAllFunc != nil {
-		return m.GetAllFunc()
+	if m.GetAllCronItemsFunc != nil {
+		return m.GetAllCronItemsFunc()
 	}
 	return []models.CronItem{}, nil
 }
 
-func (m *MockCronService) UpdateCategory(id string, newCategory string) error {
-	if m.UpdateCategoryFunc != nil {
-		return m.UpdateCategoryFunc(id, newCategory)
+func (m *MockCronService) UpdateCronItemCategory(id string, newCategory string) error {
+	if m.UpdateCronItemCategoryFunc != nil {
+		return m.UpdateCronItemCategoryFunc(id, newCategory)
 	}
 	return nil
 }
 
 func (m *MockCronService) DeleteCronItem(id string) error {
-	if m.DeleteFunc != nil {
-		return m.DeleteFunc(id)
+	if m.DeleteCronItemFunc != nil {
+		return m.DeleteCronItemFunc(id)
 	}
 	return nil
 }
 
-func (m *MockCronService) GetCronItemsByAddedBy(addedBy string) ([]models.CronItem, error) {
-	if m.GetByAddedByFunc != nil {
-		return m.GetByAddedByFunc(addedBy)
+func (m *MockCronService) GetCronItemsByUser(user string) ([]models.CronItem, error) {
+	if m.GetCronItemsByUserFunc != nil {
+		return m.GetCronItemsByUserFunc(user)
 	}
 	return []models.CronItem{}, nil
 }

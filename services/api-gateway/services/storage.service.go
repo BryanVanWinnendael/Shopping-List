@@ -21,7 +21,7 @@ func NewStorageService(client *httphelper.Client, baseURL string) *StorageServic
 	}
 }
 
-func (ss *StorageService) UploadRecipesImage(ctx context.Context, recipeID string, file *multipart.FileHeader) (models.UploadImageResponse, error) {
+func (ss *StorageService) UploadRecipeImage(ctx context.Context, recipeID string, file *multipart.FileHeader) (models.UploadImageResponse, error) {
 	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, recipeID)
 
 	var response models.UploadImageResponse
@@ -43,7 +43,7 @@ func (ss *StorageService) UploadRecipesImage(ctx context.Context, recipeID strin
 	return response, nil
 }
 
-func (ss *StorageService) DeleteRecipesImage(ctx context.Context, recipeID string, request models.DeleteImageRequest) error {
+func (ss *StorageService) DeleteRecipeImage(ctx context.Context, recipeID string, request models.DeleteImageRequest) error {
 	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, recipeID)
 
 	_, err := ss.client.DoRequest(

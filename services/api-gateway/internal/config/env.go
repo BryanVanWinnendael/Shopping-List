@@ -28,13 +28,13 @@ func LoadEnv() {
 	}
 
 	Vars = Env{
-		CategoryModelAPIURL:  getEnv("CATEGORY_MODEL_API_URL", ""),
-		LogsAPIURL:           getEnv("LOGS_API_URL", ""),
-		NotificationsAPIURL:  getEnv("NOTIFICATIONS_API_URL", ""),
-		ProductsSearchAPIURL: getEnv("PRODUCTS_SEARCH_API_URL", ""),
-		StorageAPIURL:        getEnv("STORAGE_API_URL", ""),
-		RecipesAPIURL:        getEnv("RECIPES_API_URL", ""),
-		CronAPIURL:           getEnv("CRON_API_URL", ""),
+		CategoryModelAPIURL:  getEnv("CATEGORY_MODEL_API_URL", "http://shopping-list-category-model:3000/api"),
+		LogsAPIURL:           getEnv("LOGS_API_URL", "http://shopping-list-logs:3000/api/logs"),
+		NotificationsAPIURL:  getEnv("NOTIFICATIONS_API_URL", "http://shopping-list-notifications:3000/api/notifications"),
+		ProductsSearchAPIURL: getEnv("PRODUCTS_SEARCH_API_URL", "http://shopping-list-products-search:3000/api/products"),
+		StorageAPIURL:        getEnv("STORAGE_API_URL", "http://shopping-list-storage:3000/api/storage"),
+		RecipesAPIURL:        getEnv("RECIPES_API_URL", "http://shopping-list-recipes:3000/api/recipes"),
+		CronAPIURL:           getEnv("CRON_API_URL", "http://shopping-list-cron:3000/api/cron"),
 		APIAuthToken:         getEnv("API_TOKEN", ""),
 	}
 }

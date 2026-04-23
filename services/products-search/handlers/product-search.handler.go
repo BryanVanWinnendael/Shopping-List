@@ -12,7 +12,7 @@ import (
 
 type ProductsSearchService interface {
 	SearchProducts(query string, categories []string, page int, pageSize int) (models.ProductsSearchResult, error)
-	FuzzySearch(query string, category string, page int, pageSize int) (models.ProductsSearchResult, error)
+	FuzzySearchProducts(query string, category string, page int, pageSize int) (models.ProductsSearchResult, error)
 }
 
 type ProductsSearchHandler struct {
@@ -51,7 +51,7 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	return c.JSON(http.StatusOK, results)
 }
 
-func (psh *ProductsSearchHandler) SearchProduct(c echo.Context) error {
+func (psh *ProductsSearchHandler) FuzzySearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("q"))
 	if query == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
@@ -66,7 +66,7 @@ func (psh *ProductsSearchHandler) SearchProduct(c echo.Context) error {
 		category = "meat"
 	}
 
-	results, err := psh.ProductsSearchService.FuzzySearch(query, category, page, pageSize)
+	results, err := psh.ProductsSearchService.FuzzySearchProducts(query, category, page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

@@ -12,7 +12,7 @@ import (
 )
 
 type ExpoPushService interface {
-	SendPushToUser(token string, title string, body string) error
+	PushNotificationToUser(token string, title string, body string) error
 }
 
 type NotificationsService struct {
@@ -108,7 +108,7 @@ func (ns *NotificationsService) GetUserNotifications(userID string) ([]models.No
 	return userNotifs, nil
 }
 
-func (ns *NotificationsService) DeleteNotification(user string, notifType string) error {
+func (ns *NotificationsService) Unsubscribe(user string, notifType string) error {
 	return ns.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		var found bool
@@ -132,9 +132,9 @@ func (ns *NotificationsService) DeleteNotification(user string, notifType string
 	})
 }
 
-func (ns *NotificationsService) SendPushNotification(notifType string, user string, env string) error {
+func (ns *NotificationsService) PushUserNotificationByType(notifType string, user string, env string) error {
 	if env == "dev" {
-		return sendDevNotification(ns.expo, ns.db, notifType, user)
+		return pushDevNotification(ns.expo, ns.db, notifType, user)
 	}
 
 	all, err := ns.GetAllNotifications()
@@ -145,12 +145,12 @@ func (ns *NotificationsService) SendPushNotification(notifType string, user stri
 	notificationBody := GetNotificationBody(notifType, user)
 	for _, n := range all {
 		if n.Type == notifType && (notifType != "timed" || n.User == user) {
-			if err := ns.expo.SendPushToUser(
+			if err := ns.expo.PushNotificationToUser(
 				n.Token,
 				"Shopping List",
 				notificationBody,
 			); err != nil {
-				log.Printf("Failed to send to user %s: %v\n", n.User, err)
+				log.Printf("Failed to push to user %s: %v\n", n.User, err)
 			}
 		}
 	}
@@ -158,7 +158,7 @@ func (ns *NotificationsService) SendPushNotification(notifType string, user stri
 	return nil
 }
 
-func sendDevNotification(expo ExpoPushService, db *bbolt.DB, notifType string, user string) error {
+func pushDevNotification(expo ExpoPushService, db *bbolt.DB, notifType string, user string) error {
 	var all []models.Notification
 
 	err := db.View(func(tx *bbolt.Tx) error {
@@ -180,12 +180,12 @@ func sendDevNotification(expo ExpoPushService, db *bbolt.DB, notifType string, u
 
 	notificationBody := GetNotificationBody(notifType, user)
 	for _, n := range all {
-		if err := expo.SendPushToUser(
+		if err := expo.PushNotificationToUser(
 			n.Token,
 			"[DEV] Shopping List",
 			notificationBody,
 		); err != nil {
-			log.Printf("Failed to send to user %s: %v\n", n.User, err)
+			log.Printf("Failed to push to user %s: %v\n", n.User, err)
 		}
 	}
 

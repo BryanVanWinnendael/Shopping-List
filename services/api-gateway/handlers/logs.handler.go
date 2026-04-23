@@ -12,7 +12,7 @@ import (
 type LogsService interface {
 	GetAppLogs(ctx context.Context) (*models.GetAppLogsResponse, error)
 	CreateAppLog(ctx context.Context, request models.CreateLogRequest) error
-	DeleteAppLog(ctx context.Context) error
+	DeleteAppLogs(ctx context.Context) error
 }
 
 func NewLogsHandler(ls LogsService) *LogsHandler {
@@ -51,8 +51,8 @@ func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
 	return response.Success(c, http.StatusOK, "App log written")
 }
 
-func (lh *LogsHandler) DeleteAppLog(c echo.Context) error {
-	err := lh.LogsService.DeleteAppLog(c.Request().Context())
+func (lh *LogsHandler) DeleteAppLogs(c echo.Context) error {
+	err := lh.LogsService.DeleteAppLogs(c.Request().Context())
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

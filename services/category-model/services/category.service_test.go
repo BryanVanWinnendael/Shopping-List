@@ -9,8 +9,8 @@ import (
 )
 
 type MockModelService struct {
-	LoadFunc    func() error
-	PredictFunc func(item string) (string, error)
+	LoadModelFunc func() error
+	PredictFunc   func(item string) (string, error)
 }
 
 func TestNewCategoryService(t *testing.T) {
@@ -34,7 +34,7 @@ func TestNewCategoryService(t *testing.T) {
 	t.Run("Given ModelService fails to load, When NewCategoryService, Then return error", func(t *testing.T) {
 		// given
 		mock := &MockModelService{
-			LoadFunc: func() error { return errors.New("load fail") },
+			LoadModelFunc: func() error { return errors.New("load fail") },
 		}
 
 		// when
@@ -90,15 +90,15 @@ func TestGetCategory(t *testing.T) {
 	})
 }
 
-func TestAddCategory(t *testing.T) {
-	t.Run("Given temporary CSV file, When AddCategory, Then write correctly", func(t *testing.T) {
+func TestCreateCategory(t *testing.T) {
+	t.Run("Given temporary CSV file, When CreateCategory, Then write correctly", func(t *testing.T) {
 		// given
 		setupCategories(t, nil)
 
 		cs := &CategoryService{}
 
 		// when
-		err := cs.AddCategory("item1", "category1")
+		err := cs.CreateCategory("item1", "category1")
 
 		// then
 		if err != nil {
@@ -118,8 +118,8 @@ func TestAddCategory(t *testing.T) {
 }
 
 func (m *MockModelService) LoadModel() error {
-	if m.LoadFunc != nil {
-		return m.LoadFunc()
+	if m.LoadModelFunc != nil {
+		return m.LoadModelFunc()
 	}
 	return nil
 }

@@ -17,7 +17,7 @@ type LogsService struct{}
 
 var mu sync.Mutex
 
-func (ls *LogsService) GetLogs() ([]string, error) {
+func (ls *LogsService) GetAppLogs() ([]string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -42,7 +42,7 @@ func (ls *LogsService) GetLogs() ([]string, error) {
 	return logs, scanner.Err()
 }
 
-func (ls *LogsService) WriteLog(text string) error {
+func (ls *LogsService) CreateAppLog(text string) error {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -62,7 +62,7 @@ func (ls *LogsService) WriteLog(text string) error {
 	return err
 }
 
-func (ls *LogsService) ClearLogs() error {
+func (ls *LogsService) DeleteAppLogs() error {
 	mu.Lock()
 	defer mu.Unlock()
 

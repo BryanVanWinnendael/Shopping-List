@@ -11,8 +11,8 @@ type mockRoundTripper struct {
 	RoundTripFunc func(req *http.Request) (*http.Response, error)
 }
 
-func TestSendPushToUser(t *testing.T) {
-	t.Run("Given valid request, When SendPushToUser, Then no error", func(t *testing.T) {
+func TestPushNotificationToUser(t *testing.T) {
+	t.Run("Given valid request, When PushNotificationToUser, Then no error", func(t *testing.T) {
 		// given
 		client := newMockClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
@@ -25,7 +25,7 @@ func TestSendPushToUser(t *testing.T) {
 		service := NewExpoPushService(client)
 
 		// when
-		err := service.SendPushToUser("token", "title", "body")
+		err := service.PushNotificationToUser("token", "title", "body")
 
 		// then
 		if err != nil {
@@ -33,7 +33,7 @@ func TestSendPushToUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Given HTTP client error, When SendPushToUser, Then return error", func(t *testing.T) {
+	t.Run("Given HTTP client error, When PushNotificationToUser, Then return error", func(t *testing.T) {
 		// given
 		client := newMockClient(func(req *http.Request) (*http.Response, error) {
 			return nil, io.ErrUnexpectedEOF
@@ -42,7 +42,7 @@ func TestSendPushToUser(t *testing.T) {
 		service := NewExpoPushService(client)
 
 		// when
-		err := service.SendPushToUser("token", "title", "body")
+		err := service.PushNotificationToUser("token", "title", "body")
 
 		// then
 		if err == nil {
@@ -50,7 +50,7 @@ func TestSendPushToUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Given Expo returns 500, When SendPushToUser, Then return error", func(t *testing.T) {
+	t.Run("Given Expo returns 500, When PushNotificationToUser, Then return error", func(t *testing.T) {
 		// given
 		client := newMockClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
@@ -63,7 +63,7 @@ func TestSendPushToUser(t *testing.T) {
 		service := NewExpoPushService(client)
 
 		// when
-		err := service.SendPushToUser("token", "title", "body")
+		err := service.PushNotificationToUser("token", "title", "body")
 
 		// then
 		if err == nil {
@@ -71,7 +71,7 @@ func TestSendPushToUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Given request is created, When SendPushToUser, Then correct method and URL used", func(t *testing.T) {
+	t.Run("Given request is created, When PushNotificationToUser, Then correct method and URL used", func(t *testing.T) {
 		// given
 		var capturedReq *http.Request
 
@@ -87,7 +87,7 @@ func TestSendPushToUser(t *testing.T) {
 		service := NewExpoPushService(client)
 
 		// when
-		err := service.SendPushToUser("token", "title", "body")
+		err := service.PushNotificationToUser("token", "title", "body")
 
 		// then
 		if err != nil {
@@ -104,7 +104,7 @@ func TestSendPushToUser(t *testing.T) {
 		}
 	})
 
-	t.Run("Given payload is sent, When SendPushToUser, Then body contains expected data", func(t *testing.T) {
+	t.Run("Given payload is sent, When PushNotificationToUser, Then body contains expected data", func(t *testing.T) {
 		// given
 		var bodyBytes []byte
 
@@ -121,7 +121,7 @@ func TestSendPushToUser(t *testing.T) {
 		service := NewExpoPushService(client)
 
 		// when
-		err := service.SendPushToUser("token123", "hello", "world")
+		err := service.PushNotificationToUser("token123", "hello", "world")
 
 		// then
 		if err != nil {

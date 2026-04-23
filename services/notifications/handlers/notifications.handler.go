@@ -12,8 +12,8 @@ type NotificationsService interface {
 	Subscribe(recipe *models.NotificationCreate) (*models.Notification, error)
 	GetAllNotifications() ([]models.Notification, error)
 	GetUserNotifications(userID string) ([]models.Notification, error)
-	DeleteNotification(user string, notifType string) error
-	SendPushNotification(notifType string, user string, env string) error
+	Unsubscribe(user string, notifType string) error
+	PushUserNotificationByType(notifType string, user string, env string) error
 }
 
 type NotificationsHandler struct {
@@ -65,14 +65,14 @@ func (nh *NotificationsHandler) Unsubscribe(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "type and user are required"})
 	}
 
-	if err := nh.NotificationsService.DeleteNotification(user, notifType); err != nil {
+	if err := nh.NotificationsService.Unsubscribe(user, notifType); err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
 }
 
-func (nh *NotificationsHandler) SendPushByType(c echo.Context) error {
+func (nh *NotificationsHandler) PushUserNotificationByType(c echo.Context) error {
 	notifType := c.Param("type")
 	user := c.Param("user")
 
@@ -92,12 +92,12 @@ func (nh *NotificationsHandler) SendPushByType(c echo.Context) error {
 		}
 	}
 
-	if err := nh.NotificationsService.SendPushNotification(notifType, user, env); err != nil {
+	if err := nh.NotificationsService.PushUserNotificationByType(notifType, user, env); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{
-		"status": "push_sent",
+		"status": "notification_sent",
 		"type":   notifType,
 		"user":   user,
 	})

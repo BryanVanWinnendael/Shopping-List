@@ -12,7 +12,7 @@ import (
 
 type ProductsSearchService interface {
 	SearchProducts(ctx context.Context, query string, categories []string, page string, pageSize string) (models.ProductsSearchResult, error)
-	SearchProduct(ctx context.Context, query string, category string, page string, pageSize string) (models.ProductsSearchResult, error)
+	FuzzySearchProducts(ctx context.Context, query string, category string, page string, pageSize string) (models.ProductsSearchResult, error)
 }
 
 func NewProductsSearchHandler(ls ProductsSearchService) *ProductsSearchHandler {
@@ -42,7 +42,7 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	return response.Success(c, http.StatusOK, result)
 }
 
-func (psh *ProductsSearchHandler) SearchProduct(c echo.Context) error {
+func (psh *ProductsSearchHandler) FuzzySearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("q"))
 	category := strings.TrimSpace(c.QueryParam("category"))
 	page := strings.TrimSpace(c.QueryParam("page"))
@@ -53,7 +53,7 @@ func (psh *ProductsSearchHandler) SearchProduct(c echo.Context) error {
 		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
 
-	result, err := psh.ProductsSearchService.SearchProduct(c.Request().Context(), query, category, page, pageSize)
+	result, err := psh.ProductsSearchService.FuzzySearchProducts(c.Request().Context(), query, category, page, pageSize)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

@@ -11,23 +11,23 @@ import (
 )
 
 type MockRecipeService struct {
-	CreateFunc       func(*models.RecipeCreate) (*models.RecipeResponse, error)
-	GetFunc          func(string) (*models.RecipeResponse, error)
-	GetAllFunc       func(int, int) ([]models.RecipeResponse, error)
-	GetByUserFunc    func(string, int, int) ([]models.RecipeResponse, error)
-	UpdateFunc       func(string, *models.RecipeUpdate) (*models.RecipeResponse, error)
-	DeleteFunc       func(string) (bool, error)
-	GetCountriesFunc func() ([]string, error)
+	CreateRecipeFunc            func(*models.RecipeCreate) (*models.RecipeResponse, error)
+	GetRecipeFunc               func(string) (*models.RecipeResponse, error)
+	GetAllRecipesFunc           func(int, int) ([]models.RecipeResponse, error)
+	GetRecipesByUserFunc        func(string, int, int) ([]models.RecipeResponse, error)
+	UpdateRecipeFunc            func(string, *models.RecipeUpdate) (*models.RecipeResponse, error)
+	DeleteRecipeFunc            func(string) (bool, error)
+	GetAllDistinctCountriesFunc func() ([]string, error)
 }
 
-func TestAddRecipe(t *testing.T) {
-	t.Run("Given invalid body, When AddRecipe, Then returns 400", func(t *testing.T) {
+func TestCreateRecipe(t *testing.T) {
+	t.Run("Given invalid body, When CreateRecipe, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", []byte("invalid"))
 		handler := NewRecipeHandler(&MockRecipeService{})
 
 		// when
-		_ = handler.AddRecipe(c)
+		_ = handler.CreateRecipe(c)
 
 		// then
 		if rec.Code != http.StatusBadRequest {
@@ -35,19 +35,19 @@ func TestAddRecipe(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When AddRecipe, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When CreateRecipe, Then returns 500", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.RecipeCreate{})
 		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", body)
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			CreateFunc: func(r *models.RecipeCreate) (*models.RecipeResponse, error) {
+			CreateRecipeFunc: func(r *models.RecipeCreate) (*models.RecipeResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
 
 		// when
-		_ = handler.AddRecipe(c)
+		_ = handler.CreateRecipe(c)
 
 		// then
 		if rec.Code != http.StatusInternalServerError {
@@ -55,7 +55,7 @@ func TestAddRecipe(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When AddRecipe, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When CreateRecipe, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.RecipeCreate{})
 		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", body)
@@ -63,7 +63,7 @@ func TestAddRecipe(t *testing.T) {
 		handler := NewRecipeHandler(&MockRecipeService{})
 
 		// when
-		_ = handler.AddRecipe(c)
+		_ = handler.CreateRecipe(c)
 
 		// then
 		if rec.Code != http.StatusOK {
@@ -73,18 +73,18 @@ func TestAddRecipe(t *testing.T) {
 }
 
 func TestGetRecipes(t *testing.T) {
-	t.Run("Given service error, When GetRecipes, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When GetAllRecipes, Then returns 500", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetAllFunc: func(skip, limit int) ([]models.RecipeResponse, error) {
+			GetAllRecipesFunc: func(skip, limit int) ([]models.RecipeResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
 
 		// when
-		_ = handler.GetRecipes(c)
+		_ = handler.GetAllRecipes(c)
 
 		// then
 		if rec.Code != http.StatusInternalServerError {
@@ -92,14 +92,14 @@ func TestGetRecipes(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When GetRecipes, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When GetAllRecipes, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{})
 
 		// when
-		_ = handler.GetRecipes(c)
+		_ = handler.GetAllRecipes(c)
 
 		// then
 		if rec.Code != http.StatusOK {
@@ -108,21 +108,21 @@ func TestGetRecipes(t *testing.T) {
 	})
 }
 
-func TestGetRecipeByID(t *testing.T) {
-	t.Run("Given not found, When GetRecipeByID, Then returns 404", func(t *testing.T) {
+func TestGetRecipe(t *testing.T) {
+	t.Run("Given not found, When GetRecipe, Then returns 404", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/1", nil)
 		c.SetParamNames("recipeId")
 		c.SetParamValues("1")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetFunc: func(id string) (*models.RecipeResponse, error) {
+			GetRecipeFunc: func(id string) (*models.RecipeResponse, error) {
 				return nil, errors.New("not found")
 			},
 		})
 
 		// when
-		_ = handler.GetRecipeByID(c)
+		_ = handler.GetRecipe(c)
 
 		// then
 		if rec.Code != http.StatusNotFound {
@@ -130,7 +130,7 @@ func TestGetRecipeByID(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid id, When GetRecipeByID, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid id, When GetRecipe, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/1", nil)
 		c.SetParamNames("recipeId")
@@ -139,7 +139,7 @@ func TestGetRecipeByID(t *testing.T) {
 		handler := NewRecipeHandler(&MockRecipeService{})
 
 		// when
-		_ = handler.GetRecipeByID(c)
+		_ = handler.GetRecipe(c)
 
 		// then
 		if rec.Code != http.StatusOK {
@@ -174,7 +174,7 @@ func TestUpdateRecipe(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			UpdateFunc: func(id string, r *models.RecipeUpdate) (*models.RecipeResponse, error) {
+			UpdateRecipeFunc: func(id string, r *models.RecipeUpdate) (*models.RecipeResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -215,7 +215,7 @@ func TestDeleteRecipe(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			DeleteFunc: func(id string) (bool, error) {
+			DeleteRecipeFunc: func(id string) (bool, error) {
 				return false, errors.New("fail")
 			},
 		})
@@ -236,7 +236,7 @@ func TestDeleteRecipe(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			DeleteFunc: func(id string) (bool, error) {
+			DeleteRecipeFunc: func(id string) (bool, error) {
 				return false, nil
 			},
 		})
@@ -257,7 +257,7 @@ func TestDeleteRecipe(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			DeleteFunc: func(id string) (bool, error) {
+			DeleteRecipeFunc: func(id string) (bool, error) {
 				return true, nil
 			},
 		})
@@ -278,7 +278,7 @@ func TestGetDistinctCountries(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/countries", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetCountriesFunc: func() ([]string, error) {
+			GetAllDistinctCountriesFunc: func() ([]string, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -297,7 +297,7 @@ func TestGetDistinctCountries(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/countries", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetCountriesFunc: func() ([]string, error) {
+			GetAllDistinctCountriesFunc: func() ([]string, error) {
 				return []string{"BE", "NL"}, nil
 			},
 		})
@@ -320,7 +320,7 @@ func TestGetRecipesByUser(t *testing.T) {
 		c.SetParamValues("john")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetByUserFunc: func(user string, skip, limit int) ([]models.RecipeResponse, error) {
+			GetRecipesByUserFunc: func(user string, skip, limit int) ([]models.RecipeResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -341,7 +341,7 @@ func TestGetRecipesByUser(t *testing.T) {
 		c.SetParamValues("john")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetByUserFunc: func(user string, skip, limit int) ([]models.RecipeResponse, error) {
+			GetRecipesByUserFunc: func(user string, skip, limit int) ([]models.RecipeResponse, error) {
 				if user != "john" {
 					t.Fatalf("expected user 'john', got %s", user)
 				}
@@ -365,7 +365,7 @@ func TestGetRecipesByUser(t *testing.T) {
 		c.SetParamValues("john")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetByUserFunc: func(user string, skip, limit int) ([]models.RecipeResponse, error) {
+			GetRecipesByUserFunc: func(user string, skip, limit int) ([]models.RecipeResponse, error) {
 				if limit != 100 {
 					t.Fatalf("expected default limit 100, got %d", limit)
 				}
@@ -384,50 +384,50 @@ func TestGetRecipesByUser(t *testing.T) {
 }
 
 func (m *MockRecipeService) CreateRecipe(r *models.RecipeCreate) (*models.RecipeResponse, error) {
-	if m.CreateFunc != nil {
-		return m.CreateFunc(r)
+	if m.CreateRecipeFunc != nil {
+		return m.CreateRecipeFunc(r)
 	}
 	return &models.RecipeResponse{ID: "1"}, nil
 }
 
 func (m *MockRecipeService) GetRecipe(id string) (*models.RecipeResponse, error) {
-	if m.GetFunc != nil {
-		return m.GetFunc(id)
+	if m.GetRecipeFunc != nil {
+		return m.GetRecipeFunc(id)
 	}
 	return &models.RecipeResponse{ID: id}, nil
 }
 
-func (m *MockRecipeService) GetRecipes(skip, limit int) ([]models.RecipeResponse, error) {
-	if m.GetAllFunc != nil {
-		return m.GetAllFunc(skip, limit)
+func (m *MockRecipeService) GetAllRecipes(skip, limit int) ([]models.RecipeResponse, error) {
+	if m.GetAllRecipesFunc != nil {
+		return m.GetAllRecipesFunc(skip, limit)
 	}
 	return []models.RecipeResponse{}, nil
 }
 
 func (m *MockRecipeService) GetRecipesByUser(user string, skip, limit int) ([]models.RecipeResponse, error) {
-	if m.GetByUserFunc != nil {
-		return m.GetByUserFunc(user, skip, limit)
+	if m.GetRecipesByUserFunc != nil {
+		return m.GetRecipesByUserFunc(user, skip, limit)
 	}
 	return []models.RecipeResponse{}, nil
 }
 
 func (m *MockRecipeService) UpdateRecipe(id string, r *models.RecipeUpdate) (*models.RecipeResponse, error) {
-	if m.UpdateFunc != nil {
-		return m.UpdateFunc(id, r)
+	if m.UpdateRecipeFunc != nil {
+		return m.UpdateRecipeFunc(id, r)
 	}
 	return &models.RecipeResponse{ID: id}, nil
 }
 
 func (m *MockRecipeService) DeleteRecipe(id string) (bool, error) {
-	if m.DeleteFunc != nil {
-		return m.DeleteFunc(id)
+	if m.DeleteRecipeFunc != nil {
+		return m.DeleteRecipeFunc(id)
 	}
 	return true, nil
 }
 
 func (m *MockRecipeService) GetAllDistinctCountries() ([]string, error) {
-	if m.GetCountriesFunc != nil {
-		return m.GetCountriesFunc()
+	if m.GetAllDistinctCountriesFunc != nil {
+		return m.GetAllDistinctCountriesFunc()
 	}
 	return []string{"BE"}, nil
 }

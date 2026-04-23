@@ -41,7 +41,7 @@ func (ns *NotificationsService) Subscribe(ctx context.Context, request *models.N
 	return &response, nil
 }
 
-func (ns *NotificationsService) GetAll(ctx context.Context) ([]models.Notification, error) {
+func (ns *NotificationsService) GetAllNotifications(ctx context.Context) ([]models.Notification, error) {
 	requestUrl := ns.baseURL
 
 	var response []models.Notification
@@ -98,7 +98,7 @@ func (ns *NotificationsService) DeleteUserNotification(ctx context.Context, user
 	return err
 }
 
-func (ns *NotificationsService) SendPushNotificationByType(ctx context.Context, notifType string, user string, request models.PushNotificationRequest) error {
+func (ns *NotificationsService) PushUserNotificationByType(ctx context.Context, notifType string, user string, request models.PushNotificationRequest) error {
 	requestUrl := fmt.Sprintf("%s/push/%s/%s", ns.baseURL, notifType, user)
 
 	_, err := ns.client.DoRequest(

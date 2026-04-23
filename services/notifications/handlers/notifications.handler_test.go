@@ -11,14 +11,14 @@ import (
 )
 
 type MockNotificationsService struct {
-	CreateFunc   func(*models.NotificationCreate) (*models.Notification, error)
-	GetAllFunc   func() ([]models.Notification, error)
-	GetUserFunc  func(string) ([]models.Notification, error)
-	DeleteFunc   func(string, string) error
-	SendPushFunc func(string, string, string) error
+	SubscribeFunc                  func(*models.NotificationCreate) (*models.Notification, error)
+	GetAllNotificationsFunc        func() ([]models.Notification, error)
+	GetUserNotificationsFunc       func(string) ([]models.Notification, error)
+	UnsubscribeFunc                func(string, string) error
+	PushUserNotificationByTypeFunc func(string, string, string) error
 }
 
-func TestAdd(t *testing.T) {
+func TestSubscribe(t *testing.T) {
 	t.Run("Given invalid body, When Subscribe, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications", []byte("invalid"))
@@ -39,7 +39,7 @@ func TestAdd(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications", body)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			CreateFunc: func(n *models.NotificationCreate) (*models.Notification, error) {
+			SubscribeFunc: func(n *models.NotificationCreate) (*models.Notification, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -70,14 +70,14 @@ func TestAdd(t *testing.T) {
 	})
 }
 
-func TestSendPushByType(t *testing.T) {
-	t.Run("Given missing params, When SendPushByType, Then returns 400", func(t *testing.T) {
+func TestPushUserNotificationByType(t *testing.T) {
+	t.Run("Given missing params, When PushUserNotificationByType, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/push", nil)
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
-		_ = handler.SendPushByType(c)
+		_ = handler.PushUserNotificationByType(c)
 
 		// then
 		if rec.Code != http.StatusBadRequest {
@@ -85,7 +85,7 @@ func TestSendPushByType(t *testing.T) {
 		}
 	})
 
-	t.Run("Given invalid body, When SendPushByType, Then returns 400", func(t *testing.T) {
+	t.Run("Given invalid body, When PushUserNotificationByType, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/push", []byte("{invalid"))
 		c.SetParamNames("type", "user")
@@ -94,7 +94,7 @@ func TestSendPushByType(t *testing.T) {
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
-		_ = handler.SendPushByType(c)
+		_ = handler.PushUserNotificationByType(c)
 
 		// then
 		if rec.Code != http.StatusBadRequest {
@@ -102,7 +102,7 @@ func TestSendPushByType(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When SendPushByType, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When PushUserNotificationByType, Then returns 500", func(t *testing.T) {
 		// given
 		body := []byte(`{"env":"prod"}`)
 		c, rec := tests.SetupEcho(http.MethodPost, "/push", body)
@@ -110,13 +110,13 @@ func TestSendPushByType(t *testing.T) {
 		c.SetParamValues("a", "b")
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			SendPushFunc: func(t, u, e string) error {
+			PushUserNotificationByTypeFunc: func(t, u, e string) error {
 				return errors.New("fail")
 			},
 		})
 
 		// when
-		_ = handler.SendPushByType(c)
+		_ = handler.PushUserNotificationByType(c)
 
 		// then
 		if rec.Code != http.StatusInternalServerError {
@@ -124,7 +124,7 @@ func TestSendPushByType(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When SendPushByType, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When PushUserNotificationByType, Then returns 200", func(t *testing.T) {
 		// given
 		body := []byte(`{"env":"prod"}`)
 		c, rec := tests.SetupEcho(http.MethodPost, "/push", body)
@@ -134,7 +134,7 @@ func TestSendPushByType(t *testing.T) {
 		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
-		_ = handler.SendPushByType(c)
+		_ = handler.PushUserNotificationByType(c)
 
 		// then
 		if rec.Code != http.StatusOK {
@@ -143,13 +143,13 @@ func TestSendPushByType(t *testing.T) {
 	})
 }
 
-func TestGetAll(t *testing.T) {
+func TestGetAllNotifications(t *testing.T) {
 	t.Run("Given service error, When GetAllNotifications, Then returns 500", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/notifications", nil)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetAllFunc: func() ([]models.Notification, error) {
+			GetAllNotificationsFunc: func() ([]models.Notification, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -168,7 +168,7 @@ func TestGetAll(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/notifications", nil)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetAllFunc: func() ([]models.Notification, error) {
+			GetAllNotificationsFunc: func() ([]models.Notification, error) {
 				return []models.Notification{
 					{ID: "1"},
 				}, nil
@@ -193,7 +193,7 @@ func TestGetUserNotifications(t *testing.T) {
 		c.SetParamValues("user1")
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetUserFunc: func(userID string) ([]models.Notification, error) {
+			GetUserNotificationsFunc: func(userID string) ([]models.Notification, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -214,7 +214,7 @@ func TestGetUserNotifications(t *testing.T) {
 		c.SetParamValues("user1")
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetUserFunc: func(userID string) ([]models.Notification, error) {
+			GetUserNotificationsFunc: func(userID string) ([]models.Notification, error) {
 				return []models.Notification{
 					{User: userID},
 				}, nil
@@ -231,7 +231,7 @@ func TestGetUserNotifications(t *testing.T) {
 	})
 }
 
-func TestDelete(t *testing.T) {
+func TestUnsubscribe(t *testing.T) {
 	t.Run("Given missing params, When Unsubscribe, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/notifications", nil)
@@ -254,7 +254,7 @@ func TestDelete(t *testing.T) {
 		c.SetParamValues("a", "b")
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			DeleteFunc: func(user, notifType string) error {
+			UnsubscribeFunc: func(user, notifType string) error {
 				return errors.New("not found")
 			},
 		})
@@ -275,7 +275,7 @@ func TestDelete(t *testing.T) {
 		c.SetParamValues("a", "b")
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			DeleteFunc: func(user, notifType string) error {
+			UnsubscribeFunc: func(user, notifType string) error {
 				return nil
 			},
 		})
@@ -291,36 +291,36 @@ func TestDelete(t *testing.T) {
 }
 
 func (m *MockNotificationsService) Subscribe(n *models.NotificationCreate) (*models.Notification, error) {
-	if m.CreateFunc != nil {
-		return m.CreateFunc(n)
+	if m.SubscribeFunc != nil {
+		return m.SubscribeFunc(n)
 	}
 	return &models.Notification{ID: "1"}, nil
 }
 
 func (m *MockNotificationsService) GetAllNotifications() ([]models.Notification, error) {
-	if m.GetAllFunc != nil {
-		return m.GetAllFunc()
+	if m.GetAllNotificationsFunc != nil {
+		return m.GetAllNotificationsFunc()
 	}
 	return []models.Notification{}, nil
 }
 
 func (m *MockNotificationsService) GetUserNotifications(userID string) ([]models.Notification, error) {
-	if m.GetUserFunc != nil {
-		return m.GetUserFunc(userID)
+	if m.GetUserNotificationsFunc != nil {
+		return m.GetUserNotificationsFunc(userID)
 	}
 	return []models.Notification{}, nil
 }
 
-func (m *MockNotificationsService) DeleteNotification(user, notifType string) error {
-	if m.DeleteFunc != nil {
-		return m.DeleteFunc(user, notifType)
+func (m *MockNotificationsService) Unsubscribe(user, notifType string) error {
+	if m.UnsubscribeFunc != nil {
+		return m.UnsubscribeFunc(user, notifType)
 	}
 	return nil
 }
 
-func (m *MockNotificationsService) SendPushNotification(t, u, e string) error {
-	if m.SendPushFunc != nil {
-		return m.SendPushFunc(t, u, e)
+func (m *MockNotificationsService) PushUserNotificationByType(t, u, e string) error {
+	if m.PushUserNotificationByTypeFunc != nil {
+		return m.PushUserNotificationByTypeFunc(t, u, e)
 	}
 	return nil
 }

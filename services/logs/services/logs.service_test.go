@@ -7,15 +7,15 @@ import (
 	"testing"
 )
 
-func TestGetLogs(t *testing.T) {
-	t.Run("Given logs file with content, When GetLogs, Then returns logs", func(t *testing.T) {
+func TestGetAppLogs(t *testing.T) {
+	t.Run("Given logs file with content, When GetAppLogs, Then returns logs", func(t *testing.T) {
 		// given
 		setup(t, []byte("log1\nlog2\n"))
 
 		service := NewLogsService()
 
 		// when
-		logs, err := service.GetLogs()
+		logs, err := service.GetAppLogs()
 
 		// then
 		if err != nil {
@@ -26,12 +26,12 @@ func TestGetLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given missing file, When GetLogs, Then returns error", func(t *testing.T) {
+	t.Run("Given missing file, When GetAppLogs, Then returns error", func(t *testing.T) {
 		// given
 		service := NewLogsService()
 
 		// when
-		_, err := service.GetLogs()
+		_, err := service.GetAppLogs()
 
 		// then
 		if err == nil {
@@ -40,15 +40,15 @@ func TestGetLogs(t *testing.T) {
 	})
 }
 
-func TestWriteLog(t *testing.T) {
-	t.Run("Given valid text, When WriteLog, Then writes to file", func(t *testing.T) {
+func TestCreateAppLog(t *testing.T) {
+	t.Run("Given valid text, When CreateAppLog, Then writes to file", func(t *testing.T) {
 		// given
 		setup(t, nil)
 
 		service := NewLogsService()
 
 		// when
-		err := service.WriteLog("hello")
+		err := service.CreateAppLog("hello")
 
 		// then
 		if err != nil {
@@ -66,18 +66,18 @@ func TestWriteLog(t *testing.T) {
 		}
 	})
 
-	t.Run("Given multiple writes, When WriteLog, Then appends correctly", func(t *testing.T) {
+	t.Run("Given multiple writes, When CreateAppLog, Then appends correctly", func(t *testing.T) {
 		// given
 		setup(t, nil)
 
 		service := NewLogsService()
 
 		// when
-		err := service.WriteLog("one")
+		err := service.CreateAppLog("one")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		err = service.WriteLog("two")
+		err = service.CreateAppLog("two")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -95,15 +95,15 @@ func TestWriteLog(t *testing.T) {
 	})
 }
 
-func TestClearLogs(t *testing.T) {
-	t.Run("Given existing logs, When ClearLogs, Then clears file", func(t *testing.T) {
+func TestDeleteAppLogs(t *testing.T) {
+	t.Run("Given existing logs, When DeleteAppLogs, Then clears file", func(t *testing.T) {
 		// given
 		setup(t, []byte("log1\nlog2\n"))
 
 		service := NewLogsService()
 
 		// when
-		err := service.ClearLogs()
+		err := service.DeleteAppLogs()
 
 		// then
 		if err != nil {

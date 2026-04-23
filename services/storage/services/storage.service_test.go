@@ -17,8 +17,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func TestSaveRecipesImage(t *testing.T) {
-	t.Run("Given valid image, When SaveRecipesImage, Then returns URLs", func(t *testing.T) {
+func TestUploadRecipeImage(t *testing.T) {
+	t.Run("Given valid image, When UploadRecipeImage, Then returns URLs", func(t *testing.T) {
 		// given
 		dir := t.TempDir()
 		config.Vars.StorageDir = dir
@@ -36,7 +36,7 @@ func TestSaveRecipesImage(t *testing.T) {
 		}
 
 		// when
-		small, large, err := service.SaveRecipesImage(fh, "recipe1")
+		small, large, err := service.UploadRecipeImage(fh, "recipe1")
 
 		// then
 		if err != nil {
@@ -48,8 +48,8 @@ func TestSaveRecipesImage(t *testing.T) {
 	})
 }
 
-func TestSaveListImage(t *testing.T) {
-	t.Run("Given valid image, When SaveListImage, Then returns URLs", func(t *testing.T) {
+func TestUploadListImage(t *testing.T) {
+	t.Run("Given valid image, When UploadListImage, Then returns URLs", func(t *testing.T) {
 		// given
 		dir := t.TempDir()
 		config.Vars.StorageDir = dir
@@ -67,7 +67,7 @@ func TestSaveListImage(t *testing.T) {
 		}
 
 		// when
-		small, large, err := service.SaveListImage(fh, "list1")
+		small, large, err := service.UploadListImage(fh, "list1")
 
 		// then
 		if err != nil {
@@ -120,8 +120,8 @@ func TestDeleteStorage(t *testing.T) {
 	})
 }
 
-func TestDeleteImage(t *testing.T) {
-	t.Run("Given external URL, When DeleteRecipesImage, Then returns error", func(t *testing.T) {
+func TestDeleteRecipeImage(t *testing.T) {
+	t.Run("Given external URL, When DeleteRecipeImage, Then returns error", func(t *testing.T) {
 		// given
 		dir := t.TempDir()
 		config.Vars.StorageDir = dir
@@ -130,17 +130,15 @@ func TestDeleteImage(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		err := service.DeleteRecipesImage("1", "http://evil.com/image.jpg")
+		err := service.DeleteRecipeImage("1", "http://evil.com/image.jpg")
 
 		// then
 		if err == nil {
 			t.Fatalf("expected error")
 		}
 	})
-}
 
-func TestDeleteImage_InternalAndEdgeCases(t *testing.T) {
-	t.Run("Given valid internal URL, When DeleteRecipesImage, Then deletes file successfully", func(t *testing.T) {
+	t.Run("Given valid internal URL, When DeleteRecipeImage, Then deletes file successfully", func(t *testing.T) {
 		// given
 		dir := t.TempDir()
 		config.Vars.StorageDir = dir
@@ -160,7 +158,7 @@ func TestDeleteImage_InternalAndEdgeCases(t *testing.T) {
 		url := "http://localhost/recipes/images/1/large-test.jpg"
 
 		// when
-		err := service.DeleteRecipesImage(itemID, url)
+		err := service.DeleteRecipeImage(itemID, url)
 
 		// then
 		if err != nil {
@@ -172,7 +170,7 @@ func TestDeleteImage_InternalAndEdgeCases(t *testing.T) {
 		}
 	})
 
-	t.Run("Given URL without host prefix, When DeleteRecipesImage, Then returns invalid URL error", func(t *testing.T) {
+	t.Run("Given URL without host prefix, When DeleteRecipeImage, Then returns invalid URL error", func(t *testing.T) {
 		// given
 		dir := t.TempDir()
 		config.Vars.StorageDir = dir
@@ -181,7 +179,7 @@ func TestDeleteImage_InternalAndEdgeCases(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		err := service.DeleteRecipesImage("1", "/recipes/images/1/large.jpg")
+		err := service.DeleteRecipeImage("1", "/recipes/images/1/large.jpg")
 
 		// then
 		if err == nil {
@@ -189,7 +187,7 @@ func TestDeleteImage_InternalAndEdgeCases(t *testing.T) {
 		}
 	})
 
-	t.Run("Given wrong host prefix, When DeleteRecipesImage, Then returns invalid URL error", func(t *testing.T) {
+	t.Run("Given wrong host prefix, When DeleteRecipeImage, Then returns invalid URL error", func(t *testing.T) {
 		// given
 		dir := t.TempDir()
 		config.Vars.StorageDir = dir
@@ -198,7 +196,7 @@ func TestDeleteImage_InternalAndEdgeCases(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		err := service.DeleteRecipesImage("1", "http://evilhost/recipes/images/1/large.jpg")
+		err := service.DeleteRecipeImage("1", "http://evilhost/recipes/images/1/large.jpg")
 
 		// then
 		if err == nil {
@@ -206,7 +204,7 @@ func TestDeleteImage_InternalAndEdgeCases(t *testing.T) {
 		}
 	})
 
-	t.Run("Given file not existing, When DeleteRecipesImage, Then returns file not found error", func(t *testing.T) {
+	t.Run("Given file not existing, When DeleteRecipeImage, Then returns file not found error", func(t *testing.T) {
 		// given
 		dir := t.TempDir()
 		config.Vars.StorageDir = dir
@@ -217,7 +215,7 @@ func TestDeleteImage_InternalAndEdgeCases(t *testing.T) {
 		url := "http://localhost/recipes/images/1/large-missing.jpg"
 
 		// when
-		err := service.DeleteRecipesImage("1", url)
+		err := service.DeleteRecipeImage("1", url)
 
 		// then
 		if err == nil {

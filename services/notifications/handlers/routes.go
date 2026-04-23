@@ -8,5 +8,5 @@ func SetupRoutes(e *echo.Echo, nh *NotificationsHandler) {
 	notifications.GET("", nh.GetAllNotifications)
 	notifications.GET("/users/:user", nh.GetUserNotifications)
 	notifications.DELETE("/:user/:type", nh.Unsubscribe)
-	notifications.POST("/push/:type/:user", nh.SendPushByType)
+	notifications.POST("/push/:type/:user", nh.PushUserNotificationByType)
 }

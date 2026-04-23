@@ -18,7 +18,7 @@ func NewExpoPushService(client *http.Client) *ExpoPushServiceImpl {
 	return &ExpoPushServiceImpl{client: client}
 }
 
-func (e *ExpoPushServiceImpl) SendPushToUser(token, title, body string) error {
+func (e *ExpoPushServiceImpl) PushNotificationToUser(token, title, body string) error {
 	payload := map[string]interface{}{
 		"to":    token,
 		"title": title,
@@ -43,7 +43,7 @@ func (e *ExpoPushServiceImpl) SendPushToUser(token, title, body string) error {
 
 	resp, err := e.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to send request: %w", err)
+		return fmt.Errorf("failed to push request: %w", err)
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -52,7 +52,7 @@ func (e *ExpoPushServiceImpl) SendPushToUser(token, title, body string) error {
 	}()
 
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("expo push failed: %s", resp.Status)
+		return fmt.Errorf("expo notification failed: %s", resp.Status)
 	}
 
 	return nil

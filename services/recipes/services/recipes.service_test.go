@@ -73,8 +73,8 @@ func TestGetRecipe(t *testing.T) {
 	})
 }
 
-func TestGetRecipes(t *testing.T) {
-	t.Run("Given public and private recipes, When GetRecipes, Then returns only public", func(t *testing.T) {
+func TestGetAllRecipes(t *testing.T) {
+	t.Run("Given public and private recipes, When GetAllRecipes, Then returns only public", func(t *testing.T) {
 		// given
 		db := setup(t)
 
@@ -89,7 +89,7 @@ func TestGetRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
 		// when
-		res, err := service.GetRecipes(0, 10)
+		res, err := service.GetAllRecipes(0, 10)
 
 		// then
 		if err != nil {
@@ -97,6 +97,23 @@ func TestGetRecipes(t *testing.T) {
 		}
 		if len(res) != 1 {
 			t.Fatalf("expected 1 public recipe, got %d", len(res))
+		}
+	})
+
+	t.Run("Given invalid JSON, When GetAllRecipes, Then returns error", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		service := NewRecipeService(db)
+		invalidJson := []byte("invalid")
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), invalidJson)
+
+		// when
+		_, err := service.GetAllRecipes(0, 10)
+
+		// then
+		if err == nil {
+			t.Fatalf("expected error")
 		}
 	})
 }
@@ -235,25 +252,6 @@ func TestGetAllDistinctCountries(t *testing.T) {
 		}
 		if len(res) != 2 {
 			t.Fatalf("expected 2 countries, got %d", len(res))
-		}
-	})
-}
-
-func TestGetRecipes_UnmarshalError(t *testing.T) {
-	t.Run("Given invalid JSON, When GetRecipes, Then returns error", func(t *testing.T) {
-		// given
-		db := setup(t)
-
-		service := NewRecipeService(db)
-		invalidJson := []byte("invalid")
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), invalidJson)
-
-		// when
-		_, err := service.GetRecipes(0, 10)
-
-		// then
-		if err == nil {
-			t.Fatalf("expected error")
 		}
 	})
 }

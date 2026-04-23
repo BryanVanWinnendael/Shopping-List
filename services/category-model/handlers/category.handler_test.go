@@ -10,8 +10,8 @@ import (
 )
 
 type MockCategoryService struct {
-	GetCategoryFunc func(item string) (string, error)
-	AddCategoryFunc func(item, category string) error
+	GetCategoryFunc    func(item string) (string, error)
+	CreateCategoryFunc func(item, category string) error
 }
 
 func TestGetCategory(t *testing.T) {
@@ -81,15 +81,15 @@ func TestGetCategory(t *testing.T) {
 	})
 }
 
-func TestAddCategory(t *testing.T) {
-	t.Run("Given invalid JSON, When AddCategory, Then returns 400", func(t *testing.T) {
+func TestCreateCategory(t *testing.T) {
+	t.Run("Given invalid JSON, When CreateCategory, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/category", []byte("invalid-json"))
 
 		handler := newHandler(&MockCategoryService{})
 
 		// when
-		err := handler.AddCategory(c)
+		err := handler.CreateCategory(c)
 
 		// then
 		if err != nil {
@@ -101,9 +101,9 @@ func TestAddCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given missing fields, When AddCategory, Then returns 400", func(t *testing.T) {
+	t.Run("Given missing fields, When CreateCategory, Then returns 400", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(models.AddCategoryRequest{
+		body, _ := json.Marshal(models.CreateCategoryRequest{
 			Item:     "",
 			Category: "",
 		})
@@ -113,7 +113,7 @@ func TestAddCategory(t *testing.T) {
 		handler := newHandler(&MockCategoryService{})
 
 		// when
-		err := handler.AddCategory(c)
+		err := handler.CreateCategory(c)
 
 		// then
 		if err != nil {
@@ -125,9 +125,9 @@ func TestAddCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When AddCategory, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When CreateCategory, Then returns 200", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(models.AddCategoryRequest{
+		body, _ := json.Marshal(models.CreateCategoryRequest{
 			Item:     " apple ",
 			Category: " fruit ",
 		})
@@ -135,13 +135,13 @@ func TestAddCategory(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodPost, "/category", body)
 
 		handler := newHandler(&MockCategoryService{
-			AddCategoryFunc: func(item, category string) error {
+			CreateCategoryFunc: func(item, category string) error {
 				return nil
 			},
 		})
 
 		// when
-		err := handler.AddCategory(c)
+		err := handler.CreateCategory(c)
 
 		// then
 		if err != nil {
@@ -153,9 +153,9 @@ func TestAddCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When AddCategory, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When CreateCategory, Then returns 500", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(models.AddCategoryRequest{
+		body, _ := json.Marshal(models.CreateCategoryRequest{
 			Item:     "apple",
 			Category: "fruit",
 		})
@@ -163,13 +163,13 @@ func TestAddCategory(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodPost, "/category", body)
 
 		handler := newHandler(&MockCategoryService{
-			AddCategoryFunc: func(item, category string) error {
+			CreateCategoryFunc: func(item, category string) error {
 				return errors.New("service error")
 			},
 		})
 
 		// when
-		err := handler.AddCategory(c)
+		err := handler.CreateCategory(c)
 
 		// then
 		if err != nil {
@@ -189,9 +189,9 @@ func (m *MockCategoryService) GetCategory(item string) (string, error) {
 	return "mock-category", nil
 }
 
-func (m *MockCategoryService) AddCategory(item, category string) error {
-	if m.AddCategoryFunc != nil {
-		return m.AddCategoryFunc(item, category)
+func (m *MockCategoryService) CreateCategory(item, category string) error {
+	if m.CreateCategoryFunc != nil {
+		return m.CreateCategoryFunc(item, category)
 	}
 	return nil
 }

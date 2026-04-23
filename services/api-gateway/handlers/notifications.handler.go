@@ -11,10 +11,10 @@ import (
 
 type NotificationsService interface {
 	Subscribe(ctx context.Context, request *models.NotificationCreateRequest) (*models.Notification, error)
-	GetAll(ctx context.Context) ([]models.Notification, error)
+	GetAllNotifications(ctx context.Context) ([]models.Notification, error)
 	GetUserNotifications(ctx context.Context, user string) ([]models.Notification, error)
 	DeleteUserNotification(ctx context.Context, user string, notificationType string) error
-	SendPushNotificationByType(ctx context.Context, notifType string, user string, request models.PushNotificationRequest) error
+	PushUserNotificationByType(ctx context.Context, notifType string, user string, request models.PushNotificationRequest) error
 }
 
 func NewNotificationsHandler(ls NotificationsService) *NotificationsHandler {
@@ -25,7 +25,7 @@ type NotificationsHandler struct {
 	NotificationsService NotificationsService
 }
 
-func (nh *NotificationsHandler) CreateNotification(c echo.Context) error {
+func (nh *NotificationsHandler) Subscribe(c echo.Context) error {
 	var request models.NotificationCreateRequest
 	if err := c.Bind(&request); err != nil {
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
@@ -44,8 +44,8 @@ func (nh *NotificationsHandler) CreateNotification(c echo.Context) error {
 	return response.Success(c, http.StatusOK, result)
 }
 
-func (nh *NotificationsHandler) GetAll(c echo.Context) error {
-	result, err := nh.NotificationsService.GetAll(c.Request().Context())
+func (nh *NotificationsHandler) GetAllNotifications(c echo.Context) error {
+	result, err := nh.NotificationsService.GetAllNotifications(c.Request().Context())
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -87,7 +87,7 @@ func (nh *NotificationsHandler) DeleteUserNotification(c echo.Context) error {
 	return response.Success(c, http.StatusOK, "Notification deleted successfully")
 }
 
-func (nh *NotificationsHandler) SendPushNotificationByType(c echo.Context) error {
+func (nh *NotificationsHandler) PushUserNotificationByType(c echo.Context) error {
 	notifType := c.Param("type")
 	user := c.Param("user")
 
@@ -101,7 +101,7 @@ func (nh *NotificationsHandler) SendPushNotificationByType(c echo.Context) error
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
 
-	if err := nh.NotificationsService.SendPushNotificationByType(c.Request().Context(), notifType, user, request); err != nil {
+	if err := nh.NotificationsService.PushUserNotificationByType(c.Request().Context(), notifType, user, request); err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 

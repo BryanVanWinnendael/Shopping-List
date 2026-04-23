@@ -13,9 +13,9 @@ import (
 
 type StorageService interface {
 	DeleteStorage(itemID string, category string) error
-	SaveRecipesImage(file *multipart.FileHeader, recipeID string) (string, string, error)
-	DeleteRecipesImage(recipeID string, url string) error
-	SaveListImage(file *multipart.FileHeader, listID string) (string, string, error)
+	UploadRecipeImage(file *multipart.FileHeader, recipeID string) (string, string, error)
+	DeleteRecipeImage(recipeID string, url string) error
+	UploadListImage(file *multipart.FileHeader, listID string) (string, string, error)
 }
 
 type StorageHandler struct {
@@ -26,15 +26,15 @@ func NewStorageHandler(ss StorageService) *StorageHandler {
 	return &StorageHandler{StorageService: ss}
 }
 
-func (sh *StorageHandler) UploadRecipesImage(c echo.Context) error {
+func (sh *StorageHandler) UploadRecipeImage(c echo.Context) error {
 	return sh.uploadImage(c, "recipes")
 }
 
-func (sh *StorageHandler) DeleteRecipesImage(c echo.Context) error {
+func (sh *StorageHandler) DeleteRecipeImage(c echo.Context) error {
 	return sh.deleteImage(c, "recipes")
 }
 
-func (sh *StorageHandler) DeleteRecipesStorage(c echo.Context) error {
+func (sh *StorageHandler) DeleteRecipeStorage(c echo.Context) error {
 	return sh.deleteStorage(c, "recipes")
 }
 
@@ -61,9 +61,9 @@ func (sh *StorageHandler) uploadImage(c echo.Context, category string) error {
 
 	switch category {
 	case "recipes":
-		smallURL, largeURL, err = sh.StorageService.SaveRecipesImage(fileHeader, id)
+		smallURL, largeURL, err = sh.StorageService.UploadRecipeImage(fileHeader, id)
 	case "list":
-		smallURL, largeURL, err = sh.StorageService.SaveListImage(fileHeader, id)
+		smallURL, largeURL, err = sh.StorageService.UploadListImage(fileHeader, id)
 	}
 
 	if err != nil {
@@ -102,7 +102,7 @@ func (sh *StorageHandler) deleteImage(c echo.Context, category string) error {
 
 	switch category {
 	case "recipes":
-		err = sh.StorageService.DeleteRecipesImage(id, request.URL)
+		err = sh.StorageService.DeleteRecipeImage(id, request.URL)
 	case "list":
 		return c.JSON(http.StatusNotImplemented, map[string]string{"error": "List image deletion not implemented"})
 	}

@@ -11,24 +11,24 @@ import (
 )
 
 type MockLogsService struct {
-	GetLogsFunc  func() ([]string, error)
-	WriteLogFunc func(text string) error
-	ClearFunc    func() error
+	GetAppLogsFunc    func() ([]string, error)
+	CreateAppLogFunc  func(text string) error
+	DeleteAppLogsFunc func() error
 }
 
-func TestGetShoppingListLogs(t *testing.T) {
-	t.Run("Given service returns logs, When GetShoppingListLogs, Then returns 200 with logs", func(t *testing.T) {
+func TestGetAppLogs(t *testing.T) {
+	t.Run("Given service returns logs, When GetAppLogs, Then returns 200 with logs", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/logs", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
-			GetLogsFunc: func() ([]string, error) {
+			GetAppLogsFunc: func() ([]string, error) {
 				return []string{"log1", "log2"}, nil
 			},
 		})
 
 		// when
-		err := handler.GetShoppingListLogs(c)
+		err := handler.GetAppLogs(c)
 
 		// then
 		if err != nil {
@@ -39,18 +39,18 @@ func TestGetShoppingListLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When GetShoppingListLogs, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When GetAppLogs, Then returns 500", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/logs", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
-			GetLogsFunc: func() ([]string, error) {
+			GetAppLogsFunc: func() ([]string, error) {
 				return nil, errors.New("fail")
 			},
 		})
 
 		// when
-		err := handler.GetShoppingListLogs(c)
+		err := handler.GetAppLogs(c)
 
 		// then
 		if err != nil {
@@ -62,14 +62,14 @@ func TestGetShoppingListLogs(t *testing.T) {
 	})
 }
 
-func TestWriteShoppingListLog(t *testing.T) {
-	t.Run("Given invalid JSON, When WriteShoppingListLog, Then returns 400", func(t *testing.T) {
+func TestCreateAppLog(t *testing.T) {
+	t.Run("Given invalid JSON, When CreateAppLog, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/logs", []byte("invalid"))
 		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
-		err := handler.WriteShoppingListLog(c)
+		err := handler.CreateAppLog(c)
 
 		// then
 		if err != nil {
@@ -80,14 +80,14 @@ func TestWriteShoppingListLog(t *testing.T) {
 		}
 	})
 
-	t.Run("Given empty text, When WriteShoppingListLog, Then returns 400", func(t *testing.T) {
+	t.Run("Given empty text, When CreateAppLog, Then returns 400", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.LogBody{Text: ""})
 		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
-		err := handler.WriteShoppingListLog(c)
+		err := handler.CreateAppLog(c)
 
 		// then
 		if err != nil {
@@ -98,19 +98,19 @@ func TestWriteShoppingListLog(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When WriteShoppingListLog, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When CreateAppLog, Then returns 200", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.LogBody{Text: "hello"})
 		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 
 		handler := NewLogsHandler(&MockLogsService{
-			WriteLogFunc: func(text string) error {
+			CreateAppLogFunc: func(text string) error {
 				return nil
 			},
 		})
 
 		// when
-		err := handler.WriteShoppingListLog(c)
+		err := handler.CreateAppLog(c)
 
 		// then
 		if err != nil {
@@ -121,19 +121,19 @@ func TestWriteShoppingListLog(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When WriteShoppingListLog, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When CreateAppLog, Then returns 500", func(t *testing.T) {
 		// given
 		body, _ := json.Marshal(models.LogBody{Text: "hello"})
 		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 
 		handler := NewLogsHandler(&MockLogsService{
-			WriteLogFunc: func(text string) error {
+			CreateAppLogFunc: func(text string) error {
 				return errors.New("fail")
 			},
 		})
 
 		// when
-		err := handler.WriteShoppingListLog(c)
+		err := handler.CreateAppLog(c)
 
 		// then
 		if err != nil {
@@ -145,19 +145,19 @@ func TestWriteShoppingListLog(t *testing.T) {
 	})
 }
 
-func TestClearShoppingListLogs(t *testing.T) {
-	t.Run("Given success, When ClearShoppingListLogs, Then returns 200", func(t *testing.T) {
+func TestDeleteAppLogs(t *testing.T) {
+	t.Run("Given success, When DeleteAppLogs, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/logs", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
-			ClearFunc: func() error {
+			DeleteAppLogsFunc: func() error {
 				return nil
 			},
 		})
 
 		// when
-		err := handler.ClearShoppingListLogs(c)
+		err := handler.DeleteAppLogs(c)
 
 		// then
 		if err != nil {
@@ -168,18 +168,18 @@ func TestClearShoppingListLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When ClearShoppingListLogs, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When DeleteAppLogs, Then returns 500", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/logs", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
-			ClearFunc: func() error {
+			DeleteAppLogsFunc: func() error {
 				return errors.New("fail")
 			},
 		})
 
 		// when
-		err := handler.ClearShoppingListLogs(c)
+		err := handler.DeleteAppLogs(c)
 
 		// then
 		if err != nil {
@@ -191,23 +191,23 @@ func TestClearShoppingListLogs(t *testing.T) {
 	})
 }
 
-func (m *MockLogsService) GetLogs() ([]string, error) {
-	if m.GetLogsFunc != nil {
-		return m.GetLogsFunc()
+func (m *MockLogsService) GetAppLogs() ([]string, error) {
+	if m.GetAppLogsFunc != nil {
+		return m.GetAppLogsFunc()
 	}
 	return []string{}, nil
 }
 
-func (m *MockLogsService) WriteLog(text string) error {
-	if m.WriteLogFunc != nil {
-		return m.WriteLogFunc(text)
+func (m *MockLogsService) CreateAppLog(text string) error {
+	if m.CreateAppLogFunc != nil {
+		return m.CreateAppLogFunc(text)
 	}
 	return nil
 }
 
-func (m *MockLogsService) ClearLogs() error {
-	if m.ClearFunc != nil {
-		return m.ClearFunc()
+func (m *MockLogsService) DeleteAppLogs() error {
+	if m.DeleteAppLogsFunc != nil {
+		return m.DeleteAppLogsFunc()
 	}
 	return nil
 }
