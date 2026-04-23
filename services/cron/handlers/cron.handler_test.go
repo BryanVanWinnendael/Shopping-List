@@ -378,7 +378,7 @@ func (m *MockCronService) UpdateCategory(id string, newCategory string) error {
 	return nil
 }
 
-func (m *MockCronService) Delete(id string) error {
+func (m *MockCronService) DeleteCronItem(id string) error {
 	if m.DeleteFunc != nil {
 		return m.DeleteFunc(id)
 	}

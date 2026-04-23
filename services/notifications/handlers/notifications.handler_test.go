@@ -290,7 +290,7 @@ func TestDelete(t *testing.T) {
 	})
 }
 
-func (m *MockNotificationsService) CreateNotification(n *models.NotificationCreate) (*models.Notification, error) {
+func (m *MockNotificationsService) Subscribe(n *models.NotificationCreate) (*models.Notification, error) {
 	if m.CreateFunc != nil {
 		return m.CreateFunc(n)
 	}
