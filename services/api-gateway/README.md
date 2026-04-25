@@ -31,13 +31,13 @@ docker network create shopping-list-network
 
 ### Run locally
 
-For unix:
+For Unix:
 
 ```bash
 air -c .air.unix.toml
 ```
 
-For windows:
+For Windows:
 
 ```bash
 air -c .air.windows.toml

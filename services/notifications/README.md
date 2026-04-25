@@ -11,7 +11,7 @@ DB=notifications.db
 ```
 
 DATA_DIR:
-Directory used to store the integrated database. Intended for development environments only. Defaults to ./data if not specified.
+Directory used to store the integrated database. Intended for development environments only. Defaults to './data' if not specified.
 
 BUCKET:
 Bucket used for the db. Intended for development environments only. Defaults to 'notifications' if not specified.
@@ -25,13 +25,13 @@ Create a **Docker Network**
 
 ### Run locally
 
-For unix:
+For Unix:
 
 ```bash
 air -c .air.unix.toml
 ```
 
-For windows:
+For Windows:
 
 ```bash
 air -c .air.windows.toml

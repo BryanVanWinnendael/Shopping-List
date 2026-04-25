@@ -15,7 +15,7 @@ GOOGLE_APPLICATION_CREDENTIALS=***
 ```
 
 DATA_DIR:
-Directory used to store the integrated database. Intended for development environments only. Defaults to ./data if not specified.
+Directory used to store the integrated database. Intended for development environments only. Defaults to './data' if not specified.
 
 BUCKET:
 Bucket used for the db. Intended for development environments only. Defaults to 'cron' if not specified.
@@ -35,7 +35,7 @@ Cron expression that determines when weekly items are added to the list.
 
 GOOGLE_APPLICATION_CREDENTIALS:
 Path of the serviceAccountKey.json. Can be found at:
-Firebase Console → Project Settings → Service accounts → Firebase Admin SDK -> Generate new private key
+Firebase Console → Project Settings → Service accounts → Firebase Admin SDK → Generate new private key
 
 ## Setup
 
@@ -49,7 +49,7 @@ For Unix:
 air -c .air.unix.toml
 ```
 
-For windows:
+For Windows:
 
 ```bash
 air -c .air.windows.toml

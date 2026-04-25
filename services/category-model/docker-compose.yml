@@ -11,6 +11,8 @@ services:
     environment:
       ENV: production
       DATA_DIR: /app/data
+      CATEGORIES_FILE: categories.csv
+      MODEL_FILE: model.pkl
     env_file:
       - .env
     restart: unless-stopped

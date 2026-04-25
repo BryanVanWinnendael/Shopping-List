@@ -7,7 +7,7 @@
 ```
 STORAGE_DIR=./storage
 API_TOKEN=***
-HOST=***
+HOST=https://example.com/storage
 ```
 
 STORAGE_DIR:
@@ -17,7 +17,7 @@ API_TOKEN:
 The same key used in your API Gateway.
 
 HOST:
-Base URL or IP address of this microservice. This is used to provide public access to stored images.
+Base URL or IP address of this microservice. This is used to provide public access to stored images. Should end with '/storage'.
 
 ## Setup
 
@@ -25,13 +25,13 @@ Create a **Docker Network**
 
 ### Run locally
 
-For unix:
+For Unix:
 
 ```bash
 air -c .air.unix.toml
 ```
 
-For windows:
+For Windows:
 
 ```bash
 air -c .air.windows.toml

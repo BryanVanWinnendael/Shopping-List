@@ -27,7 +27,7 @@ For Unix:
 air -c .air.unix.toml
 ```
 
-For windows:
+For Windows:
 
 ```bash
 air -c .air.windows.toml
