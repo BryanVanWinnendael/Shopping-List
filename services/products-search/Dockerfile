@@ -9,7 +9,7 @@ COPY products-search ./products-search
 COPY shared ./shared
 
 RUN CGO_ENABLED=0 GOOS=linux \
-    go build -ldflags="-s -w" -o app ./product-search/cmd
+    go build -ldflags="-s -w" -o app ./products-search/cmd
 
 FROM alpine:3.20
 
