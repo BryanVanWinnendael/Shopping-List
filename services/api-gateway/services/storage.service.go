@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	httphelper "shopping-list/api-gateway/http-helper"
 	"shopping-list/api-gateway/models"
+	httphelper "shopping-list/shared/http"
 )
 
 type StorageService struct {

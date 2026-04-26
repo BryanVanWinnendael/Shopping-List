@@ -4,23 +4,14 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"shopping-list/shared/tests"
 	"testing"
 )
-
-type mockRoundTripper struct {
-	RoundTripFunc func(req *http.Request) (*http.Response, error)
-}
 
 func TestPushNotificationToUser(t *testing.T) {
 	t.Run("Given valid request, When PushNotificationToUser, Then no error", func(t *testing.T) {
 		// given
-		client := newMockClient(func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Status:     "200 OK",
-				Body:       io.NopCloser(bytes.NewBuffer([]byte("{}"))),
-			}, nil
-		})
+		client := tests.MockJSONResponse(200, "{}")
 
 		service := NewExpoPushService(client)
 
@@ -35,9 +26,7 @@ func TestPushNotificationToUser(t *testing.T) {
 
 	t.Run("Given HTTP client error, When PushNotificationToUser, Then return error", func(t *testing.T) {
 		// given
-		client := newMockClient(func(req *http.Request) (*http.Response, error) {
-			return nil, io.ErrUnexpectedEOF
-		})
+		client := tests.MockError(io.ErrUnexpectedEOF)
 
 		service := NewExpoPushService(client)
 
@@ -52,13 +41,7 @@ func TestPushNotificationToUser(t *testing.T) {
 
 	t.Run("Given Expo returns 500, When PushNotificationToUser, Then return error", func(t *testing.T) {
 		// given
-		client := newMockClient(func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 500,
-				Status:     "500 Internal Server Error",
-				Body:       io.NopCloser(bytes.NewBuffer([]byte("{}"))),
-			}, nil
-		})
+		client := tests.MockJSONResponse(500, "{}")
 
 		service := NewExpoPushService(client)
 
@@ -75,14 +58,7 @@ func TestPushNotificationToUser(t *testing.T) {
 		// given
 		var capturedReq *http.Request
 
-		client := newMockClient(func(req *http.Request) (*http.Response, error) {
-			capturedReq = req
-			return &http.Response{
-				StatusCode: 200,
-				Status:     "200 OK",
-				Body:       io.NopCloser(bytes.NewBuffer([]byte("{}"))),
-			}, nil
-		})
+		client := tests.MockClientRequest(200, "{}", nil, &capturedReq)
 
 		service := NewExpoPushService(client)
 
@@ -107,16 +83,7 @@ func TestPushNotificationToUser(t *testing.T) {
 	t.Run("Given payload is sent, When PushNotificationToUser, Then body contains expected data", func(t *testing.T) {
 		// given
 		var bodyBytes []byte
-
-		client := newMockClient(func(req *http.Request) (*http.Response, error) {
-			bodyBytes, _ = io.ReadAll(req.Body)
-
-			return &http.Response{
-				StatusCode: 200,
-				Status:     "200 OK",
-				Body:       io.NopCloser(bytes.NewBuffer([]byte("{}"))),
-			}, nil
-		})
+		client := tests.MockClientRequest(200, "{}", &bodyBytes, nil)
 
 		service := NewExpoPushService(client)
 
@@ -140,16 +107,4 @@ func TestPushNotificationToUser(t *testing.T) {
 			t.Fatalf("expected body in body, got %s", bodyStr)
 		}
 	})
-}
-
-func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	return m.RoundTripFunc(req)
-}
-
-func newMockClient(fn func(req *http.Request) (*http.Response, error)) *http.Client {
-	return &http.Client{
-		Transport: &mockRoundTripper{
-			RoundTripFunc: fn,
-		},
-	}
 }

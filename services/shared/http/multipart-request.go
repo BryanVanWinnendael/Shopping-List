@@ -1,4 +1,4 @@
-package httphelper
+package http
 
 import (
 	"bytes"
@@ -19,12 +19,16 @@ func (c *Client) DoMultipartRequest(
 	extraFields map[string]string,
 	responseBody interface{},
 ) (int, error) {
-
 	file, err := fileHeader.Open()
 	if err != nil {
-		return 0, fmt.Errorf("failed to open file: %w", err)
+		return 0, fmt.Errorf("failed to open file header: %w", err)
 	}
-	defer file.Close()
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}(file)
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
@@ -60,11 +64,16 @@ func (c *Client) DoMultipartRequest(
 		req.Header.Set("Authorization", "Bearer "+c.defaultToken)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}(resp.Body)
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {

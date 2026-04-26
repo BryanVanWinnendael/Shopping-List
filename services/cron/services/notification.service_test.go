@@ -2,32 +2,16 @@ package services
 
 import (
 	"errors"
-	"io"
-	"net/http"
-	"strings"
+	"shopping-list/shared/tests"
 	"testing"
-
-	"shopping-list/cron/internal/config"
 )
-
-type mockRoundTripper struct {
-	RoundTripFunc func(req *http.Request) (*http.Response, error)
-}
 
 func TestSendNotification(t *testing.T) {
 	t.Run("Given valid request, When SendNotification, Then success", func(t *testing.T) {
 		// given
-		config.Vars.NotificationsAPIUrl = "http://test"
+		client := tests.MockJSONResponse(200, "{}")
 
-		client := newMockClient(func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Status:     "200 OK",
-				Body:       io.NopCloser(strings.NewReader("ok")),
-			}, nil
-		})
-
-		service := NewNotificationService(client)
+		service := NewNotificationService(client, "http://test")
 
 		// when
 		err := service.SendNotification("user1", "timed")
@@ -40,13 +24,9 @@ func TestSendNotification(t *testing.T) {
 
 	t.Run("Given http client fails, When SendNotification, Then return error", func(t *testing.T) {
 		// given
-		config.Vars.NotificationsAPIUrl = "http://test"
+		client := tests.MockError(errors.New("network error"))
 
-		client := newMockClient(func(req *http.Request) (*http.Response, error) {
-			return nil, errors.New("network error")
-		})
-
-		service := NewNotificationService(client)
+		service := NewNotificationService(client, "http://test")
 
 		// when
 		err := service.SendNotification("user1", "timed")
@@ -59,17 +39,9 @@ func TestSendNotification(t *testing.T) {
 
 	t.Run("Given API returns error status, When SendNotification, Then return error", func(t *testing.T) {
 		// given
-		config.Vars.NotificationsAPIUrl = "http://test"
+		client := tests.MockJSONResponse(500, "{}")
 
-		client := newMockClient(func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 500,
-				Status:     "500 Internal Server Error",
-				Body:       io.NopCloser(strings.NewReader("error")),
-			}, nil
-		})
-
-		service := NewNotificationService(client)
+		service := NewNotificationService(client, "http://test")
 
 		// when
 		err := service.SendNotification("user1", "timed")
@@ -82,9 +54,7 @@ func TestSendNotification(t *testing.T) {
 
 	t.Run("Given invalid URL, When SendNotification, Then return error", func(t *testing.T) {
 		// given
-		config.Vars.NotificationsAPIUrl = "://bad-url"
-
-		service := NewNotificationService(nil)
+		service := NewNotificationService(nil, "://bad-url")
 
 		// when
 		err := service.SendNotification("user1", "timed")
@@ -94,16 +64,4 @@ func TestSendNotification(t *testing.T) {
 			t.Fatalf("expected error, got nil")
 		}
 	})
-}
-
-func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	return m.RoundTripFunc(req)
-}
-
-func newMockClient(fn func(req *http.Request) (*http.Response, error)) *http.Client {
-	return &http.Client{
-		Transport: &mockRoundTripper{
-			RoundTripFunc: fn,
-		},
-	}
 }

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"net/http"
 	"shopping-list/cron/cron"
 	"shopping-list/cron/db"
 	"shopping-list/cron/handlers"
 	"shopping-list/cron/internal/config"
 	"shopping-list/cron/services"
+	httphelper "shopping-list/shared/http"
 	"shopping-list/shared/middlewares"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,8 +22,9 @@ func main() {
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
 
-	httpClient := &http.Client{}
-	ns := services.NewNotificationService(httpClient)
+	httpClient := httphelper.NewClient(60*time.Second, "")
+
+	ns := services.NewNotificationService(httpClient, config.Vars.NotificationsAPIUrl)
 	firebaseClient := services.NewFirebaseClient(firebase)
 	cs := services.NewCronService(firebaseClient, bbolt, ns)
 	ch := handlers.NewCronHandler(cs)

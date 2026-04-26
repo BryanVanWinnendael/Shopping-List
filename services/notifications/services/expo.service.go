@@ -1,58 +1,43 @@
 package services
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
 	"net/http"
+	"shopping-list/notifications/models"
+	httphelper "shopping-list/shared/http"
 )
 
 type ExpoPushServiceImpl struct {
-	client *http.Client
+	client *httphelper.Client
 }
 
-func NewExpoPushService(client *http.Client) *ExpoPushServiceImpl {
-	if client == nil {
-		client = &http.Client{}
-	}
+func NewExpoPushService(client *httphelper.Client) *ExpoPushServiceImpl {
 	return &ExpoPushServiceImpl{client: client}
 }
 
 func (e *ExpoPushServiceImpl) PushNotificationToUser(token, title, body string) error {
-	payload := map[string]interface{}{
-		"to":    token,
-		"title": title,
-		"body":  body,
+	payload := models.ExpoPushRequest{
+		To:    token,
+		Title: title,
+		Body:  body,
 	}
 
-	data, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
-	req, err := http.NewRequest(
+	status, err := e.client.DoRequest(
+		context.Background(),
 		http.MethodPost,
 		"https://exp.host/--/api/v2/push/send",
-		bytes.NewBuffer(data),
+		nil,
+		payload,
+		nil,
 	)
+
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return fmt.Errorf("expo notification failed: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := e.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to push request: %w", err)
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			fmt.Printf("failed to close response body: %v\n", err)
-		}
-	}()
-
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("expo notification failed: %s", resp.Status)
+	if status >= 400 {
+		return fmt.Errorf("expo notification failed with status %d", status)
 	}
 
 	return nil

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"net/http"
 	"shopping-list/notifications/db"
 	"shopping-list/notifications/handlers"
 	"shopping-list/notifications/internal/config"
 	"shopping-list/notifications/services"
+	httphelper "shopping-list/shared/http"
 	"shopping-list/shared/middlewares"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +20,7 @@ func main() {
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
 
-	httpClient := &http.Client{}
+	httpClient := httphelper.NewClient(60*time.Second, "")
 	expo := services.NewExpoPushService(httpClient)
 	ns := services.NewNotificationsService(bbolt, expo)
 	nh := handlers.NewNotificationsHandler(ns)

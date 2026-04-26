@@ -1,4 +1,4 @@
-package httphelper
+package http
 
 import (
 	"bytes"
@@ -17,7 +17,6 @@ func (c *Client) DoRequest(
 	requestBody interface{},
 	responseBody interface{},
 ) (int, error) {
-
 	var body io.Reader
 
 	if requestBody != nil {
@@ -43,11 +42,16 @@ func (c *Client) DoRequest(
 		req.Header.Set(k, v)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}(resp.Body)
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {

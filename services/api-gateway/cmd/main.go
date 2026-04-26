@@ -2,9 +2,9 @@ package main
 
 import (
 	"shopping-list/api-gateway/handlers"
-	httphelper "shopping-list/api-gateway/http-helper"
 	"shopping-list/api-gateway/internal/config"
 	"shopping-list/api-gateway/services"
+	httphelper "shopping-list/shared/http"
 	"shopping-list/shared/middlewares"
 	"time"
 
@@ -21,7 +21,7 @@ func main() {
 		return middlewares.AuthMiddleware(next, config.Vars.APIAuthToken)
 	})
 
-	httpClient := httphelper.NewClient(60 * time.Second)
+	httpClient := httphelper.NewClient(60*time.Second, config.Vars.APIAuthToken)
 
 	cms := services.NewCategoryModelService(httpClient, config.Vars.CategoryModelAPIURL)
 	cmh := handlers.NewCategoryModelHandler(cms)

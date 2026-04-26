@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	netUrl "net/url"
-	httphelper "shopping-list/api-gateway/http-helper"
 	"shopping-list/api-gateway/models"
+	httphelper "shopping-list/shared/http"
 	"strings"
 )
 

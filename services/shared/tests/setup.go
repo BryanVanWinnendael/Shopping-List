@@ -13,6 +13,10 @@ var SetupMultipartEcho = http.SetupMultipartEcho
 
 type MultipartFile = http.MultipartFile
 
+var MockClientRequest = http.MockClientRequest
+var MockJSONResponse = http.MockJSONResponse
+var MockError = http.MockError
+
 // DB package
 
 var SetupDB = db.SetupDB
