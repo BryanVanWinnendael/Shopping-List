@@ -252,6 +252,60 @@ func TestRunCronJob(t *testing.T) {
 	})
 }
 
+func TestNewCronService(t *testing.T) {
+	t.Run("Given empty DB, When NewCronService, Then bucket is created", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		mockNotif := &MockNotificationService{}
+		mockFirebase := &MockFirebase{}
+
+		// when
+		service := NewCronService(mockFirebase, db, mockNotif)
+
+		// then
+		if service == nil {
+			t.Fatalf("expected service to be created")
+		}
+
+		err := db.View(func(tx *bbolt.Tx) error {
+			b := tx.Bucket([]byte(config.Vars.Bucket))
+			if b == nil {
+				t.Fatalf("expected bucket to be created")
+			}
+			return nil
+		})
+
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("Given existing bucket, When NewCronService, Then no error and service created", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		err := db.Update(func(tx *bbolt.Tx) error {
+			_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
+			return err
+		})
+		if err != nil {
+			t.Fatalf("failed to setup bucket: %v", err)
+		}
+
+		mockNotif := &MockNotificationService{}
+		mockFirebase := &MockFirebase{}
+
+		// when
+		service := NewCronService(mockFirebase, db, mockNotif)
+
+		// then
+		if service == nil {
+			t.Fatalf("expected service to be created")
+		}
+	})
+}
+
 func (m *MockNotificationService) SendNotification(user string, notificationType string) error {
 	if m.SendNotificationFunc != nil {
 		return m.SendNotificationFunc(user, notificationType)
