@@ -5,7 +5,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY product-search ./product-search
+COPY products-search ./products-search
 COPY shared ./shared
 
 RUN CGO_ENABLED=0 GOOS=linux \
