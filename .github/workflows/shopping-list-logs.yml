@@ -9,6 +9,7 @@ on:
       - "!services/logs/README.md"
       - "!services/logs/.env.example"
       - "!services/logs/.gitignore"
+      - ".github/workflows/shopping-list-logs.yml"
 
 jobs:
   deploy:
@@ -18,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.25'
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,10 +76,10 @@ jobs:
       - name: Deploy Logs
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/services/logs
+          cd ~/projects/shopping-list/services
           git fetch origin main
           git reset --hard origin/main
-          docker compose build
-          docker compose up -d
+          docker compose -f logs/docker-compose.yml build
+          docker compose -f logs/docker-compose.yml up -d
           docker image prune -af
           EOF

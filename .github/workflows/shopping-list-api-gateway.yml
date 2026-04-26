@@ -9,6 +9,8 @@ on:
       - "!services/api-gateway/README.md"
       - "!services/api-gateway/.env.example"
       - "!services/api-gateway/.gitignore"
+      - ".github/workflows/shopping-list-api-gateway.yml"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,10 +25,10 @@ jobs:
       - name: Deploy API Gateway
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/services/api-gateway
+          cd ~/projects/shopping-list/services
           git fetch origin main
           git reset --hard origin/main
-          docker compose build
-          docker compose up -d
+          docker compose -f api-gateway/docker-compose.yml build
+          docker compose -f api-gateway/docker-compose.yml up -d
           docker image prune -af
           EOF

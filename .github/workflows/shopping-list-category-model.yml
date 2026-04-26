@@ -9,6 +9,7 @@ on:
       - "!services/category-model/README.md"
       - "!services/category-model/.env.example"
       - "!services/category-model/.gitignore"
+      - ".github/workflows/shopping-list-category-model.yml"
 
 jobs:
   deploy:
@@ -18,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.25'
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,10 +76,10 @@ jobs:
       - name: Deploy Category Model
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/services/category-model
+          cd ~/projects/shopping-list/services
           git fetch origin main
           git reset --hard origin/main
-          docker compose build
-          docker compose up -d
+          docker compose -f category-model/docker-compose.yml build
+          docker compose -f category-model/docker-compose.yml up -d
           docker image prune -af
           EOF

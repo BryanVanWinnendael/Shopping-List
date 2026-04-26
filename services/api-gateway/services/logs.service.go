@@ -22,7 +22,7 @@ func NewLogsService(client *httphelper.Client, baseURL string) *LogsService {
 
 func (ls *LogsService) GetAppLogs(ctx context.Context) (*models.GetAppLogsResponse, error) {
 	requestUrl := fmt.Sprintf("%s/%s", ls.baseURL, "app")
-
+	fmt.Println()
 	var response models.GetAppLogsResponse
 
 	_, err := ls.client.DoRequest(

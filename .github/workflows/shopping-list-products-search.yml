@@ -9,6 +9,7 @@ on:
       - "!services/products-search/README.md"
       - "!services/products-search/.env.example"
       - "!services/products-search/.gitignore"
+      - ".github/workflows/shopping-list-products-search.yml"
 
 jobs:
   deploy:
@@ -18,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.25'
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,10 +76,10 @@ jobs:
       - name: Deploy Products Search
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd ~/projects/shopping-list/services/products-search
+          cd ~/projects/shopping-list/services
           git fetch origin main
           git reset --hard origin/main
-          docker compose build
-          docker compose up -d
+          docker compose -f products-search/docker-compose.yml build
+          docker compose -f products-search/docker-compose.yml up -d
           docker image prune -af
           EOF
