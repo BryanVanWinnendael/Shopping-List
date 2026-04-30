@@ -19,7 +19,7 @@ func main() {
 
 	private := e.Group("")
 	private.Use(middlewares.RequestLogger)
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	private.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return middlewares.AuthMiddleware(next, config.Vars.APIAuthToken)
 	})
 
