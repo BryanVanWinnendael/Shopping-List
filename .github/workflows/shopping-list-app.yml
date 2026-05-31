@@ -25,26 +25,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
 
-      - name: Extract version and create git tag
-        id: version
-        run: |
-          VERSION=$(node -p "require('./app/app.config.js').expo.version")
-          TAG="release/$VERSION"
-
-          echo "VERSION=$VERSION"
-          echo "TAG=$TAG"
-
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping"
-            exit 0
-          fi
-
-          git tag $TAG
-          git push origin $TAG
-
       - name: Deploy App
         run: |
           timeout 240 ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
