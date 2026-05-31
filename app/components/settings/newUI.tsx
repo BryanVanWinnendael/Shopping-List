@@ -1,87 +1,106 @@
-import { View, Text, Switch, StyleSheet } from "react-native"
-import {
-  getBorderColor,
-  getSecondaryBackgroundColor,
-  getTextColor,
-} from "@/lib/theme"
-import { useSettings } from "@/stores/useSettings"
+import { StyleSheet, Text, View } from "react-native"
+import { useSettingsStore } from "@/stores/useSettingsStore"
 import { setAppIconSafe } from "@/lib/appIcon"
+import CustomSwitch from "@/components/customSwitch"
+import useThemes from "@/hooks/themes/useThemes"
+import { Wand2 } from "lucide-react-native"
 
 export default function NewUI() {
-  const { aColor, setNewUI, theme, newUI } = useSettings()
+    const { vars, theme } = useThemes()
+    const { setNewUI, newUI } = useSettingsStore()
 
-  const secondaryBackgroundColor = getSecondaryBackgroundColor(theme)
-  const borderColor = getBorderColor(theme)
-  const textColor = getTextColor(theme)
-
-  const handleChangeUI = async (useNewUI: boolean) => {
-    if (useNewUI) {
-      setNewUI(true)
-      await setAppIconSafe("new", false)
-    } else {
-      setNewUI(false)
-      await setAppIconSafe("old", false)
+    const handleChangeUI = async (useNewUI: boolean) => {
+        if (useNewUI) {
+            setNewUI(true)
+            await setAppIconSafe("new", false)
+        } else {
+            setNewUI(false)
+            await setAppIconSafe("old", false)
+        }
     }
-  }
 
-  return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: secondaryBackgroundColor,
-          borderColor: borderColor,
-          borderWidth: 0.2,
-        },
-      ]}
-    >
-      <View style={styles.row}>
-        <View style={styles.textBlock}>
-          <Text style={[styles.title, { color: textColor }]}>New UI</Text>
-          <Text
+    return (
+        <View
             style={[
-              styles.description,
-              { color: theme === "light" ? "#9ca3af" : "#50555C" },
+                styles.container,
+                {
+                    backgroundColor: vars.secondaryBackgroundColor,
+                    borderColor: vars.secondaryBorderColor,
+                },
             ]}
-          >
-            Uses Liquid Glass design for various UI elements.
-          </Text>
+        >
+            <View style={styles.row}>
+                <View style={styles.titleContainer}>
+                    <View
+                        style={[
+                            styles.iconWrapper,
+                            {
+                                backgroundColor: `${vars.accentColor}20`,
+                            },
+                        ]}
+                    >
+                        <Wand2 size={18} color={vars.accentColor} />
+                    </View>
+
+                    <View style={styles.textBlock}>
+                        <Text style={[styles.title, { color: vars.textColor }]}>New UI</Text>
+
+                        <Text
+                            style={[
+                                styles.description,
+                                {
+                                    color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                },
+                            ]}
+                        >
+                            Uses Liquid Glass design for various UI elements.
+                        </Text>
+                    </View>
+                </View>
+
+                <CustomSwitch value={newUI} onChange={(val) => handleChangeUI(val)} />
+            </View>
         </View>
-        <Switch
-          value={newUI}
-          onValueChange={(val) => handleChangeUI(val)}
-          trackColor={{ false: "#767577", true: aColor }}
-          ios_backgroundColor="#767577"
-          thumbColor={newUI ? "#fff" : "#f4f3f4"}
-        />
-      </View>
-    </View>
-  )
+    )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginHorizontal: 8,
-    paddingBottom: 16,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 16,
-  },
-  textBlock: {
-    flex: 1,
-    paddingRight: 10,
-  },
-  title: {
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  description: {
-    fontSize: 12,
-    marginTop: 2,
-  },
+    container: {
+        borderRadius: 24,
+        paddingHorizontal: 18,
+        paddingVertical: 18,
+        marginHorizontal: 8,
+        borderWidth: 1,
+    },
+    row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    titleContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        flex: 1,
+        paddingRight: 16,
+    },
+    iconWrapper: {
+        width: 42,
+        height: 42,
+        borderRadius: 999,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    textBlock: {
+        flex: 1,
+    },
+    title: {
+        fontWeight: "700",
+        fontSize: 18,
+    },
+    description: {
+        fontSize: 13,
+        marginTop: 2,
+        lineHeight: 18,
+    },
 })

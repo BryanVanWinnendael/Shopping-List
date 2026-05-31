@@ -1,75 +1,67 @@
-import { useState } from "react"
-import { View, ImageBackground, StyleSheet } from "react-native"
-import CachedImage from "expo-cached-image"
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated"
+import { Image, StyleSheet, View } from "react-native"
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
+import CachedImage, { CacheManager } from "expo-cached-image"
+import { File } from "expo-file-system"
 
 type Props = {
-  small: string
-  large: string
-  style?: any
-  resizeMode?: "cover" | "contain" | "stretch" | "center"
-  expiresIn?: number
+    small: string
+    large: string
+    style?: any
+    resizeMode?: "cover" | "contain" | "stretch" | "center"
 }
 
-/**
- * Progressive + cached image loader:
- * - Shows small instantly
- * - Uses hashed cache key to avoid truncation conflicts
- * - Loads large from cache if available
- * - Otherwise fetches & caches it
- */
-export function ImageLoader({
-  small,
-  large,
-  style,
-  resizeMode = "cover",
-  expiresIn = 604800,
-}: Props) {
-  const [loaded, setLoaded] = useState(false)
+export default function ImageLoader({ small, large, style, resizeMode = "cover" }: Props) {
+    const opacity = useSharedValue(0)
 
-  const opacity = useSharedValue(0)
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+    }))
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }))
+    const clearCache = async () => {
+        try {
+            const metadata = await CacheManager.getMetadata({ key: large })
 
-  return (
-    <View style={[style, { overflow: "hidden" }]}>
-      {/* Small placeholder */}
-      <ImageBackground
-        source={{ uri: small }}
-        style={StyleSheet.absoluteFill}
-        resizeMode={resizeMode}
-      />
+            if (metadata?.uri) {
+                const file = new File(metadata.uri)
 
-      {/* Hidden loader (USES CACHE!) */}
-      {!loaded && (
-        <CachedImage
-          cacheKey={large}
-          source={{ uri: large, expiresIn }}
-          style={{ width: 1, height: 1, position: "absolute" }}
-          onLoadEnd={() => {
-            setLoaded(true)
-            opacity.value = withTiming(1, { duration: 250 })
-          }}
-        />
-      )}
+                if (file.exists) {
+                    file.delete()
+                }
+            }
+        } catch (e) {
+            console.error("Image could not be found", e)
+        }
+    }
 
-      {/* Visible image (same cache, no refetch) */}
-      {loaded && (
-        <Animated.View style={[StyleSheet.absoluteFill, animatedStyle]}>
-          <CachedImage
-            cacheKey={large}
-            source={{ uri: large, expiresIn }}
-            resizeMode={resizeMode}
-            style={StyleSheet.absoluteFill}
-          />
-        </Animated.View>
-      )}
-    </View>
-  )
+    return (
+        <View style={[style, { overflow: "hidden" }]}>
+            {large.includes("large") ? (
+                <>
+                    <Image
+                        source={{ uri: small }}
+                        style={StyleSheet.absoluteFill}
+                        resizeMode={resizeMode}
+                        blurRadius={1}
+                        onError={clearCache}
+                    />
+                    <Animated.View style={[StyleSheet.absoluteFill, animatedStyle]}>
+                        <CachedImage
+                            source={{ uri: large }}
+                            cacheKey={large}
+                            style={StyleSheet.absoluteFill}
+                            resizeMode={resizeMode}
+                            onLoad={() => {
+                                opacity.value = withTiming(1, {
+                                    duration: 250,
+                                })
+                            }}
+                            onError={clearCache}
+                        />
+                    </Animated.View>
+                </>
+            ) : (
+                <Image source={{ uri: small }} style={StyleSheet.absoluteFill} resizeMode={resizeMode} />
+            )}
+        </View>
+    )
 }

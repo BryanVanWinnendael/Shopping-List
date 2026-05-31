@@ -10,8 +10,8 @@ const buildNumberRegex = /buildNumber:\s*["'](\d+)["']/
 
 const match = fileText.match(buildNumberRegex)
 if (!match) {
-  console.error("❌ Could not find ios.buildNumber in app.config.js")
-  process.exit(1)
+    console.error("❌ Could not find ios.buildNumber in app.config.js")
+    process.exit(1)
 }
 
 const currentBuild = parseInt(match[1], 10)

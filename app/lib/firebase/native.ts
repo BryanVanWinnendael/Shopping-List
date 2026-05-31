@@ -1,106 +1,119 @@
 import database from "@react-native-firebase/database"
-import type { Actions, Categories, ItemType, Items } from "@/types"
-import { createLogs } from "../logs"
-import { addCategory, getCategory } from "../categories"
-import { deleteListImage } from "../storage"
-import { sortItemsByCategory } from "."
+import { logsClient } from "../logs"
+import { categoryClient } from "../category"
+import { storageClient } from "../storage"
+import { sortProductsByCategory } from "."
 import auth from "@react-native-firebase/auth"
+import { Action } from "@/types/logs"
+import { Product, Products } from "@/types/list"
+import { Category, CreateCategoryRequest } from "@/types/category-model"
+import { DeleteImageRequest } from "@/types/storage"
 
-const ensureAuth = async (action: Actions) => {
-  if (!auth().currentUser) {
+const ensureAuth = async (action: Action) => {
+    if (!auth().currentUser) {
+        try {
+            await auth().signInAnonymously()
+        } catch (error) {
+            const msg = `Authentication error: ${error}`
+            await logsClient.createLog(action, msg, true)
+        }
+    }
+}
+
+const createProduct = async (product: Product) => {
     try {
-      await auth().signInAnonymously()
+        await ensureAuth("create")
+
+        if (product.type === "text" && product.category === "remaining") {
+            const response = await categoryClient.getCategory(product.name)
+            if (response) {
+                product.category = response.category
+            }
+        }
+
+        await database().ref(`products/${product.id}`).set(product)
+        await logsClient.createLog("create", product.name)
     } catch (error) {
-      const msg = `Authentication error: ${error}`
-      createLogs(action, msg, true)
+        const msg = `${error} for ${product.name}`
+        await logsClient.createLog("create", msg, true)
     }
-  }
 }
 
-const addItem = async (item: ItemType) => {
-  try {
-    await ensureAuth("add")
+const getProducts = async (setProducts: (products: Products) => any) => {
+    await ensureAuth("get")
 
-    if (item.type === "text" && item.category === "remaining") {
-      const category = await getCategory(item.item)
-      item.category = category
+    const productsRef = database().ref("products")
+    productsRef.on(
+        "value",
+        (snapshot) => {
+            const data: Products = snapshot.val()
+            setProducts(sortProductsByCategory(data))
+            logsClient.createLog("get", "all products")
+        },
+        (error) => {
+            const msg = `${error.message}`
+            logsClient.createLog("get", msg, true)
+        }
+    )
+}
+
+const deleteProduct = async (product: Product) => {
+    try {
+        await ensureAuth("delete")
+
+        await database().ref(`products/${product.id}`).remove()
+
+        if (product.type === "image" && product.url) {
+            const request: DeleteImageRequest = {
+                url: product.url,
+            }
+            await storageClient.deleteListImage(product.id, request)
+        }
+
+        await logsClient.createLog("delete", product.name)
+    } catch (error) {
+        const msg = `${product.name}: ${error}`
+        await logsClient.createLog("delete", msg, true)
     }
-
-    await database().ref(`items/${item.id}`).set(item)
-    createLogs("add", item.item)
-  } catch (error) {
-    const msg = `${error} for ${item.item}`
-    createLogs("add", msg, true)
-  }
 }
 
-const getItems = async (setItems: (items: Items) => any) => {
-  await ensureAuth("get")
+const updateCategory = async (product: Product, category: Category) => {
+    try {
+        await ensureAuth("update")
 
-  const itemsRef = database().ref("items")
-  itemsRef.on(
-    "value",
-    (snapshot) => {
-      const data: Items = snapshot.val()
-      setItems(sortItemsByCategory(data))
-      createLogs("get", "all items")
-    },
-    (error) => {
-      const msg = `${error.message}`
-      createLogs("get", msg, true)
-    },
-  )
+        product.category = category
+
+        await database().ref(`products/${product.id}`).set(product)
+        const request: CreateCategoryRequest = {
+            category,
+            product: product.name,
+        }
+        await categoryClient.createCategory(request)
+
+        const msg = `update category for ${product.name}`
+        await logsClient.createLog("update", msg)
+    } catch (error) {
+        const msg = `update category: ${error} for ${product.name}`
+        await logsClient.createLog("update", msg, true)
+    }
 }
 
-const deleteItem = async (item: ItemType) => {
-  try {
-    await ensureAuth("delete")
+const updateProduct = async (product: Product) => {
+    try {
+        await ensureAuth("update")
 
-    await database().ref(`items/${item.id}`).remove()
-
-    if (item.type === "image" && item.url)
-      await deleteListImage(item.id, item.url)
-
-    createLogs("delete", item.item)
-  } catch (error) {
-    const msg = `${item.item}: ${error}`
-    createLogs("delete", msg, true)
-  }
-}
-
-const updateCategory = async (item: ItemType, category: Categories) => {
-  try {
-    await ensureAuth("update")
-
-    item.category = category
-
-    await database().ref(`items/${item.id}`).set(item)
-    addCategory(category, item.item)
-
-    const msg = `update category for ${item.item}`
-    createLogs("update", msg)
-  } catch (error) {
-    const msg = `update category: ${error} for ${item.item}`
-    createLogs("update", msg, true)
-  }
-}
-
-const editItem = async (item: ItemType) => {
-  try {
-    await ensureAuth("update")
-
-    await database().ref(`items/${item.id}`).set(item)
-    createLogs("update", item.item)
-  } catch (error) {
-    const msg = `${error} for ${item.item}`
-    createLogs("update", msg, true)
-  }
+        await database().ref(`products/${product.id}`).set(product)
+        await logsClient.createLog("update", product.name)
+    } catch (error) {
+        const msg = `${error} for ${product.name}`
+        await logsClient.createLog("update", msg, true)
+    }
 }
 
 export const native = {
-  getItems,
-  addItem,
-  deleteItem,
-  updateCategory,
-  editItem,
+    getProducts,
+    createProduct,
+    deleteProduct,
+    updateCategory,
+    updateProduct,
 }

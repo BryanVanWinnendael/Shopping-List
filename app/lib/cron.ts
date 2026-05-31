@@ -1,79 +1,112 @@
-import { Categories, CronType, Users } from "@/types"
-import { httpRequest } from "./httpHelper"
+import {httpRequest} from "./httpHelper"
+import {
+    CreateCronProductRequest,
+    CreateCronProductResponse,
+    DeleteCronProductResponse,
+    GetAllCronProductsResponse,
+    GetCronProductsByUserResponse,
+    UpdateCronProductCategoryRequest,
+    UpdateCronProductCategoryResponse,
+} from "@/types/cron"
+import {User} from "@/types"
+import Toast from "react-native-toast-message"
 
 const CRON_PATH = "cron"
 
-export const getCronItemsByUser = async (user: Users): Promise<CronType[]> => {
-  try {
-    const response = await httpRequest<CronType[]>({
-      url: `${CRON_PATH}/users/${user}`,
-      method: "GET",
-    })
+const getCronProductsByUser = async (user: User): Promise<GetCronProductsByUserResponse | null> => {
+    try {
+        const response = await httpRequest<GetCronProductsByUserResponse>({
+            url: `${CRON_PATH}/users/${user}`,
+            method: "GET",
+        })
 
-    return response.data
-  } catch (error) {
-    console.error("Error fetching cron items by user:", error)
-    return []
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to get weekly products",
+        })
+        return null
+    }
 }
 
-export const getCronItems = async (): Promise<CronType[]> => {
-  try {
-    const response = await httpRequest<CronType[]>({
-      url: CRON_PATH,
-      method: "GET",
-    })
+const getCronProducts = async (): Promise<GetAllCronProductsResponse | null> => {
+    try {
+        const response = await httpRequest<GetAllCronProductsResponse>({
+            url: CRON_PATH,
+            method: "GET",
+        })
 
-    return response.data
-  } catch (error) {
-    console.error("Error fetching cron items:", error)
-    return []
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to get all weekly products",
+        })
+        return null
+    }
 }
 
-export const addCronItem = async (cronItem: CronType): Promise<boolean> => {
-  try {
-    await httpRequest<void, CronType>({
-      url: CRON_PATH,
-      method: "POST",
-      body: cronItem,
-    })
+const createCronProduct = async (request: CreateCronProductRequest): Promise<CreateCronProductResponse | null> => {
+    try {
+        const response = await httpRequest<CreateCronProductResponse>({
+            url: CRON_PATH,
+            method: "POST",
+            body: request,
+        })
 
-    return true
-  } catch (error) {
-    console.error("Error adding cron item:", error)
-    return false
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to create weekly product",
+        })
+        return null
+    }
 }
 
-export const deleteCronItem = async (id: string): Promise<boolean> => {
-  try {
-    await httpRequest<void>({
-      url: `${CRON_PATH}/${id}`,
-      method: "DELETE",
-    })
+const deleteCronProduct = async (id: string): Promise<DeleteCronProductResponse | null> => {
+    try {
+        const response = await httpRequest<DeleteCronProductResponse>({
+            url: `${CRON_PATH}/${id}`,
+            method: "DELETE",
+        })
 
-    return true
-  } catch (error) {
-    console.error("Error deleting cron item:", error)
-    return false
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to delete weekly product",
+        })
+        return null
+    }
 }
 
-export const updateCronItemCategory = async (
-  id: string,
-  category: Categories,
-): Promise<boolean> => {
-  try {
-    await httpRequest<void, { category: Categories }>({
-      url: `${CRON_PATH}/${id}`,
-      method: "PUT",
-      body: { category },
-    })
+const updateCronProductCategory = async (
+    id: string,
+    request: UpdateCronProductCategoryRequest
+): Promise<UpdateCronProductCategoryResponse | null> => {
+    try {
+        const response = await httpRequest<UpdateCronProductCategoryResponse>({
+            url: `${CRON_PATH}/${id}`,
+            method: "PUT",
+            body: request,
+        })
 
-    return true
-  } catch (error) {
-    console.error("Error updating cron item category:", error)
-    return false
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to update weekly product",
+        })
+        return null
+    }
+}
+
+export const cronClient = {
+    getCronProductsByUser,
+    getCronProducts,
+    createCronProduct,
+    deleteCronProduct,
+    updateCronProductCategory,
 }

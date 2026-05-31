@@ -1,165 +1,170 @@
-import { Recipe, Users } from "@/types"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { httpRequest } from "./httpHelper"
+import {
+    CreateRecipeRequest,
+    CreateRecipeResponse,
+    DeleteRecipeResponse,
+    GetAllRecipesResponse,
+    GetDistinctCountriesResponse,
+    GetRecipeResponse,
+    GetRecipesByUserResponse,
+    UpdateRecipeRequest,
+    UpdateRecipeResponse,
+} from "@/types/recipes"
+import { User } from "@/types"
+import Toast from "react-native-toast-message"
 
 const RECIPES_PATH = "/recipes"
-const RECIPES_KEY = "app_recipes"
 const FAVORITE_RECIPES_KEY = "app_favoriteRecipes"
 const ACTIVE_RECIPE_FILTER_KEY = "app_recipeFilter"
 
-export const getRecipes = async (): Promise<Recipe[]> => {
-  try {
-    const response = await httpRequest<Recipe[]>({
-      url: RECIPES_PATH,
-      method: "GET",
-    })
+const getRecipes = async (): Promise<GetAllRecipesResponse | null> => {
+    try {
+        const response = await httpRequest<GetAllRecipesResponse>({
+            url: RECIPES_PATH,
+            method: "GET",
+        })
 
-    return response.data
-  } catch (error) {
-    console.error("Error fetching recipes:", error)
-    return []
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to get recipes",
+        })
+        return null
+    }
 }
 
-export const addRecipe = async (recipe: Recipe): Promise<boolean> => {
-  try {
-    await httpRequest<void, Recipe>({
-      url: RECIPES_PATH,
-      method: "POST",
-      body: recipe,
-    })
+const createRecipe = async (request: CreateRecipeRequest): Promise<CreateRecipeResponse | null> => {
+    try {
+        const response = await httpRequest<CreateRecipeResponse>({
+            url: RECIPES_PATH,
+            method: "POST",
+            body: request,
+        })
 
-    return true
-  } catch (error) {
-    console.error("Error adding recipe:", error)
-    return false
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to create recipe",
+        })
+        return null
+    }
 }
 
-export const getRecipe = async (id: string): Promise<Recipe | null> => {
-  try {
-    const response = await httpRequest<Recipe>({
-      url: `${RECIPES_PATH}/${id}`,
-      method: "GET",
-    })
+const getRecipe = async (id: string): Promise<GetRecipeResponse | null> => {
+    try {
+        const response = await httpRequest<GetRecipeResponse>({
+            url: `${RECIPES_PATH}/${id}`,
+            method: "GET",
+        })
 
-    return response.data
-  } catch (error) {
-    console.error("Error fetching recipe:", error)
-    return null
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to get recipe",
+        })
+        return null
+    }
 }
 
-export const getUserRecipes = async (user: Users): Promise<Recipe[]> => {
-  try {
-    const response = await httpRequest<Recipe[]>({
-      url: `${RECIPES_PATH}/users/${user}`,
-      method: "GET",
-    })
+const getUserRecipes = async (user: User): Promise<GetRecipesByUserResponse | null> => {
+    try {
+        const response = await httpRequest<GetRecipesByUserResponse>({
+            url: `${RECIPES_PATH}/users/${user}`,
+            method: "GET",
+        })
 
-    return response.data
-  } catch (error) {
-    console.error("Error fetching user recipes:", error)
-    return []
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to get recipes",
+        })
+        return null
+    }
 }
 
-export const deleteRecipe = async (id: string): Promise<boolean> => {
-  try {
-    await httpRequest<void>({
-      url: `${RECIPES_PATH}/${id}`,
-      method: "DELETE",
-    })
+const deleteRecipe = async (id: string): Promise<DeleteRecipeResponse | null> => {
+    try {
+        const response = await httpRequest<DeleteRecipeResponse>({
+            url: `${RECIPES_PATH}/${id}`,
+            method: "DELETE",
+        })
 
-    return true
-  } catch (error) {
-    console.error("Error deleting recipe:", error)
-    return false
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to delete recipe",
+        })
+        return null
+    }
 }
 
-export const editRecipe = async (recipe: Recipe): Promise<Recipe | null> => {
-  try {
-    const response = await httpRequest<Recipe, Recipe>({
-      url: `${RECIPES_PATH}/${recipe.id}`,
-      method: "PUT",
-      body: recipe,
-    })
+const updateRecipe = async (id: string, request: UpdateRecipeRequest): Promise<UpdateRecipeResponse | null> => {
+    try {
+        const response = await httpRequest<UpdateRecipeResponse>({
+            url: `${RECIPES_PATH}/${id}`,
+            method: "PUT",
+            body: request,
+        })
 
-    return response.data
-  } catch (error) {
-    console.error("Error editing recipe:", error)
-    return recipe
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to update recipe",
+        })
+        return null
+    }
 }
 
-export const getRecipesCountries = async (): Promise<string[]> => {
-  try {
-    const response = await httpRequest<string[]>({
-      url: `${RECIPES_PATH}/countries`,
-      method: "GET",
-    })
+const getRecipesCountries = async (): Promise<GetDistinctCountriesResponse | null> => {
+    try {
+        const response = await httpRequest<GetDistinctCountriesResponse>({
+            url: `${RECIPES_PATH}/countries`,
+            method: "GET",
+        })
 
-    return response.data
-  } catch (error) {
-    console.error("Error fetching recipe countries:", error)
-    return []
-  }
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to get recipes countries",
+        })
+        return null
+    }
 }
 
 export const getFavoriteRecipes = async () => {
-  const storedFavoriteRecipes = await AsyncStorage.getItem(FAVORITE_RECIPES_KEY)
-  if (!storedFavoriteRecipes) return []
-  return JSON.parse(storedFavoriteRecipes)
+    const storedFavoriteRecipes = await AsyncStorage.getItem(FAVORITE_RECIPES_KEY)
+    if (!storedFavoriteRecipes) return []
+    return JSON.parse(storedFavoriteRecipes)
 }
 
 export const setFavoriteRecipes = async (recipes: string[]) => {
-  await AsyncStorage.setItem(FAVORITE_RECIPES_KEY, JSON.stringify(recipes))
-}
-
-export const storeRecipesLocally = async (recipes: Recipe[], user: Users) => {
-  try {
-    const favoriteRecipesIds = await getFavoriteRecipes()
-    const favoriteSet = new Set(favoriteRecipesIds)
-
-    const favoriteRecipes = recipes
-      .filter((r) => favoriteSet.has(r.id))
-      .slice(0, 5)
-
-    const myPrivateRecipes = recipes
-      .filter(
-        (r) => !r.public && r.createdBy === user && !favoriteSet.has(r.id),
-      )
-      .slice(0, 5)
-
-    const publicRecipes = recipes
-      .filter((r) => r.public && r.createdBy !== user && !favoriteSet.has(r.id))
-      .slice(0, 5)
-
-    const subsetToStore = [
-      ...favoriteRecipes,
-      ...myPrivateRecipes,
-      ...publicRecipes,
-    ]
-
-    await AsyncStorage.setItem(RECIPES_KEY, JSON.stringify(subsetToStore))
-  } catch (e) {
-    console.error("Failed to store recipes locally", e)
-  }
-}
-
-export const getStoredRecipes = async (): Promise<Recipe[]> => {
-  const storedRecipes = await AsyncStorage.getItem(RECIPES_KEY)
-  if (!storedRecipes) return []
-  return JSON.parse(storedRecipes)
+    await AsyncStorage.setItem(FAVORITE_RECIPES_KEY, JSON.stringify(recipes))
 }
 
 export const setActiveRecipeFilter = async (filter: any) => {
-  await AsyncStorage.setItem(ACTIVE_RECIPE_FILTER_KEY, JSON.stringify(filter))
+    await AsyncStorage.setItem(ACTIVE_RECIPE_FILTER_KEY, JSON.stringify(filter))
 }
 
 export const getActiveRecipeFilter = async (): Promise<any> => {
-  const storedFilter = await AsyncStorage.getItem(ACTIVE_RECIPE_FILTER_KEY)
-  if (!storedFilter) return null
-  return JSON.parse(storedFilter)
+    const storedFilter = await AsyncStorage.getItem(ACTIVE_RECIPE_FILTER_KEY)
+    if (!storedFilter) return null
+    return JSON.parse(storedFilter)
+}
+
+export const recipesClient = {
+    getRecipes,
+    deleteRecipe,
+    updateRecipe,
+    getRecipesCountries,
+    createRecipe,
+    getUserRecipes,
+    getRecipe,
 }

@@ -1,10 +1,13 @@
-import { GlassOrBlurView } from "./glassOrBlurView"
+import GlassOrBlurView from "@/components/glassOrBlurView"
+import useThemes from "@/hooks/themes/useThemes"
 
-export function CustomHeader() {
-  return (
-    <GlassOrBlurView
-      style={{ flex: 1, borderRadius: 12, padding: 2, overflow: "hidden" }}
-      blur={20}
-    />
-  )
+export default function CustomHeader() {
+    const { vars } = useThemes()
+    return (
+        <GlassOrBlurView
+            style={{ flex: 1, borderRadius: 8, padding: 2, overflow: "hidden" }}
+            borderColor={vars.backgroundColor}
+            blurBorderWidth={0}
+        />
+    )
 }

@@ -1,4 +1,4 @@
-# Shopping List - App
+# Shopping RecipesList - App
 
 ## Requirements
 
@@ -35,7 +35,8 @@ Your Apple developer email
 ### Firebase
 
 Generate the google-services.json and GoogleService-Info.plist files for your project.
-Place these in the root and upload these to expo.dev Environment variables as GOOGLE_SERVICES_PLIST and GOOGLE_SERVICES_JSON.
+Place these in the root and upload these to expo.dev Environment variables as GOOGLE_SERVICES_PLIST and
+GOOGLE_SERVICES_JSON.
 
 Enable Realtime Database and Authentication in the Project Overview.
 For Authentication you will only need to enable Authentication sign-in method.
@@ -102,4 +103,5 @@ Run via tunnel (different network). Works anywhere.
 
 ## Creating a Release or Build
 
-When CI/CD is setup, you can create a new release/build when changing the version or build number in the **app.config.js**.
+When CI/CD is setup, you can create a new release/build when changing the version or build number in the **app.config.js
+**.

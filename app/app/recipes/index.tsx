@@ -1,65 +1,34 @@
 import { View } from "react-native"
-import { useSettings } from "@/stores/useSettings"
-import { getBackgroundColor } from "@/lib/theme"
-import RecipesList from "@/components/recipes/recipesList"
-import { AddRecipe } from "@/components/recipes/addRecipe"
-import { useCallback, useEffect } from "react"
-import { getRecipes, getUserRecipes } from "@/lib/recipes"
-import { FilterButton } from "@/components/recipes/filter/filterButton"
-import { useInteractions } from "@/stores/useInteractions"
-import { useRecipes } from "@/stores/useRecipes"
-import { Recipe } from "@/types"
+import List from "@/components/recipes/list/list"
+import RecipesFilterBottomSheetButton from "@/components/recipes/filter/bottomSheetButton"
+import AddRecipeBottomSheet from "@/components/recipes/create/bottomSheet"
+import { useCreateRecipeForm } from "@/hooks/recipes/useCreateRecipeForm"
+import { useRecipesFilter } from "@/hooks/recipes/useRecipesFilter"
+import RecipesFilterBottomSheet from "@/components/recipes/filter/bottomSheet"
+import AddRecipeBottomSheetButton from "@/components/recipes/create/bottomSheetButton"
+import useThemes from "@/hooks/themes/useThemes"
 
 export default function Recipes() {
-  const { theme, user } = useSettings()
-  const { setRecipes, userRecipes } = useRecipes()
-  const { updateRecipes, setUpdateRecipes } = useInteractions()
+    const { vars } = useThemes()
 
-  const fetchRecipes = useCallback(
-    async (refresh: boolean = false) => {
-      if (!user) return
+    const { refs: formRefs, actions: formActions } = useCreateRecipeForm()
+    const { refs: filterRefs, actions: filterActions } = useRecipesFilter()
 
-      const data = await getRecipes()
-      const filteredData = data.filter((recipe) => recipe.createdBy !== user)
+    return (
+        <View
+            style={{
+                backgroundColor: vars.backgroundColor,
+                flex: 1,
+                padding: 16,
+            }}
+        >
+            <List />
 
-      let userData: Recipe[] = []
-      if (userRecipes.length === 0 || refresh) {
-        userData = await getUserRecipes(user)
-      } else {
-        userData = userRecipes
-      }
+            <AddRecipeBottomSheetButton onPress={formActions.open} />
+            <AddRecipeBottomSheet sheetRef={formRefs.bottomSheetRef} onClose={formActions.close} />
 
-      const cData = [...filteredData, ...userData]
-
-      if (cData) {
-        setRecipes(cData, user)
-      }
-    },
-    [user],
-  )
-
-  useEffect(() => {
-    fetchRecipes()
-  }, [fetchRecipes])
-
-  useEffect(() => {
-    if (updateRecipes) {
-      fetchRecipes(true)
-      setUpdateRecipes(false)
-    }
-  }, [updateRecipes])
-
-  return (
-    <View
-      style={{
-        backgroundColor: getBackgroundColor(theme),
-        flex: 1,
-        padding: 16,
-      }}
-    >
-      <RecipesList fetchRecipes={fetchRecipes} />
-      <AddRecipe fetchRecipes={fetchRecipes} />
-      <FilterButton />
-    </View>
-  )
+            <RecipesFilterBottomSheetButton onPress={filterActions.open} />
+            <RecipesFilterBottomSheet sheetRef={filterRefs.bottomSheetRef} onClose={filterActions.close} />
+        </View>
+    )
 }

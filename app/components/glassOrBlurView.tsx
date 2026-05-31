@@ -1,82 +1,76 @@
 import { StyleProp, ViewStyle } from "react-native"
 import { BlurView } from "expo-blur"
 import { GlassView } from "expo-glass-effect"
-import { useSettings } from "@/stores/useSettings"
-import {
-  getBackgroundColor,
-  getBlurBackgroundColor,
-  getBlurIntensity,
-  getBorderColor,
-} from "@/lib/theme"
+import { useSettingsStore } from "@/stores/useSettingsStore"
+import { ReactNode } from "react"
+import useThemes from "@/hooks/themes/useThemes"
 
 type Props = {
-  children?: React.ReactNode
-  style?: StyleProp<ViewStyle>
-  blur?: number
-  glassBackgroundColor?: string
-  givenGlassBorderColor?: string
-  blurBackground?: string
-  givenBlurBorderColor?: string
-  forceBlur?: boolean
-  borderRadius?: number
-  blurBorderWidth?: number
+    children?: ReactNode
+    style?: StyleProp<ViewStyle>
+    blur?: number
+    borderColor?: string
+    backgroundColor?: string
+    glassBackgroundColor?: string
+    borderRadius?: number
+    glassBorderWidth?: number
+    blurBorderWidth?: number
+    forceBlur?: boolean
+    glassEffectStyle?: "regular" | "clear"
 }
 
-export function GlassOrBlurView({
-  children,
-  style,
-  blur,
-  glassBackgroundColor,
-  givenGlassBorderColor,
-  blurBackground,
-  givenBlurBorderColor,
-  forceBlur = false,
-  borderRadius,
-  blurBorderWidth,
+export default function GlassOrBlurView({
+    children,
+    style,
+    blur = 50,
+    borderColor,
+    backgroundColor,
+    glassBackgroundColor,
+    borderRadius = 20,
+    glassBorderWidth = 2,
+    blurBorderWidth = 1,
+    forceBlur = false,
+    glassEffectStyle = "clear",
 }: Props) {
-  const { theme, newUI } = useSettings()
+    const { vars, theme } = useThemes()
+    const { newUI } = useSettingsStore()
 
-  const backgroundColor = getBackgroundColor(theme)
-  const blurBackgroundColor = getBlurBackgroundColor(theme)
-  const blurIntensity = getBlurIntensity(theme)
-  const borderColor = getBorderColor(theme)
+    if (newUI && !forceBlur) {
+        return (
+            <GlassView
+                glassEffectStyle={glassEffectStyle}
+                tintColor={glassBackgroundColor ? glassBackgroundColor : (backgroundColor ?? vars.backgroundColor)}
+                style={[
+                    {
+                        borderWidth: glassBorderWidth,
+                        borderColor: borderColor ?? vars.backgroundColor,
+                        borderRadius: borderRadius,
+                        overflow: "hidden",
+                    },
+                    style,
+                ]}
+            >
+                {children}
+            </GlassView>
+        )
+    }
 
-  if (newUI && !forceBlur) {
     return (
-      <GlassView
-        glassEffectStyle="clear"
-        tintColor={glassBackgroundColor ?? backgroundColor}
-        style={[
-          {
-            borderWidth: 2,
-            borderColor: givenGlassBorderColor ?? backgroundColor,
-            borderRadius: borderRadius ?? 12,
-            overflow: "hidden",
-          },
-          style,
-        ]}
-      >
-        {children}
-      </GlassView>
+        <BlurView
+            intensity={blur}
+            tint={theme === "light" ? "light" : "dark"}
+            style={[
+                {
+                    borderRadius: borderRadius,
+                    overflow: "hidden",
+                    backgroundColor: backgroundColor ? `${backgroundColor}50` : `${vars.backgroundColor}50`,
+                    borderWidth: blurBorderWidth,
+                    borderColor: borderColor ?? vars.borderColor,
+                },
+                style,
+            ]}
+        >
+            {children}
+        </BlurView>
     )
-  }
-
-  return (
-    <BlurView
-      intensity={blur ?? blurIntensity}
-      tint={theme === "light" ? "light" : "dark"}
-      style={[
-        {
-          borderRadius: 12,
-          overflow: "hidden",
-          backgroundColor: blurBackground ?? blurBackgroundColor,
-          borderWidth: blurBorderWidth ?? 0.2,
-          borderColor: givenBlurBorderColor ?? borderColor,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </BlurView>
-  )
 }

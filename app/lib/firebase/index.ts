@@ -1,65 +1,65 @@
-import { Categories, Items, ItemType } from "@/types"
 import { dev } from "./dev"
 import { CATEGORY_ORDER, IS_DEV } from "../constants"
+import { Category } from "@/types/category-model"
+import { Product, Products } from "@/types/list"
 
 // Loads only the ios native code when non dev env is loaded
 const getModule = async () => {
-  if (IS_DEV) {
-    return dev
-  } else {
-    const native = await import("./native")
-    return native.native
-  }
+    if (IS_DEV) {
+        return dev
+    } else {
+        const native = await import("./native")
+        return native.native
+    }
 }
 
-export const addItem = async (item: ItemType) => {
-  const module = await getModule()
-  await module.addItem(item)
+export const createProduct = async (product: Product) => {
+    const module = await getModule()
+    await module.createProduct(product)
 }
 
-export const addTestItem = async (item: ItemType) => {
-  await dev.addTestItem(item)
+export const createTestProduct = async (product: Product) => {
+    await dev.createTestProduct(product)
 }
 
-export const getItems = async (setItems: (items: Items) => any) => {
-  const module = await getModule()
-  module.getItems(setItems)
+export const getProducts = async (setProducts: (products: Products) => any) => {
+    const module = await getModule()
+    await module.getProducts(setProducts)
 }
 
-export const deleteItem = async (item: ItemType) => {
-  const module = await getModule()
-  await module.deleteItem(item)
+export const deleteProduct = async (product: Product) => {
+    const module = await getModule()
+    await module.deleteProduct(product)
 }
 
-export const updateCategory = async (item: ItemType, category: Categories) => {
-  const module = await getModule()
-  await module.updateCategory(item, category)
+export const updateCategory = async (product: Product, category: Category) => {
+    const module = await getModule()
+    await module.updateCategory(product, category)
 }
 
-export const editItem = async (item: ItemType) => {
-  const module = await getModule()
-  return await module.editItem(item)
+export const updateProduct = async (product: Product) => {
+    const module = await getModule()
+    return await module.updateProduct(product)
 }
 
-// Sorts the given list of items based on predefined category order
-export const CATEGORY_PRIORITY: { [key in Categories]: number } =
-  CATEGORY_ORDER.reduce(
+// Sorts the given products-list of products based on predefined categories order
+export const CATEGORY_PRIORITY: { [key in Category]: number } = CATEGORY_ORDER.reduce(
     (acc, category, index) => {
-      acc[category] = index
-      return acc
+        acc[category] = index
+        return acc
     },
-    {} as { [key in Categories]: number },
-  )
+    {} as { [key in Category]: number }
+)
 
-export const sortItemsByCategory = (items: Items): Items => {
-  if (!items) return {}
-  const itemsArray = Object.entries(items)
+export const sortProductsByCategory = (products: Products): Products => {
+    if (!products) return {}
+    const productsArray = Object.entries(products)
 
-  itemsArray.sort((a, b) => {
-    const priorityA = CATEGORY_PRIORITY[a[1].category]
-    const priorityB = CATEGORY_PRIORITY[b[1].category]
-    return priorityA - priorityB
-  })
+    productsArray.sort((a, b) => {
+        const priorityA = CATEGORY_PRIORITY[a[1].category]
+        const priorityB = CATEGORY_PRIORITY[b[1].category]
+        return priorityA - priorityB
+    })
 
-  return Object.fromEntries(itemsArray)
+    return Object.fromEntries(productsArray)
 }
