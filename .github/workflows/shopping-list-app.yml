@@ -11,14 +11,39 @@ jobs:
   deploy:
     if: github.actor != 'github-actions'
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up SSH
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+      - name: Extract version and create git tag
+        id: version
+        run: |
+          VERSION=$(node -p "require('./app/app.config.js').expo.version")
+          TAG="release/$VERSION"
+
+          echo "VERSION=$VERSION"
+          echo "TAG=$TAG"
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+            exit 0
+          fi
+
+          git tag $TAG
+          git push origin $TAG
 
       - name: Deploy App
         run: |
@@ -26,8 +51,10 @@ jobs:
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
           cd ~/projects/shopping-list/app
           git fetch origin main
           git reset --hard origin/main
+
           EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
           EOF || true
