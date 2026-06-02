@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"shopping-list/shared/contracts"
 	httphelper "shopping-list/shared/http"
 )
 
@@ -19,15 +20,20 @@ func NewNotificationService(client *httphelper.Client, baseURL string) *Notifica
 	}
 }
 
-func (nsi *NotificationServiceImpl) SendNotification(user string, notificationType string) error {
+func (nsi *NotificationServiceImpl) SendNotification(user string, notificationType string, text *string) error {
 	requestUrl := fmt.Sprintf("%s/push/%s/%s", nsi.baseURL, notificationType, user)
+
+	var request contracts.PushUserNotificationByTypeRequest
+	if text != nil {
+		request.Text = *text
+	}
 
 	status, err := nsi.client.DoRequest(
 		context.Background(),
 		http.MethodPost,
 		requestUrl,
 		nil,
-		nil,
+		request,
 		nil,
 	)
 

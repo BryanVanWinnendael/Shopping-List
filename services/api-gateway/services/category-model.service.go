@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"shopping-list/api-gateway/models"
+	"shopping-list/shared/contracts"
 	httphelper "shopping-list/shared/http"
 )
 
@@ -21,10 +21,10 @@ func NewCategoryModelService(client *httphelper.Client, baseURL string) *Categor
 	}
 }
 
-func (cms *CategoryModelService) TrainModel(ctx context.Context) (*models.TrainModelResponse, error) {
+func (cms *CategoryModelService) TrainModel(ctx context.Context) (*contracts.TrainModelResponse, error) {
 	requestUrl := fmt.Sprintf("%s/model", cms.baseURL)
 
-	var response models.TrainModelResponse
+	var response contracts.TrainModelResponse
 
 	_, err := cms.client.DoRequest(
 		ctx,
@@ -42,13 +42,13 @@ func (cms *CategoryModelService) TrainModel(ctx context.Context) (*models.TrainM
 	return &response, nil
 }
 
-func (cms *CategoryModelService) GetCategory(ctx context.Context, item string) (*models.CategoryResponse, error) {
-	requestUrl := fmt.Sprintf("%s/category?item=%s",
+func (cms *CategoryModelService) GetCategory(ctx context.Context, product string) (*contracts.GetCategoryResponse, error) {
+	requestUrl := fmt.Sprintf("%s/category?product=%s",
 		cms.baseURL,
-		url.QueryEscape(item),
+		url.QueryEscape(product),
 	)
 
-	var response string
+	var response contracts.GetCategoryResponse
 
 	_, err := cms.client.DoRequest(
 		ctx,
@@ -62,18 +62,16 @@ func (cms *CategoryModelService) GetCategory(ctx context.Context, item string) (
 		return nil, err
 	}
 
-	return &models.CategoryResponse{
-		Category: response,
-	}, nil
+	return &response, nil
 }
 
-func (cms *CategoryModelService) AddCategory(
+func (cms *CategoryModelService) CreateCategory(
 	ctx context.Context,
-	request models.AddCategoryRequest,
-) (*models.AddCategoryResponse, error) {
+	request *contracts.CreateCategoryRequest,
+) (*contracts.CreateCategoryResponse, error) {
 	requestUrl := fmt.Sprintf("%s/category", cms.baseURL)
 
-	var response models.AddCategoryResponse
+	var response contracts.CreateCategoryResponse
 
 	_, err := cms.client.DoRequest(
 		ctx,

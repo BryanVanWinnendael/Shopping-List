@@ -3,15 +3,14 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"shopping-list/shared/contracts"
 	"shopping-list/shared/tests"
 	"testing"
-
-	"shopping-list/products-search/models"
 )
 
 type MockProductsSearchService struct {
-	SearchProductsFunc      func(string, []string, int, int) (models.ProductsSearchResult, error)
-	FuzzySearchProductsFunc func(string, string, int, int) (models.ProductsSearchResult, error)
+	SearchProductsFunc      func(string, []string, int, int) (*contracts.ProductsSearchResponse, error)
+	FuzzySearchProductsFunc func(string, string, int, int) (*contracts.ProductsSearchResponse, error)
 }
 
 func TestSearchProducts(t *testing.T) {
@@ -34,8 +33,8 @@ func TestSearchProducts(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			SearchProductsFunc: func(q string, cat []string, page, size int) (models.ProductsSearchResult, error) {
-				return models.ProductsSearchResult{}, errors.New("fail")
+			SearchProductsFunc: func(q string, cat []string, page, size int) (*contracts.ProductsSearchResponse, error) {
+				return &contracts.ProductsSearchResponse{}, errors.New("fail")
 			},
 		})
 
@@ -53,11 +52,11 @@ func TestSearchProducts(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			SearchProductsFunc: func(q string, cat []string, page, size int) (models.ProductsSearchResult, error) {
+			SearchProductsFunc: func(q string, cat []string, page, size int) (*contracts.ProductsSearchResponse, error) {
 				if cat[0] != "meat" {
 					t.Fatalf("expected category meat, got %s", cat[0])
 				}
-				return models.ProductsSearchResult{}, nil
+				return &contracts.ProductsSearchResponse{}, nil
 			},
 		})
 
@@ -75,11 +74,11 @@ func TestSearchProducts(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&page=0&pageSize=-1", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			SearchProductsFunc: func(q string, cat []string, page, size int) (models.ProductsSearchResult, error) {
+			SearchProductsFunc: func(q string, cat []string, page, size int) (*contracts.ProductsSearchResponse, error) {
 				if page != 1 || size != 10 {
 					t.Fatalf("expected defaults (1,10), got (%d,%d)", page, size)
 				}
-				return models.ProductsSearchResult{}, nil
+				return &contracts.ProductsSearchResponse{}, nil
 			},
 		})
 
@@ -97,11 +96,11 @@ func TestSearchProducts(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&pageSize=999", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			SearchProductsFunc: func(q string, cat []string, page, size int) (models.ProductsSearchResult, error) {
+			SearchProductsFunc: func(q string, cat []string, page, size int) (*contracts.ProductsSearchResponse, error) {
 				if size != 100 {
 					t.Fatalf("expected pageSize 100, got %d", size)
 				}
-				return models.ProductsSearchResult{}, nil
+				return &contracts.ProductsSearchResponse{}, nil
 			},
 		})
 
@@ -135,8 +134,8 @@ func TestFuzzySearchProducts(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			FuzzySearchProductsFunc: func(q, cat string, page, size int) (models.ProductsSearchResult, error) {
-				return models.ProductsSearchResult{}, errors.New("fail")
+			FuzzySearchProductsFunc: func(q, cat string, page, size int) (*contracts.ProductsSearchResponse, error) {
+				return nil, errors.New("fail")
 			},
 		})
 
@@ -154,11 +153,11 @@ func TestFuzzySearchProducts(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/search?q=apple&category=fish", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			FuzzySearchProductsFunc: func(q, cat string, page, size int) (models.ProductsSearchResult, error) {
+			FuzzySearchProductsFunc: func(q, cat string, int, size int) (*contracts.ProductsSearchResponse, error) {
 				if cat != "meat" {
 					t.Fatalf("expected meat, got %s", cat)
 				}
-				return models.ProductsSearchResult{}, nil
+				return &contracts.ProductsSearchResponse{}, nil
 			},
 		})
 
@@ -172,16 +171,16 @@ func TestFuzzySearchProducts(t *testing.T) {
 	})
 }
 
-func (m *MockProductsSearchService) SearchProducts(q string, c []string, p, s int) (models.ProductsSearchResult, error) {
+func (m *MockProductsSearchService) SearchProducts(q string, c []string, p, s int) (*contracts.ProductsSearchResponse, error) {
 	if m.SearchProductsFunc != nil {
 		return m.SearchProductsFunc(q, c, p, s)
 	}
-	return models.ProductsSearchResult{}, nil
+	return &contracts.ProductsSearchResponse{}, nil
 }
 
-func (m *MockProductsSearchService) FuzzySearchProducts(q string, c string, p, s int) (models.ProductsSearchResult, error) {
+func (m *MockProductsSearchService) FuzzySearchProducts(q string, c string, p, s int) (*contracts.ProductsSearchResponse, error) {
 	if m.FuzzySearchProductsFunc != nil {
 		return m.FuzzySearchProductsFunc(q, c, p, s)
 	}
-	return models.ProductsSearchResult{}, nil
+	return &contracts.ProductsSearchResponse{}, nil
 }

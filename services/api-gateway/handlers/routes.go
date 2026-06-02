@@ -9,7 +9,7 @@ func SetupRoutes(e *echo.Echo, cmh *CategoryModelHandler, lh *LogsHandler,
 	categoryModel := e.Group("/api/category-model")
 	categoryModel.POST("/train", cmh.TrainModel)
 	categoryModel.GET("/category", cmh.GetCategory)
-	categoryModel.POST("/category", cmh.AddCategory)
+	categoryModel.POST("/category", cmh.CreateCategory)
 
 	// Logs routes
 	logs := e.Group("/api/logs")
@@ -32,27 +32,30 @@ func SetupRoutes(e *echo.Echo, cmh *CategoryModelHandler, lh *LogsHandler,
 
 	// Storage routes
 	storage := e.Group("/api/storage")
-	storage.POST("/recipes/images/:recipesID", sh.UploadRecipeImage)
-	storage.DELETE("/recipes/images/:recipesID", sh.DeleteRecipeImage)
-	storage.DELETE("/recipes/:recipesID", sh.DeleteRecipeStorage)
-	storage.POST("/list/images/:itemID", sh.UploadListImage)
-	storage.DELETE("/list/images/:itemID", sh.DeleteListImage)
+	storage.POST("/recipes/images/:id", sh.UploadRecipeImage)
+	storage.DELETE("/recipes/images/:id", sh.DeleteRecipeImage)
+	storage.DELETE("/recipes/:id", sh.DeleteRecipeStorage)
+	storage.POST("/list/images/:id", sh.UploadListImage)
+	storage.DELETE("/list/images/:id", sh.DeleteListImage)
 
 	// Recipes routes
 	recipes := e.Group("/api/recipes")
 	recipes.GET("", rh.GetAllRecipes)
 	recipes.POST("", rh.CreateRecipe)
-	recipes.GET("/:recipeID", rh.GetRecipe)
-	recipes.DELETE("/:recipeID", rh.DeleteRecipe)
-	recipes.PUT("/:recipeID", rh.UpdateRecipe)
+	recipes.GET("/:id", rh.GetRecipe)
+	recipes.DELETE("/:id", rh.DeleteRecipe)
+	recipes.PUT("/:id", rh.UpdateRecipe)
 	recipes.GET("/users/:user", rh.GetRecipesByUser)
 	recipes.GET("/countries", rh.GetDistinctCountries)
+	recipes.GET("/online", rh.GetOnlineRecipes)
+	recipes.GET("/online/details", rh.GetOnlineRecipeDetails)
+	recipes.GET("/online/search", rh.SearchOnlineRecipes)
 
 	// Cron routes
 	cron := e.Group("/api/cron")
-	cron.GET("", ch.GetAllCronItems)
-	cron.POST("", ch.CreateCronItem)
-	cron.DELETE("/:itemID", ch.DeleteCronItem)
-	cron.GET("/users/:user", ch.GetCronItemsByUser)
-	cron.PUT("/:itemID", ch.UpdateCronItemCategory)
+	cron.GET("", ch.GetAllCronProducts)
+	cron.POST("", ch.CreateCronProduct)
+	cron.DELETE("/:id", ch.DeleteCronProduct)
+	cron.GET("/users/:user", ch.GetCronProductsByUser)
+	cron.PUT("/:id", ch.UpdateCronProductCategory)
 }

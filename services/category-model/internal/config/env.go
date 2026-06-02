@@ -11,6 +11,7 @@ type Env struct {
 	DataDir        string
 	CategoriesFile string
 	ModelFile      string
+	Port           string
 }
 
 var Vars Env
@@ -26,6 +27,7 @@ func LoadEnv() {
 		DataDir:        getEnv("DATA_DIR", "./data"),
 		CategoriesFile: getEnv("CATEGORIES_FILE", "categories.csv"),
 		ModelFile:      getEnv("MODEL_FILE", "model.pkl"),
+		Port:           getEnv("PORT", "3000"),
 	}
 }
 

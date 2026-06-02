@@ -4,18 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
-
-	"shopping-list/notifications/models"
 )
 
 type MockNotificationsService struct {
-	SubscribeFunc                  func(*models.NotificationCreate) (*models.Notification, error)
-	GetAllNotificationsFunc        func() ([]models.Notification, error)
-	GetUserNotificationsFunc       func(string) ([]models.Notification, error)
-	UnsubscribeFunc                func(string, string) error
-	PushUserNotificationByTypeFunc func(string, string, string) error
+	SubscribeFunc                  func(request *contracts.CreateNotificationRequest) (*contracts.CreateNotificationResponse, error)
+	GetAllNotificationsFunc        func() (*contracts.GetAllNotificationsResponse, error)
+	GetUserNotificationsFunc       func(user string) (*contracts.GetUserNotificationsResponse, error)
+	UnsubscribeFunc                func(user string, notifType models.NotificationType) (*contracts.DeleteUserNotificationResponse, error)
+	PushUserNotificationByTypeFunc func(notifType models.NotificationType, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error)
 }
 
 func TestSubscribe(t *testing.T) {
@@ -35,11 +35,11 @@ func TestSubscribe(t *testing.T) {
 
 	t.Run("Given service error, When Subscribe, Then returns 500", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(models.NotificationCreate{})
+		body, _ := json.Marshal(contracts.CreateNotificationRequest{})
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications", body)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			SubscribeFunc: func(n *models.NotificationCreate) (*models.Notification, error) {
+			SubscribeFunc: func(*contracts.CreateNotificationRequest) (*contracts.CreateNotificationResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -55,7 +55,7 @@ func TestSubscribe(t *testing.T) {
 
 	t.Run("Given valid request, When Subscribe, Then returns 200", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(models.NotificationCreate{})
+		body, _ := json.Marshal(contracts.CreateNotificationRequest{})
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications", body)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{})
@@ -110,8 +110,8 @@ func TestPushUserNotificationByType(t *testing.T) {
 		c.SetParamValues("a", "b")
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			PushUserNotificationByTypeFunc: func(t, u, e string) error {
-				return errors.New("fail")
+			PushUserNotificationByTypeFunc: func(models.NotificationType, string, *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error) {
+				return nil, errors.New("fail")
 			},
 		})
 
@@ -149,7 +149,7 @@ func TestGetAllNotifications(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/notifications", nil)
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetAllNotificationsFunc: func() ([]models.Notification, error) {
+			GetAllNotificationsFunc: func() (*contracts.GetAllNotificationsResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -167,13 +167,7 @@ func TestGetAllNotifications(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/notifications", nil)
 
-		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetAllNotificationsFunc: func() ([]models.Notification, error) {
-				return []models.Notification{
-					{ID: "1"},
-				}, nil
-			},
-		})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		_ = handler.GetAllNotifications(c)
@@ -193,7 +187,7 @@ func TestGetUserNotifications(t *testing.T) {
 		c.SetParamValues("user1")
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetUserNotificationsFunc: func(userID string) ([]models.Notification, error) {
+			GetUserNotificationsFunc: func(string) (*contracts.GetUserNotificationsResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -213,13 +207,7 @@ func TestGetUserNotifications(t *testing.T) {
 		c.SetParamNames("user")
 		c.SetParamValues("user1")
 
-		handler := NewNotificationsHandler(&MockNotificationsService{
-			GetUserNotificationsFunc: func(userID string) ([]models.Notification, error) {
-				return []models.Notification{
-					{User: userID},
-				}, nil
-			},
-		})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		_ = handler.GetUserNotifications(c)
@@ -254,8 +242,8 @@ func TestUnsubscribe(t *testing.T) {
 		c.SetParamValues("a", "b")
 
 		handler := NewNotificationsHandler(&MockNotificationsService{
-			UnsubscribeFunc: func(user, notifType string) error {
-				return errors.New("not found")
+			UnsubscribeFunc: func(string, models.NotificationType) (*contracts.DeleteUserNotificationResponse, error) {
+				return nil, errors.New("not found")
 			},
 		})
 
@@ -274,11 +262,7 @@ func TestUnsubscribe(t *testing.T) {
 		c.SetParamNames("type", "user")
 		c.SetParamValues("a", "b")
 
-		handler := NewNotificationsHandler(&MockNotificationsService{
-			UnsubscribeFunc: func(user, notifType string) error {
-				return nil
-			},
-		})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		_ = handler.Unsubscribe(c)
@@ -290,37 +274,69 @@ func TestUnsubscribe(t *testing.T) {
 	})
 }
 
-func (m *MockNotificationsService) Subscribe(n *models.NotificationCreate) (*models.Notification, error) {
+func (m *MockNotificationsService) Subscribe(request *contracts.CreateNotificationRequest) (*contracts.CreateNotificationResponse, error) {
 	if m.SubscribeFunc != nil {
-		return m.SubscribeFunc(n)
+		return m.SubscribeFunc(request)
 	}
-	return &models.Notification{ID: "1"}, nil
+	return &contracts.CreateNotificationResponse{
+		Id:    "1",
+		Token: request.Token,
+		Type:  request.Type,
+		User:  request.User,
+	}, nil
 }
 
-func (m *MockNotificationsService) GetAllNotifications() ([]models.Notification, error) {
+func (m *MockNotificationsService) GetAllNotifications() (*contracts.GetAllNotificationsResponse, error) {
 	if m.GetAllNotificationsFunc != nil {
 		return m.GetAllNotificationsFunc()
 	}
-	return []models.Notification{}, nil
+	return &contracts.GetAllNotificationsResponse{
+		{
+			Id:    "1",
+			User:  "user1",
+			Type:  "type1",
+			Token: "token1",
+		},
+		{
+			Id:    "2",
+			User:  "user2",
+			Type:  "type2",
+			Token: "token2",
+		},
+	}, nil
 }
 
-func (m *MockNotificationsService) GetUserNotifications(userID string) ([]models.Notification, error) {
+func (m *MockNotificationsService) GetUserNotifications(user string) (*contracts.GetUserNotificationsResponse, error) {
 	if m.GetUserNotificationsFunc != nil {
-		return m.GetUserNotificationsFunc(userID)
+		return m.GetUserNotificationsFunc(user)
 	}
-	return []models.Notification{}, nil
+	return &contracts.GetUserNotificationsResponse{
+		{
+			Id:    "1",
+			User:  user,
+			Type:  "type1",
+			Token: "token1",
+		},
+	}, nil
 }
 
-func (m *MockNotificationsService) Unsubscribe(user, notifType string) error {
+func (m *MockNotificationsService) Unsubscribe(user string, notifType models.NotificationType) (*contracts.DeleteUserNotificationResponse, error) {
 	if m.UnsubscribeFunc != nil {
 		return m.UnsubscribeFunc(user, notifType)
 	}
-	return nil
+	return &contracts.DeleteUserNotificationResponse{
+		User: user,
+		Type: notifType,
+	}, nil
 }
 
-func (m *MockNotificationsService) PushUserNotificationByType(t, u, e string) error {
+func (m *MockNotificationsService) PushUserNotificationByType(notifType models.NotificationType, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error) {
 	if m.PushUserNotificationByTypeFunc != nil {
-		return m.PushUserNotificationByTypeFunc(t, u, e)
+		return m.PushUserNotificationByTypeFunc(notifType, user, request)
 	}
-	return nil
+	return &contracts.PushUserNotificationByTypeResponse{
+		Type:    models.NotificationType(notifType),
+		User:    user,
+		Message: "Notification sent",
+	}, nil
 }

@@ -1,7 +1,7 @@
-import { useState } from "react"
-import { Modal, StyleSheet, Text, View } from "react-native"
-import { Palette, X } from "lucide-react-native"
-import ColorPicker, { type ColorFormatsObject, HueCircular, Panel1 } from "reanimated-color-picker"
+import {useState} from "react"
+import {Modal, StyleSheet, Text, View} from "react-native"
+import {Palette, X} from "lucide-react-native"
+import ColorPicker, {type ColorFormatsObject, HueCircular, Panel1} from "reanimated-color-picker"
 import Animated, {
     Easing,
     FadeIn,
@@ -12,11 +12,11 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated"
 import * as Haptics from "expo-haptics"
-import { useSettingsStore } from "@/stores/useSettingsStore"
-import { PressableScale } from "pressto"
+import {useSettingsStore} from "@/stores/useSettingsStore"
+import {PressableScale} from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import CustomSwitch from "@/components/customSwitch"
-import { DEFAULT_ACOLOR } from "@/lib/theme"
+import {DEFAULT_ACOLOR} from "@/lib/theme"
 import useThemes from "@/hooks/themes/useThemes"
 
 export default function AColor() {
@@ -36,10 +36,10 @@ export default function AColor() {
         scale.value = withSpring(1.05)
     }
 
-    const onColorPick = async (color: ColorFormatsObject) => {
+    const onColorPick = (color: ColorFormatsObject) => {
         setPickedColor(color.hex)
         setAColor(color.hex)
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     }
 
     const resetToDefault = () => {

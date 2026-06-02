@@ -15,6 +15,9 @@ services:
       DATA_DIR: /app/data
       BUCKET: cron
       DB: cron.db
+      CRON_TIME: "0 0 * * 5"
+      CRON_TIME_REMINDER: "0 0 * * 3"
+      PORT: 3000
     env_file:
       - .env
     restart: unless-stopped

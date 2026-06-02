@@ -27,5 +27,5 @@ func main() {
 	sh := handlers.NewStorageHandler(ss)
 
 	handlers.SetupRoutes(private, sh)
-	e.Logger.Fatal(e.Start(":3000"))
+	e.Logger.Fatal(e.Start(":" + config.Vars.Port))
 }

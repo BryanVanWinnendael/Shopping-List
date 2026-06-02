@@ -13,6 +13,7 @@ services:
       DATA_DIR: /app/data
       BUCKET: notifications
       DB: notifications.db
+      PORT: 3000
     env_file:
       - .env
     restart: unless-stopped

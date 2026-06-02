@@ -1,6 +1,7 @@
 package response
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -8,11 +9,21 @@ import (
 )
 
 func GetMissingRequestFields(body interface{}) []string {
+	return getMissing(reflect.ValueOf(body), "")
+}
+
+func getMissing(val reflect.Value, prefix string) []string {
 	var missing []string
 
-	val := reflect.ValueOf(body)
 	if val.Kind() == reflect.Pointer {
+		if val.IsNil() {
+			return missing
+		}
 		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Struct {
+		return missing
 	}
 
 	typ := val.Type()
@@ -21,27 +32,42 @@ func GetMissingRequestFields(body interface{}) []string {
 		field := val.Field(i)
 		fieldType := typ.Field(i)
 
-		switch field.Kind() {
-		case reflect.String:
-			if strings.TrimSpace(field.String()) == "" {
-				jsonTag := fieldType.Tag.Get("json")
-				if jsonTag == "" {
-					jsonTag = fieldType.Name
-				} else {
-					jsonTag = strings.Split(jsonTag, ",")[0]
+		validateTag := fieldType.Tag.Get("validate")
+		jsonTag := fieldType.Tag.Get("json")
+		if jsonTag == "" {
+			jsonTag = fieldType.Name
+		} else {
+			jsonTag = strings.Split(jsonTag, ",")[0]
+		}
+
+		fullName := jsonTag
+		if prefix != "" {
+			fullName = prefix + "." + jsonTag
+		}
+
+		if validateTag == "required" {
+			switch field.Kind() {
+			case reflect.String:
+				if strings.TrimSpace(field.String()) == "" {
+					missing = append(missing, fullName)
 				}
-				missing = append(missing, jsonTag)
-			}
-		case reflect.Pointer:
-			if field.IsNil() {
-				jsonTag := fieldType.Tag.Get("json")
-				if jsonTag == "" {
-					jsonTag = fieldType.Name
-				} else {
-					jsonTag = strings.Split(jsonTag, ",")[0]
+			case reflect.Pointer:
+				if field.IsNil() {
+					missing = append(missing, fullName)
 				}
-				missing = append(missing, jsonTag)
 			}
+		}
+
+		if field.Kind() == reflect.Slice {
+			for j := 0; j < field.Len(); j++ {
+				item := field.Index(j)
+				childPrefix := fmt.Sprintf("%s[%d]", fullName, j)
+				missing = append(missing, getMissing(item, childPrefix)...)
+			}
+		}
+
+		if field.Kind() == reflect.Struct {
+			missing = append(missing, getMissing(field, fullName)...)
 		}
 	}
 

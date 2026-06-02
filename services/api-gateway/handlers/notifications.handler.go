@@ -3,18 +3,18 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"shopping-list/api-gateway/models"
 	"shopping-list/api-gateway/response"
+	"shopping-list/shared/contracts"
 
 	"github.com/labstack/echo/v4"
 )
 
 type NotificationsService interface {
-	Subscribe(ctx context.Context, request *models.NotificationCreateRequest) (*models.Notification, error)
-	GetAllNotifications(ctx context.Context) ([]models.Notification, error)
-	GetUserNotifications(ctx context.Context, user string) ([]models.Notification, error)
-	DeleteUserNotification(ctx context.Context, user string, notificationType string) error
-	PushUserNotificationByType(ctx context.Context, notifType string, user string, request models.PushNotificationRequest) error
+	Subscribe(ctx context.Context, request *contracts.CreateNotificationRequest) (*contracts.CreateNotificationResponse, error)
+	GetAllNotifications(ctx context.Context) (*contracts.GetAllNotificationsResponse, error)
+	GetUserNotifications(ctx context.Context, user string) (*contracts.GetUserNotificationsResponse, error)
+	DeleteUserNotification(ctx context.Context, user string, notificationType string) (*contracts.DeleteUserNotificationResponse, error)
+	PushUserNotificationByType(ctx context.Context, notifType string, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error)
 }
 
 func NewNotificationsHandler(ls NotificationsService) *NotificationsHandler {
@@ -26,7 +26,7 @@ type NotificationsHandler struct {
 }
 
 func (nh *NotificationsHandler) Subscribe(c echo.Context) error {
-	var request models.NotificationCreateRequest
+	var request contracts.CreateNotificationRequest
 	if err := c.Bind(&request); err != nil {
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
@@ -78,13 +78,12 @@ func (nh *NotificationsHandler) DeleteUserNotification(c echo.Context) error {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
 
-	err := nh.NotificationsService.DeleteUserNotification(c.Request().Context(), user, notificationType)
-
+	result, err := nh.NotificationsService.DeleteUserNotification(c.Request().Context(), user, notificationType)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Notification deleted successfully")
+	return response.Success(c, http.StatusOK, result)
 }
 
 func (nh *NotificationsHandler) PushUserNotificationByType(c echo.Context) error {
@@ -96,14 +95,15 @@ func (nh *NotificationsHandler) PushUserNotificationByType(c echo.Context) error
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
 
-	var request models.PushNotificationRequest
+	var request contracts.PushUserNotificationByTypeRequest
 	if err := c.Bind(&request); err != nil {
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
 
-	if err := nh.NotificationsService.PushUserNotificationByType(c.Request().Context(), notifType, user, request); err != nil {
+	result, err := nh.NotificationsService.PushUserNotificationByType(c.Request().Context(), notifType, user, &request)
+	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Push notification sent successfully")
+	return response.Success(c, http.StatusOK, result)
 }

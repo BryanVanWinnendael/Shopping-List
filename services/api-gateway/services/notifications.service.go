@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"shopping-list/api-gateway/models"
+	"shopping-list/shared/contracts"
 	httphelper "shopping-list/shared/http"
 )
 
@@ -20,10 +20,10 @@ func NewNotificationsService(client *httphelper.Client, baseURL string) *Notific
 	}
 }
 
-func (ns *NotificationsService) Subscribe(ctx context.Context, request *models.NotificationCreateRequest) (*models.Notification, error) {
+func (ns *NotificationsService) Subscribe(ctx context.Context, request *contracts.CreateNotificationRequest) (*contracts.CreateNotificationResponse, error) {
 	requestUrl := ns.baseURL
 
-	var response models.Notification
+	var response contracts.CreateNotificationResponse
 
 	_, err := ns.client.DoRequest(
 		ctx,
@@ -41,10 +41,10 @@ func (ns *NotificationsService) Subscribe(ctx context.Context, request *models.N
 	return &response, nil
 }
 
-func (ns *NotificationsService) GetAllNotifications(ctx context.Context) ([]models.Notification, error) {
+func (ns *NotificationsService) GetAllNotifications(ctx context.Context) (*contracts.GetAllNotificationsResponse, error) {
 	requestUrl := ns.baseURL
 
-	var response []models.Notification
+	var response contracts.GetAllNotificationsResponse
 
 	_, err := ns.client.DoRequest(
 		ctx,
@@ -59,13 +59,13 @@ func (ns *NotificationsService) GetAllNotifications(ctx context.Context) ([]mode
 		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (ns *NotificationsService) GetUserNotifications(ctx context.Context, user string) ([]models.Notification, error) {
+func (ns *NotificationsService) GetUserNotifications(ctx context.Context, user string) (*contracts.GetUserNotificationsResponse, error) {
 	requestUrl := fmt.Sprintf("%s/users/%s", ns.baseURL, user)
 
-	var response []models.Notification
+	var response contracts.GetUserNotificationsResponse
 
 	_, err := ns.client.DoRequest(
 		ctx,
@@ -80,11 +80,13 @@ func (ns *NotificationsService) GetUserNotifications(ctx context.Context, user s
 		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (ns *NotificationsService) DeleteUserNotification(ctx context.Context, user string, notificationType string) error {
+func (ns *NotificationsService) DeleteUserNotification(ctx context.Context, user string, notificationType string) (*contracts.DeleteUserNotificationResponse, error) {
 	requestUrl := fmt.Sprintf("%s/%s/%s", ns.baseURL, user, notificationType)
+
+	var response contracts.DeleteUserNotificationResponse
 
 	_, err := ns.client.DoRequest(
 		ctx,
@@ -92,14 +94,20 @@ func (ns *NotificationsService) DeleteUserNotification(ctx context.Context, user
 		requestUrl,
 		nil,
 		nil,
-		nil,
+		&response,
 	)
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
-func (ns *NotificationsService) PushUserNotificationByType(ctx context.Context, notifType string, user string, request models.PushNotificationRequest) error {
+func (ns *NotificationsService) PushUserNotificationByType(ctx context.Context, notifType string, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error) {
 	requestUrl := fmt.Sprintf("%s/push/%s/%s", ns.baseURL, notifType, user)
+
+	var response contracts.PushUserNotificationByTypeResponse
 
 	_, err := ns.client.DoRequest(
 		ctx,
@@ -107,8 +115,12 @@ func (ns *NotificationsService) PushUserNotificationByType(ctx context.Context, 
 		requestUrl,
 		nil,
 		request,
-		nil,
+		&response,
 	)
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

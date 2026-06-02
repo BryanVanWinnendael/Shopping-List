@@ -2,16 +2,16 @@ package handlers
 
 import (
 	"net/http"
-	"shopping-list/logs/models"
+	"shopping-list/shared/contracts"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
 type LogsService interface {
-	GetAppLogs() ([]string, error)
-	CreateAppLog(text string) error
-	DeleteAppLogs() error
+	GetAppLogs() (*contracts.GetAppLogsResponse, error)
+	CreateAppLog(request *contracts.CreateAppLogRequest) (*contracts.CreateAppLogResponse, error)
+	DeleteAppLogs() (*contracts.DeleteAppLogResponse, error)
 }
 
 func NewLogsHandler(ls LogsService) *LogsHandler {
@@ -23,24 +23,21 @@ type LogsHandler struct {
 }
 
 func (lh *LogsHandler) GetAppLogs(c echo.Context) error {
-	logs, err := lh.LogsService.GetAppLogs()
+	result, err := lh.LogsService.GetAppLogs()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"logs": logs,
-	})
+	return c.JSON(http.StatusOK, result)
 }
 
 func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
-	var request models.LogBody
-
+	var request contracts.CreateAppLogRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid JSON body",
+			"error": "invalid JSON body",
 		})
 	}
 
@@ -50,25 +47,23 @@ func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
 		})
 	}
 
-	if err := lh.LogsService.CreateAppLog(request.Text); err != nil {
+	result, err := lh.LogsService.CreateAppLog(&request)
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "Log written",
-	})
+	return c.JSON(http.StatusOK, result)
 }
 
 func (lh *LogsHandler) DeleteAppLogs(c echo.Context) error {
-	if err := lh.LogsService.DeleteAppLogs(); err != nil {
+	result, err := lh.LogsService.DeleteAppLogs()
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "Logs cleared",
-	})
+	return c.JSON(http.StatusOK, result)
 }

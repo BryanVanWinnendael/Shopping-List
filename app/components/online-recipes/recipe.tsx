@@ -1,8 +1,9 @@
-import {Image, StyleSheet, Text, View} from "react-native"
+import {StyleSheet, Text, View} from "react-native"
 import {OnlineRecipe} from "@/types/recipes"
 import useThemes from "@/hooks/themes/useThemes"
 import {Link} from "expo-router"
 import GlassOrBlurView from "@/components/glassOrBlurView"
+import {Image} from "expo-image"
 
 type Props = {
     recipe: OnlineRecipe
@@ -27,9 +28,10 @@ export default function Recipe({ recipe, variant }: Props) {
                 <View style={styles.recipeCard}>
                     <View style={styles.imageWrapper}>
                         <Image
-                            source={{ uri: recipe.image }}
-                            style={[styles.recipeImage, { height: variant === "grid" ? 140 : 180 }]}
-                            resizeMode="cover"
+                            source={recipe.image}
+                            style={[styles.recipeImage, { height: variant === "grid" ? 140 : 170 }]}
+                            contentFit={"cover"}
+                            transition={250}
                         />
 
                         <View style={styles.overlay}>
@@ -60,23 +62,25 @@ export default function Recipe({ recipe, variant }: Props) {
 const styles = StyleSheet.create({
     recipeCard: {
         width: "100%",
-        borderRadius: 20,
+        borderRadius: 28,
         overflow: "hidden",
-        elevation: 5,
+        elevation: 4,
+        backgroundColor: "transparent",
     },
     imageWrapper: {
         position: "relative",
     },
     recipeImage: {
         width: "100%",
-        height: 180,
+        height: 170,
     },
     overlay: {
         position: "absolute",
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 12,
+        padding: 14,
+        gap: 8,
     },
     recipeTitle: {
         fontSize: 16,
@@ -87,5 +91,7 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         paddingHorizontal: 10,
         paddingVertical: 6,
+        borderRadius: 999,
+        marginBottom: 6,
     },
 })

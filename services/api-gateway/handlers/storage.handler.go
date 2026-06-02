@@ -2,20 +2,19 @@ package handlers
 
 import (
 	"context"
-	"mime/multipart"
 	"net/http"
-	"shopping-list/api-gateway/models"
 	"shopping-list/api-gateway/response"
+	"shopping-list/shared/contracts"
 
 	"github.com/labstack/echo/v4"
 )
 
 type StorageService interface {
-	UploadRecipeImage(ctx context.Context, recipeID string, file *multipart.FileHeader) (models.UploadImageResponse, error)
-	DeleteRecipeImage(ctx context.Context, recipeID string, request models.DeleteImageRequest) error
-	DeleteRecipeStorage(ctx context.Context, recipeID string) error
-	UploadListImage(ctx context.Context, itemID string, file *multipart.FileHeader) (models.UploadImageResponse, error)
-	DeleteListImage(ctx context.Context, itemID string) error
+	UploadRecipeImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error)
+	DeleteRecipeImage(ctx context.Context, id string, request *contracts.DeleteImageRequest) (*contracts.DeleteImageResponse, error)
+	DeleteRecipeStorage(ctx context.Context, id string) (*contracts.DeleteStorageResponse, error)
+	UploadListImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error)
+	DeleteListImage(ctx context.Context, id string) (*contracts.DeleteImageResponse, error)
 }
 
 func NewStorageHandler(ls StorageService) *StorageHandler {
@@ -27,9 +26,9 @@ type StorageHandler struct {
 }
 
 func (sh *StorageHandler) UploadRecipeImage(c echo.Context) error {
-	recipesID := c.Param("recipesID")
+	id := c.Param("id")
 
-	missingPathParams := response.GetMissingPathParams(c, "recipesID")
+	missingPathParams := response.GetMissingPathParams(c, "id")
 	if len(missingPathParams) > 0 {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
@@ -38,8 +37,9 @@ func (sh *StorageHandler) UploadRecipeImage(c echo.Context) error {
 	if err != nil {
 		return response.Missing(c, response.SourceImage, "image")
 	}
+	request := contracts.UploadImageRequest{Image: fileHeader}
 
-	result, err := sh.StorageService.UploadRecipeImage(c.Request().Context(), recipesID, fileHeader)
+	result, err := sh.StorageService.UploadRecipeImage(c.Request().Context(), id, &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -48,14 +48,14 @@ func (sh *StorageHandler) UploadRecipeImage(c echo.Context) error {
 }
 
 func (sh *StorageHandler) DeleteRecipeImage(c echo.Context) error {
-	recipesID := c.Param("recipesID")
+	id := c.Param("id")
 
-	missingPathParams := response.GetMissingPathParams(c, "recipesID")
+	missingPathParams := response.GetMissingPathParams(c, "id")
 	if len(missingPathParams) > 0 {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
 
-	var request models.DeleteImageRequest
+	var request contracts.DeleteImageRequest
 	if err := c.Bind(&request); err != nil {
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
@@ -65,35 +65,34 @@ func (sh *StorageHandler) DeleteRecipeImage(c echo.Context) error {
 		return response.Missing(c, response.SourceBody, missingRequestFields...)
 	}
 
-	err := sh.StorageService.DeleteRecipeImage(c.Request().Context(), recipesID, request)
-
+	result, err := sh.StorageService.DeleteRecipeImage(c.Request().Context(), id, &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Image deleted successfully")
+	return response.Success(c, http.StatusOK, result)
 }
 
 func (sh *StorageHandler) DeleteRecipeStorage(c echo.Context) error {
-	recipesID := c.Param("recipesID")
+	id := c.Param("id")
 
-	missingPathParams := response.GetMissingPathParams(c, "recipesID")
+	missingPathParams := response.GetMissingPathParams(c, "id")
 	if len(missingPathParams) > 0 {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
 
-	err := sh.StorageService.DeleteRecipeStorage(c.Request().Context(), recipesID)
+	result, err := sh.StorageService.DeleteRecipeStorage(c.Request().Context(), id)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Recipe storage deleted successfully")
+	return response.Success(c, http.StatusOK, result)
 }
 
 func (sh *StorageHandler) UploadListImage(c echo.Context) error {
-	itemID := c.Param("itemID")
+	id := c.Param("id")
 
-	missingPathParams := response.GetMissingPathParams(c, "itemID")
+	missingPathParams := response.GetMissingPathParams(c, "id")
 	if len(missingPathParams) > 0 {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
@@ -102,8 +101,9 @@ func (sh *StorageHandler) UploadListImage(c echo.Context) error {
 	if err != nil {
 		return response.Missing(c, response.SourceImage, "image")
 	}
+	request := contracts.UploadImageRequest{Image: fileHeader}
 
-	result, err := sh.StorageService.UploadListImage(c.Request().Context(), itemID, fileHeader)
+	result, err := sh.StorageService.UploadListImage(c.Request().Context(), id, &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -112,17 +112,17 @@ func (sh *StorageHandler) UploadListImage(c echo.Context) error {
 }
 
 func (sh *StorageHandler) DeleteListImage(c echo.Context) error {
-	itemID := c.Param("itemID")
+	id := c.Param("id")
 
-	missingPathParams := response.GetMissingPathParams(c, "itemID")
+	missingPathParams := response.GetMissingPathParams(c, "id")
 	if len(missingPathParams) > 0 {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
 
-	err := sh.StorageService.DeleteListImage(c.Request().Context(), itemID)
+	result, err := sh.StorageService.DeleteListImage(c.Request().Context(), id)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Image deleted successfully")
+	return response.Success(c, http.StatusOK, result)
 }

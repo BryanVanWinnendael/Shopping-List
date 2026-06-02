@@ -1,13 +1,13 @@
-import { Image, StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import { Link } from "expo-router"
 import { MEALS } from "@/lib/constants"
 import * as Haptics from "expo-haptics"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import { Recipe } from "@/types/recipes"
-import ImageLoader from "@/components/imageLoader"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { Image } from "expo-image"
 
 type Props = {
     recipe: Recipe
@@ -30,11 +30,13 @@ export default function RecipeCard({ recipe, deleteRecipe, toggleFavorite }: Pro
                 <View style={styles.recipeCard}>
                     <View style={styles.imageWrapper}>
                         {recipe.banner ? (
-                            <ImageLoader
-                                large={recipe.banner}
-                                small={recipe.banner.replace("large-", "small-")}
+                            <Image
+                                source={recipe.banner}
                                 style={styles.recipeImage}
-                                resizeMode="cover"
+                                placeholder={recipe.banner.replace("large-", "small-")}
+                                placeholderContentFit={"cover"}
+                                contentFit={"cover"}
+                                transition={250}
                             />
                         ) : (
                             <View
@@ -149,7 +151,14 @@ export default function RecipeCard({ recipe, deleteRecipe, toggleFavorite }: Pro
             <Link.Preview style={{ width: 300, height: 220 }}>
                 <View style={styles.recipeCard}>
                     {recipe.banner ? (
-                        <Image source={{ uri: recipe.banner }} style={styles.recipeImage} resizeMode="cover" />
+                        <Image
+                            source={recipe.banner}
+                            style={styles.recipeImage}
+                            placeholder={recipe.banner.replace("large-", "small-")}
+                            placeholderContentFit={"contain"}
+                            contentFit={"contain"}
+                            transition={250}
+                        />
                     ) : (
                         <View style={[styles.recipeImage, { backgroundColor: vars.secondaryBackgroundColor }]} />
                     )}

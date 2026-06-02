@@ -1,17 +1,21 @@
-import { View } from "react-native"
-import { useHeaderHeight } from "@react-navigation/elements"
-import { useWeeklyCategories } from "@/hooks/weekly/useWeeklyCategories"
+import {View} from "react-native"
+import {useHeaderHeight} from "@react-navigation/elements"
+import {useWeeklyCategories} from "@/hooks/weekly/useWeeklyCategories"
 import BottomSheet from "@/components/weekly/categories/bottomSheet"
 import List from "@/components/weekly/categories/list"
-import { Category } from "@/types/category-model"
-import { useWeeklyProducts } from "@/hooks/weekly/useWeeklyProducts"
+import {Category} from "@/types/category-model"
+import {useWeeklyProducts} from "@/hooks/weekly/useWeeklyProducts"
 import useThemes from "@/hooks/themes/useThemes"
 import Toast from "react-native-toast-message"
 
 export default function WeeklyCategories() {
     const { vars } = useThemes()
-    const { actions: weeklyCategoriesActions, refs: weeklyCategoriesRefs } = useWeeklyCategories()
-    const { actions: weeklyProductsActions, states: weeklyProductsStates } = useWeeklyProducts()
+    const {
+        actions: weeklyCategoriesActions,
+        refs: weeklyCategoriesRefs,
+        states: weeklyCategoriesStates,
+    } = useWeeklyCategories()
+    const { actions: weeklyProductsActions } = useWeeklyProducts()
     const headerHeight = useHeaderHeight()
 
     const updateCategory = async (category: Category) => {
@@ -31,10 +35,10 @@ export default function WeeklyCategories() {
         <View style={{ flex: 1, backgroundColor: vars.backgroundColor, padding: 16 }}>
             <List
                 open={weeklyCategoriesActions.open}
-                cronProducts={weeklyProductsStates.cronProducts}
-                refreshing={weeklyProductsStates.loading}
+                cronProducts={weeklyCategoriesStates.cronProducts}
+                refreshing={weeklyCategoriesStates.loading}
                 headerHeight={headerHeight}
-                refresh={weeklyProductsActions.getCronProducts}
+                refresh={weeklyCategoriesActions.getCronProducts}
             />
             <BottomSheet
                 close={weeklyCategoriesActions.close}

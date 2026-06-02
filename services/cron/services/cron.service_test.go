@@ -3,7 +3,8 @@ package services
 import (
 	"errors"
 	"shopping-list/cron/internal/config"
-	"shopping-list/cron/models"
+	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
 
@@ -11,64 +12,65 @@ import (
 )
 
 type MockNotificationService struct {
-	SendNotificationFunc func(user string, t string) error
+	SendNotificationFunc func(user string, t string, text *string) error
 }
 
 type MockFirebase struct {
 	SetFunc func(path string, data interface{}) error
+	GetFunc func(path string, data interface{}) error
 }
 
-func TestCreateCronItem(t *testing.T) {
-	t.Run("Given valid cron item, When CreateCronItem, Then return id", func(t *testing.T) {
+func TestCreateCronProduct(t *testing.T) {
+	t.Run("Given valid cron product, When CreateCronProduct, Then return id", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := &CronService{db: db}
 
-		item := models.CronItem{
-			Item:     "test",
+		product := contracts.CreateCronProductRequest{
+			Product:  "test",
 			Category: "work",
-			AddedBy:  "user1",
+			User:     "user1",
 		}
 
 		// when
-		id, err := service.CreateCronItem(item)
+		cronProduct, err := service.CreateCronProduct(&product)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if id == "" {
+		if cronProduct.Id == "" {
 			t.Fatalf("expected id to be generated")
 		}
 	})
 }
 
-func TestGetAllCronItems(t *testing.T) {
-	t.Run("Given items in db, When GetAllCronItems, Then return items", func(t *testing.T) {
+func TestGetAllCronProducts(t *testing.T) {
+	t.Run("Given products in db, When GetAllCronProducts, Then return products", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := &CronService{db: db}
 
-		item := models.CronItem{ID: "1", Item: "a"}
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
+		product := models.CronProduct{Id: "1", Product: "a"}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product)
 
 		// when
-		items, err := service.GetAllCronItems()
+		cronProducts, err := service.GetAllCronProducts()
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if len(items) != 1 {
-			t.Fatalf("expected 1 item, got %d", len(items))
+		if len(*cronProducts) != 1 {
+			t.Fatalf("expected 1 product, got %d", len(*cronProducts))
 		}
 	})
 
-	t.Run("Given invalid JSON in DB, When GetAllCronItems, Then return error", func(t *testing.T) {
+	t.Run("Given invalid JSON in DB, When GetAllCronProducts, Then return error", func(t *testing.T) {
 		// given
 		db := setup(t)
 
@@ -79,7 +81,7 @@ func TestGetAllCronItems(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), invalidJSON)
 
 		// when
-		_, err := service.GetAllCronItems()
+		_, err := service.GetAllCronProducts()
 
 		// then
 		if err == nil {
@@ -88,33 +90,45 @@ func TestGetAllCronItems(t *testing.T) {
 	})
 }
 
-func TestUpdateCronItemCategory(t *testing.T) {
-	t.Run("Given existing item, When UpdateCronItemCategory, Then update success", func(t *testing.T) {
+func TestUpdateCronProductCategory(t *testing.T) {
+	t.Run("Given existing product, When UpdateCronProductCategory, Then update success", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := &CronService{db: db}
 
-		item := models.CronItem{ID: "1", Category: "old"}
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
+		product := models.CronProduct{Id: "1", Category: "old"}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product)
+
+		request := &contracts.UpdateCronProductCategoryRequest{
+			Category: "mock-category",
+		}
 
 		// when
-		err := service.UpdateCronItemCategory("1", "new")
+		res, err := service.UpdateCronProductCategory("1", request)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
+
+		if res.Category != "mock-category" {
+			t.Fatalf("expected category to be mock-category, got %s", res.Category)
+		}
 	})
 
-	t.Run("Given missing item, When UpdateCronItemCategory, Then return error", func(t *testing.T) {
+	t.Run("Given missing product, When UpdateCronProductCategory, Then return error", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := &CronService{db: db}
 
+		request := &contracts.UpdateCronProductCategoryRequest{
+			Category: "mock-category",
+		}
+
 		// when
-		err := service.UpdateCronItemCategory("missing", "new")
+		_, err := service.UpdateCronProductCategory("missing", request)
 
 		// then
 		if err == nil {
@@ -123,33 +137,41 @@ func TestUpdateCronItemCategory(t *testing.T) {
 	})
 }
 
-func TestDeleteCronItem(t *testing.T) {
-	t.Run("Given existing item, When DeleteCronItem, Then success", func(t *testing.T) {
+func TestDeleteCronProduct(t *testing.T) {
+	t.Run("Given existing product, When DeleteCronProduct, Then success", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := &CronService{db: db}
 
-		item := models.CronItem{ID: "1"}
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
+		product := models.CronProduct{Id: "1"}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product)
 
 		// when
-		err := service.DeleteCronItem("1")
+		res, err := service.DeleteCronProduct("1")
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
+
+		if res.Id != "1" {
+			t.Fatalf("expected id to be 1, got %s", res.Id)
+		}
+
+		if res.Message != "cron product deleted" {
+			t.Fatalf("expected message to be \"cron product deleted\", got %s", res.Message)
+		}
 	})
 
-	t.Run("Given missing item, When DeleteCronItem, Then return error", func(t *testing.T) {
+	t.Run("Given missing product, When DeleteCronProduct, Then return error", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := &CronService{db: db}
 
 		// when
-		err := service.DeleteCronItem("missing")
+		_, err := service.DeleteCronProduct("missing")
 
 		// then
 		if err == nil {
@@ -158,39 +180,39 @@ func TestDeleteCronItem(t *testing.T) {
 	})
 }
 
-func TestGetCronItemsByUser(t *testing.T) {
-	t.Run("Given multiple items, When GetCronItemsByUser, Then return only user items", func(t *testing.T) {
+func TestGetCronProductsByUser(t *testing.T) {
+	t.Run("Given multiple products, When GetCronProductsByUser, Then return only user products", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := &CronService{db: db}
 
-		item1 := models.CronItem{ID: "1", AddedBy: "user1"}
-		item2 := models.CronItem{ID: "2", AddedBy: "user2"}
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item1)
-		tests.Put(t, db, config.Vars.Bucket, []byte("2"), item2)
+		product1 := models.CronProduct{Id: "1", User: "user1"}
+		product2 := models.CronProduct{Id: "2", User: "user2"}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product1)
+		tests.Put(t, db, config.Vars.Bucket, []byte("2"), product2)
 
 		// when
-		items, err := service.GetCronItemsByUser("user1")
+		products, err := service.GetCronProductsByUser("user1")
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if len(items) != 1 {
-			t.Fatalf("expected 1 item, got %d", len(items))
+		if len(*products) != 1 {
+			t.Fatalf("expected 1 product, got %d", len(*products))
 		}
 	})
 }
 
 func TestRunCronJob(t *testing.T) {
-	t.Run("Given cron items, When RunCronJob, Then process and notify users", func(t *testing.T) {
+	t.Run("Given cron products, When RunCronJob, Then process and notify users", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		mockNotif := &MockNotificationService{
-			SendNotificationFunc: func(user string, t string) error {
+			SendNotificationFunc: func(string, string, *string) error {
 				return nil
 			},
 		}
@@ -201,13 +223,13 @@ func TestRunCronJob(t *testing.T) {
 			firebase: &MockFirebase{},
 		}
 
-		item := models.CronItem{
-			ID:       "1",
-			Item:     "test",
+		product := models.CronProduct{
+			Id:       "1",
+			Product:  "test",
 			Category: "work",
-			AddedBy:  "user1",
+			User:     "user1",
 		}
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product)
 
 		// when
 		err := service.RunCronJob()
@@ -223,7 +245,7 @@ func TestRunCronJob(t *testing.T) {
 		db := setup(t)
 
 		mockNotif := &MockNotificationService{
-			SendNotificationFunc: func(user, t string) error {
+			SendNotificationFunc: func(string, string, *string) error {
 				return errors.New("fail")
 			},
 		}
@@ -234,13 +256,13 @@ func TestRunCronJob(t *testing.T) {
 			firebase: &MockFirebase{},
 		}
 
-		item := models.CronItem{
-			ID:       "1",
-			Item:     "test",
+		product := models.CronProduct{
+			Id:       "1",
+			Product:  "test",
 			Category: "work",
-			AddedBy:  "user1",
+			User:     "user1",
 		}
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), item)
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product)
 
 		// when
 		err := service.RunCronJob()
@@ -248,6 +270,101 @@ func TestRunCronJob(t *testing.T) {
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
+		}
+	})
+}
+
+func TestRunReminderCronJob(t *testing.T) {
+	t.Run("Given cron products, When RunReminderCronJob, Then notify users", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		mockNotif := &MockNotificationService{
+			SendNotificationFunc: func(string, string, *string) error {
+				return nil
+			},
+		}
+
+		service := &CronService{
+			db:       db,
+			ns:       mockNotif,
+			firebase: &MockFirebase{},
+		}
+
+		product := models.CronProduct{
+			Id:       "1",
+			Product:  "test",
+			Category: "work",
+			User:     "user1",
+		}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product)
+
+		// when
+		err := service.RunReminderCronJob()
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	})
+
+	t.Run("Given notification fails, When RunReminderCronJob, Then still completes", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		mockNotif := &MockNotificationService{
+			SendNotificationFunc: func(string, string, *string) error {
+				return errors.New("fail")
+			},
+		}
+
+		service := &CronService{
+			db:       db,
+			ns:       mockNotif,
+			firebase: &MockFirebase{},
+		}
+
+		product := models.CronProduct{
+			Id:       "1",
+			Product:  "test",
+			Category: "work",
+			User:     "user1",
+		}
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product)
+
+		// when
+		err := service.RunReminderCronJob()
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	})
+
+	t.Run("Given firebase get fails, When RunReminderCronJob, Then return error", func(t *testing.T) {
+		db := setup(t)
+
+		mockNotif := &MockNotificationService{
+			SendNotificationFunc: func(string, string, *string) error {
+				t.Fatal("should not send notification")
+				return nil
+			},
+		}
+
+		service := &CronService{
+			db: db,
+			ns: mockNotif,
+			firebase: &MockFirebase{
+				GetFunc: func(path string, data interface{}) error {
+					return errors.New("firebase down")
+				},
+			},
+		}
+
+		err := service.RunReminderCronJob()
+
+		if err == nil {
+			t.Fatalf("expected error, got nil")
 		}
 	})
 }
@@ -306,9 +423,9 @@ func TestNewCronService(t *testing.T) {
 	})
 }
 
-func (m *MockNotificationService) SendNotification(user string, notificationType string) error {
+func (m *MockNotificationService) SendNotification(user string, notificationType string, text *string) error {
 	if m.SendNotificationFunc != nil {
-		return m.SendNotificationFunc(user, notificationType)
+		return m.SendNotificationFunc(user, notificationType, text)
 	}
 	return nil
 }
@@ -326,6 +443,13 @@ func setup(t *testing.T) *bbolt.DB {
 func (m *MockFirebase) Set(path string, data interface{}) error {
 	if m.SetFunc != nil {
 		return m.SetFunc(path, data)
+	}
+	return nil
+}
+
+func (m *MockFirebase) Get(path string, data interface{}) error {
+	if m.GetFunc != nil {
+		return m.GetFunc(path, data)
 	}
 	return nil
 }

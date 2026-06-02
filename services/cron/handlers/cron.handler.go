@@ -2,17 +2,17 @@ package handlers
 
 import (
 	"net/http"
-	"shopping-list/cron/models"
+	"shopping-list/shared/contracts"
 
 	"github.com/labstack/echo/v4"
 )
 
 type CronService interface {
-	CreateCronItem(item models.CronItem) (string, error)
-	GetAllCronItems() ([]models.CronItem, error)
-	UpdateCronItemCategory(id string, newCategory string) error
-	DeleteCronItem(id string) error
-	GetCronItemsByUser(addedBy string) ([]models.CronItem, error)
+	CreateCronProduct(request *contracts.CreateCronProductRequest) (*contracts.CreateCronProductResponse, error)
+	GetAllCronProducts() (*contracts.GetAllCronProductsResponse, error)
+	UpdateCronProductCategory(id string, request *contracts.UpdateCronProductCategoryRequest) (*contracts.UpdateCronProductCategoryResponse, error)
+	DeleteCronProduct(id string) (*contracts.DeleteCronProductResponse, error)
+	GetCronProductsByUser(user string) (*contracts.GetCronProductsByUserResponse, error)
 }
 
 type CronHandler struct {
@@ -23,8 +23,8 @@ func NewCronHandler(cs CronService) *CronHandler {
 	return &CronHandler{CronService: cs}
 }
 
-func (ch *CronHandler) CreateCronItem(c echo.Context) error {
-	var request models.CronItem
+func (ch *CronHandler) CreateCronProduct(c echo.Context) error {
+	var request contracts.CreateCronProductRequest
 
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
@@ -32,36 +32,31 @@ func (ch *CronHandler) CreateCronItem(c echo.Context) error {
 		})
 	}
 
-	id, err := ch.CronService.CreateCronItem(request)
+	result, err := ch.CronService.CreateCronProduct(&request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"id":       id,
-		"category": request.Category,
-		"addedBy":  request.AddedBy,
-		"item":     request.Item,
-	})
+	return c.JSON(http.StatusOK, result)
 }
 
-func (ch *CronHandler) GetAllCronItems(c echo.Context) error {
-	items, err := ch.CronService.GetAllCronItems()
+func (ch *CronHandler) GetAllCronProducts(c echo.Context) error {
+	Products, err := ch.CronService.GetAllCronProducts()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, items)
+	return c.JSON(http.StatusOK, Products)
 }
 
-func (ch *CronHandler) UpdateCronItemCategory(c echo.Context) error {
+func (ch *CronHandler) UpdateCronProductCategory(c echo.Context) error {
 	idParam := c.Param("id")
 
-	var request models.UpdateCronItemRequest
+	var request contracts.UpdateCronProductCategoryRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
@@ -74,42 +69,37 @@ func (ch *CronHandler) UpdateCronItemCategory(c echo.Context) error {
 		})
 	}
 
-	if err := ch.CronService.UpdateCronItemCategory(idParam, request.Category); err != nil {
+	result, err := ch.CronService.UpdateCronProductCategory(idParam, &request)
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"id":       idParam,
-		"category": request.Category,
-	})
+	return c.JSON(http.StatusOK, result)
 }
 
-func (ch *CronHandler) DeleteCronItem(c echo.Context) error {
+func (ch *CronHandler) DeleteCronProduct(c echo.Context) error {
 	idParam := c.Param("id")
 
-	if err := ch.CronService.DeleteCronItem(idParam); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "CronItem deleted successfully",
-		"id":      idParam,
-	})
-}
-
-func (ch *CronHandler) GetCronItemsByUser(c echo.Context) error {
-	addedBy := c.Param("name")
-
-	items, err := ch.CronService.GetCronItemsByUser(addedBy)
+	result, err := ch.CronService.DeleteCronProduct(idParam)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, items)
+	return c.JSON(http.StatusOK, result)
+}
+
+func (ch *CronHandler) GetCronProductsByUser(c echo.Context) error {
+	user := c.Param("user")
+
+	result, err := ch.CronService.GetCronProductsByUser(user)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, result)
 }

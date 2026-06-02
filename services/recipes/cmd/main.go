@@ -1,11 +1,13 @@
 package main
 
 import (
-	"shopping-list/recipes/db"
 	"shopping-list/recipes/handlers"
 	"shopping-list/recipes/internal/config"
 	"shopping-list/recipes/services"
+	"shopping-list/shared/db"
+	httphelper "shopping-list/shared/http"
 	"shopping-list/shared/middlewares"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -13,15 +15,19 @@ import (
 func main() {
 	config.LoadEnv()
 
-	bbolt := db.InitBbolt()
+	bbolt := db.InitBbolt(config.Vars.DataDir, config.Vars.DB, config.Vars.Bucket)
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
 
+	httpClient := httphelper.NewClient(60*time.Second, "")
+
 	rs := services.NewRecipeService(bbolt)
 	rh := handlers.NewRecipeHandler(rs)
+	ors := services.NewOnlineRecipeService(httpClient, config.Vars.OnlineRecipesAPIUrl)
+	orh := handlers.NewOnlineRecipeHandler(ors)
 
-	handlers.SetupRoutes(e, rh)
+	handlers.SetupRoutes(e, rh, orh)
 
-	e.Logger.Fatal(e.Start(":3000"))
+	e.Logger.Fatal(e.Start(":" + config.Vars.Port))
 }

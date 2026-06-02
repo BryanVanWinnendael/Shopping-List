@@ -26,11 +26,11 @@ func TestTrainModel(t *testing.T) {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if result["model"] != "NaiveBayes" {
-			t.Fatalf("expected model 'NaiveBayes', got %v", result["model"])
+		if result.Model != "NaiveBayes" {
+			t.Fatalf("expected model 'NaiveBayes', got %v", result.Model)
 		}
 
-		if _, ok := result["accuracy"]; !ok {
+		if result.Accuracy != 1 {
 			t.Fatalf("expected accuracy in result")
 		}
 

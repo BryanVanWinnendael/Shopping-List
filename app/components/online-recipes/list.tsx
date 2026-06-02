@@ -29,9 +29,9 @@ export function List({ results, onEndReached, loading, variant = "list" }: Props
             numColumns={isGrid ? 2 : 1}
             columnWrapperStyle={isGrid ? { gap: 12, paddingHorizontal: 12 } : undefined}
             contentContainerStyle={{
-                paddingBottom: 50,
+                paddingTop: headerHeight,
+                paddingBottom: headerHeight + 60,
             }}
-            ListHeaderComponent={<View style={{ height: headerHeight }} />}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
             showsVerticalScrollIndicator={false}

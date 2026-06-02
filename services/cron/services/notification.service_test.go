@@ -14,7 +14,7 @@ func TestSendNotification(t *testing.T) {
 		service := NewNotificationService(client, "http://test")
 
 		// when
-		err := service.SendNotification("user1", "timed")
+		err := service.SendNotification("user1", "timed", nil)
 
 		// then
 		if err != nil {
@@ -29,7 +29,7 @@ func TestSendNotification(t *testing.T) {
 		service := NewNotificationService(client, "http://test")
 
 		// when
-		err := service.SendNotification("user1", "timed")
+		err := service.SendNotification("user1", "timed", nil)
 
 		// then
 		if err == nil {
@@ -44,7 +44,7 @@ func TestSendNotification(t *testing.T) {
 		service := NewNotificationService(client, "http://test")
 
 		// when
-		err := service.SendNotification("user1", "timed")
+		err := service.SendNotification("user1", "timed", nil)
 
 		// then
 		if err == nil {
@@ -57,7 +57,7 @@ func TestSendNotification(t *testing.T) {
 		service := NewNotificationService(nil, "://bad-url")
 
 		// when
-		err := service.SendNotification("user1", "timed")
+		err := service.SendNotification("user1", "timed", nil)
 
 		// then
 		if err == nil {

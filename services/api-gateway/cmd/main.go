@@ -46,5 +46,5 @@ func main() {
 
 	handlers.SetupRoutes(e, cmh, lh, nh, psh, sh, rh, ch)
 
-	e.Logger.Fatal(e.Start(":3000"))
+	e.Logger.Fatal(e.Start(":" + config.Vars.Port))
 }

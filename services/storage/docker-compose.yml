@@ -11,6 +11,7 @@ services:
     environment:
       ENV: production
       STORAGE_DIR: ./storage
+      PORT: 3000
     env_file:
       - .env
     restart: unless-stopped

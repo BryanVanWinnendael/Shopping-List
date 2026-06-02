@@ -9,12 +9,14 @@ import (
 
 type Env struct {
 	CronTime              string
+	CronTimeReminder      string
 	FireBaseUrl           string
 	NotificationsAPIUrl   string
 	DataDir               string
 	GoogleApplicationCred string
 	Bucket                string
 	DB                    string
+	Port                  string
 }
 
 var Vars Env
@@ -28,12 +30,14 @@ func LoadEnv() {
 
 	Vars = Env{
 		CronTime:              getEnv("CRON_TIME", ""),
+		CronTimeReminder:      getEnv("CRON_TIME_REMINDER", ""),
 		FireBaseUrl:           getEnv("FIREBASE_URL", ""),
 		NotificationsAPIUrl:   getEnv("NOTIFICATIONS_API_URL", ""),
 		DataDir:               getEnv("DATA_DIR", "./data"),
 		GoogleApplicationCred: getEnv("GOOGLE_APPLICATION_CREDENTIALS", ""),
 		Bucket:                getEnv("BUCKET", "cron"),
 		DB:                    getEnv("DB", "cron.db"),
+		Port:                  getEnv("PORT", "3000"),
 	}
 }
 

@@ -4,18 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"shopping-list/category-model/models"
+	"shopping-list/shared/contracts"
 	"shopping-list/shared/tests"
 	"testing"
 )
 
 type MockCategoryService struct {
-	GetCategoryFunc    func(item string) (string, error)
-	CreateCategoryFunc func(item, category string) error
+	GetCategoryFunc    func(product string) (*contracts.GetCategoryResponse, error)
+	CreateCategoryFunc func(request *contracts.CreateCategoryRequest) (*contracts.CreateCategoryResponse, error)
 }
 
 func TestGetCategory(t *testing.T) {
-	t.Run("Given missing item, When GetCategory, Then returns 400", func(t *testing.T) {
+	t.Run("Given missing product, When GetCategory, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/category", nil)
 
@@ -34,15 +34,11 @@ func TestGetCategory(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid item, When GetCategory, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid product, When GetCategory, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/category?item=apple", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/category?product=apple", nil)
 
-		handler := newHandler(&MockCategoryService{
-			GetCategoryFunc: func(item string) (string, error) {
-				return "fruit", nil
-			},
-		})
+		handler := newHandler(&MockCategoryService{})
 
 		// when
 		err := handler.GetCategory(c)
@@ -59,11 +55,11 @@ func TestGetCategory(t *testing.T) {
 
 	t.Run("Given service error, When GetCategory, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/category?item=apple", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/category?product=apple", nil)
 
 		handler := newHandler(&MockCategoryService{
-			GetCategoryFunc: func(item string) (string, error) {
-				return "", errors.New("service error")
+			GetCategoryFunc: func(string) (*contracts.GetCategoryResponse, error) {
+				return nil, errors.New("service error")
 			},
 		})
 
@@ -103,8 +99,8 @@ func TestCreateCategory(t *testing.T) {
 
 	t.Run("Given missing fields, When CreateCategory, Then returns 400", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(models.CreateCategoryRequest{
-			Item:     "",
+		body, _ := json.Marshal(contracts.CreateCategoryRequest{
+			Product:  "",
 			Category: "",
 		})
 
@@ -127,18 +123,14 @@ func TestCreateCategory(t *testing.T) {
 
 	t.Run("Given valid request, When CreateCategory, Then returns 200", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(models.CreateCategoryRequest{
-			Item:     " apple ",
+		body, _ := json.Marshal(contracts.CreateCategoryRequest{
+			Product:  " apple ",
 			Category: " fruit ",
 		})
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/category", body)
 
-		handler := newHandler(&MockCategoryService{
-			CreateCategoryFunc: func(item, category string) error {
-				return nil
-			},
-		})
+		handler := newHandler(&MockCategoryService{})
 
 		// when
 		err := handler.CreateCategory(c)
@@ -155,16 +147,16 @@ func TestCreateCategory(t *testing.T) {
 
 	t.Run("Given service error, When CreateCategory, Then returns 500", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(models.CreateCategoryRequest{
-			Item:     "apple",
+		body, _ := json.Marshal(contracts.CreateCategoryRequest{
+			Product:  "apple",
 			Category: "fruit",
 		})
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/category", body)
 
 		handler := newHandler(&MockCategoryService{
-			CreateCategoryFunc: func(item, category string) error {
-				return errors.New("service error")
+			CreateCategoryFunc: func(*contracts.CreateCategoryRequest) (*contracts.CreateCategoryResponse, error) {
+				return nil, errors.New("service error")
 			},
 		})
 
@@ -182,18 +174,24 @@ func TestCreateCategory(t *testing.T) {
 	})
 }
 
-func (m *MockCategoryService) GetCategory(item string) (string, error) {
+func (m *MockCategoryService) GetCategory(product string) (*contracts.GetCategoryResponse, error) {
 	if m.GetCategoryFunc != nil {
-		return m.GetCategoryFunc(item)
+		return m.GetCategoryFunc(product)
 	}
-	return "mock-category", nil
+	return &contracts.GetCategoryResponse{
+		Product:  "mock-product",
+		Category: "mock-category",
+	}, nil
 }
 
-func (m *MockCategoryService) CreateCategory(item, category string) error {
+func (m *MockCategoryService) CreateCategory(request *contracts.CreateCategoryRequest) (*contracts.CreateCategoryResponse, error) {
 	if m.CreateCategoryFunc != nil {
-		return m.CreateCategoryFunc(item, category)
+		return m.CreateCategoryFunc(request)
 	}
-	return nil
+	return &contracts.CreateCategoryResponse{
+		Product:  "mock-product",
+		Category: "mock-category",
+	}, nil
 }
 
 func newHandler(mock *MockCategoryService) *CategoryHandler {

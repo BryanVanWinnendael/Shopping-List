@@ -3,9 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
-	"mime/multipart"
 	"net/http"
-	"shopping-list/api-gateway/models"
+	"shopping-list/shared/contracts"
 	httphelper "shopping-list/shared/http"
 )
 
@@ -21,30 +20,32 @@ func NewStorageService(client *httphelper.Client, baseURL string) *StorageServic
 	}
 }
 
-func (ss *StorageService) UploadRecipeImage(ctx context.Context, recipeID string, file *multipart.FileHeader) (models.UploadImageResponse, error) {
-	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, recipeID)
+func (ss *StorageService) UploadRecipeImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error) {
+	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, id)
 
-	var response models.UploadImageResponse
+	var response contracts.UploadImageResponse
 
 	_, err := ss.client.DoMultipartRequest(
 		ctx,
 		http.MethodPost,
 		requestUrl,
 		"image",
-		file,
+		request.Image,
 		nil,
 		&response,
 	)
 
 	if err != nil {
-		return models.UploadImageResponse{}, err
+		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (ss *StorageService) DeleteRecipeImage(ctx context.Context, recipeID string, request models.DeleteImageRequest) error {
-	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, recipeID)
+func (ss *StorageService) DeleteRecipeImage(ctx context.Context, id string, request *contracts.DeleteImageRequest) (*contracts.DeleteImageResponse, error) {
+	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, id)
+
+	var response contracts.DeleteImageResponse
 
 	_, err := ss.client.DoRequest(
 		ctx,
@@ -52,14 +53,20 @@ func (ss *StorageService) DeleteRecipeImage(ctx context.Context, recipeID string
 		requestUrl,
 		nil,
 		request,
-		nil,
+		&response,
 	)
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
-func (ss *StorageService) DeleteRecipeStorage(ctx context.Context, recipeID string) error {
-	requestUrl := fmt.Sprintf("%s/recipes/%s", ss.baseURL, recipeID)
+func (ss *StorageService) DeleteRecipeStorage(ctx context.Context, id string) (*contracts.DeleteStorageResponse, error) {
+	requestUrl := fmt.Sprintf("%s/recipes/%s", ss.baseURL, id)
+
+	var response contracts.DeleteStorageResponse
 
 	_, err := ss.client.DoRequest(
 		ctx,
@@ -67,36 +74,42 @@ func (ss *StorageService) DeleteRecipeStorage(ctx context.Context, recipeID stri
 		requestUrl,
 		nil,
 		nil,
-		nil,
+		&response,
 	)
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
-func (ss *StorageService) UploadListImage(ctx context.Context, itemID string, file *multipart.FileHeader) (models.UploadImageResponse, error) {
-	requestUrl := fmt.Sprintf("%s/list/images/%s", ss.baseURL, itemID)
+func (ss *StorageService) UploadListImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error) {
+	requestUrl := fmt.Sprintf("%s/list/images/%s", ss.baseURL, id)
 
-	var response models.UploadImageResponse
+	var response contracts.UploadImageResponse
 
 	_, err := ss.client.DoMultipartRequest(
 		ctx,
 		http.MethodPost,
 		requestUrl,
 		"image",
-		file,
+		request.Image,
 		nil,
 		&response,
 	)
 
 	if err != nil {
-		return models.UploadImageResponse{}, err
+		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (ss *StorageService) DeleteListImage(ctx context.Context, itemID string) error {
-	requestUrl := fmt.Sprintf("%s/list/images/%s", ss.baseURL, itemID)
+func (ss *StorageService) DeleteListImage(ctx context.Context, id string) (*contracts.DeleteImageResponse, error) {
+	requestUrl := fmt.Sprintf("%s/list/images/%s", ss.baseURL, id)
+
+	var response contracts.DeleteImageResponse
 
 	_, err := ss.client.DoRequest(
 		ctx,
@@ -104,8 +117,12 @@ func (ss *StorageService) DeleteListImage(ctx context.Context, itemID string) er
 		requestUrl,
 		nil,
 		nil,
-		nil,
+		&response,
 	)
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

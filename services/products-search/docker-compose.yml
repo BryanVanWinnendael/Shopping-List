@@ -12,6 +12,7 @@ services:
       ENV: production
       DATA_DIR: /app/data
       PRODUCTS_FILE: products.csv
+      PORT: 3000
     env_file:
       - .env
     restart: unless-stopped

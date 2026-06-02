@@ -1,21 +1,19 @@
-import ImageLoader from "@/components/imageLoader"
 import { PressableScale } from "pressto"
 import { Modal, StyleProp, StyleSheet, View } from "react-native"
 import { useState } from "react"
 import { scheduleOnRN } from "react-native-worklets"
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
-import { ImageStyle } from "expo-image"
+import { Image, ImageStyle } from "expo-image"
 
 type Props = {
     url: string
     height?: number
     width?: number
-    cache?: boolean
     style?: StyleProp<ImageStyle>
 }
 
-export default function CustomImage({ url, height, width, cache = true, style }: Props) {
+export default function CustomImage({ url, height, width, style }: Props) {
     const [showImage, setShowImage] = useState(false)
 
     const backdropOpacity = useSharedValue(0)
@@ -108,11 +106,13 @@ export default function CustomImage({ url, height, width, cache = true, style }:
     return (
         <>
             <PressableScale onPress={openModal} style={style}>
-                <ImageLoader
-                    large={url}
-                    small={url.replace("large-", "small-")}
+                <Image
+                    source={url}
                     style={[{ height, width }, style]}
-                    resizeMode="cover"
+                    placeholder={url.replace("large-", "small-")}
+                    placeholderContentFit={"cover"}
+                    contentFit={"cover"}
+                    transition={250}
                 />
             </PressableScale>
 
@@ -127,11 +127,13 @@ export default function CustomImage({ url, height, width, cache = true, style }:
                     <Animated.View style={[styles.backdrop, backdropStyle]}>
                         <View style={styles.centerContainer}>
                             <Animated.View style={[styles.imageWrapper, imageStyle]}>
-                                <ImageLoader
-                                    large={url}
-                                    small={url.replace("large-", "small-")}
+                                <Image
+                                    source={url}
                                     style={styles.modalImage}
-                                    resizeMode="contain"
+                                    placeholder={url.replace("large-", "small-")}
+                                    placeholderContentFit={"contain"}
+                                    contentFit={"contain"}
+                                    transition={250}
                                 />
                             </Animated.View>
                         </View>

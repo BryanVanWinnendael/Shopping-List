@@ -12,6 +12,7 @@ services:
       ENV: production
       DATA_DIR: /app/data
       LOGS_FILE: logs.txt
+      PORT: 3000
     env_file:
       - .env
     restart: unless-stopped

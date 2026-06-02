@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"shopping-list/category-model/internal/config"
 	"shopping-list/category-model/models"
+	"shopping-list/shared/contracts"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ func NewModelService(naiveBayes *models.NaiveBayes) *ModelService {
 	}
 }
 
-func (ms *ModelService) TrainModel() (map[string]any, error) {
+func (ms *ModelService) TrainModel() (*contracts.TrainModelResponse, error) {
 	data, err := loadCSV()
 	if err != nil {
 		return nil, err
@@ -52,12 +53,10 @@ func (ms *ModelService) TrainModel() (map[string]any, error) {
 	}
 	accuracy := float64(correct) / float64(len(data))
 
-	result := map[string]interface{}{
-		"model":    "NaiveBayes",
-		"accuracy": accuracy,
-	}
-
-	return result, nil
+	return &contracts.TrainModelResponse{
+		Model:    "NaiveBayes",
+		Accuracy: accuracy,
+	}, nil
 }
 
 func (ms *ModelService) LoadModel() error {
@@ -146,7 +145,7 @@ func loadCSV() ([]models.TrainingData, error) {
 	}
 
 	if len(records) < 2 {
-		return nil, errors.New("CSV must have header + data")
+		return nil, errors.New("csv must have header + data")
 	}
 
 	var data []models.TrainingData
@@ -168,6 +167,6 @@ func loadCSV() ([]models.TrainingData, error) {
 func closeFile(file *os.File) {
 	err := file.Close()
 	if err != nil {
-		fmt.Println("Failed to close file:", err)
+		fmt.Println("failed to close file:", err)
 	}
 }

@@ -13,6 +13,7 @@ services:
       DATA_DIR: /app/data
       CATEGORIES_FILE: categories.csv
       MODEL_FILE: model.pkl
+      PORT: 3000
     env_file:
       - .env
     restart: unless-stopped

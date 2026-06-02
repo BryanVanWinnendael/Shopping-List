@@ -35,7 +35,6 @@
         "expo": "~54.0.32",
         "expo-blur": "~15.0.8",
         "expo-build-properties": "~1.0.10",
-        "expo-cached-image": "^54.0.3",
         "expo-constants": "~18.0.13",
         "expo-crypto": "~15.0.8",
         "expo-dev-client": "~6.0.20",

@@ -11,3 +11,8 @@ type TrainingData struct {
 	Item     string
 	Category string
 }
+
+type TrainedModel struct {
+	Model    string  `json:"model"`
+	Accuracy float64 `json:"accuracy"`
+}

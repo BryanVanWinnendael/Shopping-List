@@ -2,15 +2,15 @@ package handlers
 
 import (
 	"net/http"
-	"shopping-list/category-model/models"
+	"shopping-list/shared/contracts"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
 type CategoryService interface {
-	GetCategory(item string) (string, error)
-	CreateCategory(item string, category string) error
+	GetCategory(product string) (*contracts.GetCategoryResponse, error)
+	CreateCategory(request *contracts.CreateCategoryRequest) (*contracts.CreateCategoryResponse, error)
 }
 
 type CategoryHandler struct {
@@ -22,14 +22,14 @@ func NewCategoryHandler(cms CategoryService) *CategoryHandler {
 }
 
 func (cms *CategoryHandler) GetCategory(c echo.Context) error {
-	item := strings.TrimSpace(c.QueryParam("item"))
-	if item == "" {
+	product := strings.TrimSpace(c.QueryParam("product"))
+	if product == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Missing query parameter ?item=",
+			"error": "missing query parameter ?product=",
 		})
 	}
 
-	result, err := cms.CategoryService.GetCategory(item)
+	result, err := cms.CategoryService.GetCategory(product)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -40,32 +40,28 @@ func (cms *CategoryHandler) GetCategory(c echo.Context) error {
 }
 
 func (cms *CategoryHandler) CreateCategory(c echo.Context) error {
-	var request models.CreateCategoryRequest
+	var request contracts.CreateCategoryRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
+			"error": "invalid request body",
 		})
 	}
 
-	request.Item = strings.TrimSpace(request.Item)
+	request.Product = strings.TrimSpace(request.Product)
 	request.Category = strings.TrimSpace(request.Category)
 
-	if request.Item == "" || request.Category == "" {
+	if request.Product == "" || request.Category == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Both 'item' and 'category' are required",
+			"error": "both 'product' and 'category' are required",
 		})
 	}
 
-	err := cms.CategoryService.CreateCategory(request.Item, request.Category)
+	result, err := cms.CategoryService.CreateCategory(&request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"message":  "Category added successfully",
-		"item":     request.Item,
-		"category": request.Category,
-	})
+	return c.JSON(http.StatusOK, result)
 }

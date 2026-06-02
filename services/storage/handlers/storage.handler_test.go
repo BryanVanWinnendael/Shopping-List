@@ -3,20 +3,18 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"mime/multipart"
 	"net/http"
+	"shopping-list/shared/contracts"
 	"shopping-list/shared/tests"
-	"testing"
-
 	"shopping-list/storage/internal/config"
-	"shopping-list/storage/models"
+	"testing"
 )
 
 type MockStorageService struct {
-	UploadRecipeImageFunc func(*multipart.FileHeader, string) (string, string, error)
-	UploadListImageFunc   func(*multipart.FileHeader, string) (string, string, error)
-	DeleteRecipeImageFunc func(string, string) error
-	DeleteStorageFunc     func(string, string) error
+	UploadRecipeImageFunc func(request *contracts.UploadImageRequest, recipeID string) (*contracts.UploadImageResponse, error)
+	UploadListImageFunc   func(request *contracts.UploadImageRequest, recipeID string) (*contracts.UploadImageResponse, error)
+	DeleteRecipeImageFunc func(recipeID string, url string) (*contracts.DeleteRecipeResponse, error)
+	DeleteStorageFunc     func(itemID string, category string) (*contracts.DeleteStorageResponse, error)
 }
 
 func TestUploadRecipeImage(t *testing.T) {
@@ -72,8 +70,8 @@ func TestUploadRecipeImage(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := NewStorageHandler(&MockStorageService{
-			UploadRecipeImageFunc: func(f *multipart.FileHeader, id string) (string, string, error) {
-				return "", "", errors.New("fail")
+			UploadRecipeImageFunc: func(*contracts.UploadImageRequest, string) (*contracts.UploadImageResponse, error) {
+				return nil, errors.New("fail")
 			},
 		})
 
@@ -99,11 +97,7 @@ func TestUploadRecipeImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := NewStorageHandler(&MockStorageService{
-			UploadRecipeImageFunc: func(f *multipart.FileHeader, id string) (string, string, error) {
-				return "/small.jpg", "/large.jpg", nil
-			},
-		})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		_ = handler.UploadRecipeImage(c)
@@ -135,7 +129,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		// given
 		config.Vars.Host = "http://localhost"
 
-		body, _ := json.Marshal(models.DeleteImageRequest{
+		body, _ := json.Marshal(contracts.DeleteImageRequest{
 			URL: "http://external.com/image.jpg",
 		})
 
@@ -158,7 +152,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		// given
 		config.Vars.Host = "http://localhost"
 
-		body, _ := json.Marshal(models.DeleteImageRequest{
+		body, _ := json.Marshal(contracts.DeleteImageRequest{
 			URL: "http://localhost/image.jpg",
 		})
 
@@ -167,8 +161,8 @@ func TestDeleteRecipeImage(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := NewStorageHandler(&MockStorageService{
-			DeleteRecipeImageFunc: func(id, url string) error {
-				return errors.New("fail")
+			DeleteRecipeImageFunc: func(string, string) (*contracts.DeleteRecipeResponse, error) {
+				return nil, errors.New("fail")
 			},
 		})
 
@@ -185,7 +179,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		// given
 		config.Vars.Host = "http://localhost"
 
-		body, _ := json.Marshal(models.DeleteImageRequest{
+		body, _ := json.Marshal(contracts.DeleteImageRequest{
 			URL: "http://localhost/storage/recipes/images/1/large.jpg",
 		})
 
@@ -193,11 +187,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := NewStorageHandler(&MockStorageService{
-			DeleteRecipeImageFunc: func(id, url string) error {
-				return nil
-			},
-		})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		_ = handler.DeleteRecipeImage(c)
@@ -210,7 +200,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		var resp map[string]string
 		_ = json.Unmarshal(rec.Body.Bytes(), &resp)
 
-		expected := "Image for recipes 1 deleted successfully"
+		expected := "Recipe image deleted"
 		if resp["message"] != expected {
 			t.Fatalf("expected message %q, got %q", expected, resp["message"])
 		}
@@ -257,8 +247,8 @@ func TestDeleteRecipeStorage(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := NewStorageHandler(&MockStorageService{
-			DeleteStorageFunc: func(id, cat string) error {
-				return errors.New("fail")
+			DeleteStorageFunc: func(string, string) (*contracts.DeleteStorageResponse, error) {
+				return nil, errors.New("fail")
 			},
 		})
 
@@ -311,11 +301,7 @@ func TestDeleteListImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := NewStorageHandler(&MockStorageService{
-			DeleteStorageFunc: func(id, cat string) error {
-				return nil
-			},
-		})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		_ = handler.DeleteListImage(c)
@@ -333,8 +319,8 @@ func TestDeleteListImage(t *testing.T) {
 		c.SetParamValues("1")
 
 		handler := NewStorageHandler(&MockStorageService{
-			DeleteStorageFunc: func(id, cat string) error {
-				return errors.New("fail")
+			DeleteStorageFunc: func(string, string) (*contracts.DeleteStorageResponse, error) {
+				return nil, errors.New("fail")
 			},
 		})
 
@@ -362,11 +348,7 @@ func TestUploadListImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := NewStorageHandler(&MockStorageService{
-			UploadListImageFunc: func(f *multipart.FileHeader, id string) (string, string, error) {
-				return "/small.jpg", "/large.jpg", nil
-			},
-		})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.UploadListImage(c)
@@ -382,30 +364,42 @@ func TestUploadListImage(t *testing.T) {
 	})
 }
 
-func (m *MockStorageService) UploadRecipeImage(f *multipart.FileHeader, id string) (string, string, error) {
+func (m *MockStorageService) UploadRecipeImage(request *contracts.UploadImageRequest, recipeID string) (*contracts.UploadImageResponse, error) {
 	if m.UploadRecipeImageFunc != nil {
-		return m.UploadRecipeImageFunc(f, id)
+		return m.UploadRecipeImageFunc(request, recipeID)
 	}
-	return "/small.jpg", "/large.jpg", nil
+	return &contracts.UploadImageResponse{
+		Large: "/large.jpg",
+		Small: "/small.jpg",
+	}, nil
 }
 
-func (m *MockStorageService) UploadListImage(f *multipart.FileHeader, id string) (string, string, error) {
+func (m *MockStorageService) UploadListImage(request *contracts.UploadImageRequest, recipeID string) (*contracts.UploadImageResponse, error) {
 	if m.UploadListImageFunc != nil {
-		return m.UploadListImageFunc(f, id)
+		return m.UploadListImageFunc(request, recipeID)
 	}
-	return "/small.jpg", "/large.jpg", nil
+	return &contracts.UploadImageResponse{
+		Large: "/large.jpg",
+		Small: "/small.jpg",
+	}, nil
 }
 
-func (m *MockStorageService) DeleteRecipeImage(id, url string) error {
+func (m *MockStorageService) DeleteRecipeImage(recipeID string, url string) (*contracts.DeleteRecipeResponse, error) {
 	if m.DeleteRecipeImageFunc != nil {
-		return m.DeleteRecipeImageFunc(id, url)
+		return m.DeleteRecipeImageFunc(recipeID, url)
 	}
-	return nil
+	return &contracts.DeleteRecipeResponse{
+		Id:      recipeID,
+		Message: "Recipe image deleted",
+	}, nil
 }
 
-func (m *MockStorageService) DeleteStorage(id, category string) error {
+func (m *MockStorageService) DeleteStorage(itemID string, category string) (*contracts.DeleteStorageResponse, error) {
 	if m.DeleteStorageFunc != nil {
-		return m.DeleteStorageFunc(id, category)
+		return m.DeleteStorageFunc(itemID, category)
 	}
-	return nil
+	return &contracts.DeleteStorageResponse{
+		Id:      itemID,
+		Message: "Storage deleted",
+	}, nil
 }

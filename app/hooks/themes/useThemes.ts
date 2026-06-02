@@ -82,7 +82,6 @@ export default function useThemes() {
                 return userColors.colors[userKey] ?? defaultColor
             } else {
                 const userKey = capitalize(givenUser) as keyof typeof userColors
-                console.log(userKey, userColors)
                 return userColors.colors[userKey] ?? defaultColor
             }
         },

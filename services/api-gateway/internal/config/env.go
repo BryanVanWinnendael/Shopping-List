@@ -16,6 +16,7 @@ type Env struct {
 	RecipesAPIURL        string
 	CronAPIURL           string
 	APIAuthToken         string
+	Port                 string
 }
 
 var Vars Env
@@ -36,6 +37,7 @@ func LoadEnv() {
 		RecipesAPIURL:        getEnv("RECIPES_API_URL", "http://shopping-list-recipes:3000/api/recipes"),
 		CronAPIURL:           getEnv("CRON_API_URL", "http://shopping-list-cron:3000/api/cron"),
 		APIAuthToken:         getEnv("API_TOKEN", ""),
+		Port:                 getEnv("PORT", "3000"),
 	}
 }
 

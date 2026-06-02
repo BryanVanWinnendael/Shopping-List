@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"net/http"
+	"shopping-list/shared/contracts"
 
 	"github.com/labstack/echo/v4"
 )
 
 type ModelService interface {
-	TrainModel() (map[string]interface{}, error)
+	TrainModel() (*contracts.TrainModelResponse, error)
 }
 
 type ModelHandler struct {
@@ -22,7 +23,7 @@ func (cms *ModelHandler) TrainModel(c echo.Context) error {
 	result, err := cms.ModelService.TrainModel()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Error training model: " + err.Error(),
+			"error": "error training model: " + err.Error(),
 		})
 	}
 

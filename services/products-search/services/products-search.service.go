@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"shopping-list/products-search/models"
+	"shopping-list/shared/contracts"
+	sharedModels "shopping-list/shared/models"
 	"sort"
 	"strings"
 
 	"shopping-list/products-search/internal/config"
-	"shopping-list/products-search/models"
 	"shopping-list/products-search/utils"
 
 	"github.com/bbalet/stopwords"
@@ -33,7 +35,7 @@ func (pss *ProductsSearchService) SearchProducts(
 	categories []string,
 	page int,
 	pageSize int,
-) (models.ProductsSearchResult, error) {
+) (*contracts.ProductsSearchResponse, error) {
 
 	query = strings.ToLower(query)
 
@@ -42,12 +44,12 @@ func (pss *ProductsSearchService) SearchProducts(
 		categorySet[strings.ToLower(c)] = struct{}{}
 	}
 
-	records, result, err2 := getRecords()
-	if err2 != nil {
-		return result, err2
+	records, err := getRecords()
+	if err != nil {
+		return nil, err
 	}
 
-	var matches []models.Product
+	var matches []sharedModels.Product
 
 	for i, row := range records {
 		if i == 0 || len(row) < 5 {
@@ -55,16 +57,16 @@ func (pss *ProductsSearchService) SearchProducts(
 		}
 
 		pid := row[0]
-		item := row[1]
+		name := row[1]
 		brand := row[2]
 		category := row[3]
 		image := row[4]
 
-		itemLower := strings.ToLower(item)
+		nameLower := strings.ToLower(name)
 		brandLower := strings.ToLower(brand)
 		categoryLower := strings.ToLower(category)
 
-		if !strings.Contains(itemLower, query) &&
+		if !strings.Contains(nameLower, query) &&
 			!strings.Contains(brandLower, query) &&
 			!strings.Contains(categoryLower, query) {
 			continue
@@ -76,9 +78,9 @@ func (pss *ProductsSearchService) SearchProducts(
 			}
 		}
 
-		matches = append(matches, models.Product{
+		matches = append(matches, sharedModels.Product{
 			PID:      pid,
-			Item:     item,
+			Name:     name,
 			Brand:    brand,
 			Category: category,
 			Image:    image,
@@ -90,7 +92,7 @@ func (pss *ProductsSearchService) SearchProducts(
 		pj := getCategoryPriority(matches[j].Category)
 
 		if pi == pj {
-			return matches[i].Item < matches[j].Item
+			return matches[i].Name < matches[j].Name
 		}
 		return pi < pj
 	})
@@ -98,14 +100,14 @@ func (pss *ProductsSearchService) SearchProducts(
 	paginated, totalPages := paginate(matches, page, pageSize)
 	categoriesString := strings.Join(categories, ",")
 
-	return models.ProductsSearchResult{
+	return &contracts.ProductsSearchResponse{
 		Products:    paginated,
 		DateUpdated: DateUpdated,
 		Total:       len(matches),
 		Page:        page,
 		PageSize:    pageSize,
 		TotalPages:  totalPages,
-		Item:        query,
+		Product:     query,
 		Category:    categoriesString,
 	}, nil
 }
@@ -115,7 +117,7 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 	category string,
 	page int,
 	pageSize int,
-) (models.ProductsSearchResult, error) {
+) (*contracts.ProductsSearchResponse, error) {
 
 	query = strings.ToLower(strings.TrimSpace(query))
 	query = stopwords.CleanString(query, "nl", true)
@@ -125,9 +127,9 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 		queryWords[i] = utils.Singularize(w)
 	}
 
-	records, result, err2 := getRecords()
-	if err2 != nil {
-		return result, err2
+	records, err := getRecords()
+	if err != nil {
+		return nil, err
 	}
 
 	categorySet := make(map[string]struct{})
@@ -186,9 +188,9 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 
 		if score > 0 {
 			results = append(results, models.ScoredProduct{
-				Product: models.Product{
+				ProductObject: sharedModels.Product{
 					PID:      row[0],
-					Item:     row[1],
+					Name:     row[1],
 					Brand:    row[2],
 					Category: row[3],
 					Image:    row[4],
@@ -204,51 +206,51 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 			pj := getCategoryPriority(results[j].Category)
 
 			if pi == pj {
-				return results[i].Item < results[j].Item
+				return results[i].Product < results[j].Product
 			}
 			return pi < pj
 		}
 		return results[i].Score > results[j].Score
 	})
 
-	final := make([]models.Product, len(results))
+	final := make([]sharedModels.Product, len(results))
 	for i, r := range results {
-		final[i] = r.Product
+		final[i] = r.ProductObject
 	}
 
 	paginated, totalPages := paginate(final, page, pageSize)
 
-	return models.ProductsSearchResult{
+	return &contracts.ProductsSearchResponse{
 		Products:    paginated,
 		DateUpdated: DateUpdated,
 		Total:       len(final),
 		Page:        page,
 		PageSize:    pageSize,
 		TotalPages:  totalPages,
-		Item:        query,
+		Product:     query,
 		Category:    category,
 	}, nil
 }
 
-func getRecords() ([][]string, models.ProductsSearchResult, error) {
+func getRecords() ([][]string, error) {
 	productsPath := filepath.Join(config.Vars.DataDir, config.Vars.ProductsFile)
 	file, err := os.Open(productsPath)
 	if err != nil {
-		return nil, models.ProductsSearchResult{}, err
+		return nil, err
 	}
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Failed to close file:", err)
+			fmt.Println("failed to close file:", err)
 		}
 	}(file)
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
-		return nil, models.ProductsSearchResult{}, err
+		return nil, err
 	}
-	return records, models.ProductsSearchResult{}, nil
+	return records, nil
 }
 
 func paginate[T any](items []T, page, pageSize int) ([]T, int) {

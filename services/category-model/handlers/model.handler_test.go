@@ -3,12 +3,13 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"shopping-list/shared/contracts"
 	"shopping-list/shared/tests"
 	"testing"
 )
 
 type MockModelService struct {
-	TrainFunc func() (map[string]interface{}, error)
+	TrainFunc func() (*contracts.TrainModelResponse, error)
 }
 
 func TestTrainModel(t *testing.T) {
@@ -16,14 +17,7 @@ func TestTrainModel(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/train", nil)
 
-		mock := &MockModelService{
-			TrainFunc: func() (map[string]interface{}, error) {
-				return map[string]interface{}{
-					"model":    "NaiveBayes",
-					"accuracy": 0.95,
-				}, nil
-			},
-		}
+		mock := &MockModelService{}
 
 		handler := newModelHandler(mock)
 
@@ -49,7 +43,7 @@ func TestTrainModel(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodPost, "/train", nil)
 
 		mock := &MockModelService{
-			TrainFunc: func() (map[string]interface{}, error) {
+			TrainFunc: func() (*contracts.TrainModelResponse, error) {
 				return nil, errors.New("training failed")
 			},
 		}
@@ -70,14 +64,14 @@ func TestTrainModel(t *testing.T) {
 	})
 }
 
-func (m *MockModelService) TrainModel() (map[string]interface{}, error) {
+func (m *MockModelService) TrainModel() (*contracts.TrainModelResponse, error) {
 	if m.TrainFunc != nil {
 		return m.TrainFunc()
 	}
 
-	return map[string]interface{}{
-		"model":    "mock",
-		"accuracy": 1.0,
+	return &contracts.TrainModelResponse{
+		Model:    "NaiveBayes",
+		Accuracy: 0.95,
 	}, nil
 }
 

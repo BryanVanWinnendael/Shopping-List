@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"shopping-list/api-gateway/models"
+	"shopping-list/shared/contracts"
 	httphelper "shopping-list/shared/http"
 )
 
@@ -20,10 +20,10 @@ func NewCronService(client *httphelper.Client, baseURL string) *CronService {
 	}
 }
 
-func (cs *CronService) CreateCronItem(ctx context.Context, request *models.CreateCronItemRequest) (*models.CronItem, error) {
+func (cs *CronService) CreateCronProduct(ctx context.Context, request *contracts.CreateCronProductRequest) (*contracts.CreateCronProductResponse, error) {
 	requestUrl := cs.baseURL
 
-	var response models.CronItem
+	var response contracts.CreateCronProductResponse
 
 	_, err := cs.client.DoRequest(
 		ctx,
@@ -41,10 +41,10 @@ func (cs *CronService) CreateCronItem(ctx context.Context, request *models.Creat
 	return &response, nil
 }
 
-func (cs *CronService) GetAllCronItems(ctx context.Context) ([]models.CronItem, error) {
-	requestUrl := fmt.Sprintf("%s/items", cs.baseURL)
+func (cs *CronService) GetAllCronProducts(ctx context.Context) (*contracts.GetAllCronProductsResponse, error) {
+	requestUrl := fmt.Sprintf("%s/products", cs.baseURL)
 
-	var response []models.CronItem
+	var response contracts.GetAllCronProductsResponse
 
 	_, err := cs.client.DoRequest(
 		ctx,
@@ -59,11 +59,13 @@ func (cs *CronService) GetAllCronItems(ctx context.Context) ([]models.CronItem, 
 		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (cs *CronService) DeleteCronItem(ctx context.Context, itemID string) error {
-	requestUrl := fmt.Sprintf("%s/%s", cs.baseURL, itemID)
+func (cs *CronService) DeleteCronProduct(ctx context.Context, id string) (*contracts.DeleteCronProductResponse, error) {
+	requestUrl := fmt.Sprintf("%s/%s", cs.baseURL, id)
+
+	var response contracts.DeleteCronProductResponse
 
 	_, err := cs.client.DoRequest(
 		ctx,
@@ -71,16 +73,20 @@ func (cs *CronService) DeleteCronItem(ctx context.Context, itemID string) error 
 		requestUrl,
 		nil,
 		nil,
-		nil,
+		&response,
 	)
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
-func (cs *CronService) GetCronItemsByUser(ctx context.Context, user string) ([]models.CronItem, error) {
-	requestUrl := fmt.Sprintf("%s/items/%s", cs.baseURL, user)
+func (cs *CronService) GetCronProductsByUser(ctx context.Context, user string) (*contracts.GetCronProductsByUserResponse, error) {
+	requestUrl := fmt.Sprintf("%s/products/%s", cs.baseURL, user)
 
-	var response []models.CronItem
+	var response contracts.GetCronProductsByUserResponse
 
 	_, err := cs.client.DoRequest(
 		ctx,
@@ -95,11 +101,13 @@ func (cs *CronService) GetCronItemsByUser(ctx context.Context, user string) ([]m
 		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (cs *CronService) UpdateCronItemCategory(ctx context.Context, itemID string, request models.UpdateCronItemRequest) error {
-	requestUrl := fmt.Sprintf("%s/%s", cs.baseURL, itemID)
+func (cs *CronService) UpdateCronProductCategory(ctx context.Context, id string, request *contracts.UpdateCronProductCategoryRequest) (*contracts.UpdateCronProductCategoryResponse, error) {
+	requestUrl := fmt.Sprintf("%s/%s", cs.baseURL, id)
+
+	var response contracts.UpdateCronProductCategoryResponse
 
 	_, err := cs.client.DoRequest(
 		ctx,
@@ -107,8 +115,12 @@ func (cs *CronService) UpdateCronItemCategory(ctx context.Context, itemID string
 		requestUrl,
 		nil,
 		request,
-		nil,
+		&response,
 	)
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

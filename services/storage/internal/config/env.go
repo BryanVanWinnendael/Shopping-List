@@ -11,6 +11,7 @@ type Env struct {
 	APIAuthToken string
 	Host         string
 	StorageDir   string
+	Port         string
 }
 
 var Vars Env
@@ -26,6 +27,7 @@ func LoadEnv() {
 		APIAuthToken: getEnv("API_TOKEN", ""),
 		Host:         getEnv("HOST", ""),
 		StorageDir:   getEnv("STORAGE_DIR", "./storage"),
+		Port:         getEnv("PORT", "3000"),
 	}
 }
 

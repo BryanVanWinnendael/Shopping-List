@@ -15,8 +15,9 @@ services:
       NOTIFICATIONS_API_URL: http://shopping-list-notifications:3000/api/notifications
       PRODUCTS_SEARCH_API_URL: http://shopping-list-products-search:3000/api/products
       STORAGE_API_URL: http://shopping-list-storage:3000/api/storage
-      RECIPES_API_URL: http://shopping-list-recipes:3000/api/recipes
+      RECIPES_API_URL: http://shopping-list-recipes:3000/api
       CRON_API_URL: http://shopping-list-cron:3000/api/cron
+      PORT: 3000
     env_file:
       - .env
     restart: unless-stopped

@@ -11,6 +11,7 @@ type Env struct {
 	DataDir string
 	Bucket  string
 	DB      string
+	Port    string
 }
 
 var Vars Env
@@ -26,6 +27,7 @@ func LoadEnv() {
 		DataDir: getEnv("DATA_DIR", "./data"),
 		Bucket:  getEnv("BUCKET", "notifications"),
 		DB:      getEnv("DB", "notifications.db"),
+		Port:    getEnv("PORT", "3000"),
 	}
 }
 

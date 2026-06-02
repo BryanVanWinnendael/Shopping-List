@@ -3,18 +3,18 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"shopping-list/api-gateway/models"
 	"shopping-list/api-gateway/response"
+	"shopping-list/shared/contracts"
 
 	"github.com/labstack/echo/v4"
 )
 
 type CronService interface {
-	CreateCronItem(ctx context.Context, request *models.CreateCronItemRequest) (*models.CronItem, error)
-	GetAllCronItems(ctx context.Context) ([]models.CronItem, error)
-	DeleteCronItem(ctx context.Context, itemID string) error
-	GetCronItemsByUser(ctx context.Context, user string) ([]models.CronItem, error)
-	UpdateCronItemCategory(ctx context.Context, itemID string, request models.UpdateCronItemRequest) error
+	CreateCronProduct(ctx context.Context, request *contracts.CreateCronProductRequest) (*contracts.CreateCronProductResponse, error)
+	GetAllCronProducts(ctx context.Context) (*contracts.GetAllCronProductsResponse, error)
+	DeleteCronProduct(ctx context.Context, id string) (*contracts.DeleteCronProductResponse, error)
+	GetCronProductsByUser(ctx context.Context, user string) (*contracts.GetCronProductsByUserResponse, error)
+	UpdateCronProductCategory(ctx context.Context, id string, request *contracts.UpdateCronProductCategoryRequest) (*contracts.UpdateCronProductCategoryResponse, error)
 }
 
 func NewCronHandler(ls CronService) *CronHandler {
@@ -25,8 +25,8 @@ type CronHandler struct {
 	CronService CronService
 }
 
-func (ch *CronHandler) CreateCronItem(c echo.Context) error {
-	var request models.CreateCronItemRequest
+func (ch *CronHandler) CreateCronProduct(c echo.Context) error {
+	var request contracts.CreateCronProductRequest
 	if err := c.Bind(&request); err != nil {
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
@@ -36,7 +36,7 @@ func (ch *CronHandler) CreateCronItem(c echo.Context) error {
 		return response.Missing(c, response.SourceBody, missingFields...)
 	}
 
-	result, err := ch.CronService.CreateCronItem(c.Request().Context(), &request)
+	result, err := ch.CronService.CreateCronProduct(c.Request().Context(), &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -44,32 +44,32 @@ func (ch *CronHandler) CreateCronItem(c echo.Context) error {
 	return response.Success(c, http.StatusOK, result)
 }
 
-func (ch *CronHandler) GetAllCronItems(c echo.Context) error {
-	items, err := ch.CronService.GetAllCronItems(c.Request().Context())
+func (ch *CronHandler) GetAllCronProducts(c echo.Context) error {
+	result, err := ch.CronService.GetAllCronProducts(c.Request().Context())
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, items)
+	return response.Success(c, http.StatusOK, result)
 }
 
-func (ch *CronHandler) DeleteCronItem(c echo.Context) error {
-	itemID := c.Param("itemID")
+func (ch *CronHandler) DeleteCronProduct(c echo.Context) error {
+	id := c.Param("id")
 
-	missingPathParams := response.GetMissingPathParams(c, "itemID")
+	missingPathParams := response.GetMissingPathParams(c, "id")
 	if len(missingPathParams) > 0 {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
 
-	err := ch.CronService.DeleteCronItem(c.Request().Context(), itemID)
+	result, err := ch.CronService.DeleteCronProduct(c.Request().Context(), id)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Cron item deleted successfully")
+	return response.Success(c, http.StatusOK, result)
 }
 
-func (ch *CronHandler) GetCronItemsByUser(c echo.Context) error {
+func (ch *CronHandler) GetCronProductsByUser(c echo.Context) error {
 	user := c.Param("user")
 
 	missingPathParams := response.GetMissingPathParams(c, "user")
@@ -77,7 +77,7 @@ func (ch *CronHandler) GetCronItemsByUser(c echo.Context) error {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
 
-	result, err := ch.CronService.GetCronItemsByUser(c.Request().Context(), user)
+	result, err := ch.CronService.GetCronProductsByUser(c.Request().Context(), user)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -85,15 +85,15 @@ func (ch *CronHandler) GetCronItemsByUser(c echo.Context) error {
 	return response.Success(c, http.StatusOK, result)
 }
 
-func (ch *CronHandler) UpdateCronItemCategory(c echo.Context) error {
-	itemID := c.Param("itemID")
+func (ch *CronHandler) UpdateCronProductCategory(c echo.Context) error {
+	id := c.Param("id")
 
-	missingPathParams := response.GetMissingPathParams(c, "itemID")
+	missingPathParams := response.GetMissingPathParams(c, "id")
 	if len(missingPathParams) > 0 {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
 
-	var request models.UpdateCronItemRequest
+	var request contracts.UpdateCronProductCategoryRequest
 	if err := c.Bind(&request); err != nil {
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
@@ -103,10 +103,10 @@ func (ch *CronHandler) UpdateCronItemCategory(c echo.Context) error {
 		return response.Missing(c, response.SourceBody, missingRequestFields...)
 	}
 
-	err := ch.CronService.UpdateCronItemCategory(c.Request().Context(), itemID, request)
+	result, err := ch.CronService.UpdateCronProductCategory(c.Request().Context(), id, &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Cron item category updated successfully")
+	return response.Success(c, http.StatusOK, result)
 }

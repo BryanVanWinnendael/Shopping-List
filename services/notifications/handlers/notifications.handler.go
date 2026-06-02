@@ -1,19 +1,19 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
-	"shopping-list/notifications/models"
+	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 
 	"github.com/labstack/echo/v4"
 )
 
 type NotificationsService interface {
-	Subscribe(recipe *models.NotificationCreate) (*models.Notification, error)
-	GetAllNotifications() ([]models.Notification, error)
-	GetUserNotifications(userID string) ([]models.Notification, error)
-	Unsubscribe(user string, notifType string) error
-	PushUserNotificationByType(notifType string, user string, env string) error
+	Subscribe(request *contracts.CreateNotificationRequest) (*contracts.CreateNotificationResponse, error)
+	GetAllNotifications() (*contracts.GetAllNotificationsResponse, error)
+	GetUserNotifications(user string) (*contracts.GetUserNotificationsResponse, error)
+	Unsubscribe(user string, notifType models.NotificationType) (*contracts.DeleteUserNotificationResponse, error)
+	PushUserNotificationByType(notifType models.NotificationType, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error)
 }
 
 type NotificationsHandler struct {
@@ -25,37 +25,37 @@ func NewNotificationsHandler(ns NotificationsService) *NotificationsHandler {
 }
 
 func (nh *NotificationsHandler) Subscribe(c echo.Context) error {
-	var request models.NotificationCreate
+	var request contracts.CreateNotificationRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	created, err := nh.NotificationsService.Subscribe(&request)
+	result, err := nh.NotificationsService.Subscribe(&request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, created)
+	return c.JSON(http.StatusOK, result)
 }
 
 func (nh *NotificationsHandler) GetAllNotifications(c echo.Context) error {
-	list, err := nh.NotificationsService.GetAllNotifications()
+	result, err := nh.NotificationsService.GetAllNotifications()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, list)
+	return c.JSON(http.StatusOK, result)
 }
 
 func (nh *NotificationsHandler) GetUserNotifications(c echo.Context) error {
-	userID := c.Param("user")
+	user := c.Param("user")
 
-	list, err := nh.NotificationsService.GetUserNotifications(userID)
+	result, err := nh.NotificationsService.GetUserNotifications(user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, list)
+	return c.JSON(http.StatusOK, result)
 }
 
 func (nh *NotificationsHandler) Unsubscribe(c echo.Context) error {
@@ -65,11 +65,13 @@ func (nh *NotificationsHandler) Unsubscribe(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "type and user are required"})
 	}
 
-	if err := nh.NotificationsService.Unsubscribe(user, notifType); err != nil {
+	nt := models.NotificationType(notifType)
+	result, err := nh.NotificationsService.Unsubscribe(user, nt)
+	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
+	return c.JSON(http.StatusOK, result)
 }
 
 func (nh *NotificationsHandler) PushUserNotificationByType(c echo.Context) error {
@@ -80,25 +82,18 @@ func (nh *NotificationsHandler) PushUserNotificationByType(c echo.Context) error
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "type and user are required"})
 	}
 
-	env := ""
-	body := make(map[string]interface{})
-	if err := c.Bind(&body); err != nil && !errors.Is(err, echo.ErrUnsupportedMediaType) {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+	var request contracts.PushUserNotificationByTypeRequest
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid JSON body",
+		})
 	}
 
-	if v, ok := body["env"]; ok {
-		if s, ok := v.(string); ok {
-			env = s
-		}
-	}
-
-	if err := nh.NotificationsService.PushUserNotificationByType(notifType, user, env); err != nil {
+	nt := models.NotificationType(notifType)
+	result, err := nh.NotificationsService.PushUserNotificationByType(nt, user, &request)
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"status": "notification_sent",
-		"type":   notifType,
-		"user":   user,
-	})
+	return c.JSON(http.StatusOK, result)
 }

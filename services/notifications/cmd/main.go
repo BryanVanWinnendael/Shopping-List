@@ -1,10 +1,10 @@
 package main
 
 import (
-	"shopping-list/notifications/db"
 	"shopping-list/notifications/handlers"
 	"shopping-list/notifications/internal/config"
 	"shopping-list/notifications/services"
+	"shopping-list/shared/db"
 	httphelper "shopping-list/shared/http"
 	"shopping-list/shared/middlewares"
 	"time"
@@ -15,7 +15,7 @@ import (
 func main() {
 	config.LoadEnv()
 
-	bbolt := db.InitBbolt()
+	bbolt := db.InitBbolt(config.Vars.DataDir, config.Vars.DB, config.Vars.Bucket)
 
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
@@ -27,5 +27,5 @@ func main() {
 
 	handlers.SetupRoutes(e, nh)
 
-	e.Logger.Fatal(e.Start(":3000"))
+	e.Logger.Fatal(e.Start(":" + config.Vars.Port))
 }

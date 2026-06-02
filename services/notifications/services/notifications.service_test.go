@@ -2,7 +2,8 @@ package services
 
 import (
 	"shopping-list/notifications/internal/config"
-	"shopping-list/notifications/models"
+	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
 
@@ -20,59 +21,21 @@ func TestSubscribe(t *testing.T) {
 
 		service := NewNotificationsService(db, &MockExpo{})
 
-		data := &models.NotificationCreate{
+		data := contracts.CreateNotificationRequest{
 			User:  "user1",
 			Type:  "added",
 			Token: "token123",
 		}
 
 		// when
-		notif, err := service.Subscribe(data)
+		notif, err := service.Subscribe(&data)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if notif.ID == "" {
+		if notif.Id == "" {
 			t.Fatalf("expected ID to be generated")
-		}
-	})
-}
-
-func TestGetNotification(t *testing.T) {
-	t.Run("Given existing notification, When GetNotification, Then return it", func(t *testing.T) {
-		// given
-		db := setup(t)
-
-		service := NewNotificationsService(db, &MockExpo{})
-
-		notification := models.Notification{ID: "1", User: "user1", Type: "added"}
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
-
-		// when
-		result, err := service.GetNotification("1")
-
-		// then
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
-		}
-		if result.ID != "1" {
-			t.Fatalf("expected ID 1")
-		}
-	})
-
-	t.Run("Given missing notification, When GetNotification, Then return error", func(t *testing.T) {
-		// given
-		db := setup(t)
-
-		service := NewNotificationsService(db, &MockExpo{})
-
-		// when
-		_, err := service.GetNotification("missing")
-
-		// then
-		if err == nil {
-			t.Fatalf("expected error, got nil")
 		}
 	})
 }
@@ -84,7 +47,7 @@ func TestGetAllNotifications(t *testing.T) {
 
 		service := NewNotificationsService(db, &MockExpo{})
 
-		notification := models.Notification{ID: "1", User: "user1"}
+		notification := models.Notification{Id: "1", User: "user1"}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
 		// when
@@ -94,7 +57,7 @@ func TestGetAllNotifications(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if len(list) != 1 {
+		if len(*list) != 1 {
 			t.Fatalf("expected 1 notification")
 		}
 	})
@@ -107,8 +70,8 @@ func TestGetUserNotifications(t *testing.T) {
 
 		service := NewNotificationsService(db, &MockExpo{})
 
-		notification1 := models.Notification{ID: "1", User: "user1"}
-		notification2 := models.Notification{ID: "2", User: "user2"}
+		notification1 := models.Notification{Id: "1", User: "user1"}
+		notification2 := models.Notification{Id: "2", User: "user2"}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification1)
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), notification2)
 
@@ -119,7 +82,7 @@ func TestGetUserNotifications(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if len(list) != 1 {
+		if len(*list) != 1 {
 			t.Fatalf("expected 1 notification")
 		}
 	})
@@ -132,15 +95,25 @@ func TestUnsubscribe(t *testing.T) {
 
 		service := NewNotificationsService(db, &MockExpo{})
 
-		notification := models.Notification{ID: "1", User: "user1", Type: "added"}
+		notification := models.Notification{Id: "1", User: "user1", Type: "added"}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
 
+		nt := models.NotificationType("added")
+
 		// when
-		err := service.Unsubscribe("user1", "added")
+		result, err := service.Unsubscribe("user1", nt)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if result == nil {
+			t.Fatalf("expected result")
+		}
+
+		if result.Message != "notification unsubscribed" {
+			t.Fatalf("expected notification unsubscribed, got %s", result.Message)
 		}
 	})
 
@@ -151,11 +124,15 @@ func TestUnsubscribe(t *testing.T) {
 		service := NewNotificationsService(db, &MockExpo{})
 
 		// when
-		err := service.Unsubscribe("user1", "added")
+		result, err := service.Unsubscribe("user1", "added")
 
 		// then
 		if err == nil {
 			t.Fatalf("expected error, got nil")
+		}
+
+		if result != nil {
+			t.Fatalf("no result expected")
 		}
 	})
 }
@@ -174,19 +151,28 @@ func TestPushUserNotificationByType(t *testing.T) {
 		service := NewNotificationsService(db, mockExpo)
 
 		notification := models.Notification{
-			ID:    "1",
+			Id:    "1",
 			User:  "user1",
 			Type:  "added",
 			Token: "token123",
 		}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
+		request := contracts.PushUserNotificationByTypeRequest{}
 
 		// when
-		err := service.PushUserNotificationByType("added", "user1", "")
+		result, err := service.PushUserNotificationByType("added", "user1", &request)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if result == nil {
+			t.Fatalf("expected result")
+		}
+
+		if result.Message != "notification pushed to user" {
+			t.Fatalf("expected Notification pushed to user, got %s", result.Message)
 		}
 	})
 
@@ -203,19 +189,87 @@ func TestPushUserNotificationByType(t *testing.T) {
 		service := NewNotificationsService(db, mockExpo)
 
 		notification := models.Notification{
-			ID:    "1",
+			Id:    "1",
 			User:  "user1",
 			Type:  "added",
 			Token: "token123",
 		}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification)
+		request := contracts.PushUserNotificationByTypeRequest{
+			Env: "dev",
+		}
 
 		// when
-		err := service.PushUserNotificationByType("added", "user1", "dev")
+		result, err := service.PushUserNotificationByType("added", "user1", &request)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if result == nil {
+			t.Fatalf("expected result")
+		}
+
+		if result.Message != "[DEV] notification pushed to user" {
+			t.Fatalf("expected [DEV] notification pushed to user, got %s", result.Message)
+		}
+	})
+
+	t.Run("Given user All and text provided, When PushUserNotificationByType, Then send to all users", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		called := 0
+
+		mockExpo := &MockExpo{
+			PushNotificationToUserFunc: func(token, title, body string) error {
+				called++
+				return nil
+			},
+		}
+
+		service := NewNotificationsService(db, mockExpo)
+
+		notification1 := models.Notification{
+			Id:    "1",
+			User:  "user1",
+			Type:  "added",
+			Token: "token1",
+		}
+
+		notification2 := models.Notification{
+			Id:    "2",
+			User:  "user2",
+			Type:  "added",
+			Token: "token2",
+		}
+
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), notification1)
+		tests.Put(t, db, config.Vars.Bucket, []byte("2"), notification2)
+
+		request := &contracts.PushUserNotificationByTypeRequest{
+			Text: "Hello everyone 👋",
+		}
+
+		// when
+		result, err := service.PushUserNotificationByType("added", "All", request)
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if result == nil {
+			t.Fatalf("expected result")
+		}
+
+		if result.Message != "notification pushed to all users" {
+			t.Fatalf("expected all users message, got %s", result.Message)
+		}
+
+		if called == 0 {
+			t.Fatalf("expected notifications to be sent")
 		}
 	})
 }

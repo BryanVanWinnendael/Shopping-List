@@ -3,20 +3,19 @@ package db
 import (
 	"context"
 	"log"
-	"shopping-list/cron/internal/config"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/db"
 	"google.golang.org/api/option"
 )
 
-func InitFirebase() *db.Client {
+func InitFirebase(credPath string, fireBaseUrl string) *db.Client {
 	ctx := context.Background()
 
-	opt := option.WithCredentialsFile(config.Vars.GoogleApplicationCred)
+	opt := option.WithCredentialsFile(credPath)
 
 	conf := &firebase.Config{
-		DatabaseURL: config.Vars.FireBaseUrl,
+		DatabaseURL: fireBaseUrl,
 	}
 
 	app, err := firebase.NewApp(ctx, conf, opt)

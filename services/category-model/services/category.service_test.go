@@ -4,13 +4,14 @@ import (
 	"errors"
 	"os"
 	"shopping-list/category-model/internal/config"
+	"shopping-list/shared/contracts"
 	"shopping-list/shared/tests"
 	"testing"
 )
 
 type MockModelService struct {
 	LoadModelFunc func() error
-	PredictFunc   func(item string) (string, error)
+	PredictFunc   func(product string) (string, error)
 }
 
 func TestNewCategoryService(t *testing.T) {
@@ -59,14 +60,14 @@ func TestGetCategory(t *testing.T) {
 		cs, _ := NewCategoryService(mock)
 
 		// when
-		category, err := cs.GetCategory("item1")
+		category, err := cs.GetCategory("product1")
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if category != "mock-category" {
+		if category.Category != "mock-category" {
 			t.Fatalf("expected 'mock-category', got '%s'", category)
 		}
 	})
@@ -74,14 +75,14 @@ func TestGetCategory(t *testing.T) {
 	t.Run("Given CategoryService with failing Predict, When GetCategory, Then return predict error", func(t *testing.T) {
 		// given
 		mock := &MockModelService{
-			PredictFunc: func(item string) (string, error) {
+			PredictFunc: func(product string) (string, error) {
 				return "", errors.New("predict fail")
 			},
 		}
 		cs, _ := NewCategoryService(mock)
 
 		// when
-		_, err := cs.GetCategory("item1")
+		_, err := cs.GetCategory("product1")
 
 		// then
 		if err == nil || err.Error() != "predict fail" {
@@ -97,8 +98,13 @@ func TestCreateCategory(t *testing.T) {
 
 		cs := &CategoryService{}
 
+		request := contracts.CreateCategoryRequest{
+			Category: "mock-category",
+			Product:  "mock-product",
+		}
+
 		// when
-		err := cs.CreateCategory("item1", "category1")
+		_, err := cs.CreateCategory(&request)
 
 		// then
 		if err != nil {
@@ -110,7 +116,7 @@ func TestCreateCategory(t *testing.T) {
 			t.Fatalf("failed to read temp file: %v", err)
 		}
 
-		expected := "item1,category1\n"
+		expected := "mock-product,mock-category\n"
 		if string(data) != expected {
 			t.Fatalf("expected '%s', got '%s'", expected, string(data))
 		}
@@ -124,9 +130,9 @@ func (m *MockModelService) LoadModel() error {
 	return nil
 }
 
-func (m *MockModelService) Predict(item string) (string, error) {
+func (m *MockModelService) Predict(product string) (string, error) {
 	if m.PredictFunc != nil {
-		return m.PredictFunc(item)
+		return m.PredictFunc(product)
 	}
 	return "mock-category", nil
 }

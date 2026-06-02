@@ -3865,11 +3865,6 @@ expo-build-properties@~1.0.10:
     ajv "^8.11.0"
     semver "^7.6.0"
 
-expo-cached-image@^54.0.3:
-  version "54.0.7"
-  resolved "https://registry.yarnpkg.com/expo-cached-image/-/expo-cached-image-54.0.7.tgz#cd24935958aaeb5758f787021b6f54b7d50901e5"
-  integrity sha512-OPJ0DYht/30g9bEqydN+RvbpWo+bXu3/71gJDxoeE7297UMmdTivzp6/KhQLaXnQNK9a1KjR99ardy72tTWoZA==
-
 expo-constants@~18.0.12, expo-constants@~18.0.13:
   version "18.0.13"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-18.0.13.tgz#0117f1f3d43be7b645192c0f4f431fb4efc4803d"

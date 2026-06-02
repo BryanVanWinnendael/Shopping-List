@@ -5,7 +5,8 @@ import (
 	"errors"
 	"log"
 	"shopping-list/notifications/internal/config"
-	"shopping-list/notifications/models"
+	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 
 	"github.com/google/uuid"
 	"go.etcd.io/bbolt"
@@ -35,47 +36,33 @@ func NewNotificationsService(db *bbolt.DB, expo ExpoPushService) *NotificationsS
 	}
 }
 
-func (ns *NotificationsService) Subscribe(data *models.NotificationCreate) (*models.Notification, error) {
+func (ns *NotificationsService) Subscribe(request *contracts.CreateNotificationRequest) (*contracts.CreateNotificationResponse, error) {
 	notif := &models.Notification{
-		ID:    uuid.New().String(),
-		User:  data.User,
-		Type:  data.Type,
-		Token: data.Token,
+		Id:    uuid.New().String(),
+		User:  request.User,
+		Type:  request.Type,
+		Token: request.Token,
 	}
 	notifJSON, _ := json.MarshalIndent(notif, "", "  ")
 
 	err := ns.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
-		return b.Put([]byte(notif.ID), notifJSON)
+		return b.Put([]byte(notif.Id), notifJSON)
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return notif, nil
+	return &contracts.CreateNotificationResponse{
+		Id:    notif.Id,
+		User:  notif.User,
+		Type:  notif.Type,
+		Token: notif.Token,
+	}, nil
 }
 
-func (ns *NotificationsService) GetNotification(id string) (*models.Notification, error) {
-	var notif models.Notification
-
-	err := ns.db.View(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(config.Vars.Bucket))
-		v := b.Get([]byte(id))
-		if v == nil {
-			return errors.New("notification not found")
-		}
-		return json.Unmarshal(v, &notif)
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &notif, nil
-}
-
-func (ns *NotificationsService) GetAllNotifications() ([]models.Notification, error) {
-	var list []models.Notification
+func (ns *NotificationsService) GetAllNotifications() (*contracts.GetAllNotificationsResponse, error) {
+	var result contracts.GetAllNotificationsResponse
 
 	err := ns.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
@@ -84,32 +71,32 @@ func (ns *NotificationsService) GetAllNotifications() ([]models.Notification, er
 			if err := json.Unmarshal(v, &n); err != nil {
 				return err
 			}
-			list = append(list, n)
+			result = append(result, n)
 			return nil
 		})
 	})
 
-	return list, err
+	return &result, err
 }
 
-func (ns *NotificationsService) GetUserNotifications(userID string) ([]models.Notification, error) {
-	all, err := ns.GetAllNotifications()
+func (ns *NotificationsService) GetUserNotifications(user string) (*contracts.GetUserNotificationsResponse, error) {
+	notifications, err := ns.GetAllNotifications()
 	if err != nil {
 		return nil, err
 	}
 
-	var userNotifs []models.Notification
-	for _, n := range all {
-		if n.User == userID {
-			userNotifs = append(userNotifs, n)
+	var result contracts.GetUserNotificationsResponse
+	for _, n := range *notifications {
+		if n.User == user {
+			result = append(result, n)
 		}
 	}
 
-	return userNotifs, nil
+	return &result, nil
 }
 
-func (ns *NotificationsService) Unsubscribe(user string, notifType string) error {
-	return ns.db.Update(func(tx *bbolt.Tx) error {
+func (ns *NotificationsService) Unsubscribe(user string, notifType models.NotificationType) (*contracts.DeleteUserNotificationResponse, error) {
+	err := ns.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		var found bool
 		c := b.Cursor()
@@ -130,35 +117,72 @@ func (ns *NotificationsService) Unsubscribe(user string, notifType string) error
 		}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	return &contracts.DeleteUserNotificationResponse{
+		User:    user,
+		Type:    notifType,
+		Message: "notification unsubscribed",
+	}, nil
 }
 
-func (ns *NotificationsService) PushUserNotificationByType(notifType string, user string, env string) error {
-	if env == "dev" {
+func (ns *NotificationsService) PushUserNotificationByType(notifType models.NotificationType, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error) {
+	if request.Env == "dev" {
+		// for dev, only to specific user to avoid spamming everyone during development
 		return pushDevNotification(ns.expo, ns.db, notifType, user)
 	}
 
-	all, err := ns.GetAllNotifications()
+	subscriptions, err := ns.GetAllNotifications()
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	if user == "All" && request.Text != "" {
+		// if user is "All", send to all users with the specified notification type and custom text
+		return sendNotificationToAllUsers(ns.expo, notifType, subscriptions, request.Text)
 	}
 
 	notificationBody := GetNotificationBody(notifType, user)
-	for _, n := range all {
+	for _, n := range *subscriptions {
 		if n.Type == notifType && (notifType != "timed" || n.User == user) {
 			if err := ns.expo.PushNotificationToUser(
 				n.Token,
 				"Shopping List",
 				notificationBody,
 			); err != nil {
-				log.Printf("Failed to push to user %s: %v\n", n.User, err)
+				log.Printf("failed to push to user %s: %v\n", n.User, err)
 			}
 		}
 	}
 
-	return nil
+	return &contracts.PushUserNotificationByTypeResponse{
+		User:    user,
+		Type:    notifType,
+		Message: "notification pushed to user",
+	}, nil
 }
 
-func pushDevNotification(expo ExpoPushService, db *bbolt.DB, notifType string, user string) error {
+func sendNotificationToAllUsers(expo ExpoPushService, notifType models.NotificationType, subscriptions *contracts.GetAllNotificationsResponse, text string) (*contracts.PushUserNotificationByTypeResponse, error) {
+	for _, n := range *subscriptions {
+		if n.Type == notifType {
+			if err := expo.PushNotificationToUser(
+				n.Token,
+				"Shopping List",
+				text,
+			); err != nil {
+				log.Printf("failed to push to user %s: %v\n", n.User, err)
+			}
+		}
+	}
+
+	return &contracts.PushUserNotificationByTypeResponse{
+		Type:    notifType,
+		Message: "notification pushed to all users",
+	}, nil
+}
+
+func pushDevNotification(expo ExpoPushService, db *bbolt.DB, notifType models.NotificationType, user string) (*contracts.PushUserNotificationByTypeResponse, error) {
 	var all []models.Notification
 
 	err := db.View(func(tx *bbolt.Tx) error {
@@ -175,7 +199,7 @@ func pushDevNotification(expo ExpoPushService, db *bbolt.DB, notifType string, u
 		})
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	notificationBody := GetNotificationBody(notifType, user)
@@ -185,14 +209,18 @@ func pushDevNotification(expo ExpoPushService, db *bbolt.DB, notifType string, u
 			"[DEV] Shopping List",
 			notificationBody,
 		); err != nil {
-			log.Printf("Failed to push to user %s: %v\n", n.User, err)
+			log.Printf("failed to push to user %s: %v\n", n.User, err)
 		}
 	}
 
-	return nil
+	return &contracts.PushUserNotificationByTypeResponse{
+		User:    user,
+		Type:    notifType,
+		Message: "[DEV] notification pushed to user",
+	}, nil
 }
 
-func GetNotificationBody(notifType string, user string) string {
+func GetNotificationBody(notifType models.NotificationType, user string) string {
 	switch notifType {
 	case "added":
 		return user + " added something to the list"

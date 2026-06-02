@@ -8,9 +8,11 @@ import (
 )
 
 type Env struct {
-	DataDir string
-	Bucket  string
-	DB      string
+	DataDir             string
+	Bucket              string
+	DB                  string
+	OnlineRecipesAPIUrl string
+	Port                string
 }
 
 var Vars Env
@@ -23,9 +25,11 @@ func LoadEnv() {
 	}
 
 	Vars = Env{
-		DataDir: getEnv("DATA_DIR", "./data"),
-		Bucket:  getEnv("BUCKET", "recipes"),
-		DB:      getEnv("DB", "recipes.db"),
+		DataDir:             getEnv("DATA_DIR", "./data"),
+		Bucket:              getEnv("BUCKET", "recipes"),
+		DB:                  getEnv("DB", "recipes.db"),
+		OnlineRecipesAPIUrl: getEnv("ONLINE_RECIPES_API_URL", ""),
+		Port:                getEnv("PORT", "3000"),
 	}
 }
 

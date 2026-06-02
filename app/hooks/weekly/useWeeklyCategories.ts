@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import BottomSheet from "@gorhom/bottom-sheet"
 import { cronClient } from "@/lib/cron"
 import { categoryClient } from "@/lib/category"
@@ -9,6 +9,19 @@ export function useWeeklyCategories() {
     const bottomSheetRef = useRef<BottomSheet>(null)
 
     const [selectedProduct, setSelectedProduct] = useState<CronProduct | null>(null)
+    const [cronProducts, setCronProducts] = useState<CronProduct[]>([])
+    const [loading, setLoading] = useState(false)
+
+    const getCronProducts = useCallback(async () => {
+        setLoading(true)
+
+        const response = await cronClient.getCronProducts()
+        if (response) {
+            setCronProducts(response)
+        }
+
+        setLoading(false)
+    }, [])
 
     const open = useCallback((cronProduct: CronProduct) => {
         setSelectedProduct(cronProduct)
@@ -36,11 +49,20 @@ export function useWeeklyCategories() {
         return cronResponse
     }
 
+    useEffect(() => {
+        if (cronProducts.length === 0) getCronProducts()
+    }, [])
+
     return {
+        states: {
+            loading,
+            cronProducts,
+        },
         actions: {
             open,
             close,
             updateCategory,
+            getCronProducts,
         },
         refs: {
             bottomSheetRef,

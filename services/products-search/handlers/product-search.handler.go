@@ -2,17 +2,16 @@ package handlers
 
 import (
 	"net/http"
+	"shopping-list/shared/contracts"
 	"strconv"
 	"strings"
-
-	"shopping-list/products-search/models"
 
 	"github.com/labstack/echo/v4"
 )
 
 type ProductsSearchService interface {
-	SearchProducts(query string, categories []string, page int, pageSize int) (models.ProductsSearchResult, error)
-	FuzzySearchProducts(query string, category string, page int, pageSize int) (models.ProductsSearchResult, error)
+	SearchProducts(query string, categories []string, page int, pageSize int) (*contracts.ProductsSearchResponse, error)
+	FuzzySearchProducts(query string, category string, page int, pageSize int) (*contracts.ProductsSearchResponse, error)
 }
 
 type ProductsSearchHandler struct {
@@ -27,7 +26,7 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("q"))
 	if query == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Missing query parameter ?q=",
+			"error": "missing query parameter ?q=",
 		})
 	}
 
@@ -55,7 +54,7 @@ func (psh *ProductsSearchHandler) FuzzySearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("q"))
 	if query == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Missing query parameter ?q=",
+			"error": "missing query parameter ?q=",
 		})
 	}
 

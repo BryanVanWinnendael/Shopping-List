@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"shopping-list/cron/internal/config"
-	"shopping-list/cron/models"
+	firebaseModel "shopping-list/cron/models"
+	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"time"
 
 	"firebase.google.com/go/v4/db"
@@ -16,11 +18,12 @@ import (
 )
 
 type NotificationService interface {
-	SendNotification(user string, notificationType string) error
+	SendNotification(user string, notificationType string, text *string) error
 }
 
 type FirebaseClient interface {
 	Set(path string, data interface{}) error
+	Get(path string, dest interface{}) error
 }
 
 type FirebaseClientImpl struct {
@@ -43,7 +46,7 @@ func NewCronService(firebaseDBClient FirebaseClient, bboltDB *bbolt.DB, notifica
 		return err
 	})
 	if err != nil {
-		log.Fatalf("Failed to create bucket: %v", err)
+		log.Fatalf("failed to create bucket: %v", err)
 	}
 
 	return &CronService{
@@ -59,125 +62,164 @@ func (f *FirebaseClientImpl) Set(path string, data interface{}) error {
 	return ref.Set(ctx, data)
 }
 
-func (c *CronService) CreateCronItem(item models.CronItem) (string, error) {
-	if item.ID == "" {
-		item.ID = uuid.New().String()
+func (f *FirebaseClientImpl) Get(path string, dest interface{}) error {
+	ctx := context.Background()
+	ref := f.client.NewRef(path)
+	return ref.Get(ctx, dest)
+}
+
+func (c *CronService) CreateCronProduct(cronProductRequest *contracts.CreateCronProductRequest) (*contracts.CreateCronProductResponse, error) {
+	cronProduct := models.CronProduct{
+		Id:       uuid.New().String(),
+		Category: cronProductRequest.Category,
+		Product:  cronProductRequest.Product,
+		User:     cronProductRequest.User,
 	}
 
-	data, err := json.Marshal(item)
+	data, err := json.Marshal(cronProduct)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = c.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
-		return b.Put([]byte(item.ID), data)
+		return b.Put([]byte(cronProduct.Id), data)
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return item.ID, nil
+	return &contracts.CreateCronProductResponse{
+		Id:       cronProduct.Id,
+		Product:  cronProduct.Product,
+		User:     cronProduct.User,
+		Category: cronProduct.Category,
+	}, nil
 }
 
-func (c *CronService) GetAllCronItems() ([]models.CronItem, error) {
-	var items []models.CronItem
+func (c *CronService) GetAllCronProducts() (*contracts.GetAllCronProductsResponse, error) {
+	var cronProducts []models.CronProduct
 
 	err := c.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(k, v []byte) error {
-			var item models.CronItem
-			if err := json.Unmarshal(v, &item); err != nil {
+			var product models.CronProduct
+			if err := json.Unmarshal(v, &product); err != nil {
 				return err
 			}
-			items = append(items, item)
+			cronProducts = append(cronProducts, product)
 			return nil
 		})
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	return items, err
+	result := contracts.GetAllCronProductsResponse(cronProducts)
+	return &result, nil
 }
 
-func (c *CronService) UpdateCronItemCategory(id string, newCategory string) error {
-	return c.db.Update(func(tx *bbolt.Tx) error {
+func (c *CronService) UpdateCronProductCategory(id string, request *contracts.UpdateCronProductCategoryRequest) (*contracts.UpdateCronProductCategoryResponse, error) {
+	var cronProduct models.CronProduct
+
+	err := c.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
-			return errors.New("cron item not found")
+			return errors.New("cron product not found")
 		}
 
-		var item models.CronItem
-		if err := json.Unmarshal(v, &item); err != nil {
+		if err := json.Unmarshal(v, &cronProduct); err != nil {
 			return err
 		}
 
-		item.Category = newCategory
-		data, err := json.Marshal(item)
+		cronProduct.Category = request.Category
+		data, err := json.Marshal(cronProduct)
 		if err != nil {
 			return err
 		}
 
 		return b.Put([]byte(id), data)
 	})
-}
-
-func (c *CronService) DeleteCronItem(id string) error {
-	return c.db.Update(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(config.Vars.Bucket))
-		v := b.Get([]byte(id))
-		if v == nil {
-			return errors.New("cron item not found")
-		}
-		return b.Delete([]byte(id))
-	})
-}
-
-func (c *CronService) GetCronItemsByUser(addedBy string) ([]models.CronItem, error) {
-	all, err := c.GetAllCronItems()
 	if err != nil {
 		return nil, err
 	}
 
-	var userItems []models.CronItem
-	for _, item := range all {
-		if item.AddedBy == addedBy {
-			userItems = append(userItems, item)
+	return &contracts.UpdateCronProductCategoryResponse{
+		Category: request.Category,
+		Id:       id,
+		Product:  cronProduct.Product,
+		User:     cronProduct.User,
+	}, nil
+}
+
+func (c *CronService) DeleteCronProduct(id string) (*contracts.DeleteCronProductResponse, error) {
+	err := c.db.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(config.Vars.Bucket))
+		v := b.Get([]byte(id))
+		if v == nil {
+			return errors.New("cron product not found")
+		}
+		return b.Delete([]byte(id))
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &contracts.DeleteCronProductResponse{
+		Id:      id,
+		Message: "cron product deleted",
+	}, nil
+}
+
+func (c *CronService) GetCronProductsByUser(user string) (*contracts.GetCronProductsByUserResponse, error) {
+	cronProducts, err := c.GetAllCronProducts()
+	if err != nil {
+		return nil, err
+	}
+
+	var userProducts []models.CronProduct
+	for _, cronProduct := range *cronProducts {
+		if cronProduct.User == user {
+			userProducts = append(userProducts, cronProduct)
 		}
 	}
-	return userItems, nil
+
+	res := contracts.GetCronProductsByUserResponse(userProducts)
+	return &res, nil
 }
 
 func (c *CronService) RunCronJob() error {
-	items, err := c.GetAllCronItems()
+	cronProducts, err := c.GetAllCronProducts()
 	if err != nil {
-		return fmt.Errorf("failed to get cron items: %w", err)
+		return fmt.Errorf("failed to get cron products: %w", err)
 	}
 
 	userSet := make(map[string]struct{})
 
-	for _, cronItem := range items {
+	for _, cronProduct := range *cronProducts {
 		id := uuid.New().String()
 		now := time.Now().Unix()
 
-		item := models.Item{
-			Item:     cronItem.Item,
+		product := firebaseModel.CronProduct{
+			Product:  cronProduct.Product,
 			Type:     "text",
-			AddedBy:  cronItem.AddedBy,
+			AddedBy:  cronProduct.User,
 			AddedAt:  now,
-			ID:       id,
-			Category: cronItem.Category,
+			Id:       id,
+			Category: cronProduct.Category,
 		}
 
-		_, err := c.addCronItemToList(item)
+		err := c.addCronProductToList(product)
 		if err != nil {
-			fmt.Printf("failed to add item '%s' to Firebase: %v\n", item.Item, err)
+			fmt.Printf("failed to add product '%s' to Firebase: %v\n", product.Product, err)
 		}
 
-		userSet[cronItem.AddedBy] = struct{}{}
+		userSet[cronProduct.User] = struct{}{}
 	}
 
 	for user := range userSet {
-		err := c.ns.SendNotification(user, "timed")
+		err := c.ns.SendNotification(user, "timed", nil)
 		if err != nil {
 			fmt.Printf("failed to send notification to user '%s': %v\n", user, err)
 		}
@@ -186,11 +228,38 @@ func (c *CronService) RunCronJob() error {
 	return nil
 }
 
-func (c *CronService) addCronItemToList(item models.Item) (string, error) {
-	path := fmt.Sprintf("items/%s", item.ID)
-	if err := c.firebase.Set(path, item); err != nil {
-		return "", err
+func (c *CronService) RunReminderCronJob() error {
+	count, err := c.getCountProductsInFirebase()
+	fmt.Printf("count of products in Firebase: %d\n", count)
+	if err != nil {
+		return fmt.Errorf("failed to get cron products: %w", err)
 	}
 
-	return item.ID, nil
+	if count > 0 {
+		text := fmt.Sprintf("You have %d products in your shopping list. Don't forget to check them out!", count)
+		err := c.ns.SendNotification("All", "timed", &text)
+		if err != nil {
+			fmt.Printf("failed to send reminder notification: %v\n", err)
+		}
+	}
+
+	return nil
+}
+
+func (c *CronService) addCronProductToList(cronProduct firebaseModel.CronProduct) error {
+	path := fmt.Sprintf("products/%s", cronProduct.Id)
+	if err := c.firebase.Set(path, cronProduct); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *CronService) getCountProductsInFirebase() (int, error) {
+	var products map[string]firebaseModel.CronProduct
+	if err := c.firebase.Get("products", &products); err != nil {
+		return 0, err
+	}
+
+	return len(products), nil
 }

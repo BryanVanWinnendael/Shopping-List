@@ -1,11 +1,12 @@
 package services
 
 import (
+	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
 
 	"shopping-list/recipes/internal/config"
-	"shopping-list/recipes/models"
 
 	"go.etcd.io/bbolt"
 )
@@ -17,19 +18,19 @@ func TestCreateRecipe(t *testing.T) {
 
 		service := NewRecipeService(db)
 
-		data := &models.RecipeCreate{
-			CreatedBy: "user1",
-			Title:     "Pizza",
+		request := contracts.CreateRecipeRequest{
+			User:  "user1",
+			Title: "Pizza",
 		}
 
 		// when
-		resp, err := service.CreateRecipe(data)
+		result, err := service.CreateRecipe(&request)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if resp.ID == "" {
+		if result.Id == "" {
 			t.Fatalf("expected id to be set")
 		}
 	})
@@ -42,17 +43,17 @@ func TestGetRecipe(t *testing.T) {
 
 		service := NewRecipeService(db)
 
-		recipe := models.Recipe{ID: "1", Title: "Pizza"}
+		recipe := models.Recipe{Id: "1", Title: "Pizza"}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe)
 
 		// when
-		resp, err := service.GetRecipe("1")
+		result, err := service.GetRecipe("1")
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if resp.ID != "1" {
+		if result.Id != "1" {
 			t.Fatalf("expected id 1")
 		}
 	})
@@ -83,8 +84,8 @@ func TestGetAllRecipes(t *testing.T) {
 		pub := true
 		priv := false
 
-		recipe1 := models.Recipe{ID: "1", Title: "A", Public: &pub}
-		recipe2 := models.Recipe{ID: "2", Title: "B", Public: &priv}
+		recipe1 := models.Recipe{Id: "1", Title: "A", Public: &pub}
+		recipe2 := models.Recipe{Id: "2", Title: "B", Public: &priv}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe1)
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
@@ -95,8 +96,8 @@ func TestGetAllRecipes(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if len(res) != 1 {
-			t.Fatalf("expected 1 public recipe, got %d", len(res))
+		if len(*res) != 1 {
+			t.Fatalf("expected 1 public recipe, got %d", len(*res))
 		}
 	})
 
@@ -125,8 +126,8 @@ func TestGetRecipesByUser(t *testing.T) {
 
 		service := NewRecipeService(db)
 
-		recipe1 := models.Recipe{ID: "1", CreatedBy: "user1"}
-		recipe2 := models.Recipe{ID: "2", CreatedBy: "user2"}
+		recipe1 := models.Recipe{Id: "1", User: "user1"}
+		recipe2 := models.Recipe{Id: "2", User: "user2"}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe1)
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
@@ -137,8 +138,8 @@ func TestGetRecipesByUser(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if len(res) != 1 {
-			t.Fatalf("expected 1 recipe, got %d", len(res))
+		if len(*res) != 1 {
+			t.Fatalf("expected 1 recipe, got %d", len(*res))
 		}
 	})
 }
@@ -150,15 +151,17 @@ func TestUpdateRecipe(t *testing.T) {
 
 		service := NewRecipeService(db)
 
-		recipe := models.Recipe{ID: "1", Title: "Old"}
+		recipe := models.Recipe{Id: "1", Title: "Old"}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe)
 
 		newTitle := "New"
 
+		request := contracts.UpdateRecipeRequest{
+			Title: newTitle,
+		}
+
 		// when
-		res, err := service.UpdateRecipe("1", &models.RecipeUpdate{
-			Title: &newTitle,
-		})
+		res, err := service.UpdateRecipe("1", &request)
 
 		// then
 		if err != nil {
@@ -176,7 +179,7 @@ func TestUpdateRecipe(t *testing.T) {
 		service := NewRecipeService(db)
 
 		// when
-		_, err := service.UpdateRecipe("missing", &models.RecipeUpdate{})
+		_, err := service.UpdateRecipe("missing", &contracts.UpdateRecipeRequest{})
 
 		// then
 		if err == nil {
@@ -186,42 +189,42 @@ func TestUpdateRecipe(t *testing.T) {
 }
 
 func TestDeleteRecipe(t *testing.T) {
-	t.Run("Given existing recipe, When DeleteRecipe, Then returns true", func(t *testing.T) {
+	t.Run("Given existing recipe, When DeleteRecipe, Then returns deleted recipe", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := NewRecipeService(db)
 
-		recipe := models.Recipe{ID: "1"}
+		recipe := models.Recipe{Id: "1"}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe)
 
 		// when
-		ok, err := service.DeleteRecipe("1")
+		result, err := service.DeleteRecipe("1")
 
 		// then
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if !ok {
-			t.Fatalf("expected true")
+		if result.Id != "1" {
+			t.Fatalf("expected id 1")
 		}
 	})
 
-	t.Run("Given missing recipe, When DeleteRecipe, Then returns false", func(t *testing.T) {
+	t.Run("Given missing recipe, When DeleteRecipe, Then return error", func(t *testing.T) {
 		// given
 		db := setup(t)
 
 		service := NewRecipeService(db)
 
 		// when
-		ok, err := service.DeleteRecipe("missing")
+		_, err := service.DeleteRecipe("missing")
 
 		// then
-		if err != nil {
+		if err == nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if ok {
-			t.Fatalf("expected false")
+		if err.Error() != "recipe not found" {
+			t.Fatalf("expected error")
 		}
 	})
 }
@@ -236,22 +239,22 @@ func TestGetAllDistinctCountries(t *testing.T) {
 		c1 := "BE"
 		c2 := "NL"
 
-		recipe1 := models.Recipe{ID: "1", Country: &c1}
-		recipe2 := models.Recipe{ID: "2", Country: &c2}
-		recipe3 := models.Recipe{ID: "3", Country: &c1}
+		recipe1 := models.Recipe{Id: "1", Country: &c1}
+		recipe2 := models.Recipe{Id: "2", Country: &c2}
+		recipe3 := models.Recipe{Id: "3", Country: &c1}
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe1)
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 		tests.Put(t, db, config.Vars.Bucket, []byte("3"), recipe3)
 
 		// when
-		res, err := service.GetAllDistinctCountries()
+		result, err := service.GetAllDistinctCountries()
 
 		// then
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if len(res) != 2 {
-			t.Fatalf("expected 2 countries, got %d", len(res))
+		if len(*result) != 2 {
+			t.Fatalf("expected 2 countries, got %d", len(*result))
 		}
 	})
 }

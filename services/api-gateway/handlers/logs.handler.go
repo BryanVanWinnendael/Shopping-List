@@ -3,16 +3,16 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"shopping-list/api-gateway/models"
 	"shopping-list/api-gateway/response"
+	"shopping-list/shared/contracts"
 
 	"github.com/labstack/echo/v4"
 )
 
 type LogsService interface {
-	GetAppLogs(ctx context.Context) (*models.GetAppLogsResponse, error)
-	CreateAppLog(ctx context.Context, request models.CreateLogRequest) error
-	DeleteAppLogs(ctx context.Context) error
+	GetAppLogs(ctx context.Context) (*contracts.GetAppLogsResponse, error)
+	CreateAppLog(ctx context.Context, request *contracts.CreateAppLogRequest) (*contracts.CreateAppLogResponse, error)
+	DeleteAppLogs(ctx context.Context) (*contracts.DeleteAppLogResponse, error)
 }
 
 func NewLogsHandler(ls LogsService) *LogsHandler {
@@ -33,7 +33,7 @@ func (lh *LogsHandler) GetAppLogs(c echo.Context) error {
 }
 
 func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
-	var request models.CreateLogRequest
+	var request contracts.CreateAppLogRequest
 	if err := c.Bind(&request); err != nil {
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
@@ -43,19 +43,19 @@ func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
 		return response.Missing(c, response.SourceBody, missingFields...)
 	}
 
-	err := lh.LogsService.CreateAppLog(c.Request().Context(), request)
+	result, err := lh.LogsService.CreateAppLog(c.Request().Context(), &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "App log written")
+	return response.Success(c, http.StatusOK, result)
 }
 
 func (lh *LogsHandler) DeleteAppLogs(c echo.Context) error {
-	err := lh.LogsService.DeleteAppLogs(c.Request().Context())
+	result, err := lh.LogsService.DeleteAppLogs(c.Request().Context())
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "App logs cleared")
+	return response.Success(c, http.StatusOK, result)
 }

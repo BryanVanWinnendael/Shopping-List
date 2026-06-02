@@ -5,120 +5,95 @@ import (
 	"errors"
 	"log"
 	"shopping-list/recipes/internal/config"
+	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
+	"strings"
 
-	"shopping-list/recipes/models"
 	"sort"
 
 	"github.com/google/uuid"
-	bolt "go.etcd.io/bbolt"
+	"go.etcd.io/bbolt"
 )
 
 type RecipeService struct {
-	db *bolt.DB
+	db *bbolt.DB
 }
 
-func NewRecipeService(db *bolt.DB) *RecipeService {
-	err := db.Update(func(tx *bolt.Tx) error {
+func NewRecipeService(db *bbolt.DB) *RecipeService {
+	err := db.Update(func(tx *bbolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
 		return err
 	})
 	if err != nil {
-		log.Fatalf("Failed to create recipes bucket: %v", err)
+		log.Fatalf("failed to create recipes bucket: %v", err)
 	}
 
 	return &RecipeService{db: db}
 }
 
-func (s *RecipeService) CreateRecipe(data *models.RecipeCreate) (*models.RecipeResponse, error) {
-	recipeID := data.ID
-	if recipeID == "" {
-		recipeID = uuid.New().String()
+func (s *RecipeService) CreateRecipe(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error) {
+	recipeId := uuid.New().String()
+	if request.Id != nil && *request.Id != "" {
+		recipeId = *request.Id
 	}
 
 	recipe := &models.Recipe{
-		ID:        recipeID,
-		CreatedBy: data.CreatedBy,
-		Title:     data.Title,
-		Public:    data.Public,
-		Image:     data.Image,
-		List:      data.List,
-		Source:    data.Source,
-		Notes:     data.Notes,
-		Time:      data.Time,
-		MealType:  data.MealType,
-		Country:   data.Country,
+		Id:           recipeId,
+		User:         request.User,
+		Title:        request.Title,
+		Public:       request.Public,
+		Banner:       stringPtrTrimOrNil(request.Banner),
+		Ingredients:  normalizeIngredients(request.Ingredients),
+		Source:       stringPtrTrimOrNil(request.Source),
+		Instructions: normalizeInstructions(request.Instructions),
+		Time:         request.Time,
+		MealType:     stringPtrTrimOrNil(request.MealType),
+		Country:      stringPtrTrimOrNil(request.Country),
+		Persons:      request.Persons,
 	}
 
 	recipeJSON, _ := json.MarshalIndent(recipe, "", "  ")
-	err := s.db.Update(func(tx *bolt.Tx) error {
+	err := s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
-		return b.Put([]byte(recipe.ID), recipeJSON)
+		return b.Put([]byte(recipe.Id), recipeJSON)
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	resp := &models.RecipeResponse{
-		ID:        recipe.ID,
-		CreatedBy: recipe.CreatedBy,
-		Title:     recipe.Title,
-		Public:    recipe.Public,
-		Image:     recipe.Image,
-		List:      convertList(recipe.List),
-		Source:    recipe.Source,
-		Notes:     recipe.Notes,
-		Time:      recipe.Time,
-		MealType:  recipe.MealType,
-		Country:   recipe.Country,
-	}
-
-	return resp, nil
+	return (*contracts.CreateRecipeResponse)(recipe), nil
 }
 
-func (s *RecipeService) GetRecipe(id string) (*models.RecipeResponse, error) {
-	var recipe models.Recipe
+func (s *RecipeService) GetRecipe(id string) (*contracts.GetRecipeResponse, error) {
+	var result contracts.GetRecipeResponse
 
-	err := s.db.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
 			return errors.New("recipe not found")
 		}
-		return json.Unmarshal(v, &recipe)
+		return json.Unmarshal(v, &result)
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	resp := models.RecipeResponse{
-		ID:        recipe.ID,
-		CreatedBy: recipe.CreatedBy,
-		Title:     recipe.Title,
-		Public:    recipe.Public,
-		Image:     recipe.Image,
-		List:      convertList(recipe.List),
-		Source:    recipe.Source,
-		Notes:     recipe.Notes,
-		Time:      recipe.Time,
-		MealType:  recipe.MealType,
-		Country:   recipe.Country,
-	}
-
-	return &resp, nil
+	return &result, nil
 }
 
-func (s *RecipeService) GetAllRecipes(skip, limit int) ([]models.RecipeResponse, error) {
-	var recipes []models.Recipe
+func (s *RecipeService) GetAllRecipes(skip, limit int) (*contracts.GetAllRecipesResponse, error) {
+	var result contracts.GetAllRecipesResponse
 
-	err := s.db.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(_, v []byte) error {
-			var r models.Recipe
+			var r models.RecipeSummary
 			if err := json.Unmarshal(v, &r); err != nil {
 				return err
 			}
 			if r.Public != nil && *r.Public {
-				recipes = append(recipes, r)
+				result = append(result, r)
 			}
 			return nil
 		})
@@ -127,42 +102,41 @@ func (s *RecipeService) GetAllRecipes(skip, limit int) ([]models.RecipeResponse,
 		return nil, err
 	}
 
-	if skip >= len(recipes) {
-		return []models.RecipeResponse{}, nil
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Title < result[j].Title
+	})
+
+	if skip >= len(result) {
+		empty := contracts.GetAllRecipesResponse{}
+		return &empty, nil
 	}
+
 	end := skip + limit
-	if end > len(recipes) {
-		end = len(recipes)
+	if end > len(result) {
+		end = len(result)
 	}
 
-	result := make([]models.RecipeResponse, 0, end-skip)
-	for _, r := range recipes[skip:end] {
-		result = append(result, models.RecipeResponse{
-			ID:        r.ID,
-			CreatedBy: r.CreatedBy,
-			Title:     r.Title,
-			Image:     r.Image,
-			MealType:  r.MealType,
-			Country:   r.Country,
-			Time:      r.Time,
-		})
-	}
+	paginated := result[skip:end]
 
-	return result, nil
+	return &paginated, nil
 }
 
-func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) ([]models.RecipeResponse, error) {
-	var recipes []models.Recipe
+func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) (*contracts.GetRecipesByUserResponse, error) {
+	var result contracts.GetRecipesByUserResponse
 
-	err := s.db.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
+		if b == nil {
+			return errors.New("bucket not found")
+		}
+
 		return b.ForEach(func(_, v []byte) error {
-			var r models.Recipe
+			var r models.RecipeSummary
 			if err := json.Unmarshal(v, &r); err != nil {
 				return err
 			}
-			if r.CreatedBy == user {
-				recipes = append(recipes, r)
+			if r.User == user {
+				result = append(result, r)
 			}
 			return nil
 		})
@@ -171,38 +145,29 @@ func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) ([]models
 		return nil, err
 	}
 
-	if skip >= len(recipes) {
-		return []models.RecipeResponse{}, nil
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Title < result[j].Title
+	})
+
+	if skip >= len(result) {
+		empty := contracts.GetRecipesByUserResponse{}
+		return &empty, nil
 	}
+
 	end := skip + limit
-	if end > len(recipes) {
-		end = len(recipes)
+	if end > len(result) {
+		end = len(result)
 	}
 
-	result := make([]models.RecipeResponse, 0, end-skip)
-	for _, r := range recipes[skip:end] {
-		result = append(result, models.RecipeResponse{
-			ID:        r.ID,
-			CreatedBy: r.CreatedBy,
-			Title:     r.Title,
-			Public:    r.Public,
-			Image:     r.Image,
-			List:      convertList(r.List),
-			Source:    r.Source,
-			Notes:     r.Notes,
-			Time:      r.Time,
-			MealType:  r.MealType,
-			Country:   r.Country,
-		})
-	}
+	paginated := result[skip:end]
 
-	return result, nil
+	return &paginated, nil
 }
 
-func (s *RecipeService) UpdateRecipe(id string, data *models.RecipeUpdate) (*models.RecipeResponse, error) {
-	var recipe models.Recipe
+func (s *RecipeService) UpdateRecipe(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error) {
+	var recipe contracts.UpdateRecipeResponse
 
-	err := s.db.Update(func(tx *bolt.Tx) error {
+	err := s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
@@ -212,36 +177,40 @@ func (s *RecipeService) UpdateRecipe(id string, data *models.RecipeUpdate) (*mod
 			return err
 		}
 
-		if data.Title != nil {
-			recipe.Title = *data.Title
+		if strings.TrimSpace(request.Title) != "" {
+			recipe.Title = request.Title
 		}
-		if data.Public != nil {
-			recipe.Public = data.Public
+
+		if request.Public != nil {
+			recipe.Public = request.Public
 		}
-		if data.Image != nil {
-			if *data.Image == "remove" {
-				recipe.Image = nil
-			} else {
-				recipe.Image = data.Image
-			}
+		if request.Banner != nil {
+			trimmed := stringPtrTrimOrNil(request.Banner)
+			recipe.Banner = trimmed
 		}
-		if data.List != nil {
-			recipe.List = *data.List
+		if request.Ingredients != nil {
+			recipe.Ingredients = normalizeIngredients(request.Ingredients)
 		}
-		if data.Source != nil {
-			recipe.Source = data.Source
+		if request.Source != nil {
+			val := stringPtrTrimOrNil(request.Source)
+			recipe.Source = val
 		}
-		if data.Notes != nil {
-			recipe.Notes = data.Notes
+		if request.Instructions != nil {
+			recipe.Instructions = normalizeInstructions(request.Instructions)
 		}
-		if data.Time != nil {
-			recipe.Time = data.Time
+		if request.Time != nil {
+			recipe.Time = request.Time
 		}
-		if data.MealType != nil {
-			recipe.MealType = data.MealType
+		if request.MealType != nil {
+			val := stringPtrTrimOrNil(request.MealType)
+			recipe.MealType = val
 		}
-		if data.Country != nil {
-			recipe.Country = data.Country
+		if request.Country != nil {
+			val := stringPtrTrimOrNil(request.Country)
+			recipe.Country = val
+		}
+		if request.Persons != nil {
+			recipe.Persons = request.Persons
 		}
 
 		updated, _ := json.Marshal(recipe)
@@ -251,26 +220,12 @@ func (s *RecipeService) UpdateRecipe(id string, data *models.RecipeUpdate) (*mod
 		return nil, err
 	}
 
-	resp := &models.RecipeResponse{
-		ID:        recipe.ID,
-		CreatedBy: recipe.CreatedBy,
-		Title:     recipe.Title,
-		Public:    recipe.Public,
-		Image:     recipe.Image,
-		List:      convertList(recipe.List),
-		Source:    recipe.Source,
-		Notes:     recipe.Notes,
-		Time:      recipe.Time,
-		MealType:  recipe.MealType,
-		Country:   recipe.Country,
-	}
-
-	return resp, nil
+	return &recipe, nil
 }
 
-func (s *RecipeService) DeleteRecipe(id string) (bool, error) {
+func (s *RecipeService) DeleteRecipe(id string) (*contracts.DeleteRecipeResponse, error) {
 	var existed bool
-	err := s.db.Update(func(tx *bolt.Tx) error {
+	err := s.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		v := b.Get([]byte(id))
 		if v == nil {
@@ -280,13 +235,25 @@ func (s *RecipeService) DeleteRecipe(id string) (bool, error) {
 		existed = true
 		return b.Delete([]byte(id))
 	})
-	return existed, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !existed {
+		return nil, errors.New("recipe not found")
+	}
+
+	return &contracts.DeleteRecipeResponse{
+		Id:      id,
+		Message: "recipe deleted",
+	}, err
 }
 
-func (s *RecipeService) GetAllDistinctCountries() ([]string, error) {
+func (s *RecipeService) GetAllDistinctCountries() (*contracts.GetDistinctCountriesResponse, error) {
 	countrySet := make(map[string]struct{})
 
-	err := s.db.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
 		return b.ForEach(func(_, v []byte) error {
 			var r models.Recipe
@@ -310,16 +277,51 @@ func (s *RecipeService) GetAllDistinctCountries() ([]string, error) {
 
 	sort.Strings(countries)
 
-	return countries, nil
+	response := contracts.GetDistinctCountriesResponse(countries)
+	return &response, nil
 }
 
-func convertList(list models.JSONList) []models.RecipeListItem {
-	if list == nil {
-		return []models.RecipeListItem{}
+func normalizeIngredients(ingredients []models.Ingredient) []models.Ingredient {
+	result := make([]models.Ingredient, 0, len(ingredients))
+
+	for _, ingredient := range ingredients {
+		url := stringPtrTrimOrNil(ingredient.URL)
+		product := stringPtrTrimOrNil(ingredient.Product)
+
+		if url == nil && product == nil {
+			continue
+		}
+
+		result = append(result, models.Ingredient{
+			URL:     url,
+			Product: product,
+			Type:    ingredient.Type,
+		})
 	}
-	items := make([]models.RecipeListItem, len(list))
-	for i, v := range list {
-		items[i] = v
+
+	return result
+}
+
+func normalizeInstructions(instructions []string) []string {
+	result := make([]string, 0, len(instructions))
+
+	for _, instruction := range instructions {
+		trimmed := strings.TrimSpace(instruction)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
 	}
-	return items
+
+	return result
+}
+
+func stringPtrTrimOrNil(s *string) *string {
+	if s == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*s)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
 }

@@ -37,9 +37,14 @@ export default function Settings() {
                 <FontSize />
             </Section>
 
+            {ADMIN_USERS_ARRAY.includes(user ?? "") && (
+                <Section title="Admin settings">
+                    <ClearStorage />
+                </Section>
+            )}
+
             {ADMIN_USERS_ARRAY.includes(user ?? "") && IS_DEV && (
                 <Section title="Dev settings">
-                    <ClearStorage />
                     <TestList />
                 </Section>
             )}

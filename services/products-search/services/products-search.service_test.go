@@ -12,7 +12,7 @@ func TestSearchProducts(t *testing.T) {
 	t.Run("Given matching query, When SearchProducts, Then return results", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
-			{"pid", "item", "brand", "category", "image"},
+			{"pid", "name", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
 			{"2", "Bread", "BrandB", "bakery", "img"},
 		})
@@ -34,7 +34,7 @@ func TestSearchProducts(t *testing.T) {
 	t.Run("Given category filter, When SearchProducts, Then filter results", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
-			{"pid", "item", "brand", "category", "image"},
+			{"pid", "name", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
 			{"2", "Bread", "BrandB", "bakery", "img"},
 		})
@@ -59,7 +59,7 @@ func TestSearchProducts(t *testing.T) {
 	t.Run("Given no matches, When SearchProducts, Then return empty", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
-			{"pid", "item", "brand", "category", "image"},
+			{"pid", "name", "brand", "category", "image"},
 		})
 
 		service := NewProductsSearchService()
@@ -81,7 +81,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 	t.Run("Given fuzzy match, When FuzzySearchProducts, Then return ranked results", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
-			{"pid", "item", "brand", "category", "image"},
+			{"pid", "name", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
 			{"2", "Milky Bar", "BrandB", "snack", "img"},
 		})
@@ -103,7 +103,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 	t.Run("Given category filter, When FuzzySearchProducts, Then filter results", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
-			{"pid", "item", "brand", "category", "image"},
+			{"pid", "name", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
 			{"2", "Milk", "BrandB", "bakery", "img"},
 		})
@@ -125,7 +125,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 	t.Run("Given no matches, When FuzzySearchProducts, Then return empty", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
-			{"pid", "item", "brand", "category", "image"},
+			{"pid", "name", "brand", "category", "image"},
 		})
 
 		service := NewProductsSearchService()
@@ -147,7 +147,7 @@ func TestPagination(t *testing.T) {
 	t.Run("Given many items, When SearchProducts, Then paginate correctly", func(t *testing.T) {
 		// given
 		setup(t, [][]string{
-			{"pid", "item", "brand", "category", "image"},
+			{"pid", "name", "brand", "category", "image"},
 			{"1", "A", "B", "c", "img"},
 			{"2", "B", "B", "c", "img"},
 			{"3", "C", "B", "c", "img"},

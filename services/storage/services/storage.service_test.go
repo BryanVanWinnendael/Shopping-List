@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"shopping-list/shared/contracts"
 	"testing"
 
 	"shopping-list/storage/internal/config"
@@ -34,15 +35,18 @@ func TestUploadRecipeImage(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to get file: %v", err)
 		}
+		request := contracts.UploadImageRequest{
+			Image: fh,
+		}
 
 		// when
-		small, large, err := service.UploadRecipeImage(fh, "recipe1")
+		result, err := service.UploadRecipeImage(&request, "recipe1")
 
 		// then
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if small == "" || large == "" {
+		if result.Small == "" || result.Large == "" {
 			t.Fatalf("expected urls")
 		}
 	})
@@ -65,22 +69,25 @@ func TestUploadListImage(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to get file: %v", err)
 		}
+		request := contracts.UploadImageRequest{
+			Image: fh,
+		}
 
 		// when
-		small, large, err := service.UploadListImage(fh, "list1")
+		result, err := service.UploadListImage(&request, "list1")
 
 		// then
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if small == "" || large == "" {
+		if result.Small == "" || result.Large == "" {
 			t.Fatalf("expected urls")
 		}
 	})
 }
 
 func TestDeleteStorage(t *testing.T) {
-	t.Run("Given existing folder, When DeleteStorage, Then removes directory", func(t *testing.T) {
+	t.Run("Given existing folder, When DeleteStorage, Then remove storage", func(t *testing.T) {
 		// given
 		dir := t.TempDir()
 		config.Vars.StorageDir = dir
@@ -91,7 +98,7 @@ func TestDeleteStorage(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		err := service.DeleteStorage("1", "recipes")
+		result, err := service.DeleteStorage("1", "recipes")
 
 		// then
 		if err != nil {
@@ -100,6 +107,10 @@ func TestDeleteStorage(t *testing.T) {
 
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
 			t.Fatalf("expected directory removed")
+		}
+
+		if result.Message != "storage deleted successfully" {
+			t.Fatalf("expected storage deleted successfully got %s", result.Message)
 		}
 	})
 
@@ -111,7 +122,7 @@ func TestDeleteStorage(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		err := service.DeleteStorage("missing", "recipes")
+		_, err := service.DeleteStorage("missing", "recipes")
 
 		// then
 		if err == nil {
@@ -130,7 +141,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		err := service.DeleteRecipeImage("1", "http://evil.com/image.jpg")
+		_, err := service.DeleteRecipeImage("1", "http://evil.com/image.jpg")
 
 		// then
 		if err == nil {
@@ -158,7 +169,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		url := "http://localhost/recipes/images/1/large-test.jpg"
 
 		// when
-		err := service.DeleteRecipeImage(itemID, url)
+		result, err := service.DeleteRecipeImage(itemID, url)
 
 		// then
 		if err != nil {
@@ -167,6 +178,10 @@ func TestDeleteRecipeImage(t *testing.T) {
 
 		if _, err := os.Stat(filePath); !os.IsNotExist(err) {
 			t.Fatalf("expected file to be deleted")
+		}
+
+		if result.Message != "recipe image deleted successfully" {
+			t.Fatalf("expected recipe image deleted successfully got %s", result.Message)
 		}
 	})
 
@@ -179,7 +194,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		err := service.DeleteRecipeImage("1", "/recipes/images/1/large.jpg")
+		_, err := service.DeleteRecipeImage("1", "/recipes/images/1/large.jpg")
 
 		// then
 		if err == nil {
@@ -196,7 +211,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		err := service.DeleteRecipeImage("1", "http://evilhost/recipes/images/1/large.jpg")
+		_, err := service.DeleteRecipeImage("1", "http://evilhost/recipes/images/1/large.jpg")
 
 		// then
 		if err == nil {
@@ -215,7 +230,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		url := "http://localhost/recipes/images/1/large-missing.jpg"
 
 		// when
-		err := service.DeleteRecipeImage("1", url)
+		_, err := service.DeleteRecipeImage("1", url)
 
 		// then
 		if err == nil {
