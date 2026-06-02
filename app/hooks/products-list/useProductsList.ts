@@ -4,14 +4,14 @@ import {
     deleteProduct as deleteFirebaseProduct,
     getProducts as getFirebaseProducts,
 } from "@/lib/firebase"
-import { useSettingsStore } from "@/stores/useSettingsStore"
-import { Product } from "@/types/list"
+import {useSettingsStore} from "@/stores/useSettingsStore"
+import {Product} from "@/types/list"
 import * as ImagePicker from "expo-image-picker"
-import { storageClient } from "@/lib/storage"
-import { useEffect, useState } from "react"
-import { useProductsListStore } from "@/stores/useProductsListStore"
-import { useNotifications } from "@/hooks/notifications/useNotifications"
-import { Category } from "@/types/category-model"
+import {storageClient} from "@/lib/storage"
+import {useEffect, useState} from "react"
+import {useProductsListStore} from "@/stores/useProductsListStore"
+import {useNotifications} from "@/hooks/notifications/useNotifications"
+import {Category} from "@/types/category-model"
 
 export function useProductsList() {
     const { actions } = useNotifications()
@@ -85,7 +85,7 @@ export function useProductsList() {
 
         if (newProduct) {
             await createFirebaseProduct(newProduct)
-            actions.pushNotification("create")
+            actions.pushNotification("added")
         }
 
         setLoading(false)
@@ -93,11 +93,11 @@ export function useProductsList() {
 
     const deleteProduct = async (product: Product) => {
         await deleteFirebaseProduct(product)
-        actions.pushNotification("delete")
+        actions.pushNotification("removed")
     }
 
     useEffect(() => {
-        getFirebaseProducts(setProducts)
+        if (!products) getFirebaseProducts(setProducts)
     }, [setProducts])
 
     return {

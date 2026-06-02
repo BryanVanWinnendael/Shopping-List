@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View } from "react-native"
-import { IS_DEV } from "@/lib/constants"
-import { Product as ProductType } from "@/types/products-search"
+import {StyleSheet, Text, View} from "react-native"
+import {IS_DEV} from "@/lib/constants"
+import {Product as ProductType} from "@/types/products-search"
 import CategoryIcon from "@/components/categoryIcon"
 import AddButton from "@/components/products-search/addButton"
 import useThemes from "@/hooks/themes/useThemes"
@@ -21,7 +21,7 @@ export default function Product({ product }: Props) {
             ]}
         >
             <View style={styles.innerCard}>
-                <CustomImage style={{ borderRadius: 14 }} url={product.image} height={60} width={60} cache={false} />
+                <CustomImage style={{ borderRadius: 14 }} url={product.image} height={60} width={60} />
 
                 <View style={styles.info}>
                     <Text style={[styles.productName, { color: vars.textColor, fontSize: vars.textSize }]}>
