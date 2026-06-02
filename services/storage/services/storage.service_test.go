@@ -122,11 +122,11 @@ func TestDeleteStorage(t *testing.T) {
 		service := NewStorageService()
 
 		// when
-		_, err := service.DeleteStorage("missing", "recipes")
+		result, _ := service.DeleteStorage("missing", "recipes")
 
 		// then
-		if err == nil {
-			t.Fatalf("expected error, got nil")
+		if result.Message != "storage not found" {
+			t.Fatalf("expected storage not found got %s", result.Message)
 		}
 	})
 }
