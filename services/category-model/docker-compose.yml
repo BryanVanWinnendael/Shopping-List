@@ -1,7 +1,7 @@
 services:
   shopping-list:
     container_name: shopping-list-category-model
-    image: ghcr.io/bryanvanwinnendael/category-model-shopping-list:${IMAGE_TAG:-latest}
+    image: ghcr.io/bryanvanwinnendael/shopping-list-category-model:${IMAGE_TAG:-latest}
     expose:
       - "3000"
     volumes:

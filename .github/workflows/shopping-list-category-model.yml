@@ -87,7 +87,7 @@ jobs:
       - name: Check if version already exists
         id: check
         run: |
-          IMAGE="ghcr.io/${OWNER_LC}/category-model-shopping-list:${VERSION}"
+          IMAGE="ghcr.io/${OWNER_LC}/shopping-list-category-model:${VERSION}"
           if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
             echo "Image $IMAGE already exists, skipping build."
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -104,8 +104,8 @@ jobs:
           file: services/category-model/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/category-model-shopping-list:${{ env.VERSION }}
-            ghcr.io/${{ env.OWNER_LC }}/category-model-shopping-list:latest
+            ghcr.io/${{ env.OWNER_LC }}/shopping-list-category-model:${{ env.VERSION }}
+            ghcr.io/${{ env.OWNER_LC }}/shopping-list-category-model:latest
 
       - name: Set up SSH
         if: steps.check.outputs.exists == 'false'
