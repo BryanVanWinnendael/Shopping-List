@@ -83,7 +83,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: services/category-model/Dockerfile
+          context: services
+          file: services/category-model/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/category-model-shopping-list:latest
