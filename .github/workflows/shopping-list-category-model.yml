@@ -77,14 +77,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: services/category-model/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/category-model-shopping-list:latest
-            ghcr.io/${{ github.repository_owner }}/category-model-shopping-list:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_LC }}/category-model-shopping-list:latest
+            ghcr.io/${{ env.OWNER_LC }}/category-model-shopping-list:${{ github.sha }}
 
       - name: Set up SSH
         run: |
