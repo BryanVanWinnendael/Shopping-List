@@ -1,6 +1,10 @@
 name: Deploy Category Model µS
 
+env:
+  VERSION: "1.0.0"
+
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -80,27 +84,43 @@ jobs:
       - name: Set lowercase owner
         run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
 
+      - name: Check if version already exists
+        id: check
+        run: |
+          IMAGE="ghcr.io/${OWNER_LC}/category-model-shopping-list:${VERSION}"
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "Image $IMAGE already exists, skipping build."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Image $IMAGE does not exist, will build."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build and push image
+        if: steps.check.outputs.exists == 'false'
         uses: docker/build-push-action@v6
         with:
           context: services
           file: services/category-model/Dockerfile
           push: true
           tags: |
+            ghcr.io/${{ env.OWNER_LC }}/category-model-shopping-list:${{ env.VERSION }}
             ghcr.io/${{ env.OWNER_LC }}/category-model-shopping-list:latest
-            ghcr.io/${{ env.OWNER_LC }}/category-model-shopping-list:${{ github.sha }}
 
       - name: Set up SSH
+        if: steps.check.outputs.exists == 'false'
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
 
       - name: Deploy Category Model
+        if: steps.check.outputs.exists == 'false'
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
           echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           cd ~/projects/shopping-list/services
+          export IMAGE_TAG=${VERSION}
           docker compose -f category-model/docker-compose.yml pull
           docker compose -f category-model/docker-compose.yml up -d
           docker image prune -f --filter "label=com.docker.compose.project=category-model"
