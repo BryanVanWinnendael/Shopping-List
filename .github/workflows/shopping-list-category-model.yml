@@ -17,7 +17,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
       packages: write
@@ -96,9 +96,10 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Set up QEMU
-        if: steps.check.outputs.exists == 'false'
-        uses: docker/setup-qemu-action@v3
+      - name: Skip notice
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          echo "::notice::Version ${VERSION} already published — skipping build & deploy. Bump VERSION to release."
 
       - name: Set up Docker Buildx
         if: steps.check.outputs.exists == 'false'
@@ -115,3 +116,22 @@ jobs:
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/shopping-list-category-model:${{ env.VERSION }}
             ghcr.io/${{ env.OWNER_LC }}/shopping-list-category-model:latest
+
+      - name: Set up SSH
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+      - name: Deploy Category Model
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          cd ~/projects/shopping-list/services
+          export IMAGE_TAG=${VERSION}
+          docker compose -f category-model/docker-compose.yml pull
+          docker compose -f category-model/docker-compose.yml up -d
+          docker image prune -f --filter "label=com.docker.compose.project=category-model"
+          EOF
