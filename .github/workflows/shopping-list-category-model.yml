@@ -14,6 +14,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Set up Go
@@ -67,6 +70,22 @@ jobs:
 
           echo "All coverage thresholds passed"
 
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: services/category-model/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/category-model-shopping-list:latest
+            ghcr.io/${{ github.repository_owner }}/category-model-shopping-list:${{ github.sha }}
+
       - name: Set up SSH
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
@@ -75,11 +94,10 @@ jobs:
 
       - name: Deploy Category Model
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           cd ~/projects/shopping-list/services
-          git fetch origin main
-          git reset --hard origin/main
-          docker compose -f category-model/docker-compose.yml build
+          docker compose -f category-model/docker-compose.yml pull
           docker compose -f category-model/docker-compose.yml up -d
-          docker image prune -af
+          docker image prune -f --filter "label=com.docker.compose.project=category-model"
           EOF
