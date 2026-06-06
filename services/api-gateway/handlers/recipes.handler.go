@@ -18,7 +18,7 @@ type RecipesService interface {
 	UpdateRecipe(ctx context.Context, id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUser(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountries(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
-	GetOnlineRecipes(ctx context.Context) (*contracts.GetOnlineRecipesResponse, error)
+	GetOnlineRecipes(ctx context.Context, page int) (*contracts.GetOnlineRecipesResponse, error)
 	GetOnlineRecipeDetails(ctx context.Context, url string) (*contracts.GetOnlineRecipeDetailsResponse, error)
 	SearchOnlineRecipes(ctx context.Context, query string, page int) (*contracts.GetOnlineRecipesResponse, error)
 }
@@ -143,7 +143,16 @@ func (rh *RecipesHandler) GetDistinctCountries(c echo.Context) error {
 }
 
 func (rh *RecipesHandler) GetOnlineRecipes(c echo.Context) error {
-	result, err := rh.RecipesService.GetOnlineRecipes(c.Request().Context())
+	pageStr := c.QueryParam("page")
+	page := 1
+	if pageStr != "" {
+		_, err := strconv.Atoi(pageStr)
+		if err != nil {
+			return response.Error(c, http.StatusBadRequest, "invalid page query parameter")
+		}
+	}
+
+	result, err := rh.RecipesService.GetOnlineRecipes(c.Request().Context(), page)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -174,9 +183,8 @@ func (rh *RecipesHandler) SearchOnlineRecipes(c echo.Context) error {
 	pageStr := c.QueryParam("page")
 	page := 1
 	if pageStr != "" {
-		var err error
-		page, err = strconv.Atoi(pageStr)
-		if err != nil || page < 1 {
+		_, err := strconv.Atoi(pageStr)
+		if err != nil {
 			return response.Error(c, http.StatusBadRequest, "invalid page query parameter")
 		}
 	}

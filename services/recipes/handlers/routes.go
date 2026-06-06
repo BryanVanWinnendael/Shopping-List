@@ -12,8 +12,8 @@ func SetupRoutes(e *echo.Echo, rh *RecipeHandler, orh *OnlineRecipeHandler) {
 	recipes.PUT("/:id", rh.UpdateRecipe)
 	recipes.DELETE("/:id", rh.DeleteRecipe)
 
-	Onlinerecipes := e.Group("/api/online-recipes")
-	Onlinerecipes.GET("", orh.GetRecipes)
-	Onlinerecipes.GET("/details", orh.GetRecipeDetails)
-	Onlinerecipes.GET("/search", orh.SearchRecipes)
+	onlineRecipes := e.Group("/api/online-recipes")
+	onlineRecipes.GET("", orh.GetRecipes)
+	onlineRecipes.GET("/details", orh.GetRecipeDetails)
+	onlineRecipes.GET("/search", orh.SearchRecipes)
 }

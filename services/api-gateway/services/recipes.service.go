@@ -167,8 +167,8 @@ func (rs *RecipesService) GetDistinctCountries(ctx context.Context) (*contracts.
 	return &response, nil
 }
 
-func (rs *RecipesService) GetOnlineRecipes(ctx context.Context) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/online-recipes", rs.baseURL)
+func (rs *RecipesService) GetOnlineRecipes(ctx context.Context, page int) (*contracts.GetOnlineRecipesResponse, error) {
+	requestUrl := fmt.Sprintf("%s/online-recipes?page=%d", rs.baseURL, page)
 
 	var response contracts.GetOnlineRecipesResponse
 

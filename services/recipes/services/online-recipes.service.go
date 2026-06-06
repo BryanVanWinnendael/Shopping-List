@@ -28,13 +28,13 @@ func NewOnlineRecipeService(client *httphelper.Client, baseURL string) *OnlineRe
 }
 
 func (s *OnlineRecipeService) GetRecipes(page int) (*contracts.GetOnlineRecipesResponse, error) {
-	url := s.baseURL
+	requestUrl := s.baseURL
 
 	if page > 1 {
-		url += "?page=" + strconv.Itoa(page)
+		requestUrl += "?page=" + strconv.Itoa(page)
 	}
 
-	return fetchRecipes(url, page)
+	return fetchRecipes(requestUrl, page)
 }
 
 func (s *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
@@ -115,14 +115,14 @@ func (s *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnline
 	timeText := doc.Find(".duration-container .duration").Text()
 	timeText = strings.ToUpper(strings.TrimSpace(timeText))
 
-	var time int
+	var recipeTime int
 	if strings.Contains(timeText, "MIN") {
 		timeText = strings.ReplaceAll(timeText, "MIN", "")
 		timeText = strings.TrimSpace(timeText)
 
 		parsed, err := strconv.Atoi(timeText)
 		if err == nil {
-			time = parsed
+			recipeTime = parsed
 		}
 	}
 
@@ -145,7 +145,7 @@ func (s *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnline
 		Instructions: instructions,
 		Nutrition:    nutrition,
 		Source:       url,
-		Time:         time,
+		Time:         recipeTime,
 		Persons:      persons,
 	}, nil
 }
