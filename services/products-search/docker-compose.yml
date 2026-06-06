@@ -1,9 +1,7 @@
 services:
   shopping-list:
     container_name: shopping-list-products-search
-    build:
-      context: ..
-      dockerfile: products-search/Dockerfile
+    image: ghcr.io/bryanvanwinnendael/shopping-list-products-search:${IMAGE_TAG:-latest}
     expose:
       - "3000"
     volumes:
