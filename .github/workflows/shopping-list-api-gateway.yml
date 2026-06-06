@@ -34,19 +34,22 @@ jobs:
       - name: Determine version
         id: version
         run: |
-          DEFAULT_VERSION=$(cat services/api-gateway/.version)
+          PREVIOUS_VERSION=$(cat services/api-gateway/.version)
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
             VERSION="${{ github.event.inputs.version }}"
             echo "$VERSION" > services/api-gateway/.version
             echo "updated=true" >> $GITHUB_OUTPUT
           else
-            VERSION="$DEFAULT_VERSION"
+            VERSION="$PREVIOUS_VERSION"
             echo "updated=false" >> $GITHUB_OUTPUT
           fi
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "PREVIOUS_VERSION=$PREVIOUS_VERSION" >> "$GITHUB_ENV"
+
           echo "Using version: $VERSION"
+          echo "Previous version: $PREVIOUS_VERSION"
 
       - name: Commit updated version (if changed)
         if: steps.version.outputs.updated == 'true'
@@ -120,8 +123,24 @@ jobs:
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
           echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           cd ~/projects/shopping-list/services
+
           export IMAGE_TAG=${VERSION}
+
           docker compose -f api-gateway/docker-compose.yml pull
           docker compose -f api-gateway/docker-compose.yml up -d
-          docker image prune -f --filter "label=com.docker.compose.project=api-gateway"
+
+          echo "Deployment complete for version: ${VERSION}"
+          EOF
+
+      - name: Cleanup previous image on server
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+
+          OLD_IMAGE=ghcr.io/${{ env.OWNER_LC }}/shopping-list-api-gateway:${PREVIOUS_VERSION}
+
+          echo "Removing old image: $OLD_IMAGE"
+
+          docker image rm $OLD_IMAGE || true
+
           EOF
