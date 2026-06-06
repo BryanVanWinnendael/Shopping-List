@@ -1,9 +1,7 @@
 services:
   shopping-list:
     container_name: shopping-list-notifications
-    build:
-      context: ..
-      dockerfile: notifications/Dockerfile
+    image: ghcr.io/bryanvanwinnendael/shopping-list-notifications:${IMAGE_TAG:-latest}
     expose:
       - "3000"
     volumes:
