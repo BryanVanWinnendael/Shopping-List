@@ -18,9 +18,9 @@ type RecipesService interface {
 	UpdateRecipe(ctx context.Context, id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUser(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountries(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
-	GetOnlineRecipes(ctx context.Context, page int) (*contracts.GetOnlineRecipesResponse, error)
+	GetOnlineRecipes(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error)
 	GetOnlineRecipeDetails(ctx context.Context, url string) (*contracts.GetOnlineRecipeDetailsResponse, error)
-	SearchOnlineRecipes(ctx context.Context, query string, page int) (*contracts.GetOnlineRecipesResponse, error)
+	SearchOnlineRecipes(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error)
 }
 
 func NewRecipesHandler(ls RecipesService) *RecipesHandler {
@@ -144,7 +144,6 @@ func (rh *RecipesHandler) GetDistinctCountries(c echo.Context) error {
 
 func (rh *RecipesHandler) GetOnlineRecipes(c echo.Context) error {
 	pageStr := c.QueryParam("page")
-	page := 1
 	if pageStr != "" {
 		_, err := strconv.Atoi(pageStr)
 		if err != nil {
@@ -152,7 +151,7 @@ func (rh *RecipesHandler) GetOnlineRecipes(c echo.Context) error {
 		}
 	}
 
-	result, err := rh.RecipesService.GetOnlineRecipes(c.Request().Context(), page)
+	result, err := rh.RecipesService.GetOnlineRecipes(c.Request().Context(), pageStr)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -181,7 +180,6 @@ func (rh *RecipesHandler) SearchOnlineRecipes(c echo.Context) error {
 	}
 
 	pageStr := c.QueryParam("page")
-	page := 1
 	if pageStr != "" {
 		_, err := strconv.Atoi(pageStr)
 		if err != nil {
@@ -189,7 +187,7 @@ func (rh *RecipesHandler) SearchOnlineRecipes(c echo.Context) error {
 		}
 	}
 
-	result, err := rh.RecipesService.SearchOnlineRecipes(c.Request().Context(), query, page)
+	result, err := rh.RecipesService.SearchOnlineRecipes(c.Request().Context(), query, pageStr)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

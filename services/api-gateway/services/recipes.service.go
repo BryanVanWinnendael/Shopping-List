@@ -167,8 +167,8 @@ func (rs *RecipesService) GetDistinctCountries(ctx context.Context) (*contracts.
 	return &response, nil
 }
 
-func (rs *RecipesService) GetOnlineRecipes(ctx context.Context, page int) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/online-recipes?page=%d", rs.baseURL, page)
+func (rs *RecipesService) GetOnlineRecipes(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error) {
+	requestUrl := fmt.Sprintf("%s/online-recipes?page=%s", rs.baseURL, page)
 
 	var response contracts.GetOnlineRecipesResponse
 
@@ -209,8 +209,8 @@ func (rs *RecipesService) GetOnlineRecipeDetails(ctx context.Context, url string
 	return &response, nil
 }
 
-func (rs *RecipesService) SearchOnlineRecipes(ctx context.Context, query string, page int) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/online-recipes/search?q=%s&page=%d", rs.baseURL, query, page)
+func (rs *RecipesService) SearchOnlineRecipes(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error) {
+	requestUrl := fmt.Sprintf("%s/online-recipes/search?q=%s&page=%s", rs.baseURL, query, page)
 
 	var response contracts.GetOnlineRecipesResponse
 
