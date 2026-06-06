@@ -1,9 +1,7 @@
 services:
   shopping-list:
     container_name: shopping-list-logs
-    build:
-      context: ..
-      dockerfile: logs/Dockerfile
+    image: ghcr.io/bryanvanwinnendael/shopping-list-logs:${IMAGE_TAG:-latest}
     expose:
       - "3000"
     volumes:
