@@ -1,9 +1,7 @@
 services:
   shopping-list:
     container_name: shopping-list-storage
-    build:
-      context: ..
-      dockerfile: storage/Dockerfile
+    image: ghcr.io/bryanvanwinnendael/shopping-list-storage:${IMAGE_TAG:-latest}
     ports:
       - "8010:3000"
     volumes:
