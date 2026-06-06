@@ -1,9 +1,7 @@
 services:
   shopping-list:
     container_name: shopping-list-cron
-    build:
-      context: ..
-      dockerfile: cron/Dockerfile
+    image: ghcr.io/bryanvanwinnendael/shopping-list-cron:${IMAGE_TAG:-latest}
     expose:
       - "3000"
     volumes:
