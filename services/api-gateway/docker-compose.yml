@@ -1,9 +1,7 @@
 services:
   shopping-list:
     container_name: shopping-list-api-gateway
-    build:
-      context: ..
-      dockerfile: api-gateway/Dockerfile
+    image: ghcr.io/bryanvanwinnendael/shopping-list-api-gateway:${IMAGE_TAG:-latest}
     ports:
       - "8000:3000"
     volumes:
