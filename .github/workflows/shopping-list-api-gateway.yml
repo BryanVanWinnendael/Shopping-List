@@ -135,12 +135,11 @@ jobs:
       - name: Cleanup previous image on server
         if: steps.check.outputs.exists == 'false'
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "PREVIOUS_VERSION=${PREVIOUS_VERSION} OWNER_LC=${OWNER_LC} bash -s" << 'EOF'
 
-          OLD_IMAGE=ghcr.io/${{ env.OWNER_LC }}/shopping-list-api-gateway:${PREVIOUS_VERSION}
+          OLD_IMAGE="ghcr.io/${OWNER_LC}/shopping-list-api-gateway:${PREVIOUS_VERSION}"
 
-          echo "Removing old image: $OLD_IMAGE"
-
-          docker image rm $OLD_IMAGE || true
-
+          if [ -n "$PREVIOUS_VERSION" ]; then
+            docker image rm "$OLD_IMAGE" || true
+          fi
           EOF
