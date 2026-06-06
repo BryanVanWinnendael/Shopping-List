@@ -1,10 +1,12 @@
 name: Deploy API Gateway µS
 
-env:
-  VERSION: "1.0.0"
-
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Docker image version (leave empty to use .version)"
+        required: false
+
   push:
     branches:
       - main
@@ -14,22 +16,52 @@ on:
       - "!services/api-gateway/.env.example"
       - "!services/api-gateway/.gitignore"
       - ".github/workflows/shopping-list-api-gateway.yml"
+      - "services/api-gateway/.version"
 
 jobs:
   deploy:
     runs-on: ubuntu-24.04-arm
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          DEFAULT_VERSION=$(cat services/api-gateway/.version)
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            echo "$VERSION" > services/api-gateway/.version
+            echo "updated=true" >> $GITHUB_OUTPUT
+          else
+            VERSION="$DEFAULT_VERSION"
+            echo "updated=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Using version: $VERSION"
+
+      - name: Commit updated version (if changed)
+        if: steps.version.outputs.updated == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add services/api-gateway/.version
+          git commit -m "[API Gateway Release]: bump version to ${VERSION}"
+          git push
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
-
-      - name: Checkout code
-        uses: actions/checkout@v4
+          go-version: "1.25"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -45,6 +77,7 @@ jobs:
         id: check
         run: |
           IMAGE="ghcr.io/${OWNER_LC}/shopping-list-api-gateway:${VERSION}"
+
           if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
             echo "Image $IMAGE already exists, skipping build."
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -56,7 +89,7 @@ jobs:
       - name: Skip notice
         if: steps.check.outputs.exists == 'true'
         run: |
-          echo "::notice::Version ${VERSION} already published — skipping build & deploy. Bump VERSION to release."
+          echo "::notice::Version ${VERSION} already published — skipping build & deploy."
 
       - name: Set up Docker Buildx
         if: steps.check.outputs.exists == 'false'
