@@ -1,9 +1,7 @@
 services:
   shopping-list:
     container_name: shopping-list-recipes
-    build:
-      context: ..
-      dockerfile: recipes/Dockerfile
+    image: ghcr.io/bryanvanwinnendael/shopping-list-recipes:${IMAGE_TAG:-latest}
     expose:
       - "3000"
     volumes:
