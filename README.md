@@ -120,7 +120,49 @@ The CI/CD cron workflow runs every two months to ensure the app remains active a
 
 Each microservice is automatically deployed by pulling the latest code on the server and rebuilding the Docker container.
 
-![Microservices CI/CD Pipeline](./assets/ms-diagram.png)
+```mermaid
+flowchart LR
+    A[Trigger Workflow] --> B[Checkout Repository]
+    B --> C[Run Tests]
+    C --> D{Tests Pass?}
+
+    D -->|No| E[Fail Workflow]
+
+    D -->|Yes| F[Read .version]
+    F --> G{Manual Version Provided?}
+
+    G -->|Yes| H[Update .version]
+    H --> I[Commit & Push .version]
+    I --> J[Set VERSION]
+
+    G -->|No| J
+
+    J --> K[Check GHCR for Version]
+    K --> L{Image Exists?}
+
+    L -->|Yes| M[Skip Build & Deploy]
+
+    L -->|No| N[Build Docker Image]
+    N --> O[Push Image to GHCR]
+    O --> P[SSH to Server]
+
+    P --> Q[Docker Login GHCR]
+    Q --> R[docker compose pull]
+    R --> S[docker compose up -d]
+
+    S --> T{Previous Version Different?}
+
+    T -->|Yes| U[Delete Previous Image]
+    T -->|No| V[Skip Cleanup]
+
+    U --> W[Deployment Complete]
+    V --> W
+
+    M --> X[Workflow Complete]
+    W --> X
+
+    E --> Y[Workflow Failed]
+```
 
 ---
 
