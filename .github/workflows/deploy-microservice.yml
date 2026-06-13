@@ -1,0 +1,113 @@
+name: Deploy Microservice
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04-arm
+
+    env:
+      SERVICE: ${{ inputs.service }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Run tests with coverage
+        working-directory: services/${{ env.SERVICE }}
+        run: |
+          go test ./handlers ./services \
+            -coverpkg=./handlers,./services \
+            -coverprofile=coverage.out
+
+      - name: Check coverage
+        working-directory: services/${{ env.SERVICE }}
+        run: |
+          HANDLERS_COV=$(go test ./handlers -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+          SERVICES_COV=$(go test ./services -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+
+          if (( $(echo "$HANDLERS_COV < 80" | bc -l) )); then
+            exit 1
+          fi
+
+          if (( $(echo "$SERVICES_COV < 80" | bc -l) )); then
+            exit 1
+          fi
+
+      - name: Read version
+        run: |
+          VERSION=$(cat services/${SERVICE}/.version)
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Check image
+        id: check
+        run: |
+          IMAGE="ghcr.io/${OWNER_LC}/shopping-list-${SERVICE}:${VERSION}"
+
+          if docker manifest inspect "$IMAGE" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.check.outputs.exists == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        if: steps.check.outputs.exists == 'false'
+        uses: docker/build-push-action@v6
+        with:
+          context: services
+          file: services/${{ env.SERVICE }}/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/shopping-list-${{ env.SERVICE }}:${{ env.VERSION }}
+            ghcr.io/${{ env.OWNER_LC }}/shopping-list-${{ env.SERVICE }}:latest
+
+      - name: Setup SSH
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+      - name: Deploy
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+          cd ~/projects/shopping-list/services
+
+          export IMAGE_TAG=${VERSION}
+
+          docker compose -f ${SERVICE}/docker-compose.yml pull
+          docker compose -f ${SERVICE}/docker-compose.yml up -d
+          EOF
