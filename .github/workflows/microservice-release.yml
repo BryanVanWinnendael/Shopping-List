@@ -19,13 +19,13 @@ env:
   SERVICE_NAMES: >-
     {
       "api-gateway":"API Gateway",
-      "category-model":"Category Model",
-      "cron":"Cron",
-      "logs":"Logs",
-      "notifications":"Notifications",
-      "products-search":"Products Search",
-      "recipes":"Recipes",
-      "storage":"Storage"
+      "category-model":"Category Model µS",
+      "cron":"Cron µS",
+      "logs":"Logs µS",
+      "notifications":"Notifications µS",
+      "products-search":"Products Search µS",
+      "recipes":"Recipes µS",
+      "storage":"Storage µS"
     }
 
 permissions:
@@ -207,7 +207,7 @@ jobs:
           git add "$VERSION_FILE"
 
           git commit \
-            -m "[${DISPLAY_NAME} µS Build]: bump version to ${VERSION}" \
+            -m "[${DISPLAY_NAME} Build]: bump version to ${VERSION}" \
             || true
 
           git push
