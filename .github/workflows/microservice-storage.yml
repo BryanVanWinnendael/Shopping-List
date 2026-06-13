@@ -1,4 +1,4 @@
-name: Storage µS Coverage
+name: Coverage Storage µS
 
 on:
   push:

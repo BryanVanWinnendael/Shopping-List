@@ -1,4 +1,4 @@
-name: Cron µS Coverage
+name: Coverage Cron µS
 
 on:
   push:
