@@ -34,7 +34,7 @@ on:
 
 jobs:
   deploy:
-    uses: microservice-release.yml
+    uses: ./.github/workflows/microservice-release.yml@main
     with:
       service: ${{ inputs.service }}
       version_bump: ${{ inputs.version_bump }}
