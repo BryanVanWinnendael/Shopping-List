@@ -122,46 +122,60 @@ Overview of the automated deployment workflow for all microservices, including t
 
 ```mermaid
 flowchart LR
-    A[Trigger Workflow] --> B[Checkout Repository]
-    B --> C[Run Tests]
-    C --> D{Tests Pass?}
+  A[Trigger Workflow] --> B[Checkout Repository]
+  B --> C[Run Tests]
+  C --> D{Tests Pass?}
 
-    D -->|No| E[Fail Workflow]
+  D -->|No| E[Fail Workflow]
 
-    D -->|Yes| F[Read .version]
-    F --> G{Manual Version Provided?}
+  D -->|Yes| F[Read .version]
 
-    G -->|Yes| H[Update .version]
-    H --> I[Commit & Push .version]
-    I --> J[Set VERSION]
+  F --> G{Workflow Dispatch?}
 
-    G -->|No| J
+  G -->|No| J[Use Current Version]
 
-    J --> K[Check GHCR for Version]
-    K --> L{Image Exists?}
+  G -->|Yes| H{Version Type}
 
-    L -->|Yes| M[Skip Build & Deploy]
-
-    L -->|No| N[Build Docker Image]
-    N --> O[Push Image to GHCR]
-    O --> P[SSH to Server]
-
-    P --> Q[Docker Login GHCR]
-    Q --> R[docker compose pull]
-    R --> S[docker compose up -d]
-
-    S --> T{Previous Version Different?}
-
-    T -->|Yes| U[Delete Previous Image]
-    T -->|No| V[Skip Cleanup]
-
-    U --> W[Deployment Complete]
-    V --> W
-
-    M --> X[Workflow Complete]
-    W --> X
-
-    E --> Y[Workflow Failed]
+  H -->|Patch| H1[Increment Patch<br/>1.0.0 → 1.0.1]
+  H -->|Minor| H2[Increment Minor<br/>1.0.0 → 1.1.0]
+  H -->|Major| H3[Increment Major<br/>1.0.0 → 2.0.0]
+  H -->|Custom| H4[Use Custom Version Input]
+  
+  H1 --> I[Update .version]
+  H2 --> I
+  H3 --> I
+  H4 --> I
+  
+  I --> I1[Commit & Push .version]
+  I1 --> J
+  
+  J --> K[Set VERSION]
+  
+  K --> L[Check GHCR for Version]
+  L --> M{Image Exists?}
+  
+  M -->|Yes| N[Skip Build & Deploy]
+  
+  M -->|No| O[Build Docker Image]
+  O --> P[Push Image to GHCR]
+  P --> Q[SSH to Server]
+  
+  Q --> R[Docker Login GHCR]
+  R --> S[docker compose pull]
+  S --> T[docker compose up -d]
+  
+  T --> U{Previous Version Different?}
+  
+  U -->|Yes| V[Delete Previous Image]
+  U -->|No| W[Skip Cleanup]
+  
+  V --> X[Deployment Complete]
+  W --> X
+  
+  N --> Y[Workflow Complete]
+  X --> Y
+  
+  E --> Z[Workflow Failed]
 ```
 
 ---

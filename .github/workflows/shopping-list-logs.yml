@@ -3,8 +3,19 @@ name: Deploy Logs µS
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "Docker image version (leave empty to use .version)"
+      version_bump:
+        description: "Version increment type"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - custom
+
+      custom_version:
+        description: "Custom version (only used when version_bump=custom)"
         required: false
 
   push:
@@ -21,6 +32,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-24.04-arm
+
     permissions:
       contents: write
       packages: write
@@ -79,13 +91,40 @@ jobs:
         run: |
           PREVIOUS_VERSION=$(cat services/logs/.version)
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$PREVIOUS_VERSION"
+
+            case "${{ github.event.inputs.version_bump }}" in
+              major)
+                VERSION="$((MAJOR + 1)).0.0"
+                ;;
+              minor)
+                VERSION="${MAJOR}.$((MINOR + 1)).0"
+                ;;
+              patch)
+                VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+                ;;
+              custom)
+                VERSION="${{ github.event.inputs.custom_version }}"
+
+                if [ -z "$VERSION" ]; then
+                  echo "custom_version is required when version_bump=custom"
+                  exit 1
+                fi
+                ;;
+              *)
+                echo "Invalid version_bump value"
+                exit 1
+                ;;
+            esac
+
             echo "$VERSION" > services/logs/.version
-            echo "updated=true" >> $GITHUB_OUTPUT
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+
           else
             VERSION="$PREVIOUS_VERSION"
-            echo "updated=false" >> $GITHUB_OUTPUT
+            echo "updated=false" >> "$GITHUB_OUTPUT"
           fi
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -101,7 +140,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add services/logs/.version
-          git commit -m "[Logs Release]: bump version to ${VERSION}"
+          git commit -m "[Logs µS Build]: bump version to ${VERSION}" || true
           git push
 
       - name: Set up Go
@@ -165,6 +204,7 @@ jobs:
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
           echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
           cd ~/projects/shopping-list/services
 
           export IMAGE_TAG=${VERSION}
