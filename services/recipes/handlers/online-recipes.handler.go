@@ -25,7 +25,7 @@ func NewOnlineRecipeHandler(rs OnlineRecipeService) *OnlineRecipeHandler {
 func (rh *OnlineRecipeHandler) GetRecipes(c echo.Context) error {
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
-		page = 1
+		page = 0
 	}
 
 	recipes, err := rh.RecipeService.GetRecipes(page)

@@ -20,6 +20,8 @@ type OnlineRecipeService struct {
 	baseURL string
 }
 
+const TOTAL_RECIPES_PER_PAGE = 24
+
 func NewOnlineRecipeService(client *httphelper.Client, baseURL string) *OnlineRecipeService {
 	return &OnlineRecipeService{
 		client:  client,
@@ -30,9 +32,7 @@ func NewOnlineRecipeService(client *httphelper.Client, baseURL string) *OnlineRe
 func (s *OnlineRecipeService) GetRecipes(page int) (*contracts.GetOnlineRecipesResponse, error) {
 	requestUrl := s.baseURL
 
-	if page > 1 {
-		requestUrl += "?page=" + strconv.Itoa(page)
-	}
+	requestUrl += "?page=" + strconv.Itoa(page+1)
 
 	return fetchRecipes(requestUrl, page)
 }
@@ -208,7 +208,7 @@ func fetchRecipes(url string, page int) (*contracts.GetOnlineRecipesResponse, er
 		total = len(recipes)
 	}
 
-	maxPages := int(math.Ceil(float64(total) / 24.0))
+	maxPages := int(math.Ceil(float64(total) / TOTAL_RECIPES_PER_PAGE))
 
 	return &contracts.GetOnlineRecipesResponse{
 		Page:         page,

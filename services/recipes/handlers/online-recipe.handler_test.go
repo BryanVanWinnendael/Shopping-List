@@ -34,14 +34,14 @@ func TestOnlineGetRecipes(t *testing.T) {
 		}
 	})
 
-	t.Run("Given invalid page, When GetRecipes, Then defaults to page 1", func(t *testing.T) {
+	t.Run("Given invalid page, When GetRecipes, Then defaults to page 0", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/online-recipes?page=abc", nil)
 
 		handler := NewOnlineRecipeHandler(&MockOnlineRecipeService{
 			GetRecipesFunc: func(page int) (*contracts.GetOnlineRecipesResponse, error) {
-				if page != 1 {
-					t.Fatalf("expected page 1, got %d", page)
+				if page != 0 {
+					t.Fatalf("expected page 0, got %d", page)
 				}
 
 				return &contracts.GetOnlineRecipesResponse{}, nil

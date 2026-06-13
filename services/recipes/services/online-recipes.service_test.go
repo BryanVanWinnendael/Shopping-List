@@ -42,8 +42,8 @@ func TestGetRecipes(t *testing.T) {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if receivedPage != "2" {
-			t.Fatalf("expected page=2, got %s", receivedPage)
+		if receivedPage != "3" {
+			t.Fatalf("expected page=3, got %s", receivedPage)
 		}
 	})
 }
