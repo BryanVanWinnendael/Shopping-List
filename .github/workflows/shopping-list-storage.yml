@@ -1,14 +1,228 @@
-name: Storage µS
+name: Deploy Storage µS
 
 on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: "Version increment type"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - custom
+
+      custom_version:
+        description: "Custom version (only used when version_bump=custom)"
+        required: false
+
   push:
     branches:
       - main
     paths:
       - "services/storage/**"
+      - "!services/storage/README.md"
+      - "!services/storage/.env.example"
+      - "!services/storage/.gitignore"
+      - ".github/workflows/shopping-list-storage.yml"
+      - "services/storage/.version"
 
 jobs:
   deploy:
-    uses: ./.github/workflows/deploy-microservice.yml
-    with:
-      service: storage
+    runs-on: ubuntu-24.04-arm
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run tests with coverage
+        working-directory: services/storage
+        run: |
+          go test ./handlers ./services \
+            -coverpkg=./handlers,./services \
+            -coverprofile=coverage.out
+
+      - name: Check coverage per package (80% rule)
+        working-directory: services/storage
+        run: |
+          echo "📊 Coverage Report"
+
+          HANDLERS_COV=$(go test ./handlers -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+          SERVICES_COV=$(go test ./services -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+
+          echo "--------------------------------"
+          echo "Handlers coverage: $HANDLERS_COV%"
+          echo "Services coverage: $SERVICES_COV%"
+          echo "--------------------------------"
+
+          FAIL=0
+
+          if (( $(echo "$HANDLERS_COV < 80" | bc -l) )); then
+            echo "❌ Handlers coverage below 80%"
+            FAIL=1
+          else
+            echo "✅ Handlers coverage OK"
+          fi
+
+          if (( $(echo "$SERVICES_COV < 80" | bc -l) )); then
+            echo "❌ Services coverage below 80%"
+            FAIL=1
+          else
+            echo "✅ Services coverage OK"
+          fi
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo "❌ Coverage check failed"
+            exit 1
+          fi
+
+          echo "All coverage thresholds passed"
+
+      - name: Determine version
+        id: version
+        run: |
+          PREVIOUS_VERSION=$(cat services/storage/.version)
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$PREVIOUS_VERSION"
+
+            case "${{ github.event.inputs.version_bump }}" in
+              major)
+                VERSION="$((MAJOR + 1)).0.0"
+                ;;
+              minor)
+                VERSION="${MAJOR}.$((MINOR + 1)).0"
+                ;;
+              patch)
+                VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+                ;;
+              custom)
+                VERSION="${{ github.event.inputs.custom_version }}"
+
+                if [ -z "$VERSION" ]; then
+                  echo "custom_version is required when version_bump=custom"
+                  exit 1
+                fi
+                ;;
+              *)
+                echo "Invalid version_bump value"
+                exit 1
+                ;;
+            esac
+
+            echo "$VERSION" > services/storage/.version
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+
+          else
+            VERSION="$PREVIOUS_VERSION"
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "PREVIOUS_VERSION=$PREVIOUS_VERSION" >> "$GITHUB_ENV"
+
+          echo "Using version: $VERSION"
+          echo "Previous version: $PREVIOUS_VERSION"
+
+      - name: Commit updated version (if changed)
+        if: steps.version.outputs.updated == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add services/storage/.version
+          git commit -m "[Storage µS Build]: bump version to ${VERSION}" || true
+          git push
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
+      - name: Check if version already exists
+        id: check
+        run: |
+          IMAGE="ghcr.io/${OWNER_LC}/shopping-list-storage:${VERSION}"
+
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "Image $IMAGE already exists, skipping build."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Image $IMAGE does not exist, will build."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip notice
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          echo "::notice::Version ${VERSION} already published — skipping build & deploy."
+
+      - name: Set up Docker Buildx
+        if: steps.check.outputs.exists == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        if: steps.check.outputs.exists == 'false'
+        uses: docker/build-push-action@v6
+        with:
+          context: services
+          file: services/storage/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/shopping-list-storage:${{ env.VERSION }}
+            ghcr.io/${{ env.OWNER_LC }}/shopping-list-storage:latest
+
+      - name: Set up SSH
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+      - name: Deploy Storage
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+          cd ~/projects/shopping-list/services
+
+          export IMAGE_TAG=${VERSION}
+
+          docker compose -f storage/docker-compose.yml pull
+          docker compose -f storage/docker-compose.yml up -d
+
+          echo "Deployment complete for version: ${VERSION}"
+          EOF
+
+      - name: Cleanup previous image on server
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "PREVIOUS_VERSION=${PREVIOUS_VERSION} OWNER_LC=${OWNER_LC} bash -s" << 'EOF'
+
+          OLD_IMAGE="ghcr.io/${OWNER_LC}/shopping-list-storage:${PREVIOUS_VERSION}"
+
+          if [ -n "$PREVIOUS_VERSION" ]; then
+            docker image rm "$OLD_IMAGE" || true
+          fi
+          EOF
