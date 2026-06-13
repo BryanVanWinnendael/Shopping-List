@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-set folders=category-model cron logs notifications products-search recipes storage
+set folders=api-gateway category-model cron logs notifications products-search recipes storage
 
 set failed=0
 

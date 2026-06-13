@@ -104,8 +104,8 @@ func (ns *NotificationsService) DeleteUserNotification(ctx context.Context, user
 	return &response, nil
 }
 
-func (ns *NotificationsService) PushUserNotificationByType(ctx context.Context, notifType string, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error) {
-	requestUrl := fmt.Sprintf("%s/push/%s/%s", ns.baseURL, notifType, user)
+func (ns *NotificationsService) PushUserNotificationByType(ctx context.Context, notificationType string, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error) {
+	requestUrl := fmt.Sprintf("%s/push/%s/%s", ns.baseURL, notificationType, user)
 
 	var response contracts.PushUserNotificationByTypeResponse
 

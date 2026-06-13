@@ -17,12 +17,12 @@ type CronService interface {
 	UpdateCronProductCategory(ctx context.Context, id string, request *contracts.UpdateCronProductCategoryRequest) (*contracts.UpdateCronProductCategoryResponse, error)
 }
 
-func NewCronHandler(ls CronService) *CronHandler {
-	return &CronHandler{CronService: ls}
-}
-
 type CronHandler struct {
 	CronService CronService
+}
+
+func NewCronHandler(cs CronService) *CronHandler {
+	return &CronHandler{CronService: cs}
 }
 
 func (ch *CronHandler) CreateCronProduct(c echo.Context) error {

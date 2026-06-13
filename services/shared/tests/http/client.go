@@ -3,8 +3,11 @@ package http
 import (
 	"bytes"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"net/http/httptest"
 	httphelper "shopping-list/shared/http"
+	"testing"
 )
 
 type mockRoundTripper struct {
@@ -23,12 +26,7 @@ func mockClient(fn func(req *http.Request) (*http.Response, error)) *http.Client
 	}
 }
 
-func MockClientRequest(
-	status int,
-	body string,
-	bodyBytes *[]byte,
-	capturedReq **http.Request,
-) *httphelper.Client {
+func MockClientRequest(status int, body string, bodyBytes *[]byte, capturedReq **http.Request) *httphelper.Client {
 	return &httphelper.Client{
 		HttpClient: mockClient(func(req *http.Request) (*http.Response, error) {
 			if capturedReq != nil {
@@ -52,13 +50,45 @@ func MockClientRequest(
 	}
 }
 
-func MockJSONResponse(status int, body string) *httphelper.Client {
+func MockTestFileHeader(t *testing.T) *multipart.FileHeader {
+	t.Helper()
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+
+	part, err := writer.CreateFormFile("image", "test.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = part.Write([]byte("fake-image"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/", &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	err = req.ParseMultipartForm(1024 * 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return req.MultipartForm.File["image"][0]
+}
+
+func MockJSONResponse(status int, body []byte) *httphelper.Client {
 	return &httphelper.Client{
 		HttpClient: mockClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: status,
 				Status:     http.StatusText(status),
-				Body:       io.NopCloser(bytes.NewBufferString(body)),
+				Body:       io.NopCloser(bytes.NewBuffer(body)),
 				Header:     make(http.Header),
 			}, nil
 		}),
@@ -71,5 +101,4 @@ func MockError(err error) *httphelper.Client {
 			return nil, err
 		}),
 	}
-
 }

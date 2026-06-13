@@ -2,8 +2,10 @@ package services
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
+	"shopping-list/shared/contracts"
 	"shopping-list/shared/tests"
 	"testing"
 )
@@ -11,7 +13,9 @@ import (
 func TestPushNotificationToUser(t *testing.T) {
 	t.Run("Given valid request, When PushNotificationToUser, Then no error", func(t *testing.T) {
 		// given
-		client := tests.MockJSONResponse(200, "{}")
+		body, _ := json.Marshal(contracts.PushUserNotificationByTypeResponse{})
+
+		client := tests.MockJSONResponse(200, body)
 
 		service := NewExpoPushService(client)
 
@@ -41,7 +45,9 @@ func TestPushNotificationToUser(t *testing.T) {
 
 	t.Run("Given Expo returns 500, When PushNotificationToUser, Then return error", func(t *testing.T) {
 		// given
-		client := tests.MockJSONResponse(500, "{}")
+		body, _ := json.Marshal(contracts.PushUserNotificationByTypeResponse{})
+
+		client := tests.MockJSONResponse(500, body)
 
 		service := NewExpoPushService(client)
 

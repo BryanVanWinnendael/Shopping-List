@@ -1,7 +1,9 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
+	"shopping-list/shared/contracts"
 	"shopping-list/shared/tests"
 	"testing"
 )
@@ -9,7 +11,9 @@ import (
 func TestSendNotification(t *testing.T) {
 	t.Run("Given valid request, When SendNotification, Then success", func(t *testing.T) {
 		// given
-		client := tests.MockJSONResponse(200, "{}")
+		body, _ := json.Marshal(contracts.PushUserNotificationByTypeResponse{})
+
+		client := tests.MockJSONResponse(200, body)
 
 		service := NewNotificationService(client, "http://test")
 
@@ -39,7 +43,9 @@ func TestSendNotification(t *testing.T) {
 
 	t.Run("Given API returns error status, When SendNotification, Then return error", func(t *testing.T) {
 		// given
-		client := tests.MockJSONResponse(500, "{}")
+		body, _ := json.Marshal(contracts.PushUserNotificationByTypeResponse{})
+
+		client := tests.MockJSONResponse(500, body)
 
 		service := NewNotificationService(client, "http://test")
 

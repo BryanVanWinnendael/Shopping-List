@@ -14,6 +14,7 @@ var SetupMultipartEcho = http.SetupMultipartEcho
 type MultipartFile = http.MultipartFile
 
 var MockClientRequest = http.MockClientRequest
+var MockTestFileHeader = http.MockTestFileHeader
 var MockJSONResponse = http.MockJSONResponse
 var MockError = http.MockError
 

@@ -118,7 +118,7 @@ The CI/CD cron workflow runs every two months to ensure the app remains active a
 
 #### Microservices Pipeline
 
-Each microservice is automatically deployed by pulling the latest code on the server and rebuilding the Docker container.
+Overview of the automated deployment workflow for all microservices, including testing, image creation, publication to GHCR, server deployment, and image lifecycle management.
 
 ```mermaid
 flowchart LR

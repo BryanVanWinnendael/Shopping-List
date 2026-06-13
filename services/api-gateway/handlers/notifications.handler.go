@@ -14,7 +14,7 @@ type NotificationsService interface {
 	GetAllNotifications(ctx context.Context) (*contracts.GetAllNotificationsResponse, error)
 	GetUserNotifications(ctx context.Context, user string) (*contracts.GetUserNotificationsResponse, error)
 	DeleteUserNotification(ctx context.Context, user string, notificationType string) (*contracts.DeleteUserNotificationResponse, error)
-	PushUserNotificationByType(ctx context.Context, notifType string, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error)
+	PushUserNotificationByType(ctx context.Context, notificationType string, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error)
 }
 
 func NewNotificationsHandler(ls NotificationsService) *NotificationsHandler {
@@ -87,10 +87,10 @@ func (nh *NotificationsHandler) DeleteUserNotification(c echo.Context) error {
 }
 
 func (nh *NotificationsHandler) PushUserNotificationByType(c echo.Context) error {
-	notifType := c.Param("type")
+	notificationType := c.Param("notificationType")
 	user := c.Param("user")
 
-	missingPathParams := response.GetMissingPathParams(c, "type", "user")
+	missingPathParams := response.GetMissingPathParams(c, "notificationType", "user")
 	if len(missingPathParams) > 0 {
 		return response.Missing(c, response.SourceParam, missingPathParams...)
 	}
@@ -100,7 +100,7 @@ func (nh *NotificationsHandler) PushUserNotificationByType(c echo.Context) error
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
 
-	result, err := nh.NotificationsService.PushUserNotificationByType(c.Request().Context(), notifType, user, &request)
+	result, err := nh.NotificationsService.PushUserNotificationByType(c.Request().Context(), notificationType, user, &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

@@ -3,6 +3,7 @@
 set -e
 
 folders=(
+  "api-gateway"
   "category-model"
   "cron"
   "logs"

@@ -23,7 +23,7 @@ func SetupRoutes(e *echo.Echo, cmh *CategoryModelHandler, lh *LogsHandler,
 	notifications.GET("/users/:user", nh.GetUserNotifications)
 	notifications.GET("", nh.GetAllNotifications)
 	notifications.DELETE("/:user/:notificationType", nh.DeleteUserNotification)
-	notifications.POST("/push/:type/:user", nh.PushUserNotificationByType)
+	notifications.POST("/push/:notificationType/:user", nh.PushUserNotificationByType)
 
 	// Products Search routes
 	productsSearch := e.Group("/api/products-search")
