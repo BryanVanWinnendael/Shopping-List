@@ -15,19 +15,6 @@ on:
         required: false
         type: string
 
-env:
-  SERVICE_NAMES: >-
-    {
-      "api-gateway":"API Gateway",
-      "category-model":"Category Model",
-      "cron":"Cron",
-      "logs":"Logs",
-      "notifications":"Notifications",
-      "products-search":"Products Search",
-      "recipes":"Recipes",
-      "storage":"Storage"
-    }
-
 permissions:
   contents: write
   packages: write
@@ -44,7 +31,21 @@ jobs:
 
       - name: Set DISPLAY_NAME
         run: |
-          echo "DISPLAY_NAME=$(echo '${{ env.SERVICE_NAMES }}' | jq -r '."${{ inputs.service }}"')" >> "$GITHUB_ENV"
+          SERVICE="${{ inputs.service }}"
+
+          case "$SERVICE" in
+            api-gateway) DISPLAY_NAME="API Gateway" ;;
+            category-model) DISPLAY_NAME="Category Model" ;;
+            cron) DISPLAY_NAME="Cron" ;;
+            logs) DISPLAY_NAME="Logs" ;;
+            notifications) DISPLAY_NAME="Notifications" ;;
+            products-search) DISPLAY_NAME="Products Search" ;;
+            recipes) DISPLAY_NAME="Recipes" ;;
+            storage) DISPLAY_NAME="Storage" ;;
+            *) DISPLAY_NAME="$SERVICE" ;;
+          esac
+
+          echo "DISPLAY_NAME=$DISPLAY_NAME" >> "$GITHUB_ENV"
 
       - name: Set variables
         run: |
