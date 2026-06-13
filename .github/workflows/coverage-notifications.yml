@@ -1,17 +1,18 @@
-name: Coverage Cron µS
+name: Coverage Notifications µS
 
 on:
   push:
     branches:
       - main
     paths:
-      - "services/cron/**"
-      - "!services/cron/README.md"
-      - "!services/cron/.env.example"
-      - "!services/cron/.gitignore"
+      - "services/notifications/**"
+      - "!services/notifications/README.md"
+      - "!services/notifications/.env.example"
+      - "!services/notifications/.gitignore"
 
 jobs:
   coverage:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04-arm
 
     steps:
@@ -24,14 +25,14 @@ jobs:
           go-version: "1.25"
 
       - name: Run tests with coverage
-        working-directory: services/cron
+        working-directory: services/notifications
         run: |
           go test ./handlers ./services \
             -coverpkg=./handlers,./services \
             -coverprofile=coverage.out
 
       - name: Check coverage per package (80% rule)
-        working-directory: services/cron
+        working-directory: services/notifications
         run: |
           echo "📊 Coverage Report"
 

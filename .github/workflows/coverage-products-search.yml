@@ -1,17 +1,18 @@
-name: Coverage Storage µS
+name: Coverage Products Search µS
 
 on:
   push:
     branches:
       - main
     paths:
-      - "services/storage/**"
-      - "!services/storage/README.md"
-      - "!services/storage/.env.example"
-      - "!services/storage/.gitignore"
+      - "services/products-search/**"
+      - "!services/products-search/README.md"
+      - "!services/products-search/.env.example"
+      - "!services/products-search/.gitignore"
 
 jobs:
   coverage:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04-arm
 
     steps:
@@ -24,14 +25,14 @@ jobs:
           go-version: "1.25"
 
       - name: Run tests with coverage
-        working-directory: services/storage
+        working-directory: services/products-search
         run: |
           go test ./handlers ./services \
             -coverpkg=./handlers,./services \
             -coverprofile=coverage.out
 
       - name: Check coverage per package (80% rule)
-        working-directory: services/storage
+        working-directory: services/products-search
         run: |
           echo "📊 Coverage Report"
 
