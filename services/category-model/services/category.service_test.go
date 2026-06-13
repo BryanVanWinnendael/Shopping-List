@@ -27,7 +27,7 @@ func TestNewCategoryService(t *testing.T) {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if cs.ModelService == nil {
+		if cs.ModelService != nil {
 			t.Fatalf("expected ModelService to be set")
 		}
 	})
