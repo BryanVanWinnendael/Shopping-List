@@ -32,6 +32,10 @@ on:
         description: "Custom version (only used when version_bump=custom)"
         required: false
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   deploy:
     uses: ./.github/workflows/microservice-release.yml
