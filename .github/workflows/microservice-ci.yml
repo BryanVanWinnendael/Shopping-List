@@ -1,0 +1,66 @@
+name: Microservice CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "services/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04-arm
+
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - category-model
+          - cron
+          - logs
+          - notifications
+          - products-search
+          - recipes
+          - storage
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Run tests with coverage
+        working-directory: services/${{ matrix.service }}
+        run: |
+          go test ./handlers ./services \
+            -coverpkg=./handlers,./services \
+            -coverprofile=coverage.out
+
+      - name: Check coverage >= 80%
+        working-directory: services/${{ matrix.service }}
+        run: |
+          HANDLERS_COV=$(go test ./handlers -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+          SERVICES_COV=$(go test ./services -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+
+          echo "Handlers: $HANDLERS_COV%"
+          echo "Services: $SERVICES_COV%"
+
+          FAIL=0
+
+          if (( $(echo "$HANDLERS_COV < 80" | bc -l) )); then
+            echo "Handlers coverage too low"
+            FAIL=1
+          fi
+
+          if (( $(echo "$SERVICES_COV < 80" | bc -l) )); then
+            echo "Services coverage too low"
+            FAIL=1
+          fi
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo "Coverage check failed"
+            exit 1
+          fi
+
+          echo "Coverage OK"

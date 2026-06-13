@@ -1,0 +1,98 @@
+name: Microservice Release
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        required: true
+        type: string
+
+      version_bump:
+        required: false
+        type: string
+        default: patch
+
+      custom_version:
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04-arm
+
+    env:
+      SERVICE: ${{ inputs.service }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Determine version
+        run: |
+          PREV=$(cat services/${SERVICE}/.version)
+
+          if [ "${{ inputs.version_bump }}" = "custom" ]; then
+            VERSION="${{ inputs.custom_version }}"
+          else
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$PREV"
+
+            case "${{ inputs.version_bump }}" in
+              major) VERSION="$((MAJOR+1)).0.0" ;;
+              minor) VERSION="${MAJOR}.$((MINOR+1)).0" ;;
+              patch|*) VERSION="${MAJOR}.${MINOR}.$((PATCH+1))" ;;
+            esac
+          fi
+
+          echo "$VERSION" > services/${SERVICE}/.version
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "PREVIOUS=$PREV" >> $GITHUB_ENV
+
+      - name: Commit version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add services/${SERVICE}/.version
+          git commit -m "[${SERVICE} Build]: bump version to ${VERSION}" || true
+          git push
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Owner lowercase
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: services/${{ env.SERVICE }}
+          file: services/${{ env.SERVICE }}/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/shopping-list-${{ env.SERVICE }}:${{ env.VERSION }}
+            ghcr.io/${{ env.OWNER_LC }}/shopping-list-${{ env.SERVICE }}:latest
+
+      - name: Deploy
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+          cd ~/projects/shopping-list/services
+
+          export IMAGE_TAG=${VERSION}
+
+          docker compose -f ${SERVICE}/docker-compose.yml pull
+          docker compose -f ${SERVICE}/docker-compose.yml up -d
+          EOF
