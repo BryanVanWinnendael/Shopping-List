@@ -8,13 +8,25 @@ on:
         type: string
 
       version_bump:
-        required: false
+        required: true
         type: string
-        default: patch
 
       custom_version:
         required: false
         type: string
+
+env:
+  SERVICE_NAMES: >-
+    {
+      "api-gateway":"API Gateway",
+      "category-model":"Category Model",
+      "cron":"Cron",
+      "logs":"Logs",
+      "notifications":"Notifications",
+      "products-search":"Products Search",
+      "recipes":"Recipes",
+      "storage":"Storage"
+    }
 
 permissions:
   contents: write
@@ -24,67 +36,154 @@ jobs:
   deploy:
     runs-on: ubuntu-24.04-arm
 
-    env:
-      SERVICE: ${{ inputs.service }}
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.25"
-
-      - name: Determine version
+      - name: Set variables
         run: |
-          PREV=$(cat services/${SERVICE}/.version)
+          SERVICE="${{ inputs.service }}"
 
-          if [ "${{ inputs.version_bump }}" = "custom" ]; then
-            VERSION="${{ inputs.custom_version }}"
-          else
-            IFS='.' read -r MAJOR MINOR PATCH <<< "$PREV"
+          echo "SERVICE=$SERVICE" >> "$GITHUB_ENV"
+          echo "SERVICE_DIR=services/$SERVICE" >> "$GITHUB_ENV"
+          echo "VERSION_FILE=services/$SERVICE/.version" >> "$GITHUB_ENV"
 
-            case "${{ inputs.version_bump }}" in
-              major) VERSION="$((MAJOR+1)).0.0" ;;
-              minor) VERSION="${MAJOR}.$((MINOR+1)).0" ;;
-              patch|*) VERSION="${MAJOR}.${MINOR}.$((PATCH+1))" ;;
-            esac
+      - name: Resolve service display name
+        run: | 
+          DISPLAY_NAME=$(jq -r \
+            '."${{ inputs.service }}"' \
+            <<< '${{ env.SERVICE_NAMES }}')
+          
+          echo "DISPLAY_NAME=$DISPLAY_NAME" >> "$GITHUB_ENV"
+
+      - name: Run tests with coverage
+        working-directory: services/${{ inputs.service }}
+        run: |
+          go test ./handlers ./services \
+            -coverpkg=./handlers,./services \
+            -coverprofile=coverage.out
+
+      - name: Check coverage per package (80% rule)
+        working-directory: services/${{ inputs.service }}
+        run: |
+          echo "Coverage Report"
+
+          HANDLERS_COV=$(go test ./handlers -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+          SERVICES_COV=$(go test ./services -cover | grep coverage | awk '{print $5}' | sed 's/%//')
+
+          FAIL=0
+
+          if (( $(echo "$HANDLERS_COV < 80" | bc -l) )); then
+            echo "❌ Handlers coverage below 80%"
+            FAIL=1
           fi
 
-          echo "$VERSION" > services/${SERVICE}/.version
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "PREVIOUS=$PREV" >> $GITHUB_ENV
+          if (( $(echo "$SERVICES_COV < 80" | bc -l) )); then
+            echo "❌ Services coverage below 80%"
+            FAIL=1
+          fi
 
-      - name: Commit version
+          [ "$FAIL" -eq 0 ] || exit 1
+
+      - name: Determine version
+        id: version
+        run: |
+          PREVIOUS_VERSION=$(cat "$VERSION_FILE")
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$PREVIOUS_VERSION"
+
+          case "${{ inputs.version_bump }}" in
+            major)
+              VERSION="$((MAJOR + 1)).0.0"
+              ;;
+            minor)
+              VERSION="${MAJOR}.$((MINOR + 1)).0"
+              ;;
+            patch)
+              VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+              ;;
+            custom)
+              VERSION="${{ inputs.custom_version }}"
+
+              if [ -z "$VERSION" ]; then
+                echo "custom_version is required"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Invalid version bump"
+              exit 1
+              ;;
+          esac
+
+          echo "$VERSION" > "$VERSION_FILE"
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "PREVIOUS_VERSION=$PREVIOUS_VERSION" >> "$GITHUB_ENV"
+          echo "updated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit updated version
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add services/${SERVICE}/.version
-          git commit -m "[${SERVICE} Build]: bump version to ${VERSION}" || true
+
+          git add "$VERSION_FILE"
+          git commit -m "[${DISPLAY_NAME} µS Build] bump version to ${VERSION}" || true
           git push
 
-      - name: Login GHCR
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Owner lowercase
-        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+      - name: Set lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
 
-      - name: Build & push
+      - name: Check if version already exists
+        id: check
+        run: |
+          IMAGE="ghcr.io/${OWNER_LC}/shopping-list-${SERVICE}:${VERSION}"
+
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.check.outputs.exists == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        if: steps.check.outputs.exists == 'false'
         uses: docker/build-push-action@v6
         with:
-          context: services/${{ env.SERVICE }}
-          file: services/${{ env.SERVICE }}/Dockerfile
+          context: services
+          file: services/${{ inputs.service }}/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/shopping-list-${{ env.SERVICE }}:${{ env.VERSION }}
             ghcr.io/${{ env.OWNER_LC }}/shopping-list-${{ env.SERVICE }}:latest
 
-      - name: Deploy
+      - name: Set up SSH
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+      - name: Deploy service
+        if: steps.check.outputs.exists == 'false'
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
           echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -95,4 +194,19 @@ jobs:
 
           docker compose -f ${SERVICE}/docker-compose.yml pull
           docker compose -f ${SERVICE}/docker-compose.yml up -d
+
+          echo "Deployment complete for ${SERVICE} ${VERSION}"
+          EOF
+
+      - name: Cleanup previous image
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "PREVIOUS_VERSION=${PREVIOUS_VERSION} OWNER_LC=${OWNER_LC} SERVICE=${SERVICE} bash -s" << 'EOF'
+
+          OLD_IMAGE="ghcr.io/${OWNER_LC}/shopping-list-${SERVICE}:${PREVIOUS_VERSION}"
+
+          if [ -n "$PREVIOUS_VERSION" ]; then
+            docker image rm "$OLD_IMAGE" || true
+          fi
           EOF
