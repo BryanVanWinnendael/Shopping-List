@@ -42,6 +42,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set DISPLAY_NAME
+        run: |
+          echo "DISPLAY_NAME=$(echo '${{ env.SERVICE_NAMES }}' | jq -r '."${{ inputs.service }}"')" >> "$GITHUB_ENV"
+
       - name: Set variables
         run: |
           SERVICE="${{ inputs.service }}"
@@ -49,14 +53,6 @@ jobs:
           echo "SERVICE=$SERVICE" >> "$GITHUB_ENV"
           echo "SERVICE_DIR=services/$SERVICE" >> "$GITHUB_ENV"
           echo "VERSION_FILE=services/$SERVICE/.version" >> "$GITHUB_ENV"
-
-      - name: Resolve service display name
-        run: | 
-          DISPLAY_NAME=$(jq -r \
-            '."${{ inputs.service }}"' \
-            <<< '${{ env.SERVICE_NAMES }}')
-          
-          echo "DISPLAY_NAME=$DISPLAY_NAME" >> "$GITHUB_ENV"
 
       - name: Run tests with coverage
         working-directory: services/${{ inputs.service }}
@@ -68,20 +64,16 @@ jobs:
       - name: Check coverage per package (80% rule)
         working-directory: services/${{ inputs.service }}
         run: |
-          echo "Coverage Report"
-
           HANDLERS_COV=$(go test ./handlers -cover | grep coverage | awk '{print $5}' | sed 's/%//')
           SERVICES_COV=$(go test ./services -cover | grep coverage | awk '{print $5}' | sed 's/%//')
 
           FAIL=0
 
           if (( $(echo "$HANDLERS_COV < 80" | bc -l) )); then
-            echo "❌ Handlers coverage below 80%"
             FAIL=1
           fi
 
           if (( $(echo "$SERVICES_COV < 80" | bc -l) )); then
-            echo "❌ Services coverage below 80%"
             FAIL=1
           fi
 
@@ -118,20 +110,17 @@ jobs:
               ;;
           esac
 
-          echo "$VERSION" > "$VERSION_FILE"
-
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "PREVIOUS_VERSION=$PREVIOUS_VERSION" >> "$GITHUB_ENV"
-          echo "updated=true" >> "$GITHUB_OUTPUT"
 
-      - name: Commit updated version
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add "$VERSION_FILE"
-          git commit -m "[${DISPLAY_NAME} µS Build] bump version to ${VERSION}" || true
-          git push
+          if [ "$VERSION" = "$PREVIOUS_VERSION" ]; then
+            echo "VERSION_CHANGED=false" >> "$GITHUB_ENV"
+            echo "Version unchanged: $VERSION"
+          else
+            echo "$VERSION" > "$VERSION_FILE"
+            echo "VERSION_CHANGED=true" >> "$GITHUB_ENV"
+            echo "Version changed: $PREVIOUS_VERSION -> $VERSION"
+          fi
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -176,14 +165,12 @@ jobs:
             ghcr.io/${{ env.OWNER_LC }}/shopping-list-${{ env.SERVICE }}:latest
 
       - name: Set up SSH
-        if: steps.check.outputs.exists == 'false'
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
 
       - name: Deploy service
-        if: steps.check.outputs.exists == 'false'
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
           echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -210,3 +197,17 @@ jobs:
             docker image rm "$OLD_IMAGE" || true
           fi
           EOF
+
+      - name: Commit updated version
+        if: env.VERSION_CHANGED == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add "$VERSION_FILE"
+
+          git commit \
+            -m "[${DISPLAY_NAME} µS Build]: bump version to ${VERSION}" \
+            || true
+
+          git push
