@@ -202,17 +202,17 @@ func (c *CronService) RunCronJob() error {
 		now := time.Now().Unix()
 
 		product := firebaseModel.CronProduct{
-			Product:  cronProduct.Product,
+			Name:     cronProduct.Product,
 			Type:     "text",
-			AddedBy:  cronProduct.User,
-			AddedAt:  now,
+			User:     cronProduct.User,
+			Date:     now,
 			Id:       id,
 			Category: cronProduct.Category,
 		}
 
 		err := c.addCronProductToList(product)
 		if err != nil {
-			fmt.Printf("failed to add product '%s' to Firebase: %v\n", product.Product, err)
+			fmt.Printf("failed to add product '%s' to Firebase: %v\n", product.Name, err)
 		}
 
 		userSet[cronProduct.User] = struct{}{}
@@ -261,5 +261,14 @@ func (c *CronService) getCountProductsInFirebase() (int, error) {
 		return 0, err
 	}
 
-	return len(products), nil
+	weekAgo := time.Now().AddDate(0, 0, -7).Unix()
+
+	count := 0
+	for _, product := range products {
+		if product.Date < weekAgo {
+			count++
+		}
+	}
+
+	return count, nil
 }

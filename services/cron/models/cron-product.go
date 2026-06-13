@@ -2,10 +2,10 @@ package models
 
 // CronProduct represents an entry that goes into Firebase
 type CronProduct struct {
-	Product  string `json:"product"`
+	Name     string `json:"name"`
 	Type     string `json:"type"`
-	AddedBy  string `json:"addedBy"`
-	AddedAt  int64  `json:"addedAt"`
+	User     string `json:"user"`
+	Date     int64  `json:"date"`
 	Id       string `json:"id"`
 	Category string `json:"category"`
 }
