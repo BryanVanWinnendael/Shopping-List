@@ -15,6 +15,7 @@ type CronService interface {
 	DeleteCronProduct(ctx context.Context, id string) (*contracts.DeleteCronProductResponse, error)
 	GetCronProductsByUser(ctx context.Context, user string) (*contracts.GetCronProductsByUserResponse, error)
 	UpdateCronProductCategory(ctx context.Context, id string, request *contracts.UpdateCronProductCategoryRequest) (*contracts.UpdateCronProductCategoryResponse, error)
+	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
 type CronHandler struct {

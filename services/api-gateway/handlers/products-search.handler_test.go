@@ -20,7 +20,7 @@ func TestSearchProducts(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products", nil)
 
-		handler := newProductsSearchHandler(&MockProductsSearchService{})
+		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
 		// when
 		err := handler.SearchProducts(c)
@@ -39,7 +39,7 @@ func TestSearchProducts(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?q=milk&category=dairy", nil)
 
-		handler := newProductsSearchHandler(&MockProductsSearchService{})
+		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
 		// when
 		err := handler.SearchProducts(c)
@@ -58,7 +58,7 @@ func TestSearchProducts(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?q=milk", nil)
 
-		handler := newProductsSearchHandler(&MockProductsSearchService{
+		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			SearchProductsFunc: func(context.Context, string, []string, string, string) (*contracts.ProductsSearchResponse, error) {
 				return nil, errors.New("search failed")
 			},
@@ -83,7 +83,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy", nil)
 
-		handler := newProductsSearchHandler(&MockProductsSearchService{})
+		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
 		// when
 		err := handler.FuzzySearchProducts(c)
@@ -102,7 +102,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?q=milk&category=dairy", nil)
 
-		handler := newProductsSearchHandler(&MockProductsSearchService{})
+		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
 		// when
 		err := handler.FuzzySearchProducts(c)
@@ -121,7 +121,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?q=milk", nil)
 
-		handler := newProductsSearchHandler(&MockProductsSearchService{
+		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			FuzzySearchProductsFunc: func(context.Context, string, string, string, string) (*contracts.ProductsSearchResponse, error) {
 				return nil, errors.New("fuzzy search failed")
 			},
@@ -153,8 +153,4 @@ func (m *MockProductsSearchService) FuzzySearchProducts(ctx context.Context, que
 		return m.FuzzySearchProductsFunc(ctx, query, category, page, pageSize)
 	}
 	return &contracts.ProductsSearchResponse{}, nil
-}
-
-func newProductsSearchHandler(mock *MockProductsSearchService) *ProductsSearchHandler {
-	return NewProductsSearchHandler(mock)
 }

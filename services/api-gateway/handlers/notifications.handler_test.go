@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"testing"
 
@@ -17,6 +19,7 @@ type MockNotificationsService struct {
 	GetUserNotificationsFunc       func(ctx context.Context, user string) (*contracts.GetUserNotificationsResponse, error)
 	DeleteUserNotificationFunc     func(ctx context.Context, user, notificationType string) (*contracts.DeleteUserNotificationResponse, error)
 	PushUserNotificationByTypeFunc func(ctx context.Context, notifType, user string, req *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error)
+	GetBackupFunc                  func(ctx context.Context) (*http.Response, error)
 }
 
 func TestSubscribe(t *testing.T) {
@@ -24,7 +27,7 @@ func TestSubscribe(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications/subscribe", []byte("invalid-json"))
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.Subscribe(c)
@@ -45,7 +48,7 @@ func TestSubscribe(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications/subscribe", body)
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.Subscribe(c)
@@ -70,7 +73,7 @@ func TestSubscribe(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications/subscribe", body)
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.Subscribe(c)
@@ -95,7 +98,7 @@ func TestSubscribe(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications/subscribe", body)
 
-		handler := newNotificationsHandler(&MockNotificationsService{
+		handler := NewNotificationsHandler(&MockNotificationsService{
 			SubscribeFunc: func(context.Context, *contracts.CreateNotificationRequest) (*contracts.CreateNotificationResponse, error) {
 				return nil, errors.New("subscribe failed")
 			},
@@ -120,7 +123,7 @@ func TestGetAllNotifications(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/notifications", nil)
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.GetAllNotifications(c)
@@ -139,7 +142,7 @@ func TestGetAllNotifications(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/notifications", nil)
 
-		handler := newNotificationsHandler(&MockNotificationsService{
+		handler := NewNotificationsHandler(&MockNotificationsService{
 			GetAllNotificationsFunc: func(context.Context) (*contracts.GetAllNotificationsResponse, error) {
 				return nil, errors.New("db failed")
 			},
@@ -164,7 +167,7 @@ func TestGetUserNotifications(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/notifications/user", nil)
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.GetUserNotifications(c)
@@ -185,7 +188,7 @@ func TestGetUserNotifications(t *testing.T) {
 		c.SetParamNames("user")
 		c.SetParamValues("user1")
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.GetUserNotifications(c)
@@ -206,7 +209,7 @@ func TestGetUserNotifications(t *testing.T) {
 		c.SetParamNames("user")
 		c.SetParamValues("user1")
 
-		handler := newNotificationsHandler(&MockNotificationsService{
+		handler := NewNotificationsHandler(&MockNotificationsService{
 			GetUserNotificationsFunc: func(context.Context, string) (*contracts.GetUserNotificationsResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -233,7 +236,7 @@ func TestDeleteUserNotification(t *testing.T) {
 		c.SetParamNames("user")
 		c.SetParamValues("user1")
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.DeleteUserNotification(c)
@@ -254,7 +257,7 @@ func TestDeleteUserNotification(t *testing.T) {
 		c.SetParamNames("user", "notificationType")
 		c.SetParamValues("user1", "create")
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.DeleteUserNotification(c)
@@ -275,7 +278,7 @@ func TestDeleteUserNotification(t *testing.T) {
 		c.SetParamNames("user", "notificationType")
 		c.SetParamValues("user1", "create")
 
-		handler := newNotificationsHandler(&MockNotificationsService{
+		handler := NewNotificationsHandler(&MockNotificationsService{
 			DeleteUserNotificationFunc: func(context.Context, string, string) (*contracts.DeleteUserNotificationResponse, error) {
 				return nil, errors.New("delete failed")
 			},
@@ -302,7 +305,7 @@ func TestPushUserNotificationByType(t *testing.T) {
 		c.SetParamNames("user", "notificationType")
 		c.SetParamValues("user1", "create")
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.PushUserNotificationByType(c)
@@ -323,7 +326,7 @@ func TestPushUserNotificationByType(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/notifications/users/user1/create", body)
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.PushUserNotificationByType(c)
@@ -346,7 +349,7 @@ func TestPushUserNotificationByType(t *testing.T) {
 		c.SetParamNames("user", "notificationType")
 		c.SetParamValues("user1", "create")
 
-		handler := newNotificationsHandler(&MockNotificationsService{})
+		handler := NewNotificationsHandler(&MockNotificationsService{})
 
 		// when
 		err := handler.PushUserNotificationByType(c)
@@ -369,7 +372,7 @@ func TestPushUserNotificationByType(t *testing.T) {
 		c.SetParamNames("user", "notificationType")
 		c.SetParamValues("user1", "create")
 
-		handler := newNotificationsHandler(&MockNotificationsService{
+		handler := NewNotificationsHandler(&MockNotificationsService{
 			PushUserNotificationByTypeFunc: func(context.Context, string, string, *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error) {
 				return nil, errors.New("push failed")
 			},
@@ -424,6 +427,14 @@ func (m *MockNotificationsService) PushUserNotificationByType(ctx context.Contex
 	return &contracts.PushUserNotificationByTypeResponse{}, nil
 }
 
-func newNotificationsHandler(mock *MockNotificationsService) *NotificationsHandler {
-	return NewNotificationsHandler(mock)
+func (m *MockNotificationsService) GetBackup(ctx context.Context) (*http.Response, error) {
+	if m.GetBackupFunc != nil {
+		return m.GetBackupFunc(ctx)
+	}
+
+	return &http.Response{
+		StatusCode: 200,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("notifications-db"))),
+	}, nil
 }

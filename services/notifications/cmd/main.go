@@ -25,7 +25,7 @@ func main() {
 	ns := services.NewNotificationsService(bbolt, expo)
 	nh := handlers.NewNotificationsHandler(ns)
 
-	handlers.SetupRoutes(e, nh)
+	handlers.SetupRoutes(e, nh, bbolt)
 
 	e.Logger.Fatal(e.Start(":" + config.Vars.Port))
 }

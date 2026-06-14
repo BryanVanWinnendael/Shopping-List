@@ -102,3 +102,23 @@ func MockError(err error) *httphelper.Client {
 		}),
 	}
 }
+
+func MockRawResponse(status int, body []byte, headers map[string]string) *httphelper.Client {
+	return &httphelper.Client{
+		HttpClient: mockClient(func(req *http.Request) (*http.Response, error) {
+
+			h := make(http.Header)
+			for k, v := range headers {
+				h.Set(k, v)
+			}
+
+			return &http.Response{
+				StatusCode: status,
+				Status:     http.StatusText(status),
+				Body:       io.NopCloser(bytes.NewReader(body)),
+				Header:     h,
+				Request:    req,
+			}, nil
+		}),
+	}
+}

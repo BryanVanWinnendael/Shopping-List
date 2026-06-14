@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"testing"
 
@@ -22,6 +24,7 @@ type MockRecipesService struct {
 	GetOnlineRecipesFunc       func(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error)
 	GetOnlineRecipeDetailsFunc func(ctx context.Context, url string) (*contracts.GetOnlineRecipeDetailsResponse, error)
 	SearchOnlineRecipesFunc    func(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error)
+	GetBackupFunc              func(ctx context.Context) (*http.Response, error)
 }
 
 func TestCreateRecipe(t *testing.T) {
@@ -29,7 +32,7 @@ func TestCreateRecipe(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", []byte("bad-json"))
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.CreateRecipe(c)
@@ -53,7 +56,7 @@ func TestCreateRecipe(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", body)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.CreateRecipe(c)
@@ -77,7 +80,7 @@ func TestCreateRecipe(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/recipes", body)
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			CreateRecipeFunc: func(context.Context, *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error) {
 				return nil, errors.New("create failed")
 			},
@@ -102,7 +105,7 @@ func TestGetRecipe(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.GetRecipe(c)
@@ -123,7 +126,7 @@ func TestGetRecipe(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.GetRecipe(c)
@@ -144,7 +147,7 @@ func TestGetRecipe(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			GetRecipeFunc: func(context.Context, string) (*contracts.GetRecipeResponse, error) {
 				return nil, errors.New("get failed")
 			},
@@ -169,7 +172,7 @@ func TestGetAllRecipes(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.GetAllRecipes(c)
@@ -188,7 +191,7 @@ func TestGetAllRecipes(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			GetAllRecipesFunc: func(context.Context) (*contracts.GetAllRecipesResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -213,7 +216,7 @@ func TestGetOnlineRecipes(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/online?page=1", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.GetOnlineRecipes(c)
@@ -232,7 +235,7 @@ func TestGetOnlineRecipes(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/online?page=abc", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.GetOnlineRecipes(c)
@@ -251,7 +254,7 @@ func TestGetOnlineRecipes(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/online?page=1", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			GetOnlineRecipesFunc: func(context.Context, string) (*contracts.GetOnlineRecipesResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -276,7 +279,7 @@ func TestDeleteRecipe(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/recipes", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.DeleteRecipe(c)
@@ -297,7 +300,7 @@ func TestDeleteRecipe(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.DeleteRecipe(c)
@@ -318,7 +321,7 @@ func TestDeleteRecipe(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			DeleteRecipeFunc: func(context.Context, string) (*contracts.DeleteRecipeResponse, error) {
 				return nil, errors.New("delete failed")
 			},
@@ -343,7 +346,7 @@ func TestUpdateRecipe(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPut, "/recipes", []byte(`{}`))
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.UpdateRecipe(c)
@@ -364,7 +367,7 @@ func TestUpdateRecipe(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.UpdateRecipe(c)
@@ -390,7 +393,7 @@ func TestUpdateRecipe(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		err := handler.UpdateRecipe(c)
@@ -416,7 +419,7 @@ func TestUpdateRecipe(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			UpdateRecipeFunc: func(context.Context, string, *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error) {
 				return nil, errors.New("update failed")
 			},
@@ -441,7 +444,7 @@ func TestGetRecipesByUser(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/users", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		_ = handler.GetRecipesByUser(c)
@@ -458,7 +461,7 @@ func TestGetRecipesByUser(t *testing.T) {
 		c.SetParamNames("user")
 		c.SetParamValues("test")
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		_ = handler.GetRecipesByUser(c)
@@ -475,7 +478,7 @@ func TestGetRecipesByUser(t *testing.T) {
 		c.SetParamNames("user")
 		c.SetParamValues("test")
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			GetRecipesByUserFunc: func(context.Context, string) (*contracts.GetRecipesByUserResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -496,7 +499,7 @@ func TestGetDistinctCountries(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/countries", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		_ = handler.GetDistinctCountries(c)
@@ -511,7 +514,7 @@ func TestGetDistinctCountries(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/countries", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			GetDistinctCountriesFunc: func(context.Context) (*contracts.GetDistinctCountriesResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -532,7 +535,7 @@ func TestGetOnlineRecipeDetails(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/details", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		_ = handler.GetOnlineRecipeDetails(c)
@@ -547,7 +550,7 @@ func TestGetOnlineRecipeDetails(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/details?url=test", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		_ = handler.GetOnlineRecipeDetails(c)
@@ -562,7 +565,7 @@ func TestGetOnlineRecipeDetails(t *testing.T) {
 		//given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/details?url=test", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			GetOnlineRecipeDetailsFunc: func(context.Context, string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -583,7 +586,7 @@ func TestSearchOnlineRecipes(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		_ = handler.SearchOnlineRecipes(c)
@@ -598,7 +601,7 @@ func TestSearchOnlineRecipes(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?q=milk&page=abc", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		_ = handler.SearchOnlineRecipes(c)
@@ -613,7 +616,7 @@ func TestSearchOnlineRecipes(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?q=milk&page=1", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{})
+		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
 		_ = handler.SearchOnlineRecipes(c)
@@ -628,7 +631,7 @@ func TestSearchOnlineRecipes(t *testing.T) {
 		//given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?q=milk&page=1", nil)
 
-		handler := newRecipesHandler(&MockRecipesService{
+		handler := NewRecipesHandler(&MockRecipesService{
 			SearchOnlineRecipesFunc: func(context.Context, string, string) (*contracts.GetOnlineRecipesResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -714,6 +717,14 @@ func (m *MockRecipesService) SearchOnlineRecipes(ctx context.Context, query stri
 	return &contracts.GetOnlineRecipesResponse{}, nil
 }
 
-func newRecipesHandler(mock *MockRecipesService) *RecipesHandler {
-	return NewRecipesHandler(mock)
+func (m *MockRecipesService) GetBackup(ctx context.Context) (*http.Response, error) {
+	if m.GetBackupFunc != nil {
+		return m.GetBackupFunc(ctx)
+	}
+
+	return &http.Response{
+		StatusCode: 200,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("recipes-db"))),
+	}, nil
 }

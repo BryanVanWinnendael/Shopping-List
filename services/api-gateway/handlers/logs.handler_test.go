@@ -21,7 +21,7 @@ func TestGetAppLogs(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/logs", nil)
 
-		handler := newLogsHandler(&MockLogsService{})
+		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
 		err := handler.GetAppLogs(c)
@@ -40,7 +40,7 @@ func TestGetAppLogs(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/logs", nil)
 
-		handler := newLogsHandler(&MockLogsService{
+		handler := NewLogsHandler(&MockLogsService{
 			GetAppLogsFunc: func(context.Context) (*contracts.GetAppLogsResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -65,7 +65,7 @@ func TestCreateAppLog(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/logs", []byte("invalid-json"))
 
-		handler := newLogsHandler(&MockLogsService{})
+		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
 		err := handler.CreateAppLog(c)
@@ -86,7 +86,7 @@ func TestCreateAppLog(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 
-		handler := newLogsHandler(&MockLogsService{})
+		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
 		err := handler.CreateAppLog(c)
@@ -111,7 +111,7 @@ func TestCreateAppLog(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 
-		handler := newLogsHandler(&MockLogsService{})
+		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
 		err := handler.CreateAppLog(c)
@@ -136,7 +136,7 @@ func TestCreateAppLog(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/logs", body)
 
-		handler := newLogsHandler(&MockLogsService{
+		handler := NewLogsHandler(&MockLogsService{
 			CreateAppLogFunc: func(
 				context.Context,
 				*contracts.CreateAppLogRequest,
@@ -164,7 +164,7 @@ func TestDeleteAppLogs(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/logs", nil)
 
-		handler := newLogsHandler(&MockLogsService{})
+		handler := NewLogsHandler(&MockLogsService{})
 
 		// when
 		err := handler.DeleteAppLogs(c)
@@ -183,7 +183,7 @@ func TestDeleteAppLogs(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/logs", nil)
 
-		handler := newLogsHandler(&MockLogsService{
+		handler := NewLogsHandler(&MockLogsService{
 			DeleteAppLogsFunc: func(context.Context) (*contracts.DeleteAppLogResponse, error) {
 				return nil, errors.New("delete failed")
 			},
@@ -222,8 +222,4 @@ func (m *MockLogsService) DeleteAppLogs(ctx context.Context) (*contracts.DeleteA
 		return m.DeleteAppLogsFunc(ctx)
 	}
 	return &contracts.DeleteAppLogResponse{}, nil
-}
-
-func newLogsHandler(mock *MockLogsService) *LogsHandler {
-	return NewLogsHandler(mock)
 }

@@ -229,3 +229,15 @@ func (rs *RecipesService) SearchOnlineRecipes(ctx context.Context, query string,
 
 	return &response, nil
 }
+
+func (rs *RecipesService) GetBackup(ctx context.Context) (*http.Response, error) {
+	requestUrl := fmt.Sprintf("%s/recipes/admin/backup", rs.baseURL)
+
+	response, err := rs.client.DoGetBackup(ctx, requestUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}

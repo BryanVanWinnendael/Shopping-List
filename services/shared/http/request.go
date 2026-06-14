@@ -70,3 +70,45 @@ func (c *Client) DoRequest(
 
 	return resp.StatusCode, nil
 }
+
+func (c *Client) DoGetBackup(ctx context.Context, url string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		url,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	if c.defaultToken != "" {
+		req.Header.Set("Authorization", "Bearer "+c.defaultToken)
+	}
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+
+	if resp.StatusCode >= 400 {
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				fmt.Printf("failed to close response body: %v\n", err)
+			}
+		}(resp.Body)
+
+		b, _ := io.ReadAll(resp.Body)
+
+		return nil, fmt.Errorf(
+			"backup request failed (status %d): %s",
+			resp.StatusCode,
+			string(b),
+		)
+	}
+
+	return resp, nil
+}

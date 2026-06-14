@@ -17,6 +17,8 @@ type Env struct {
 	CronAPIURL           string
 	APIAuthToken         string
 	Port                 string
+	AdminUser            string
+	AdminPass            string
 }
 
 var Vars Env
@@ -38,6 +40,8 @@ func LoadEnv() {
 		CronAPIURL:           getEnv("CRON_API_URL", "http://shopping-list-cron:3000/api/cron"),
 		APIAuthToken:         getEnv("API_TOKEN", ""),
 		Port:                 getEnv("PORT", "3000"),
+		AdminUser:            getEnv("ADMIN_USER", "admin"),
+		AdminPass:            getEnv("ADMIN_PASS", ""),
 	}
 }
 

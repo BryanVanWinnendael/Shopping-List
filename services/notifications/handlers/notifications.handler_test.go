@@ -335,7 +335,7 @@ func (m *MockNotificationsService) PushUserNotificationByType(notifType models.N
 		return m.PushUserNotificationByTypeFunc(notifType, user, request)
 	}
 	return &contracts.PushUserNotificationByTypeResponse{
-		Type:    models.NotificationType(notifType),
+		Type:    notifType,
 		User:    user,
 		Message: "Notification sent",
 	}, nil

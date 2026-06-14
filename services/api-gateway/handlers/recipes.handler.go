@@ -21,6 +21,7 @@ type RecipesService interface {
 	GetOnlineRecipes(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error)
 	GetOnlineRecipeDetails(ctx context.Context, url string) (*contracts.GetOnlineRecipeDetailsResponse, error)
 	SearchOnlineRecipes(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error)
+	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
 func NewRecipesHandler(ls RecipesService) *RecipesHandler {

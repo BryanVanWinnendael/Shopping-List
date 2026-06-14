@@ -24,7 +24,7 @@ func TestUploadRecipeImage(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/storage/recipe", nil)
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.UploadRecipeImage(c)
@@ -45,7 +45,7 @@ func TestUploadRecipeImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.UploadRecipeImage(c)
@@ -66,7 +66,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/storage/recipe", nil)
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.DeleteRecipeImage(c)
@@ -87,7 +87,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.DeleteRecipeImage(c)
@@ -112,7 +112,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.DeleteRecipeImage(c)
@@ -137,7 +137,7 @@ func TestDeleteRecipeImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{
+		handler := NewStorageHandler(&MockStorageService{
 			DeleteRecipeImageFunc: func(context.Context, string, *contracts.DeleteImageRequest) (*contracts.DeleteImageResponse, error) {
 				return nil, errors.New("delete failed")
 			},
@@ -162,7 +162,7 @@ func TestDeleteRecipeStorage(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/storage/recipe", nil)
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.DeleteRecipeStorage(c)
@@ -183,7 +183,7 @@ func TestDeleteRecipeStorage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.DeleteRecipeStorage(c)
@@ -204,7 +204,7 @@ func TestDeleteRecipeStorage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{
+		handler := NewStorageHandler(&MockStorageService{
 			DeleteRecipeStorageFunc: func(context.Context, string) (*contracts.DeleteStorageResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -229,7 +229,7 @@ func TestUploadListImage(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/storage/list", nil)
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.UploadListImage(c)
@@ -250,7 +250,7 @@ func TestUploadListImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		_ = handler.UploadListImage(c)
@@ -262,16 +262,12 @@ func TestUploadListImage(t *testing.T) {
 	})
 }
 
-/* =========================
-   DeleteListImage
-========================= */
-
 func TestDeleteListImage(t *testing.T) {
 	t.Run("Given missing id, When DeleteListImage, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodDelete, "/storage/list", nil)
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.DeleteListImage(c)
@@ -292,7 +288,7 @@ func TestDeleteListImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{})
+		handler := NewStorageHandler(&MockStorageService{})
 
 		// when
 		err := handler.DeleteListImage(c)
@@ -313,7 +309,7 @@ func TestDeleteListImage(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newStorageHandler(&MockStorageService{
+		handler := NewStorageHandler(&MockStorageService{
 			DeleteListImageFunc: func(context.Context, string) (*contracts.DeleteImageResponse, error) {
 				return nil, errors.New("failed")
 			},
@@ -366,8 +362,4 @@ func (m *MockStorageService) DeleteListImage(ctx context.Context, id string) (*c
 		return m.DeleteListImageFunc(ctx, id)
 	}
 	return &contracts.DeleteImageResponse{}, nil
-}
-
-func newStorageHandler(mock *MockStorageService) *StorageHandler {
-	return NewStorageHandler(mock)
 }

@@ -19,7 +19,7 @@ func TestTrainModel(t *testing.T) {
 
 		mock := &MockModelService{}
 
-		handler := newModelHandler(mock)
+		handler := NewModelHandler(mock)
 
 		// when
 		err := handler.TrainModel(c)
@@ -48,7 +48,7 @@ func TestTrainModel(t *testing.T) {
 			},
 		}
 
-		handler := newModelHandler(mock)
+		handler := NewModelHandler(mock)
 
 		// when
 		err := handler.TrainModel(c)
@@ -73,8 +73,4 @@ func (m *MockModelService) TrainModel() (*contracts.TrainModelResponse, error) {
 		Model:    "NaiveBayes",
 		Accuracy: 0.95,
 	}, nil
-}
-
-func newModelHandler(mock *MockModelService) *ModelHandler {
-	return NewModelHandler(mock)
 }

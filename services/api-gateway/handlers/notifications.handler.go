@@ -15,6 +15,7 @@ type NotificationsService interface {
 	GetUserNotifications(ctx context.Context, user string) (*contracts.GetUserNotificationsResponse, error)
 	DeleteUserNotification(ctx context.Context, user string, notificationType string) (*contracts.DeleteUserNotificationResponse, error)
 	PushUserNotificationByType(ctx context.Context, notificationType string, user string, request *contracts.PushUserNotificationByTypeRequest) (*contracts.PushUserNotificationByTypeResponse, error)
+	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
 func NewNotificationsHandler(ls NotificationsService) *NotificationsHandler {

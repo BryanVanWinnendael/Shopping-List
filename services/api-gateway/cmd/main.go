@@ -17,7 +17,9 @@ func main() {
 	e := echo.New()
 	e.Use(middlewares.RequestLogger)
 	e.Use(middlewares.ResponseLogger)
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+
+	api := e.Group("")
+	api.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return middlewares.AuthMiddleware(next, config.Vars.APIAuthToken)
 	})
 
@@ -44,7 +46,14 @@ func main() {
 	cs := services.NewCronService(httpClient, config.Vars.CronAPIURL)
 	ch := handlers.NewCronHandler(cs)
 
-	handlers.SetupRoutes(e, cmh, lh, nh, psh, sh, rh, ch)
+	ah := handlers.NewAdminHandler(cs, ns, rs)
+
+	handlers.SetupRoutes(api, cmh, lh, nh, psh, sh, rh, ch)
+
+	admin := e.Group("/admin")
+	admin.Use(middlewares.BasicAuthMiddleware(config.Vars.AdminUser, config.Vars.AdminPass))
+
+	handlers.SetupAdminRoutes(admin, ah)
 
 	e.Logger.Fatal(e.Start(":" + config.Vars.Port))
 }

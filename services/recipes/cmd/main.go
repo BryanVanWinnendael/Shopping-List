@@ -27,7 +27,7 @@ func main() {
 	ors := services.NewOnlineRecipeService(httpClient, config.Vars.OnlineRecipesAPIUrl)
 	orh := handlers.NewOnlineRecipeHandler(ors)
 
-	handlers.SetupRoutes(e, rh, orh)
+	handlers.SetupRoutes(e, rh, orh, bbolt)
 
 	e.Logger.Fatal(e.Start(":" + config.Vars.Port))
 }

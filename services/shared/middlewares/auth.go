@@ -33,3 +33,22 @@ func AuthMiddleware(next echo.HandlerFunc, apiAuthToken string) echo.HandlerFunc
 		return next(c)
 	}
 }
+
+func BasicAuthMiddleware(validUser, validPass string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			username, password, ok := c.Request().BasicAuth()
+
+			if !ok || username != validUser || password != validPass {
+				c.Response().Header().Set(
+					"WWW-Authenticate",
+					`Basic realm="admin"`,
+				)
+
+				return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+			}
+
+			return next(c)
+		}
+	}
+}

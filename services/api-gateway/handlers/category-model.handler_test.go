@@ -22,7 +22,7 @@ func TestTrainModel(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/model/train", nil)
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{})
+		handler := NewCategoryModelHandler(&MockCategoryModelService{})
 
 		// when
 		err := handler.TrainModel(c)
@@ -41,7 +41,7 @@ func TestTrainModel(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/model/train", nil)
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{
+		handler := NewCategoryModelHandler(&MockCategoryModelService{
 			TrainModelFunc: func(context.Context) (*contracts.TrainModelResponse, error) {
 				return nil, errors.New("training failed")
 			},
@@ -66,7 +66,7 @@ func TestGetCategory(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/model/category", nil)
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{})
+		handler := NewCategoryModelHandler(&MockCategoryModelService{})
 
 		// when
 		err := handler.GetCategory(c)
@@ -85,7 +85,7 @@ func TestGetCategory(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/model/category?product=milk", nil)
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{})
+		handler := NewCategoryModelHandler(&MockCategoryModelService{})
 
 		// when
 		err := handler.GetCategory(c)
@@ -104,7 +104,7 @@ func TestGetCategory(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/model/category?product=milk", nil)
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{
+		handler := NewCategoryModelHandler(&MockCategoryModelService{
 			GetCategoryFunc: func(context.Context, string) (*contracts.GetCategoryResponse, error) {
 				return nil, errors.New("prediction failed")
 			},
@@ -129,7 +129,7 @@ func TestCreateCategory(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/model/category", []byte("invalid-json"))
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{})
+		handler := NewCategoryModelHandler(&MockCategoryModelService{})
 
 		// when
 		err := handler.CreateCategory(c)
@@ -150,7 +150,7 @@ func TestCreateCategory(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/model/category", body)
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{})
+		handler := NewCategoryModelHandler(&MockCategoryModelService{})
 
 		// when
 		err := handler.CreateCategory(c)
@@ -174,7 +174,7 @@ func TestCreateCategory(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/model/category", body)
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{})
+		handler := NewCategoryModelHandler(&MockCategoryModelService{})
 
 		// when
 		err := handler.CreateCategory(c)
@@ -198,7 +198,7 @@ func TestCreateCategory(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/model/category", body)
 
-		handler := newCategoryModelHandler(&MockCategoryModelService{
+		handler := NewCategoryModelHandler(&MockCategoryModelService{
 			CreateCategoryFunc: func(context.Context, *contracts.CreateCategoryRequest) (*contracts.CreateCategoryResponse, error) {
 				return nil, errors.New("insert failed")
 			},
@@ -240,8 +240,4 @@ func (m *MockCategoryModelService) CreateCategory(ctx context.Context, request *
 	}
 
 	return &contracts.CreateCategoryResponse{}, nil
-}
-
-func newCategoryModelHandler(mock *MockCategoryModelService) *CategoryModelHandler {
-	return NewCategoryModelHandler(mock)
 }

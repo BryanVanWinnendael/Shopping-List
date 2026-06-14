@@ -2,7 +2,7 @@ package handlers
 
 import "github.com/labstack/echo/v4"
 
-func SetupRoutes(e *echo.Echo, cmh *CategoryModelHandler, lh *LogsHandler,
+func SetupRoutes(e *echo.Group, cmh *CategoryModelHandler, lh *LogsHandler,
 	nh *NotificationsHandler, psh *ProductsSearchHandler, sh *StorageHandler,
 	rh *RecipesHandler, ch *CronHandler) {
 	// Category Model routes

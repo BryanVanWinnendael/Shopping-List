@@ -22,7 +22,7 @@ func TestCreateCronProduct(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodPost, "/cron", []byte("invalid-json"))
 
-		handler := newHandler(&MockCronService{})
+		handler := NewCronHandler(&MockCronService{})
 
 		// when
 		err := handler.CreateCronProduct(c)
@@ -47,7 +47,7 @@ func TestCreateCronProduct(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/cron", body)
 
-		handler := newHandler(&MockCronService{})
+		handler := NewCronHandler(&MockCronService{})
 
 		// when
 		err := handler.CreateCronProduct(c)
@@ -72,7 +72,7 @@ func TestCreateCronProduct(t *testing.T) {
 
 		c, rec := tests.SetupEcho(http.MethodPost, "/cron", body)
 
-		handler := newHandler(&MockCronService{
+		handler := NewCronHandler(&MockCronService{
 			CreateCronProductFunc: func(*contracts.CreateCronProductRequest) (*contracts.CreateCronProductResponse, error) {
 				return nil, errors.New("db error")
 			},
@@ -97,7 +97,7 @@ func TestGetAllCronProducts(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/cron", nil)
 
-		handler := newHandler(&MockCronService{})
+		handler := NewCronHandler(&MockCronService{})
 
 		// when
 		err := handler.GetAllCronProducts(c)
@@ -116,7 +116,7 @@ func TestGetAllCronProducts(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/cron", nil)
 
-		handler := newHandler(&MockCronService{
+		handler := NewCronHandler(&MockCronService{
 			GetAllCronProductsFunc: func() (*contracts.GetAllCronProductsResponse, error) {
 				return nil, errors.New("error")
 			},
@@ -147,7 +147,7 @@ func TestUpdateCronProductCategory(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newHandler(&MockCronService{})
+		handler := NewCronHandler(&MockCronService{})
 
 		// when
 		err := handler.UpdateCronProductCategory(c)
@@ -172,7 +172,7 @@ func TestUpdateCronProductCategory(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newHandler(&MockCronService{})
+		handler := NewCronHandler(&MockCronService{})
 
 		// when
 		err := handler.UpdateCronProductCategory(c)
@@ -193,7 +193,7 @@ func TestUpdateCronProductCategory(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newHandler(&MockCronService{})
+		handler := NewCronHandler(&MockCronService{})
 
 		// when
 		err := handler.UpdateCronProductCategory(c)
@@ -218,7 +218,7 @@ func TestUpdateCronProductCategory(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newHandler(&MockCronService{
+		handler := NewCronHandler(&MockCronService{
 			UpdateCronProductCategoryFunc: func(string, *contracts.UpdateCronProductCategoryRequest) (*contracts.UpdateCronProductCategoryResponse, error) {
 				return nil, errors.New("fail")
 			},
@@ -245,7 +245,7 @@ func TestDeleteCronProduct(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newHandler(&MockCronService{})
+		handler := NewCronHandler(&MockCronService{})
 
 		// when
 		err := handler.DeleteCronProduct(c)
@@ -266,7 +266,7 @@ func TestDeleteCronProduct(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		handler := newHandler(&MockCronService{
+		handler := NewCronHandler(&MockCronService{
 			DeleteCronProductFunc: func(string) (*contracts.DeleteCronProductResponse, error) {
 				return nil, errors.New("fail")
 			},
@@ -293,7 +293,7 @@ func TestGetCronProductsByUser(t *testing.T) {
 		c.SetParamNames("name")
 		c.SetParamValues("user1")
 
-		handler := newHandler(&MockCronService{})
+		handler := NewCronHandler(&MockCronService{})
 
 		// when
 		err := handler.GetCronProductsByUser(c)
@@ -314,7 +314,7 @@ func TestGetCronProductsByUser(t *testing.T) {
 		c.SetParamNames("name")
 		c.SetParamValues("user1")
 
-		handler := newHandler(&MockCronService{
+		handler := NewCronHandler(&MockCronService{
 			GetCronProductsByUserFunc: func(string) (*contracts.GetCronProductsByUserResponse, error) {
 				return nil, errors.New("fail")
 			},
@@ -401,8 +401,4 @@ func (m *MockCronService) GetCronProductsByUser(user string) (*contracts.GetCron
 	}
 
 	return &result, nil
-}
-
-func newHandler(mock *MockCronService) *CronHandler {
-	return NewCronHandler(mock)
 }
