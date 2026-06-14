@@ -126,7 +126,7 @@ func (cs *CronService) UpdateCronProductCategory(ctx context.Context, id string,
 }
 
 func (cs *CronService) GetBackup(ctx context.Context) (*http.Response, error) {
-	requestUrl := fmt.Sprintf("%s/admin/backup", cs.baseURL)
+	requestUrl := fmt.Sprintf("%s/backup", cs.baseURL)
 
 	response, err := cs.client.DoGetBackup(ctx, requestUrl)
 

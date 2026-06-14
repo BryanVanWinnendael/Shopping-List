@@ -126,7 +126,7 @@ func (ns *NotificationsService) PushUserNotificationByType(ctx context.Context, 
 }
 
 func (ns *NotificationsService) GetBackup(ctx context.Context) (*http.Response, error) {
-	requestUrl := fmt.Sprintf("%s/admin/backup", ns.baseURL)
+	requestUrl := fmt.Sprintf("%s/backup", ns.baseURL)
 
 	response, err := ns.client.DoGetBackup(ctx, requestUrl)
 
