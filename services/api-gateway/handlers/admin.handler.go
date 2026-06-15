@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"shopping-list/api-gateway/response"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -49,10 +50,12 @@ func (ah *AdminHandler) GetBackups(c echo.Context) error {
 		_ = recipeResp.Body.Close()
 	}()
 
+	filename := "shopping-list-backup-" + time.Now().Format("2006-01-02") + ".zip"
+
 	c.Response().Header().Set(echo.HeaderContentType, "application/zip")
 	c.Response().Header().Set(
 		echo.HeaderContentDisposition,
-		`attachment; filename="backups.zip"`,
+		`attachment; filename="`+filename+`"`,
 	)
 
 	zipWriter := zip.NewWriter(c.Response().Writer)
