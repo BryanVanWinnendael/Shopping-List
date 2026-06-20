@@ -14,7 +14,7 @@ services:
       BUCKET: cron
       DB: cron.db
       CRON_TIME: "0 0 * * 5"
-      CRON_TIME_REMINDER: "0 0 * * 3"
+      CRON_TIME_REMINDER: "0 0 * * 0"
       PORT: 3000
     env_file:
       - .env
