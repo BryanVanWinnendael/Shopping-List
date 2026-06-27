@@ -14,6 +14,9 @@ import (
 	"strings"
 )
 
+// Prediction model based on Naive Bayes
+// Splits text into words/bigrams and counts the number of times each word appears in each category
+
 type ModelService struct {
 	naiveBayes *models.NaiveBayes
 }
@@ -92,10 +95,22 @@ func getBestClass(text string, nb *models.NaiveBayes) string {
 
 	for class := range nb.ClassCounts {
 		score := math.Log(float64(nb.ClassCounts[class]) / float64(nb.TotalDocs))
+		tokens := tokenize(text)
 
-		for _, word := range tokenize(text) {
-			wordCount := nb.WordCounts[class][word]
-			score += math.Log(float64(wordCount+1) / float64(nb.ClassCounts[class]+len(nb.Vocabulary)))
+		for _, token := range tokens {
+			weight := 1.0
+
+			// bigram detection (simple rule)
+			if strings.Contains(token, " ") {
+				weight = 2.0
+			}
+
+			wordCount := nb.WordCounts[class][token]
+
+			score += weight * math.Log(
+				float64(wordCount+1)/
+					float64(nb.ClassCounts[class]+len(nb.Vocabulary)),
+			)
 		}
 
 		if score > maxScore || bestClass == "" {
@@ -127,7 +142,21 @@ func tokenize(text string) []string {
 	text = strings.ToLower(text)
 	text = strings.ReplaceAll(text, ",", "")
 	text = strings.ReplaceAll(text, ".", "")
-	return strings.Fields(text)
+
+	words := strings.Fields(text)
+
+	var tokens []string
+
+	// unigrams (single words)
+	tokens = append(tokens, words...)
+
+	// bigrams (word pairs)
+	for i := 0; i < len(words)-1; i++ {
+		bigram := words[i] + " " + words[i+1]
+		tokens = append(tokens, bigram)
+	}
+
+	return tokens
 }
 
 func loadCSV() ([]models.TrainingData, error) {

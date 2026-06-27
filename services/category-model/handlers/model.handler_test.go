@@ -68,9 +68,5 @@ func (m *MockModelService) TrainModel() (*contracts.TrainModelResponse, error) {
 	if m.TrainFunc != nil {
 		return m.TrainFunc()
 	}
-
-	return &contracts.TrainModelResponse{
-		Model:    "NaiveBayes",
-		Accuracy: 0.95,
-	}, nil
+	return &contracts.TrainModelResponse{}, nil
 }

@@ -178,18 +178,12 @@ func (m *MockCategoryService) GetCategory(product string) (*contracts.GetCategor
 	if m.GetCategoryFunc != nil {
 		return m.GetCategoryFunc(product)
 	}
-	return &contracts.GetCategoryResponse{
-		Product:  "mock-product",
-		Category: "mock-category",
-	}, nil
+	return &contracts.GetCategoryResponse{}, nil
 }
 
 func (m *MockCategoryService) CreateCategory(request *contracts.CreateCategoryRequest) (*contracts.CreateCategoryResponse, error) {
 	if m.CreateCategoryFunc != nil {
 		return m.CreateCategoryFunc(request)
 	}
-	return &contracts.CreateCategoryResponse{
-		Product:  "mock-product",
-		Category: "mock-category",
-	}, nil
+	return &contracts.CreateCategoryResponse{}, nil
 }

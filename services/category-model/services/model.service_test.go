@@ -128,7 +128,7 @@ func TestTokenize(t *testing.T) {
 		result := tokenize("Apple, banana. carrot")
 
 		// then
-		expected := []string{"apple", "banana", "carrot"}
+		expected := []string{"apple", "banana", "carrot", "apple banana", "banana carrot"}
 
 		if len(result) != len(expected) {
 			t.Fatalf("expected %d tokens, got %d", len(expected), len(result))
