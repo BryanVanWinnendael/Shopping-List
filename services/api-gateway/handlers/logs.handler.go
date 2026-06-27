@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"shopping-list/api-gateway/response"
 	"shopping-list/shared/contracts"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
 type LogsService interface {
-	GetAppLogs(ctx context.Context) (*contracts.GetAppLogsResponse, error)
-	CreateAppLog(ctx context.Context, request *contracts.CreateAppLogRequest) (*contracts.CreateAppLogResponse, error)
-	DeleteAppLogs(ctx context.Context) (*contracts.DeleteAppLogResponse, error)
+	GetLogs(ctx context.Context, page string) (*contracts.GetLogsResponse, error)
+	CreateLog(ctx context.Context, request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error)
+	DeleteLogs(ctx context.Context) (*contracts.DeleteLogResponse, error)
 }
 
 func NewLogsHandler(ls LogsService) *LogsHandler {
@@ -23,8 +24,10 @@ type LogsHandler struct {
 	LogsService LogsService
 }
 
-func (lh *LogsHandler) GetAppLogs(c echo.Context) error {
-	result, err := lh.LogsService.GetAppLogs(c.Request().Context())
+func (lh *LogsHandler) GetLogs(c echo.Context) error {
+	page := strings.TrimSpace(c.QueryParam("page"))
+
+	result, err := lh.LogsService.GetLogs(c.Request().Context(), page)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -32,8 +35,8 @@ func (lh *LogsHandler) GetAppLogs(c echo.Context) error {
 	return response.Success(c, http.StatusOK, result)
 }
 
-func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
-	var request contracts.CreateAppLogRequest
+func (lh *LogsHandler) CreateLog(c echo.Context) error {
+	var request contracts.CreateLogRequest
 	if err := c.Bind(&request); err != nil {
 		return response.Error(c, http.StatusBadRequest, response.InvalidBodyResponse)
 	}
@@ -43,7 +46,7 @@ func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
 		return response.Missing(c, response.SourceBody, missingFields...)
 	}
 
-	result, err := lh.LogsService.CreateAppLog(c.Request().Context(), &request)
+	result, err := lh.LogsService.CreateLog(c.Request().Context(), &request)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -51,8 +54,8 @@ func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
 	return response.Success(c, http.StatusOK, result)
 }
 
-func (lh *LogsHandler) DeleteAppLogs(c echo.Context) error {
-	result, err := lh.LogsService.DeleteAppLogs(c.Request().Context())
+func (lh *LogsHandler) DeleteLogs(c echo.Context) error {
+	result, err := lh.LogsService.DeleteLogs(c.Request().Context())
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

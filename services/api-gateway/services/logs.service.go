@@ -20,10 +20,10 @@ func NewLogsService(client *httphelper.Client, baseURL string) *LogsService {
 	}
 }
 
-func (ls *LogsService) GetAppLogs(ctx context.Context) (*contracts.GetAppLogsResponse, error) {
-	requestUrl := fmt.Sprintf("%s/%s", ls.baseURL, "app")
+func (ls *LogsService) GetLogs(ctx context.Context, page string) (*contracts.GetLogsResponse, error) {
+	requestUrl := fmt.Sprintf("%s?page=%s", ls.baseURL, page)
 
-	var response contracts.GetAppLogsResponse
+	var response contracts.GetLogsResponse
 
 	_, err := ls.client.DoRequest(
 		ctx,
@@ -41,10 +41,10 @@ func (ls *LogsService) GetAppLogs(ctx context.Context) (*contracts.GetAppLogsRes
 	return &response, nil
 }
 
-func (ls *LogsService) CreateAppLog(ctx context.Context, request *contracts.CreateAppLogRequest) (*contracts.CreateAppLogResponse, error) {
-	requestUrl := fmt.Sprintf("%s/%s", ls.baseURL, "app")
+func (ls *LogsService) CreateLog(ctx context.Context, request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error) {
+	requestUrl := ls.baseURL
 
-	var response contracts.CreateAppLogResponse
+	var response contracts.CreateLogResponse
 
 	_, err := ls.client.DoRequest(
 		ctx,
@@ -62,10 +62,10 @@ func (ls *LogsService) CreateAppLog(ctx context.Context, request *contracts.Crea
 	return &response, nil
 }
 
-func (ls *LogsService) DeleteAppLogs(ctx context.Context) (*contracts.DeleteAppLogResponse, error) {
-	requestUrl := fmt.Sprintf("%s/%s", ls.baseURL, "app")
+func (ls *LogsService) DeleteLogs(ctx context.Context) (*contracts.DeleteLogResponse, error) {
+	requestUrl := ls.baseURL
 
-	var response contracts.DeleteAppLogResponse
+	var response contracts.DeleteLogResponse
 
 	_, err := ls.client.DoRequest(
 		ctx,

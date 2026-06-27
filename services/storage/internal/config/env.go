@@ -12,6 +12,7 @@ type Env struct {
 	Host         string
 	StorageDir   string
 	Port         string
+	LogsAPIURL   string
 }
 
 var Vars Env
@@ -28,6 +29,7 @@ func LoadEnv() {
 		Host:         getEnv("HOST", ""),
 		StorageDir:   getEnv("STORAGE_DIR", "./storage"),
 		Port:         getEnv("PORT", "3000"),
+		LogsAPIURL:   getEnv("LOGS_API_URL", "http://shopping-list-logs:3000/api/logs"),
 	}
 }
 

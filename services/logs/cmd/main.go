@@ -6,7 +6,6 @@ import (
 	"shopping-list/logs/handlers"
 	"shopping-list/logs/internal/config"
 	"shopping-list/logs/services"
-	"shopping-list/shared/middlewares"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +18,6 @@ func main() {
 	_, _ = os.OpenFile(logsPath, os.O_CREATE, 0644)
 
 	e := echo.New()
-	e.Use(middlewares.RequestLogger)
 
 	ls := services.NewLogsService()
 	lh := handlers.NewLogsHandler(ls)

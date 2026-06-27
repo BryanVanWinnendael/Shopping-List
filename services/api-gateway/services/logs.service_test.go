@@ -10,17 +10,17 @@ import (
 	"shopping-list/shared/tests"
 )
 
-func TestGetAppLogs(t *testing.T) {
-	t.Run("Given valid request, When GetAppLogs, Then success", func(t *testing.T) {
+func TestGetLogs(t *testing.T) {
+	t.Run("Given valid request, When GetLogs, Then success", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(contracts.GetAppLogsResponse{})
+		body, _ := json.Marshal(contracts.GetLogsResponse{})
 
 		client := tests.MockJSONResponse(200, body)
 
 		service := NewLogsService(client, "http://test")
 
 		// when
-		res, err := service.GetAppLogs(context.Background())
+		res, err := service.GetLogs(context.Background(), "1")
 
 		// then
 		if err != nil {
@@ -32,14 +32,14 @@ func TestGetAppLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given http client fails, When GetAppLogs, Then return error", func(t *testing.T) {
+	t.Run("Given http client fails, When GetLogs, Then return error", func(t *testing.T) {
 		// given
 		client := tests.MockError(errors.New("network error"))
 
 		service := NewLogsService(client, "http://test")
 
 		// when
-		res, err := service.GetAppLogs(context.Background())
+		res, err := service.GetLogs(context.Background(), "1")
 
 		// then
 		if err == nil {
@@ -51,16 +51,16 @@ func TestGetAppLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given API returns error status, When GetAppLogs, Then return error", func(t *testing.T) {
+	t.Run("Given API returns error status, When GetLogs, Then return error", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(contracts.GetAppLogsResponse{})
+		body, _ := json.Marshal(contracts.GetLogsResponse{})
 
 		client := tests.MockJSONResponse(500, body)
 
 		service := NewLogsService(client, "http://test")
 
 		// when
-		res, err := service.GetAppLogs(context.Background())
+		res, err := service.GetLogs(context.Background(), "1")
 
 		// then
 		if err == nil {
@@ -73,19 +73,19 @@ func TestGetAppLogs(t *testing.T) {
 	})
 }
 
-func TestCreateAppLog(t *testing.T) {
-	t.Run("Given valid request, When CreateAppLog, Then success", func(t *testing.T) {
+func TestCreateLog(t *testing.T) {
+	t.Run("Given valid request, When CreateLog, Then success", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(contracts.CreateAppLogResponse{})
+		body, _ := json.Marshal(contracts.CreateLogResponse{})
 
 		client := tests.MockJSONResponse(200, body)
 
 		service := NewLogsService(client, "http://test")
 
-		req := &contracts.CreateAppLogRequest{}
+		req := &contracts.CreateLogRequest{}
 
 		// when
-		res, err := service.CreateAppLog(context.Background(), req)
+		res, err := service.CreateLog(context.Background(), req)
 
 		// then
 		if err != nil {
@@ -97,16 +97,16 @@ func TestCreateAppLog(t *testing.T) {
 		}
 	})
 
-	t.Run("Given http client fails, When CreateAppLog, Then return error", func(t *testing.T) {
+	t.Run("Given http client fails, When CreateLog, Then return error", func(t *testing.T) {
 		// given
 		client := tests.MockError(errors.New("network error"))
 
 		service := NewLogsService(client, "http://test")
 
-		req := &contracts.CreateAppLogRequest{}
+		req := &contracts.CreateLogRequest{}
 
 		// when
-		res, err := service.CreateAppLog(context.Background(), req)
+		res, err := service.CreateLog(context.Background(), req)
 
 		// then
 		if err == nil {
@@ -118,18 +118,18 @@ func TestCreateAppLog(t *testing.T) {
 		}
 	})
 
-	t.Run("Given API returns error status, When CreateAppLog, Then return error", func(t *testing.T) {
+	t.Run("Given API returns error status, When CreateLog, Then return error", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(contracts.CreateAppLogResponse{})
+		body, _ := json.Marshal(contracts.CreateLogResponse{})
 
 		client := tests.MockJSONResponse(500, body)
 
 		service := NewLogsService(client, "http://test")
 
-		req := &contracts.CreateAppLogRequest{}
+		req := &contracts.CreateLogRequest{}
 
 		// when
-		res, err := service.CreateAppLog(context.Background(), req)
+		res, err := service.CreateLog(context.Background(), req)
 
 		// then
 		if err == nil {
@@ -142,17 +142,17 @@ func TestCreateAppLog(t *testing.T) {
 	})
 }
 
-func TestDeleteAppLogs(t *testing.T) {
-	t.Run("Given valid request, When DeleteAppLogs, Then success", func(t *testing.T) {
+func TestDeleteLogs(t *testing.T) {
+	t.Run("Given valid request, When DeleteLogs, Then success", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(contracts.DeleteAppLogResponse{})
+		body, _ := json.Marshal(contracts.DeleteLogResponse{})
 
 		client := tests.MockJSONResponse(200, body)
 
 		service := NewLogsService(client, "http://test")
 
 		// when
-		res, err := service.DeleteAppLogs(context.Background())
+		res, err := service.DeleteLogs(context.Background())
 
 		// then
 		if err != nil {
@@ -164,14 +164,14 @@ func TestDeleteAppLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given http client fails, When DeleteAppLogs, Then return error", func(t *testing.T) {
+	t.Run("Given http client fails, When DeleteLogs, Then return error", func(t *testing.T) {
 		// given
 		client := tests.MockError(errors.New("network error"))
 
 		service := NewLogsService(client, "http://test")
 
 		// when
-		res, err := service.DeleteAppLogs(context.Background())
+		res, err := service.DeleteLogs(context.Background())
 
 		// then
 		if err == nil {
@@ -183,16 +183,16 @@ func TestDeleteAppLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given API returns error status, When DeleteAppLogs, Then return error", func(t *testing.T) {
+	t.Run("Given API returns error status, When DeleteLogs, Then return error", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(contracts.DeleteAppLogResponse{})
+		body, _ := json.Marshal(contracts.DeleteLogResponse{})
 
 		client := tests.MockJSONResponse(500, body)
 
 		service := NewLogsService(client, "http://test")
 
 		// when
-		res, err := service.DeleteAppLogs(context.Background())
+		res, err := service.DeleteLogs(context.Background())
 
 		// then
 		if err == nil {

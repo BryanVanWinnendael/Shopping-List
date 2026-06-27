@@ -8,6 +8,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"shopping-list/shared/models"
 )
 
 func (c *Client) DoMultipartRequest(
@@ -62,6 +63,15 @@ func (c *Client) DoMultipartRequest(
 
 	if c.defaultToken != "" {
 		req.Header.Set("Authorization", "Bearer "+c.defaultToken)
+	}
+
+	if traceID, ok := ctx.Value(models.TraceIdKey).(string); ok && traceID != "" {
+		req.Header.Set(models.TraceIdHeader, traceID)
+	}
+
+	if span, ok := ctx.Value(models.SpanKey).(*models.SpanContext); ok && span != nil {
+		req.Header.Set(models.SpanIdHeader, span.SpanId)
+		req.Header.Set(models.ParentSpanIDHeader, span.ParentSpanId)
 	}
 
 	resp, err := c.HttpClient.Do(req)

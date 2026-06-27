@@ -12,6 +12,7 @@ type Env struct {
 	CategoriesFile string
 	ModelFile      string
 	Port           string
+	LogsAPIURL     string
 }
 
 var Vars Env
@@ -28,6 +29,7 @@ func LoadEnv() {
 		CategoriesFile: getEnv("CATEGORIES_FILE", "categories.csv"),
 		ModelFile:      getEnv("MODEL_FILE", "model.pkl"),
 		Port:           getEnv("PORT", "3000"),
+		LogsAPIURL:     getEnv("LOGS_API_URL", "http://shopping-list-logs:3000/api/logs"),
 	}
 }
 

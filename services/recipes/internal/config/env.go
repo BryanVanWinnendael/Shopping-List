@@ -13,6 +13,7 @@ type Env struct {
 	DB                  string
 	OnlineRecipesAPIUrl string
 	Port                string
+	LogsAPIURL          string
 }
 
 var Vars Env
@@ -29,7 +30,8 @@ func LoadEnv() {
 		Bucket:              getEnv("BUCKET", "recipes"),
 		DB:                  getEnv("DB", "recipes.db"),
 		OnlineRecipesAPIUrl: getEnv("ONLINE_RECIPES_API_URL", ""),
-		Port:                getEnv("PORT", "3000"),
+		Port:                getEnv("PORT", "3005"),
+		LogsAPIURL:          getEnv("LOGS_API_URL", "http://shopping-list-logs:3000/api/logs"),
 	}
 }
 

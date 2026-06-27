@@ -6,6 +6,7 @@ import (
 	"shopping-list/recipes/services"
 	"shopping-list/shared/db"
 	httphelper "shopping-list/shared/http"
+	"shopping-list/shared/logger"
 	"shopping-list/shared/middlewares"
 	"time"
 
@@ -17,10 +18,13 @@ func main() {
 
 	bbolt := db.InitBbolt(config.Vars.DataDir, config.Vars.DB, config.Vars.Bucket)
 
-	e := echo.New()
-	e.Use(middlewares.RequestLogger)
-
 	httpClient := httphelper.NewClient(60*time.Second, "")
+	loggerClient := logger.New(httpClient, config.Vars.LogsAPIURL, "Recipes µS")
+
+	e := echo.New()
+	e.Use(middlewares.TraceMiddleware)
+	e.Use(middlewares.RequestLogger(loggerClient))
+	e.Use(middlewares.ResponseLogger(loggerClient))
 
 	rs := services.NewRecipeService(bbolt)
 	rh := handlers.NewRecipeHandler(rs)

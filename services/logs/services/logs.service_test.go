@@ -10,12 +10,22 @@ import (
 	"testing"
 )
 
-func TestGetAppLogs(t *testing.T) {
-	t.Run("Given logs file with content, When GetAppLogs, Then returns logs", func(t *testing.T) {
+func TestGetLogs(t *testing.T) {
+	t.Run("Given logs file with content, When GetLogs, Then returns logs", func(t *testing.T) {
 		// given
 		logs := []models.Log{
-			{Text: "log1"},
-			{Text: "log2"},
+			{
+				Text:     "log1",
+				DateTime: "2021-01-01T00:00:00Z",
+				Service:  "test",
+				TraceId:  "12345",
+			},
+			{
+				Text:     "log2",
+				DateTime: "2021-01-01T00:00:00Z",
+				Service:  "test",
+				TraceId:  "123456",
+			},
 		}
 
 		var fileContent []byte
@@ -29,24 +39,24 @@ func TestGetAppLogs(t *testing.T) {
 		service := NewLogsService()
 
 		// when
-		res, err := service.GetAppLogs()
+		res, err := service.GetLogs(1)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if len(*res) != 2 {
-			t.Fatalf("expected 2 logs, got %d", len(*res))
+		if res.PageSize != 2 {
+			t.Fatalf("expected 2 logs, got %d", res.PageSize)
 		}
 	})
 
-	t.Run("Given missing file, When GetAppLogs, Then returns error", func(t *testing.T) {
+	t.Run("Given missing file, When GetLogs, Then returns error", func(t *testing.T) {
 		// given
 		service := NewLogsService()
 
 		// when
-		_, err := service.GetAppLogs()
+		_, err := service.GetLogs(1)
 
 		// then
 		if err == nil {
@@ -55,18 +65,21 @@ func TestGetAppLogs(t *testing.T) {
 	})
 }
 
-func TestCreateAppLog(t *testing.T) {
-	t.Run("Given valid text, When CreateAppLog, Then writes to file", func(t *testing.T) {
+func TestCreateLog(t *testing.T) {
+	t.Run("Given valid request, When CreateLog, Then writes to file", func(t *testing.T) {
 		// given
 		setup(t, nil)
 
 		service := NewLogsService()
-		request := contracts.CreateAppLogRequest{
-			Text: "mock-log",
+		request := contracts.CreateLogRequest{
+			Text:     "mock-log",
+			Service:  "test",
+			TraceId:  "12345",
+			DateTime: "2021-01-01T00:00:00Z",
 		}
 
 		// when
-		res, err := service.CreateAppLog(&request)
+		res, err := service.CreateLog(&request)
 
 		// then
 		if err != nil {
@@ -93,15 +106,25 @@ func TestCreateAppLog(t *testing.T) {
 		}
 	})
 
-	t.Run("Given multiple writes, When CreateAppLog, Then appends correctly", func(t *testing.T) {
+	t.Run("Given multiple writes, When CreateLog, Then appends correctly", func(t *testing.T) {
 		// given
 		setup(t, nil)
 
 		service := NewLogsService()
 
 		// when
-		_, _ = service.CreateAppLog(&contracts.CreateAppLogRequest{Text: "log1"})
-		_, _ = service.CreateAppLog(&contracts.CreateAppLogRequest{Text: "log2"})
+		_, _ = service.CreateLog(&contracts.CreateLogRequest{
+			Text:     "mock-log",
+			Service:  "test",
+			TraceId:  "12345",
+			DateTime: "2021-01-01T00:00:00Z",
+		})
+		_, _ = service.CreateLog(&contracts.CreateLogRequest{
+			Text:     "mock-log2",
+			Service:  "test",
+			TraceId:  "12345",
+			DateTime: "2021-01-01T00:00:00Z",
+		})
 
 		// then
 		data, err := os.ReadFile(config.Vars.LogsFile)
@@ -122,15 +145,15 @@ func TestCreateAppLog(t *testing.T) {
 	})
 }
 
-func TestDeleteAppLogs(t *testing.T) {
-	t.Run("Given existing logs, When DeleteAppLogs, Then clears file", func(t *testing.T) {
+func TestDeleteLogs(t *testing.T) {
+	t.Run("Given existing logs, When DeleteLogs, Then clears file", func(t *testing.T) {
 		// given
 		setup(t, []byte("something\n"))
 
 		service := NewLogsService()
 
 		// when
-		res, err := service.DeleteAppLogs()
+		res, err := service.DeleteLogs()
 
 		// then
 		if err != nil {
@@ -146,7 +169,7 @@ func TestDeleteAppLogs(t *testing.T) {
 			t.Fatalf("expected empty file, got '%s'", string(data))
 		}
 
-		if res.Message != "app logs deleted successfully" {
+		if res.Message != "logs deleted successfully" {
 			t.Fatalf("unexpected message: %s", res.Message)
 		}
 	})

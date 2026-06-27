@@ -11,6 +11,7 @@ type Env struct {
 	DataDir      string
 	ProductsFile string
 	Port         string
+	LogsAPIURL   string
 }
 
 var Vars Env
@@ -26,6 +27,7 @@ func LoadEnv() {
 		DataDir:      getEnv("DATA_DIR", "./data"),
 		ProductsFile: getEnv("PRODUCTS_FILE", "products.csv"),
 		Port:         getEnv("PORT", "3000"),
+		LogsAPIURL:   getEnv("LOGS_API_URL", "http://shopping-list-logs:3000/api/logs"),
 	}
 }
 

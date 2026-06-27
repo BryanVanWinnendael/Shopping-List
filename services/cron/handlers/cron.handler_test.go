@@ -338,67 +338,33 @@ func (m *MockCronService) CreateCronProduct(Product *contracts.CreateCronProduct
 	if m.CreateCronProductFunc != nil {
 		return m.CreateCronProductFunc(Product)
 	}
-	return &contracts.CreateCronProductResponse{
-		Product:  "mock-Product",
-		Category: "mock-category",
-		Id:       "mock-id",
-	}, nil
+	return &contracts.CreateCronProductResponse{}, nil
 }
 
 func (m *MockCronService) GetAllCronProducts() (*contracts.GetAllCronProductsResponse, error) {
 	if m.GetAllCronProductsFunc != nil {
 		return m.GetAllCronProductsFunc()
 	}
-	result := contracts.GetAllCronProductsResponse{
-		{
-			Product:  "mock-Product",
-			Category: "mock-category",
-		},
-		{
-			Product:  "mock-Product2",
-			Category: "mock-category2",
-		},
-	}
-
-	return &result, nil
+	return &contracts.GetAllCronProductsResponse{}, nil
 }
 
 func (m *MockCronService) UpdateCronProductCategory(id string, request *contracts.UpdateCronProductCategoryRequest) (*contracts.UpdateCronProductCategoryResponse, error) {
 	if m.UpdateCronProductCategoryFunc != nil {
 		return m.UpdateCronProductCategoryFunc(id, request)
 	}
-	return &contracts.UpdateCronProductCategoryResponse{
-		Id:       id,
-		Category: request.Category,
-		User:     "mock-user",
-		Product:  "mock-Product",
-	}, nil
+	return &contracts.UpdateCronProductCategoryResponse{}, nil
 }
 
 func (m *MockCronService) DeleteCronProduct(id string) (*contracts.DeleteCronProductResponse, error) {
 	if m.DeleteCronProductFunc != nil {
 		return m.DeleteCronProductFunc(id)
 	}
-	return &contracts.DeleteCronProductResponse{
-		Id:      id,
-		Message: "Deleted cron-Product",
-	}, nil
+	return &contracts.DeleteCronProductResponse{}, nil
 }
 
 func (m *MockCronService) GetCronProductsByUser(user string) (*contracts.GetCronProductsByUserResponse, error) {
 	if m.GetCronProductsByUserFunc != nil {
 		return m.GetCronProductsByUserFunc(user)
 	}
-	result := contracts.GetCronProductsByUserResponse{
-		{
-			Product:  "mock-Product",
-			Category: "mock-category",
-		},
-		{
-			Product:  "mock-Product2",
-			Category: "mock-category2",
-		},
-	}
-
-	return &result, nil
+	return &contracts.GetCronProductsByUserResponse{}, nil
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"shopping-list/shared/models"
 )
 
 func (c *Client) DoRequest(
@@ -36,6 +37,15 @@ func (c *Client) DoRequest(
 
 	if c.defaultToken != "" {
 		req.Header.Set("Authorization", "Bearer "+c.defaultToken)
+	}
+
+	if traceID, ok := ctx.Value(models.TraceIdKey).(string); ok && traceID != "" {
+		req.Header.Set(models.TraceIdHeader, traceID)
+	}
+
+	if span, ok := ctx.Value(models.SpanKey).(*models.SpanContext); ok && span != nil {
+		req.Header.Set(models.SpanIdHeader, span.SpanId)
+		req.Header.Set(models.ParentSpanIDHeader, span.ParentSpanId)
 	}
 
 	for k, v := range headers {

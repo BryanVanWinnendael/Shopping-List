@@ -5,6 +5,7 @@ import (
 	"shopping-list/api-gateway/internal/config"
 	"shopping-list/api-gateway/services"
 	httphelper "shopping-list/shared/http"
+	"shopping-list/shared/logger"
 	"shopping-list/shared/middlewares"
 	"time"
 
@@ -14,16 +15,19 @@ import (
 func main() {
 	config.LoadEnv()
 
+	httpClient := httphelper.NewClient(60*time.Second, config.Vars.APIAuthToken)
+	loggerClient := logger.New(httpClient, config.Vars.LogsAPIURL, "API Gateway")
+
 	e := echo.New()
-	e.Use(middlewares.RequestLogger)
-	e.Use(middlewares.ResponseLogger)
+
+	e.Use(middlewares.TraceMiddleware)
+	e.Use(middlewares.RequestLogger(loggerClient))
+	e.Use(middlewares.ResponseLogger(loggerClient))
 
 	api := e.Group("")
 	api.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return middlewares.AuthMiddleware(next, config.Vars.APIAuthToken)
 	})
-
-	httpClient := httphelper.NewClient(60*time.Second, config.Vars.APIAuthToken)
 
 	cms := services.NewCategoryModelService(httpClient, config.Vars.CategoryModelAPIURL)
 	cmh := handlers.NewCategoryModelHandler(cms)
