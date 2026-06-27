@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"testing"
 
@@ -13,6 +15,7 @@ import (
 type MockProductsSearchService struct {
 	SearchProductsFunc      func(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
 	FuzzySearchProductsFunc func(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
+	GetBackupFunc           func(ctx context.Context) (*http.Response, error)
 }
 
 func TestSearchProducts(t *testing.T) {
@@ -153,4 +156,16 @@ func (m *MockProductsSearchService) FuzzySearchProducts(ctx context.Context, que
 		return m.FuzzySearchProductsFunc(ctx, query, category, page, pageSize)
 	}
 	return &contracts.ProductsSearchResponse{}, nil
+}
+
+func (m *MockProductsSearchService) GetBackup(ctx context.Context) (*http.Response, error) {
+	if m.GetBackupFunc != nil {
+		return m.GetBackupFunc(ctx)
+	}
+
+	return &http.Response{
+		StatusCode: 200,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("products-search-zip"))),
+	}, nil
 }

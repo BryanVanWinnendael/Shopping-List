@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"shopping-list/shared/contracts"
 	"shopping-list/shared/tests"
@@ -14,6 +16,7 @@ type MockLogsService struct {
 	GetLogsFunc    func(ctx context.Context, page string) (*contracts.GetLogsResponse, error)
 	CreateLogFunc  func(ctx context.Context, request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error)
 	DeleteLogsFunc func(ctx context.Context) (*contracts.DeleteLogResponse, error)
+	GetBackupFunc  func(ctx context.Context) (*http.Response, error)
 }
 
 func TestGetLogs(t *testing.T) {
@@ -224,4 +227,16 @@ func (m *MockLogsService) DeleteLogs(ctx context.Context) (*contracts.DeleteLogR
 		return m.DeleteLogsFunc(ctx)
 	}
 	return &contracts.DeleteLogResponse{}, nil
+}
+
+func (m *MockLogsService) GetBackup(ctx context.Context) (*http.Response, error) {
+	if m.GetBackupFunc != nil {
+		return m.GetBackupFunc(ctx)
+	}
+
+	return &http.Response{
+		StatusCode: 200,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("logs-zip"))),
+	}, nil
 }

@@ -82,3 +82,15 @@ func (ls *LogsService) DeleteLogs(ctx context.Context) (*contracts.DeleteLogResp
 
 	return &response, nil
 }
+
+func (ls *LogsService) GetBackup(ctx context.Context) (*http.Response, error) {
+	requestUrl := fmt.Sprintf("%s/backup", ls.baseURL)
+
+	response, err := ls.client.DoGetBackup(ctx, requestUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}

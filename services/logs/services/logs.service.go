@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -37,7 +38,12 @@ func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}(file)
 
 	type spanMap map[string]*models.SpanNode
 	traces := map[string]spanMap{}
@@ -203,7 +209,12 @@ func (ls *LogsService) CreateLog(request *contracts.CreateLogRequest) (*contract
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}(file)
 
 	log := models.Log{
 		Text:             request.Text,

@@ -435,6 +435,6 @@ func (m *MockNotificationsService) GetBackup(ctx context.Context) (*http.Respons
 	return &http.Response{
 		StatusCode: 200,
 		Header:     make(http.Header),
-		Body:       io.NopCloser(bytes.NewBuffer([]byte("notifications-db"))),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("notifications-zip"))),
 	}, nil
 }

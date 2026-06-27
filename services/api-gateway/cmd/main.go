@@ -50,7 +50,7 @@ func main() {
 	cs := services.NewCronService(httpClient, config.Vars.CronAPIURL)
 	ch := handlers.NewCronHandler(cs)
 
-	ah := handlers.NewAdminHandler(cs, ns, rs)
+	ah := handlers.NewAdminHandler(cms, cs, ls, ns, ps, rs, ss)
 
 	handlers.SetupRoutes(api, cmh, lh, nh, psh, sh, rh, ch)
 

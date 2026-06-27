@@ -75,3 +75,15 @@ func (pss *ProductsSearchService) FuzzySearchProducts(ctx context.Context, query
 
 	return &response, nil
 }
+
+func (pss *ProductsSearchService) GetBackup(ctx context.Context) (*http.Response, error) {
+	requestUrl := fmt.Sprintf("%s/backup", pss.baseURL)
+
+	response, err := pss.client.DoGetBackup(ctx, requestUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}

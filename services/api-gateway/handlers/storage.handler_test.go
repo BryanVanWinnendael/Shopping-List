@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"testing"
 
@@ -17,6 +19,7 @@ type MockStorageService struct {
 	DeleteRecipeStorageFunc func(ctx context.Context, id string) (*contracts.DeleteStorageResponse, error)
 	UploadListImageFunc     func(ctx context.Context, id string, req *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error)
 	DeleteListImageFunc     func(ctx context.Context, id string) (*contracts.DeleteImageResponse, error)
+	GetBackupFunc           func(ctx context.Context) (*http.Response, error)
 }
 
 func TestUploadRecipeImage(t *testing.T) {
@@ -362,4 +365,16 @@ func (m *MockStorageService) DeleteListImage(ctx context.Context, id string) (*c
 		return m.DeleteListImageFunc(ctx, id)
 	}
 	return &contracts.DeleteImageResponse{}, nil
+}
+
+func (m *MockStorageService) GetBackup(ctx context.Context) (*http.Response, error) {
+	if m.GetBackupFunc != nil {
+		return m.GetBackupFunc(ctx)
+	}
+
+	return &http.Response{
+		StatusCode: 200,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("storage-zip"))),
+	}, nil
 }

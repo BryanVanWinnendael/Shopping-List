@@ -725,6 +725,6 @@ func (m *MockRecipesService) GetBackup(ctx context.Context) (*http.Response, err
 	return &http.Response{
 		StatusCode: 200,
 		Header:     make(http.Header),
-		Body:       io.NopCloser(bytes.NewBuffer([]byte("recipes-db"))),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("recipes-zip"))),
 	}, nil
 }

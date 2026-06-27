@@ -15,6 +15,7 @@ type StorageService interface {
 	DeleteRecipeStorage(ctx context.Context, id string) (*contracts.DeleteStorageResponse, error)
 	UploadListImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error)
 	DeleteListImage(ctx context.Context, id string) (*contracts.DeleteImageResponse, error)
+	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
 func NewStorageHandler(ls StorageService) *StorageHandler {

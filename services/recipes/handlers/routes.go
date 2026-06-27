@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"shopping-list/recipes/internal/config"
-	"shopping-list/shared/db"
+	"shopping-list/shared/data"
 
 	"github.com/labstack/echo/v4"
 	"go.etcd.io/bbolt"
@@ -17,7 +17,7 @@ func SetupRoutes(e *echo.Echo, rh *RecipeHandler, orh *OnlineRecipeHandler, bbol
 	recipes.GET("/:id", rh.GetRecipe)
 	recipes.PUT("/:id", rh.UpdateRecipe)
 	recipes.DELETE("/:id", rh.DeleteRecipe)
-	recipes.GET("/backup", db.BackupHandler(bbolt, config.Vars.Bucket))
+	recipes.GET("/backup", data.BackupFolderHandler(config.Vars.DataDir, "recipes"))
 
 	onlineRecipes := e.Group("/api/online-recipes")
 	onlineRecipes.GET("", orh.GetRecipes)

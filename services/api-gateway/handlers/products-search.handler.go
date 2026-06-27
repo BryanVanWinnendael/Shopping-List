@@ -13,6 +13,7 @@ import (
 type ProductsSearchService interface {
 	SearchProducts(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
 	FuzzySearchProducts(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
+	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
 func NewProductsSearchHandler(ls ProductsSearchService) *ProductsSearchHandler {

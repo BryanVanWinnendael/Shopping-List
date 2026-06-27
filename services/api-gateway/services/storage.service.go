@@ -126,3 +126,15 @@ func (ss *StorageService) DeleteListImage(ctx context.Context, id string) (*cont
 
 	return &response, nil
 }
+
+func (ss *StorageService) GetBackup(ctx context.Context) (*http.Response, error) {
+	requestUrl := fmt.Sprintf("%s/recipes/backup", ss.baseURL)
+
+	response, err := ss.client.DoGetBackup(ctx, requestUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}

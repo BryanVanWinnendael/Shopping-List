@@ -477,6 +477,6 @@ func (m *MockCronService) GetBackup(ctx context.Context) (*http.Response, error)
 	return &http.Response{
 		StatusCode: 200,
 		Header:     make(http.Header),
-		Body:       io.NopCloser(bytes.NewBuffer([]byte("cron-db"))),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("cron-zip"))),
 	}, nil
 }

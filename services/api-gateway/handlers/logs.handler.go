@@ -14,6 +14,7 @@ type LogsService interface {
 	GetLogs(ctx context.Context, page string) (*contracts.GetLogsResponse, error)
 	CreateLog(ctx context.Context, request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error)
 	DeleteLogs(ctx context.Context) (*contracts.DeleteLogResponse, error)
+	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
 func NewLogsHandler(ls LogsService) *LogsHandler {

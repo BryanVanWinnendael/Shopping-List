@@ -50,6 +50,7 @@ func ResponseLogger(l *logger.Logger) echo.MiddlewareFunc {
 			if len(responseBody) > 0 {
 				baseOpts = append(baseOpts,
 					logger.WithResponseBody(responseBody),
+					logger.WithResponseBodySize(float64(len(rec.body))/1024/1024),
 				)
 			}
 
