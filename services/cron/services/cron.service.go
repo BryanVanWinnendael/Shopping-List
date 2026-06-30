@@ -261,11 +261,19 @@ func (c *CronService) getCountProductsInFirebase() (int, error) {
 		return 0, err
 	}
 
-	weekAgo := time.Now().AddDate(0, 0, -7).Unix()
+	now := time.Now()
+	// Saturday at 14:00
+	cutoff := time.Date(
+		now.Year(),
+		now.Month(),
+		now.Day()-1,
+		14, 0, 0, 0,
+		now.Location(),
+	).Unix()
 
 	count := 0
 	for _, product := range products {
-		if product.Date < weekAgo {
+		if product.Date <= cutoff {
 			count++
 		}
 	}
