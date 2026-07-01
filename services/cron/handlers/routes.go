@@ -5,10 +5,9 @@ import (
 	"shopping-list/shared/data"
 
 	"github.com/labstack/echo/v4"
-	"go.etcd.io/bbolt"
 )
 
-func SetupRoutes(e *echo.Echo, ch *CronHandler, bbolt *bbolt.DB) {
+func SetupRoutes(e *echo.Echo, ch *CronHandler) {
 	cron := e.Group("/api/cron")
 	cron.POST("", ch.CreateCronProduct)
 	cron.GET("/products", ch.GetAllCronProducts)

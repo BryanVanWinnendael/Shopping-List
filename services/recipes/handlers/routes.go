@@ -5,10 +5,9 @@ import (
 	"shopping-list/shared/data"
 
 	"github.com/labstack/echo/v4"
-	"go.etcd.io/bbolt"
 )
 
-func SetupRoutes(e *echo.Echo, rh *RecipeHandler, orh *OnlineRecipeHandler, bbolt *bbolt.DB) {
+func SetupRoutes(e *echo.Echo, rh *RecipeHandler, orh *OnlineRecipeHandler) {
 	recipes := e.Group("/api/recipes")
 	recipes.POST("", rh.CreateRecipe)
 	recipes.GET("", rh.GetAllRecipes)

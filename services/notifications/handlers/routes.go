@@ -5,10 +5,9 @@ import (
 	"shopping-list/shared/data"
 
 	"github.com/labstack/echo/v4"
-	"go.etcd.io/bbolt"
 )
 
-func SetupRoutes(e *echo.Echo, nh *NotificationsHandler, bbolt *bbolt.DB) {
+func SetupRoutes(e *echo.Echo, nh *NotificationsHandler) {
 	notifications := e.Group("/api/notifications")
 	notifications.POST("", nh.Subscribe)
 	notifications.GET("", nh.GetAllNotifications)

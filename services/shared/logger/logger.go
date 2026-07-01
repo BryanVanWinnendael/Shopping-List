@@ -7,6 +7,7 @@ import (
 	"shopping-list/shared/contracts"
 	"shopping-list/shared/http"
 	"shopping-list/shared/models"
+	"strings"
 	"time"
 )
 
@@ -272,7 +273,8 @@ func printLog(log contracts.CreateLogRequest) {
 }
 
 func (l *Logger) send(ctx context.Context, request contracts.CreateLogRequest) error {
-	if *request.Path == "/api/logs" {
+	// don't log creating/deleting/getting logs and backups
+	if request.Path != nil && (strings.Contains(*request.Path, "/api/logs") || strings.Contains(*request.Path, "backup")) {
 		return nil
 	}
 

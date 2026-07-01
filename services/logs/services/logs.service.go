@@ -14,8 +14,10 @@ import (
 	"shopping-list/logs/internal/config"
 	"shopping-list/shared/contracts"
 	"shopping-list/shared/models"
+	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 func NewLogsService() *LogsService {
@@ -26,7 +28,10 @@ type LogsService struct{}
 
 var mu sync.Mutex
 
-const pageSize = 10
+const (
+	pageSize      = 10
+	maxLogEntries = 50
+)
 
 func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 	mu.Lock()
@@ -46,11 +51,19 @@ func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 	}(file)
 
 	type spanMap map[string]*models.SpanNode
+
+	type traceWithMeta struct {
+		TraceID string
+		Roots   []*models.SpanNode
+		Latest  time.Time
+	}
+
 	traces := map[string]spanMap{}
+	traceMeta := map[string]*traceWithMeta{}
 
 	scanner := bufio.NewScanner(file)
 
-	const maxLineSize = 10 * 1024 * 1024 // 10 MB
+	const maxLineSize = 10 * 1024 * 1024
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxLineSize)
 
@@ -69,6 +82,22 @@ func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 
 		if _, ok := traces[traceID]; !ok {
 			traces[traceID] = spanMap{}
+		}
+
+		if _, ok := traceMeta[traceID]; !ok {
+			traceMeta[traceID] = &traceWithMeta{
+				TraceID: traceID,
+			}
+		}
+
+		meta := traceMeta[traceID]
+
+		if log.DateTime != "" {
+			if t, err := time.Parse(time.RFC3339, log.DateTime); err == nil {
+				if t.After(meta.Latest) {
+					meta.Latest = t
+				}
+			}
 		}
 
 		nodes := traces[traceID]
@@ -152,6 +181,24 @@ func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 		})
 	}
 
+	sort.Slice(allTraces, func(i, j int) bool {
+		var ti, tj time.Time
+
+		if len(allTraces[i].Roots) > 0 &&
+			allTraces[i].Roots[0].Request != nil &&
+			allTraces[i].Roots[0].Request.DateTime != "" {
+			ti, _ = time.Parse(time.RFC3339, allTraces[i].Roots[0].Request.DateTime)
+		}
+
+		if len(allTraces[j].Roots) > 0 &&
+			allTraces[j].Roots[0].Request != nil &&
+			allTraces[j].Roots[0].Request.DateTime != "" {
+			tj, _ = time.Parse(time.RFC3339, allTraces[j].Roots[0].Request.DateTime)
+		}
+
+		return ti.After(tj)
+	})
+
 	if page < 1 {
 		page = 1
 	}
@@ -168,7 +215,6 @@ func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 		}, nil
 	}
 
-	// Stop if payload becomes too large (~1 MB)
 	const maxResponseBytes = 1 * 1024 * 1024
 
 	selected := make([]*models.Trace, 0, pageSize)
@@ -188,13 +234,13 @@ func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 		selected = append(selected, allTraces[i])
 	}
 
-	HasNext := start+len(selected) < len(allTraces)
+	hasNext := start+len(selected) < len(allTraces)
 
 	return &contracts.GetLogsResponse{
 		Page:        page,
 		PageSize:    len(selected),
 		TotalTraces: len(allTraces),
-		HasNext:     HasNext,
+		HasNext:     hasNext,
 		Traces:      selected,
 	}, nil
 }
@@ -209,12 +255,6 @@ func (ls *LogsService) CreateLog(request *contracts.CreateLogRequest) (*contract
 	if err != nil {
 		return nil, err
 	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Printf("failed to close response body: %v\n", err)
-		}
-	}(file)
 
 	log := models.Log{
 		Text:             request.Text,
@@ -237,11 +277,17 @@ func (ls *LogsService) CreateLog(request *contracts.CreateLogRequest) (*contract
 
 	jsonData, err := json.Marshal(log)
 	if err != nil {
+		_ = file.Close()
 		return nil, err
 	}
 
 	_, err = file.WriteString(string(jsonData) + "\n")
+	_ = file.Close()
 	if err != nil {
+		return nil, err
+	}
+
+	if err := ls.enforceLogEntryLimit(logsPath); err != nil {
 		return nil, err
 	}
 
@@ -320,4 +366,39 @@ func encrypt(text *string) *string {
 
 	result := base64.StdEncoding.EncodeToString(ciphertext)
 	return &result
+}
+
+func (ls *LogsService) enforceLogEntryLimit(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}(file)
+
+	scanner := bufio.NewScanner(file)
+	const maxLineSize = 10 * 1024 * 1024
+	scanner.Buffer(make([]byte, 64*1024), maxLineSize)
+
+	var lines []string
+
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	if len(lines) <= maxLogEntries {
+		return nil
+	}
+
+	lines = lines[len(lines)-maxLogEntries:]
+
+	return os.WriteFile(path, []byte(strings.Join(lines, "\n")+"\n"), 0644)
 }

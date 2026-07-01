@@ -34,7 +34,7 @@ func main() {
 	cs := services.NewCronService(firebaseClient, bbolt, ns)
 	ch := handlers.NewCronHandler(cs)
 
-	handlers.SetupRoutes(e, ch, bbolt)
+	handlers.SetupRoutes(e, ch)
 
 	c := cron.StartCronJobs(cs)
 	defer c.Stop()
