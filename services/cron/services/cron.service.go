@@ -236,7 +236,13 @@ func (c *CronService) RunReminderCronJob() error {
 	}
 
 	if count > 0 {
-		text := fmt.Sprintf("You have %d products in your shopping list. Don't forget to check them out!", count)
+		var text string
+		if count == 1 {
+			text = fmt.Sprintf("You have 1 product in your shopping list. Don't forget to check it out!")
+		} else {
+			text = fmt.Sprintf("You have %d products in your shopping list. Don't forget to check them out!", count)
+		}
+
 		err := c.ns.SendNotification("All", "timed", &text)
 		if err != nil {
 			fmt.Printf("failed to send reminder notification: %v\n", err)
@@ -269,10 +275,12 @@ func (c *CronService) getCountProductsInFirebase() (int, error) {
 		now.Day()-1,
 		14, 0, 0, 0,
 		now.Location(),
-	).Unix()
+	).UnixMilli()
 
 	count := 0
 	for _, product := range products {
+		fmt.Printf("product: %+v\n", product.Date)
+		fmt.Println("date: ", cutoff)
 		if product.Date <= cutoff {
 			count++
 		}
