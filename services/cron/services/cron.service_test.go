@@ -3,10 +3,12 @@ package services
 import (
 	"errors"
 	"shopping-list/cron/internal/config"
+	firebaseModel "shopping-list/cron/models"
 	"shopping-list/shared/contracts"
 	"shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
+	"time"
 
 	"go.etcd.io/bbolt"
 )
@@ -275,36 +277,88 @@ func TestRunCronJob(t *testing.T) {
 }
 
 func TestRunReminderCronJob(t *testing.T) {
-	t.Run("Given cron products, When RunReminderCronJob, Then notify users", func(t *testing.T) {
+	t.Run("Given one expired product, When RunReminderCronJob, Then sends singular notification", func(t *testing.T) {
 		// given
-		db := setup(t)
+		called := false
 
-		mockNotif := &MockNotificationService{
-			SendNotificationFunc: func(string, string, *string) error {
-				return nil
+		service := &CronService{
+			firebase: &MockFirebase{
+				GetFunc: func(path string, data interface{}) error {
+					products := data.(*map[string]firebaseModel.CronProduct)
+					*products = map[string]firebaseModel.CronProduct{
+						"1": {
+							Id:   "1",
+							Date: time.Now().Add(-48 * time.Hour).UnixMilli(),
+						},
+					}
+					return nil
+				},
+			},
+			ns: &MockNotificationService{
+				SendNotificationFunc: func(topic, kind string, text *string) error {
+					called = true
+
+					if topic != "All" {
+						t.Fatalf("unexpected topic %s", topic)
+					}
+
+					expected := "You have 1 product in your shopping list. Don't forget to check it out!"
+					if *text != expected {
+						t.Fatalf("expected %q got %q", expected, *text)
+					}
+
+					return nil
+				},
 			},
 		}
 
-		service := &CronService{
-			db:       db,
-			ns:       mockNotif,
-			firebase: &MockFirebase{},
-		}
-
-		product := models.CronProduct{
-			Id:       "1",
-			Product:  "test",
-			Category: "work",
-			User:     "user1",
-		}
-		tests.Put(t, db, config.Vars.Bucket, []byte("1"), product)
-
 		// when
-		err := service.RunReminderCronJob()
+		if err := service.RunReminderCronJob(); err != nil {
+			t.Fatal(err)
+		}
 
 		// then
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
+		if !called {
+			t.Fatal("notification not sent")
+		}
+	})
+
+	t.Run("Given multiple expired products, Then sends plural notification", func(t *testing.T) {
+		// given
+
+		called := false
+
+		service := &CronService{
+			firebase: &MockFirebase{
+				GetFunc: func(path string, data interface{}) error {
+					products := data.(*map[string]firebaseModel.CronProduct)
+					*products = map[string]firebaseModel.CronProduct{
+						"1": {Date: time.Now().Add(-48 * time.Hour).UnixMilli()},
+						"2": {Date: time.Now().Add(-72 * time.Hour).UnixMilli()},
+					}
+					return nil
+				},
+			},
+			ns: &MockNotificationService{
+				SendNotificationFunc: func(_, _ string, text *string) error {
+					called = true
+
+					expected := "You have 2 products in your shopping list. Don't forget to check them out!"
+					if *text != expected {
+						t.Fatalf("expected %q got %q", expected, *text)
+					}
+
+					return nil
+				},
+			},
+		}
+
+		// when
+		_ = service.RunReminderCronJob()
+
+		// then
+		if !called {
+			t.Fatal("notification not sent")
 		}
 	})
 
@@ -344,12 +398,7 @@ func TestRunReminderCronJob(t *testing.T) {
 	t.Run("Given firebase get fails, When RunReminderCronJob, Then return error", func(t *testing.T) {
 		db := setup(t)
 
-		mockNotif := &MockNotificationService{
-			SendNotificationFunc: func(string, string, *string) error {
-				t.Fatal("should not send notification")
-				return nil
-			},
-		}
+		mockNotif := &MockNotificationService{}
 
 		service := &CronService{
 			db: db,
