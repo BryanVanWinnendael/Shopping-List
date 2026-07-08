@@ -2,8 +2,6 @@ name: Coverage Products Search µS
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "services/products-search/**"
       - "!services/products-search/README.md"
