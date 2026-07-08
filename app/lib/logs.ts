@@ -1,15 +1,10 @@
-import { getUser } from "./user"
-import { httpRequest } from "./httpHelper"
-import {
-    Action,
-    CreateAppLogRequest,
-    CreateAppLogResponse,
-    DeleteAppLogResponse,
-    GetAppLogsResponse,
-} from "@/types/logs"
+import {httpRequest} from "./httpHelper"
+import {Action, CreateLogRequest, CreateLogResponse, DeleteLogResponse, GetLogsResponse} from "@/types/logs"
 import Toast from "react-native-toast-message"
+import uuid from "react-native-uuid"
+import {ungzip} from "pako"
 
-const LOGS_PATH = "logs/app"
+const LOGS_PATH = "logs"
 
 const formatDate = (date: Date) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -23,23 +18,19 @@ const formatDate = (date: Date) => {
     return `${timeString} ${dateString}`
 }
 
-const createLog = async (
-    action: Action,
-    text: string,
-    error: boolean = false
-): Promise<CreateAppLogResponse | null> => {
+const createLog = async (text: string, action: Action, error: boolean = false): Promise<CreateLogResponse | null> => {
     try {
         const date = formatDate(new Date())
-        const user = await getUser()
-        const request: CreateAppLogRequest = {
-            text: text,
-            action: action,
-            user: user,
-            date: date,
-            error: error,
+        const request: CreateLogRequest = {
+            dateTime: date,
+            text,
+            service: "App",
+            traceId: uuid.v4(),
+            httpMethod: action,
+            error,
         }
 
-        const response = await httpRequest<CreateAppLogResponse>({
+        const response = await httpRequest<CreateLogResponse>({
             url: LOGS_PATH,
             method: "POST",
             body: request,
@@ -55,11 +46,13 @@ const createLog = async (
     }
 }
 
-const getLogs = async (): Promise<GetAppLogsResponse | null> => {
+const getLogs = async (pageNumber: number): Promise<GetLogsResponse | null> => {
     try {
-        const response = await httpRequest<GetAppLogsResponse>({
+        const params: Record<string, any> = { page: pageNumber }
+        const response = await httpRequest<GetLogsResponse>({
             url: LOGS_PATH,
             method: "GET",
+            params,
         })
 
         return response.data
@@ -72,9 +65,9 @@ const getLogs = async (): Promise<GetAppLogsResponse | null> => {
     }
 }
 
-const deleteLogs = async (): Promise<DeleteAppLogResponse | null> => {
+const deleteLogs = async (): Promise<DeleteLogResponse | null> => {
     try {
-        const response = await httpRequest<DeleteAppLogResponse>({
+        const response = await httpRequest<DeleteLogResponse>({
             url: LOGS_PATH,
             method: "DELETE",
         })
@@ -85,6 +78,18 @@ const deleteLogs = async (): Promise<DeleteAppLogResponse | null> => {
             type: "error",
             text1: "Error: Failed to delete logs",
         })
+        return null
+    }
+}
+
+export function decompress(text: string) {
+    const binary = atob(text)
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+    console.log(ungzip(bytes, { toText: true }))
+    try {
+        return ungzip(bytes, { toText: true })
+    } catch (error) {
+        console.error("decompress failed:", error)
         return null
     }
 }

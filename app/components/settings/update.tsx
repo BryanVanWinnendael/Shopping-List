@@ -1,5 +1,5 @@
-import {useState} from "react"
-import {Modal, ScrollView, StyleSheet, Text, View} from "react-native"
+import { useState } from "react"
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native"
 import Animated, {
     Easing,
     FadeIn,
@@ -10,10 +10,10 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated"
 import updates from "@/assets/updates.json"
-import {PressableScale} from "pressto"
+import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
-import {Sparkles, X} from "lucide-react-native"
+import { Sparkles, X } from "lucide-react-native"
 
 export default function Update() {
     const { vars, theme } = useThemes()

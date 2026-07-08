@@ -1,28 +1,27 @@
 import database from "@react-native-firebase/database"
-import { logsClient } from "../logs"
-import { categoryClient } from "../category"
-import { storageClient } from "../storage"
-import { sortProductsByCategory } from "."
+import {logsClient} from "../logs"
+import {categoryClient} from "../category"
+import {storageClient} from "../storage"
+import {sortProductsByCategory} from "."
 import auth from "@react-native-firebase/auth"
-import { Action } from "@/types/logs"
-import { Product, Products } from "@/types/list"
-import { Category, CreateCategoryRequest } from "@/types/category-model"
-import { DeleteImageRequest } from "@/types/storage"
+import {Product, Products} from "@/types/list"
+import {Category, CreateCategoryRequest} from "@/types/category-model"
+import {DeleteImageRequest} from "@/types/storage"
 
-const ensureAuth = async (action: Action) => {
+const ensureAuth = async () => {
     if (!auth().currentUser) {
         try {
             await auth().signInAnonymously()
         } catch (error) {
             const msg = `Authentication error: ${error}`
-            await logsClient.createLog(action, msg, true)
+            await logsClient.createLog(msg, "GET", true)
         }
     }
 }
 
 const createProduct = async (product: Product) => {
     try {
-        await ensureAuth("create")
+        await ensureAuth()
 
         if (product.type === "text" && product.category === "remaining") {
             const response = await categoryClient.getCategory(product.name)
@@ -32,15 +31,17 @@ const createProduct = async (product: Product) => {
         }
 
         await database().ref(`products/${product.id}`).set(product)
-        await logsClient.createLog("create", product.name)
+
+        const msg = `${product.name} added to list by ${product.user}`
+        await logsClient.createLog(msg, "POST")
     } catch (error) {
-        const msg = `${error} for ${product.name}`
-        await logsClient.createLog("create", msg, true)
+        const msg = `Error: ${product.name} added to list by ${product.user} ${error}`
+        await logsClient.createLog(msg, "POST", true)
     }
 }
 
 const getProducts = async (setProducts: (products: Products) => any) => {
-    await ensureAuth("get")
+    await ensureAuth()
 
     const productsRef = database().ref("products")
     productsRef.on(
@@ -48,18 +49,20 @@ const getProducts = async (setProducts: (products: Products) => any) => {
         (snapshot) => {
             const data: Products = snapshot.val()
             setProducts(sortProductsByCategory(data))
-            logsClient.createLog("get", "all products")
+
+            const msg = "Get product list"
+            logsClient.createLog(msg, "GET")
         },
         (error) => {
-            const msg = `${error.message}`
-            logsClient.createLog("get", msg, true)
+            const msg = `Error: get product list ${error.message}`
+            logsClient.createLog(msg, "GET", true)
         }
     )
 }
 
 const deleteProduct = async (product: Product) => {
     try {
-        await ensureAuth("delete")
+        await ensureAuth()
 
         await database().ref(`products/${product.id}`).remove()
 
@@ -70,16 +73,17 @@ const deleteProduct = async (product: Product) => {
             await storageClient.deleteListImage(product.id, request)
         }
 
-        await logsClient.createLog("delete", product.name)
+        const msg = `${product.name} deleted`
+        await logsClient.createLog(msg, "DELETE")
     } catch (error) {
-        const msg = `${product.name}: ${error}`
-        await logsClient.createLog("delete", msg, true)
+        const msg = `Error: deleted ${product.name} ${error}`
+        await logsClient.createLog(msg, "DELETE", true)
     }
 }
 
 const updateCategory = async (product: Product, category: Category) => {
     try {
-        await ensureAuth("update")
+        await ensureAuth()
 
         product.category = category
 
@@ -90,23 +94,25 @@ const updateCategory = async (product: Product, category: Category) => {
         }
         await categoryClient.createCategory(request)
 
-        const msg = `update category for ${product.name}`
-        await logsClient.createLog("update", msg)
+        const msg = `Update category for ${product.name}`
+        await logsClient.createLog(msg, "PUT")
     } catch (error) {
-        const msg = `update category: ${error} for ${product.name}`
-        await logsClient.createLog("update", msg, true)
+        const msg = `Error: update category for ${product.name} ${error}`
+        await logsClient.createLog(msg, "PUT", true)
     }
 }
 
 const updateProduct = async (product: Product) => {
     try {
-        await ensureAuth("update")
+        await ensureAuth()
 
         await database().ref(`products/${product.id}`).set(product)
-        await logsClient.createLog("update", product.name)
+
+        const msg = `Update product for ${product.name}`
+        await logsClient.createLog(msg, "PUT")
     } catch (error) {
-        const msg = `${error} for ${product.name}`
-        await logsClient.createLog("update", msg, true)
+        const msg = `Error: update product for ${product.name} ${error}`
+        await logsClient.createLog(msg, "PUT", true)
     }
 }
 

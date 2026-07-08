@@ -4,7 +4,6 @@ import List from "@/components/logs/list"
 import { useLogs } from "@/hooks/logs/useLogs"
 import useThemes from "@/hooks/themes/useThemes"
 import ClearButton from "@/components/logs/clearButton"
-import GetButton from "@/components/logs/getButton"
 
 export default function Logs() {
     const { vars } = useThemes()
@@ -13,11 +12,19 @@ export default function Logs() {
 
     return (
         <View style={[styles.container, { backgroundColor: vars.backgroundColor }]}>
-            <View style={[styles.floatingButtons]}>
+            <View style={styles.floatingButtons}>
                 <ClearButton clearLogs={actions.deleteLogs} loading={states.loadingDelete} />
-                <GetButton getLogs={actions.getLogs} loading={states.loadingGet} />
             </View>
-            <List logs={states.logs} headerHeight={headerHeight} />
+
+            <List
+                traces={states.traces}
+                headerHeight={headerHeight}
+                hasNext={states.hasNext}
+                loading={states.loading}
+                refreshing={states.refreshing}
+                onRefresh={actions.refresh}
+                onEndReached={actions.loadNextPage}
+            />
         </View>
     )
 }

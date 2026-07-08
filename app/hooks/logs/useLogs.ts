@@ -1,47 +1,98 @@
-import { useCallback, useEffect, useState } from "react"
-import { Log } from "@/types/logs"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { Trace } from "@/types/logs"
 import { logsClient } from "@/lib/logs"
 
 export function useLogs() {
-    const [loadingGet, setLoadingGet] = useState<boolean>(false)
-    const [loadingDelete, setLoadingDelete] = useState<boolean>(false)
-    const [logs, setLogs] = useState<Log[]>([])
+    const [loading, setLoading] = useState(false)
+    const [loadingDelete, setLoadingDelete] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
+    const [traces, setTraces] = useState<Trace[]>([])
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(0)
+    const [totalTraces, setTotalTraces] = useState(0)
+    const [hasNext, setHasNext] = useState(false)
 
-    const getLogs = useCallback(async () => {
-        setLoadingGet(true)
+    const loadingMore = useRef(false)
 
-        const response = await logsClient.getLogs()
-        if (response) {
-            setLogs(response.reverse())
+    const getLogs = useCallback(async (pageNumber = 1) => {
+        if (loadingMore.current) return
+
+        loadingMore.current = true
+        setLoading(true)
+
+        try {
+            const response = await logsClient.getLogs(pageNumber)
+
+            if (!response) return
+
+            setTraces((prev) => (pageNumber === 1 ? response.traces : [...prev, ...response.traces]))
+
+            setPage(response.page)
+            setPageSize(response.pageSize)
+            setTotalTraces(response.totalTraces ?? 0)
+            setHasNext(response.hasNext)
+        } finally {
+            loadingMore.current = false
+            setLoading(false)
         }
-
-        setLoadingGet(false)
     }, [])
+
+    const refresh = useCallback(async () => {
+        if (refreshing) return
+
+        setRefreshing(true)
+
+        try {
+            await getLogs(1)
+        } finally {
+            setRefreshing(false)
+        }
+    }, [getLogs, refreshing])
+
+    const loadNextPage = useCallback(() => {
+        if (loadingMore.current || !hasNext) return
+
+        getLogs(page + 1)
+    }, [getLogs, hasNext, page])
 
     const deleteLogs = useCallback(async () => {
         setLoadingDelete(true)
 
-        const response = await logsClient.deleteLogs()
-        if (response) {
-            setLogs([])
-        }
+        try {
+            const response = await logsClient.deleteLogs()
 
-        setLoadingDelete(false)
+            if (response) {
+                setTraces([])
+                setPage(1)
+                setPageSize(0)
+                setTotalTraces(0)
+                setHasNext(false)
+            }
+        } finally {
+            setLoadingDelete(false)
+        }
     }, [])
 
     useEffect(() => {
-        getLogs()
-    }, [])
+        getLogs(1)
+    }, [getLogs])
 
     return {
         states: {
-            logs,
-            loadingGet,
+            traces,
+            page,
+            pageSize,
+            totalTraces,
+            hasNext,
+            loading,
             loadingDelete,
+            refreshing,
         },
         actions: {
-            deleteLogs,
             getLogs,
+            loadNextPage,
+            refresh,
+            deleteLogs,
         },
     }
 }

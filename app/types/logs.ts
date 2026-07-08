@@ -1,27 +1,69 @@
-import { User } from "@/types/index"
-
-export type Action = "create" | "delete" | "get" | "update"
+export type Action = "GET" | "POST" | "DELETE" | "PUT"
 
 export type Log = {
-    date: string
+    dateTime: string
     text: string
-    user: User
-    action: Action
+    service: string
+    traceId: string
+    path?: string | null
+    requestBodyCompressed?: string | null
+    requestBodySize?: number | null
+    responseBodyCompressed?: string | null
+    responseBodySize?: number | null
+    requestParams?: string | null
+    durationMs?: number | null
+    statusCode?: number | null
+    httpMethod?: string | null
+    spanId?: string | null
+    parentSpanId?: string | null
+    phase?: string | null
     error?: boolean | null
 }
 
-export type GetAppLogsResponse = Log[]
+export type SpanNode = {
+    spanId: string
+    parentSpanId?: string
+    service: string
+    request?: Log | null
+    response?: Log | null
+    children: SpanNode[]
+}
 
-export type CreateAppLogRequest = {
-    date?: string | null
+export type Trace = {
+    traceId: string
+    roots: SpanNode[]
+}
+
+export type GetLogsResponse = {
+    page: number
+    pageSize: number
+    hasNext: boolean
+    totalTraces?: number
+    traces: Trace[]
+}
+
+export type CreateLogRequest = {
+    dateTime: string
     text: string
-    user: User
-    action: Action
+    service: string
+    traceId: string
+    path?: string | null
+    requestBody?: string | null
+    requestBodySize?: number | null
+    responseBody?: string | null
+    responseBodySize?: number | null
+    requestParams?: string | null
+    durationMs?: number | null
+    statusCode?: number | null
+    httpMethod?: string | null
+    spanId?: string | null
+    parentSpanId?: string | null
+    phase?: string | null
     error?: boolean | null
 }
 
-export type CreateAppLogResponse = Log
+export type CreateLogResponse = Log
 
-export type DeleteAppLogResponse = {
+export type DeleteLogResponse = {
     message: string
 }

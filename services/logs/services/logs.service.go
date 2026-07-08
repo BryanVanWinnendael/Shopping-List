@@ -2,13 +2,11 @@ package services
 
 import (
 	"bufio"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
+	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"shopping-list/logs/internal/config"
@@ -257,22 +255,22 @@ func (ls *LogsService) CreateLog(request *contracts.CreateLogRequest) (*contract
 	}
 
 	log := models.Log{
-		Text:             request.Text,
-		Service:          request.Service,
-		TraceId:          request.TraceId,
-		DateTime:         request.DateTime,
-		Phase:            stringPtrTrimOrNil(request.Phase),
-		DurationMs:       intPtrOrNil(request.DurationMs),
-		StatusCode:       intPtrOrNil(request.StatusCode),
-		SpanId:           stringPtrTrimOrNil(request.SpanId),
-		ParentSpanId:     stringPtrTrimOrNil(request.ParentSpanId),
-		RequestBodyHash:  encrypt(request.RequestBody),
-		RequestBodySize:  floatPtrOrNil(request.RequestBodySize),
-		ResponseBodyHash: encrypt(request.ResponseBody),
-		ResponseBodySize: floatPtrOrNil(request.ResponseBodySize),
-		Path:             stringPtrTrimOrNil(request.Path),
-		HttpMethod:       stringPtrTrimOrNil(request.HttpMethod),
-		Error:            request.Error,
+		Text:                   request.Text,
+		Service:                request.Service,
+		TraceId:                request.TraceId,
+		DateTime:               request.DateTime,
+		Phase:                  stringPtrTrimOrNil(request.Phase),
+		DurationMs:             intPtrOrNil(request.DurationMs),
+		StatusCode:             intPtrOrNil(request.StatusCode),
+		SpanId:                 stringPtrTrimOrNil(request.SpanId),
+		ParentSpanId:           stringPtrTrimOrNil(request.ParentSpanId),
+		RequestBodyCompressed:  compress(request.RequestBody),
+		RequestBodySize:        floatPtrOrNil(request.RequestBodySize),
+		ResponseBodyCompressed: compress(request.ResponseBody),
+		ResponseBodySize:       floatPtrOrNil(request.ResponseBodySize),
+		Path:                   stringPtrTrimOrNil(request.Path),
+		HttpMethod:             stringPtrTrimOrNil(request.HttpMethod),
+		Error:                  request.Error,
 	}
 
 	jsonData, err := json.Marshal(log)
@@ -342,30 +340,27 @@ func floatPtrOrNil(f *float64) *float64 {
 	return f
 }
 
-func encrypt(text *string) *string {
-	if text == nil {
+func compress(text *string) *string {
+	if text == nil || *text == "" {
 		return nil
 	}
 
-	block, err := aes.NewCipher([]byte(config.Vars.EncryptKey))
+	var buf bytes.Buffer
+
+	gz := gzip.NewWriter(&buf)
+
+	_, err := gz.Write([]byte(*text))
 	if err != nil {
 		return nil
 	}
 
-	gcm, err := cipher.NewGCM(block)
+	err = gz.Close()
 	if err != nil {
 		return nil
 	}
 
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return nil
-	}
-
-	ciphertext := gcm.Seal(nonce, nonce, []byte(*text), nil)
-
-	result := base64.StdEncoding.EncodeToString(ciphertext)
-	return &result
+	encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
+	return &encoded
 }
 
 func (ls *LogsService) enforceLogEntryLimit(path string) error {
