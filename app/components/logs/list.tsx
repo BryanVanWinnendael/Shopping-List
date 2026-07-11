@@ -1,6 +1,6 @@
-import {ActivityIndicator, FlatList, StyleSheet, View} from "react-native"
+import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import Log from "@/components/logs/log"
-import {Trace} from "@/types/logs"
+import { Trace } from "@/types/generated/models/trace"
 
 type Props = {
     traces: Trace[]

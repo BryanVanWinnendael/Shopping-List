@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import {AColorUse} from "@/types"
-import {DEFAULT_ACOLORUSE} from "@/lib/theme"
+import { AColorUse } from "@/types"
+import { DEFAULT_ACOLORUSE } from "@/lib/theme"
 
 const NEW_UI_KEY = "app_newUI"
 const FONT_SIZE_KEY = "app_fontSize"

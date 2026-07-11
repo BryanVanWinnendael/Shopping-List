@@ -4,8 +4,9 @@ import { categoryClient } from "../category"
 import { storageClient } from "@/lib/storage"
 import { sortProductsByCategory } from "."
 import { Product, Products } from "@/types/list"
-import { Category, CreateCategoryRequest } from "@/types/category-model"
-import { DeleteImageRequest } from "@/types/storage"
+import { CreateCategoryRequest } from "@/types/generated/contracts/category-model"
+import { Category } from "@/types/generated/models/category"
+import { DeleteImageRequest } from "@/types/generated/contracts/storage"
 
 const createProduct = async (product: Product) => {
     try {

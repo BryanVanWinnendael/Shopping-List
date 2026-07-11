@@ -1,10 +1,10 @@
 import { Text } from "react-native"
-import { Category } from "@/types/category-model"
 import CustomBottomSheet from "@/components/customBottomSheet"
 import { RefObject } from "react"
 import GorhomBottomSheet from "@gorhom/bottom-sheet"
 import UpdateCategoryList from "@/components/products-list/categories/updateCategoryList"
 import useThemes from "@/hooks/themes/useThemes"
+import { Category } from "@/types/generated/models/category"
 
 type Props = {
     sheetRef: RefObject<GorhomBottomSheet | null>

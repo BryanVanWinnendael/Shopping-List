@@ -3,8 +3,8 @@ import { ScrollView, StyleSheet, Text, View } from "react-native"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { CATEGORY_ORDER } from "@/lib/constants"
 import { PressableScale } from "pressto"
-import { Category } from "@/types/category-model"
 import useThemes from "@/hooks/themes/useThemes"
+import { Category } from "@/types/generated/models/category"
 
 type Props = {
     selected: Category[]

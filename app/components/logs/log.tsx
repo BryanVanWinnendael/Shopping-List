@@ -3,8 +3,10 @@ import { Pressable, StyleSheet, Text, View } from "react-native"
 import Accordion from "@/components/accordion"
 import useThemes from "@/hooks/themes/useThemes"
 import { decompress } from "@/lib/logs"
-import { Log as LogType, SpanNode, Trace } from "@/types/logs"
 import LogBodyModal from "@/components/logs/logBodyModal"
+import { Trace } from "@/types/generated/models/trace"
+import { SpanNode } from "@/types/generated/models/span_node"
+import { Log } from "@/types/generated/models/log"
 
 type Props = {
     trace: Trace
@@ -14,12 +16,12 @@ type Event =
     | {
           type: "request"
           span: SpanNode
-          log: LogType
+          log: Log
       }
     | {
           type: "response"
           span: SpanNode
-          log: LogType
+          log: Log
       }
 
 function buildEvents(node: SpanNode): Event[] {

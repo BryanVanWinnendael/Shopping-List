@@ -2,8 +2,8 @@ import { useCallback, useRef, useState } from "react"
 import { Product } from "@/types/list"
 import BottomSheet from "@gorhom/bottom-sheet"
 import { modelClient } from "@/lib/model"
-import { Category } from "@/types/category-model"
 import { updateCategory as updateFirebaseCategory } from "@/lib/firebase"
+import { Category } from "@/types/generated/models/category"
 
 export function useCategories() {
     const bottomSheetRef = useRef<BottomSheet>(null)

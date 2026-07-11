@@ -1,8 +1,8 @@
-import { Recipe } from "@/types/recipes"
 import useThemes from "@/hooks/themes/useThemes"
 import { Text, View } from "react-native"
 import { PressableScale } from "pressto"
 import { Expand } from "lucide-react-native"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

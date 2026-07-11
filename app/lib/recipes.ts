@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { httpRequest } from "./httpHelper"
+import { User } from "@/types"
+import Toast from "react-native-toast-message"
 import {
     CreateRecipeRequest,
     CreateRecipeResponse,
@@ -10,9 +12,7 @@ import {
     GetRecipesByUserResponse,
     UpdateRecipeRequest,
     UpdateRecipeResponse,
-} from "@/types/recipes"
-import { User } from "@/types"
-import Toast from "react-native-toast-message"
+} from "@/types/generated/contracts/recipes"
 
 const RECIPES_PATH = "/recipes"
 const FAVORITE_RECIPES_KEY = "app_favoriteRecipes"

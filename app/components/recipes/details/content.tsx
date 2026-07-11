@@ -1,9 +1,9 @@
 import { Linking, ScrollView, Text, View } from "react-native"
 import { PressableScale } from "pressto"
 import IngredientsList from "@/components/recipes/details/ingredientsList"
-import { Recipe } from "@/types/recipes"
 import useThemes from "@/hooks/themes/useThemes"
 import Instructions from "@/components/recipes/details/instructions"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

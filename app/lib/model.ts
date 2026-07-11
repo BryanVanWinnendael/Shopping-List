@@ -1,6 +1,6 @@
 import { httpRequest } from "./httpHelper"
-import { TrainModelResponse } from "@/types/category-model"
 import Toast from "react-native-toast-message"
+import { TrainModelResponse } from "@/types/generated/contracts/category-model"
 
 const MODEL_PATH = "category-model/train"
 

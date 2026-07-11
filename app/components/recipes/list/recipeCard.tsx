@@ -4,10 +4,10 @@ import { MEALS } from "@/lib/constants"
 import * as Haptics from "expo-haptics"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import { Recipe } from "@/types/recipes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { Image } from "expo-image"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

@@ -1,4 +1,6 @@
-import {httpRequest} from "./httpHelper"
+import { httpRequest } from "./httpHelper"
+import { User } from "@/types"
+import Toast from "react-native-toast-message"
 import {
     CreateCronProductRequest,
     CreateCronProductResponse,
@@ -7,9 +9,7 @@ import {
     GetCronProductsByUserResponse,
     UpdateCronProductCategoryRequest,
     UpdateCronProductCategoryResponse,
-} from "@/types/cron"
-import {User} from "@/types"
-import Toast from "react-native-toast-message"
+} from "@/types/generated/contracts/cron"
 
 const CRON_PATH = "cron"
 

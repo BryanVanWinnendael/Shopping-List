@@ -1,6 +1,6 @@
 import { create } from "zustand"
-import { NotificationSettings } from "@/types/notifications"
 import { getSubscribedNotifications } from "@/lib/notifications"
+import { NotificationSettings } from "@/types/notifications"
 
 type NotificationsState = {
     notificationPushed: boolean

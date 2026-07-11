@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useLocalSearchParams } from "expo-router"
 import { recipesClient } from "@/lib/recipes"
-import { Recipe } from "@/types/recipes"
 import GorhomBottomSheet from "@gorhom/bottom-sheet"
+import { Recipe } from "@/types/generated/models/recipe"
 
 export function useRecipeDetails() {
     const { id } = useLocalSearchParams()
@@ -15,7 +15,7 @@ export function useRecipeDetails() {
         instructions: [],
         ingredients: [],
         mealType: undefined,
-        public: undefined,
+        public: false,
         source: undefined,
         time: undefined,
         title: "",

@@ -3,8 +3,8 @@ import { useEffect, useState } from "react"
 import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native"
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated"
 import { MEAL_TYPES } from "@/lib/constants"
-import { MealType } from "@/types/recipes"
 import useThemes from "@/hooks/themes/useThemes"
+import { MealType } from "@/types/generated/models/meal_type"
 
 type Props = {
     value: MealType

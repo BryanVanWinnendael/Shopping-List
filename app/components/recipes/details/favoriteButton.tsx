@@ -1,9 +1,9 @@
 import { Star, StarOff } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import { Recipe } from "@/types/recipes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

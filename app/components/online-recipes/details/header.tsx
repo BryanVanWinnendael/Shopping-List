@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from "react-native"
-import { OnlineRecipe } from "@/types/recipes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
-    recipe: OnlineRecipe
+    recipe: OnlineRecipeDetails
     headerHeight: number
     setOffset: (val: number) => void
 }

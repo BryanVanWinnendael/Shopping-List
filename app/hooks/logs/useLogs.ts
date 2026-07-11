@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Trace } from "@/types/logs"
 import { logsClient } from "@/lib/logs"
+import { Trace } from "@/types/generated/models/trace"
 
 export function useLogs() {
     const [loading, setLoading] = useState(false)

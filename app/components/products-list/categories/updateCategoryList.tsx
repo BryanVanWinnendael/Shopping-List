@@ -2,8 +2,8 @@ import { CATEGORY_ORDER } from "@/lib/constants"
 import { FlatList, StyleSheet, Text, View } from "react-native"
 import { PressableScale } from "pressto"
 import CategoryIcon from "@/components/categoryIcon"
-import { Category } from "@/types/category-model"
 import useThemes from "@/hooks/themes/useThemes"
+import { Category } from "@/types/generated/models/category"
 
 type Props = {
     updateCategory: (category: Category) => void

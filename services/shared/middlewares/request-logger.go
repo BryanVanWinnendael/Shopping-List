@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"shopping-list/shared/logger"
-	"shopping-list/shared/models"
 	"strings"
 	"time"
 
@@ -28,7 +27,7 @@ func RequestLogger(l *logger.Logger) echo.MiddlewareFunc {
 				path = fmt.Sprintf("%s?%s", path, req.URL.RawQuery)
 			}
 
-			opts := []models.Option{
+			opts := []logger.Option{
 				logger.WithHTTPMethod(req.Method),
 				logger.WithPath(path),
 			}

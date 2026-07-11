@@ -16,22 +16,32 @@ type Recipe struct {
 	Source       *string      `json:"source,omitempty"`
 	Instructions []string     `json:"instructions,omitempty"`
 	Time         *int         `json:"time,omitempty"`
-	MealType     *string      `json:"mealType,omitempty"`
+	MealType     *MealType    `json:"mealType,omitempty"`
 	Country      *string      `json:"country,omitempty"`
 	Persons      *int         `json:"persons,omitempty"`
 }
 
 type RecipeSummary struct {
-	Id       string  `json:"id"`
-	User     string  `json:"user"`
-	Title    string  `json:"title"`
-	Public   *bool   `json:"public"`
-	Banner   *string `json:"banner,omitempty"`
-	Time     *int    `json:"time,omitempty"`
-	MealType *string `json:"mealType,omitempty"`
-	Country  *string `json:"country,omitempty"`
-	Persons  *int    `json:"persons,omitempty"`
+	Id       string    `json:"id"`
+	User     string    `json:"user"`
+	Title    string    `json:"title"`
+	Public   *bool     `json:"public"`
+	Banner   *string   `json:"banner,omitempty"`
+	Time     *int      `json:"time,omitempty"`
+	MealType *MealType `json:"mealType,omitempty"`
+	Country  *string   `json:"country,omitempty"`
+	Persons  *int      `json:"persons,omitempty"`
 }
+
+type MealType string
+
+const (
+	Breakfast MealType = "Breakfast"
+	Lunch     MealType = "Lunch"
+	Dinner    MealType = "Dinner"
+	Dessert   MealType = "Dessert"
+	Any       MealType = "Any"
+)
 
 type OnlineRecipe struct {
 	Title string `json:"title"`

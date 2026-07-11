@@ -2,13 +2,13 @@ import { useCallback, useMemo, useState } from "react"
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
 import { Check, ShoppingBasket } from "lucide-react-native"
 import { PressableScale } from "pressto"
-import { OnlineRecipe } from "@/types/recipes"
 import { useProductsList } from "@/hooks/products-list/useProductsList"
 import useThemes from "@/hooks/themes/useThemes"
 import Toast from "react-native-toast-message"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
-    recipe: OnlineRecipe
+    recipe: OnlineRecipeDetails
 }
 
 export default function IngredientsList({ recipe }: Props) {

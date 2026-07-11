@@ -1,13 +1,13 @@
 import { StyleSheet, View } from "react-native"
-import { OnlineRecipe } from "@/types/recipes"
 import { ReactNode } from "react"
 import BackButton from "@/components/recipes/details/backButton"
 import useThemes from "@/hooks/themes/useThemes"
 import CustomImage from "@/components/customImage"
 import AddToRecipesButton from "@/components/online-recipes/details/addToRecipesButton"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
-    recipe: OnlineRecipe | null
+    recipe: OnlineRecipeDetails | null
     children?: ReactNode
 }
 

@@ -1,9 +1,9 @@
 import { ADMIN_USERS, USERS } from "@env"
 import Constants from "expo-constants"
-import { Category } from "@/types/category-model"
-import { Country, MealType } from "@/types/recipes"
+import { Country } from "@/types/recipes"
 import { Theme, User } from "@/types"
-import { Action } from "@/types/logs"
+import { Category } from "@/types/generated/models/category"
+import { MealType } from "@/types/generated/models/meal_type"
 
 export const CATEGORY_ORDER: Category[] = [
     "remaining",
@@ -93,13 +93,6 @@ export const USERS_ARRAY = JSON.parse(USERS) as User[]
 export const ADMIN_USERS_ARRAY = JSON.parse(ADMIN_USERS) as User[]
 
 export const IS_DEV = Constants.appOwnership === "expo"
-
-export const ACTION_COLORS: Record<Action, string> = {
-    create: "#3B82F6",
-    delete: "#EF4444",
-    get: "#22C55E",
-    update: "#F59E0B",
-}
 
 export const THEMES: { key: Theme; label: string }[] = [
     { key: "light", label: "Light" },

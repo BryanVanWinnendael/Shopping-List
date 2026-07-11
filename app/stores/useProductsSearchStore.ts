@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { ProductsSearchResponse } from "@/types/products-search"
+import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
 
 type SearchProductsState = {
     query: string | null

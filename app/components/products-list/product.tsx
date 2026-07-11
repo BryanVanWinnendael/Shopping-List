@@ -11,7 +11,7 @@ import { useProductsList } from "@/hooks/products-list/useProductsList"
 import useThemes from "@/hooks/themes/useThemes"
 import { Pencil, Trash } from "lucide-react-native"
 import CustomImage from "@/components/customImage"
-import { Category } from "@/types/category-model"
+import { Category } from "@/types/generated/models/category"
 
 const SWIPE_DISTANCE = -140
 const SWIPE_THRESHOLD = -20

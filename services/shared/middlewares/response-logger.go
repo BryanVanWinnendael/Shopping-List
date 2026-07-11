@@ -3,7 +3,6 @@ package middlewares
 import (
 	"net/http"
 	"shopping-list/shared/logger"
-	"shopping-list/shared/models"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -39,7 +38,7 @@ func ResponseLogger(l *logger.Logger) echo.MiddlewareFunc {
 
 			isError := err != nil || status >= 400
 
-			baseOpts := []models.Option{
+			baseOpts := []logger.Option{
 				logger.WithHTTPMethod(req.Method),
 				logger.WithPath(req.URL.Path),
 				logger.WithStatusCode(status),

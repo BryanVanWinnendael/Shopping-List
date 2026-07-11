@@ -3,18 +3,18 @@ package contracts
 import "shopping-list/shared/models"
 
 type CreateRecipeRequest struct {
-	Id           *string             `json:"id"`
+	Id           *string             `json:"id,omitempty"`
 	User         string              `json:"user" validate:"required"`
 	Title        string              `json:"title" validate:"required"`
-	Public       *bool               `json:"public"`
-	Banner       *string             `json:"banner"`
-	Ingredients  []models.Ingredient `json:"ingredients"`
-	Source       *string             `json:"source"`
-	Instructions []string            `json:"instructions"`
-	Time         *int                `json:"time"`
-	MealType     *string             `json:"mealType"`
-	Country      *string             `json:"country"`
-	Persons      *int                `json:"persons"`
+	Public       *bool               `json:"public,omitempty"`
+	Banner       *string             `json:"banner,omitempty"`
+	Ingredients  []models.Ingredient `json:"ingredients,omitempty"`
+	Source       *string             `json:"source,omitempty"`
+	Instructions []string            `json:"instructions,omitempty"`
+	Time         *int                `json:"time,omitempty"`
+	MealType     *models.MealType    `json:"mealType,omitempty"`
+	Country      *string             `json:"country,omitempty"`
+	Persons      *int                `json:"persons,omitempty"`
 }
 
 type GetRecipeResponse models.Recipe
@@ -26,15 +26,15 @@ type GetAllRecipesResponse []models.RecipeSummary
 type UpdateRecipeRequest struct {
 	User         string              `json:"user" validate:"required"`
 	Title        string              `json:"title" validate:"required"`
-	Public       *bool               `json:"public"`
-	Banner       *string             `json:"banner"`
-	Ingredients  []models.Ingredient `json:"ingredients"`
-	Source       *string             `json:"source"`
-	Instructions []string            `json:"instructions"`
-	Time         *int                `json:"time"`
-	MealType     *string             `json:"mealType"`
-	Country      *string             `json:"country"`
-	Persons      *int                `json:"persons"`
+	Public       *bool               `json:"public,omitempty"`
+	Banner       *string             `json:"banner,omitempty"`
+	Ingredients  []models.Ingredient `json:"ingredients,omitempty"`
+	Source       *string             `json:"source,omitempty"`
+	Instructions []string            `json:"instructions,omitempty"`
+	Time         *int                `json:"time,omitempty"`
+	MealType     *models.MealType    `json:"mealType,omitempty"`
+	Country      *string             `json:"country,omitempty"`
+	Persons      *int                `json:"persons,omitempty"`
 }
 
 type UpdateRecipeResponse models.Recipe

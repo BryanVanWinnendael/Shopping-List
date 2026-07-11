@@ -9,7 +9,8 @@
         "android": "DARK_MODE=media expo start --android",
         "ios": "DARK_MODE=media expo start --ios",
         "web": "DARK_MODE=media expo start --web",
-        "build": "EXPO_TOKEN=$EXPO_TOKEN node scripts/eas-build.js"
+        "build": "EXPO_TOKEN=$EXPO_TOKEN node scripts/eas-build.js",
+        "generate": "cd ../services && go run ./shared/tools/contractgen"
     },
     "dependencies": {
         "@expo/metro-runtime": "~6.1.2",

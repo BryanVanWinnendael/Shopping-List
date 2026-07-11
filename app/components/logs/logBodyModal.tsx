@@ -1,5 +1,5 @@
-import {useEffect, useMemo} from "react"
-import {Modal, ScrollView, StyleSheet, Text, View} from "react-native"
+import { useEffect, useMemo } from "react"
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native"
 import Animated, {
     Easing,
     FadeIn,
@@ -9,8 +9,8 @@ import Animated, {
     withSpring,
     withTiming,
 } from "react-native-reanimated"
-import {PressableScale} from "pressto"
-import {X} from "lucide-react-native"
+import { PressableScale } from "pressto"
+import { X } from "lucide-react-native"
 
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"

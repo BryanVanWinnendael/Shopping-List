@@ -1,10 +1,9 @@
 import { useState } from "react"
-
 import { recipesClient } from "@/lib/recipes"
-import { CreateRecipeRequest, Ingredient } from "@/types/recipes"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import { storageClient } from "@/lib/storage"
 import uuid from "react-native-uuid"
+import { CreateRecipeRequest, Ingredient } from "@/types/recipes"
 
 export function useCreateRecipe() {
     const { addRecipe } = useRecipesStore()
@@ -43,7 +42,11 @@ export function useCreateRecipe() {
             const response = await storageClient.uploadRecipeImage(request.image, id)
             bannerImage = response?.large ?? ""
         }
-        const mappedIngredients = await uploadIngredients(id, request.ingredients)
+
+        let mappedIngredients
+        if (request.ingredients) {
+            mappedIngredients = await uploadIngredients(id, request.ingredients)
+        }
 
         return {
             id,

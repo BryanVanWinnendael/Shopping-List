@@ -1,11 +1,11 @@
-import { OnlineRecipe } from "@/types/recipes"
 import useThemes from "@/hooks/themes/useThemes"
 import { Text, View } from "react-native"
 import { PressableScale } from "pressto"
 import { Expand } from "lucide-react-native"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
-    recipe: OnlineRecipe
+    recipe: OnlineRecipeDetails
     open: () => void
 }
 

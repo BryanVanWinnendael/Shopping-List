@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"mime/multipart"
 	"net/http"
 	"shopping-list/api-gateway/response"
 	"shopping-list/shared/contracts"
@@ -10,10 +11,10 @@ import (
 )
 
 type StorageService interface {
-	UploadRecipeImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error)
+	UploadRecipeImage(ctx context.Context, id string, fileHeader *multipart.FileHeader) (*contracts.UploadImageResponse, error)
 	DeleteRecipeImage(ctx context.Context, id string, request *contracts.DeleteImageRequest) (*contracts.DeleteImageResponse, error)
 	DeleteRecipeStorage(ctx context.Context, id string) (*contracts.DeleteStorageResponse, error)
-	UploadListImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error)
+	UploadListImage(ctx context.Context, id string, fileHeader *multipart.FileHeader) (*contracts.UploadImageResponse, error)
 	DeleteListImage(ctx context.Context, id string) (*contracts.DeleteImageResponse, error)
 	GetBackup(ctx context.Context) (*http.Response, error)
 }
@@ -38,9 +39,8 @@ func (sh *StorageHandler) UploadRecipeImage(c echo.Context) error {
 	if err != nil {
 		return response.Missing(c, response.SourceImage, "image")
 	}
-	request := contracts.UploadImageRequest{Image: fileHeader}
 
-	result, err := sh.StorageService.UploadRecipeImage(c.Request().Context(), id, &request)
+	result, err := sh.StorageService.UploadRecipeImage(c.Request().Context(), id, fileHeader)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -102,9 +102,8 @@ func (sh *StorageHandler) UploadListImage(c echo.Context) error {
 	if err != nil {
 		return response.Missing(c, response.SourceImage, "image")
 	}
-	request := contracts.UploadImageRequest{Image: fileHeader}
 
-	result, err := sh.StorageService.UploadListImage(c.Request().Context(), id, &request)
+	result, err := sh.StorageService.UploadListImage(c.Request().Context(), id, fileHeader)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

@@ -1,7 +1,7 @@
 import { ActivityIndicator, FlatList, View } from "react-native"
 import Recipe from "@/components/online-recipes/recipe"
-import { OnlineRecipe } from "@/types/recipes"
 import { useHeaderHeight } from "@react-navigation/elements"
+import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 
 type Props = {
     results: OnlineRecipe[]

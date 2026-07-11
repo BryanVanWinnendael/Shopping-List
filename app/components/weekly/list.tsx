@@ -3,9 +3,9 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native"
 import { useHeaderHeight } from "@react-navigation/elements"
 import { Info, Trash } from "lucide-react-native"
 import { PressableScale } from "pressto"
-import { CronProduct } from "@/types/cron"
 import CategoryIcon from "@/components/categoryIcon"
 import useThemes from "@/hooks/themes/useThemes"
+import { CronProduct } from "@/types/generated/models/cron_product"
 
 type Props = {
     deleteCronProduct: (id: string | null | undefined) => void

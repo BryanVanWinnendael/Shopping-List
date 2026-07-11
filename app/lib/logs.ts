@@ -1,8 +1,14 @@
-import {httpRequest} from "./httpHelper"
-import {Action, CreateLogRequest, CreateLogResponse, DeleteLogResponse, GetLogsResponse} from "@/types/logs"
+import { httpRequest } from "./httpHelper"
 import Toast from "react-native-toast-message"
 import uuid from "react-native-uuid"
-import {ungzip} from "pako"
+import { ungzip } from "pako"
+import { Action } from "@/types/generated/models/action"
+import {
+    CreateLogRequest,
+    CreateLogResponse,
+    DeleteLogResponse,
+    GetLogsResponse,
+} from "@/types/generated/contracts/logs"
 
 const LOGS_PATH = "logs"
 

@@ -1,12 +1,13 @@
 import database from "@react-native-firebase/database"
-import {logsClient} from "../logs"
-import {categoryClient} from "../category"
-import {storageClient} from "../storage"
-import {sortProductsByCategory} from "."
+import { logsClient } from "../logs"
+import { categoryClient } from "../category"
+import { storageClient } from "../storage"
+import { sortProductsByCategory } from "."
 import auth from "@react-native-firebase/auth"
-import {Product, Products} from "@/types/list"
-import {Category, CreateCategoryRequest} from "@/types/category-model"
-import {DeleteImageRequest} from "@/types/storage"
+import { Product, Products } from "@/types/list"
+import { Category } from "@/types/generated/models/category"
+import { CreateCategoryRequest } from "@/types/generated/contracts/category-model"
+import { DeleteImageRequest } from "@/types/generated/contracts/storage"
 
 const ensureAuth = async () => {
     if (!auth().currentUser) {

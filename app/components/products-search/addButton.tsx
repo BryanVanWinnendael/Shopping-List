@@ -4,12 +4,14 @@ import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import ContextMenu from "react-native-context-menu-view"
 import * as Haptics from "expo-haptics"
-import { Recipe, UpdateRecipeRequest } from "@/types/recipes"
-import { Product } from "@/types/products-search"
 import useThemes from "@/hooks/themes/useThemes"
 import { useProductsList } from "@/hooks/products-list/useProductsList"
 import { useUpdateRecipe } from "@/hooks/recipes/useUpdateRecipe"
 import { Check } from "lucide-react-native"
+import { Product } from "@/types/generated/models/product"
+import { recipesClient } from "@/lib/recipes"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
+import { UpdateRecipeRequest } from "@/types/recipes"
 
 type Props = {
     product: Product
@@ -58,7 +60,7 @@ export default function AddButton({ product, mode }: Props) {
         setAddedToList(true)
     }
 
-    const addToRecipe = async (recipe: Recipe) => {
+    const addToRecipe = async (recipe: RecipeSummary) => {
         if (!user) return
 
         const toAdd =
@@ -74,12 +76,15 @@ export default function AddButton({ product, mode }: Props) {
                       url: "",
                   }
 
-        const updatedRecipe: UpdateRecipeRequest = {
-            ...recipe,
-            ingredients: [...(recipe.ingredients ?? []), toAdd],
+        const detailRecipe = await recipesClient.getRecipe(recipe.id)
+        if (!detailRecipe) return
+
+        const updatedRecipe = {
+            ...detailRecipe,
+            ingredients: [...(detailRecipe.ingredients ?? []), toAdd],
         }
 
-        await updateRecipeActions.updateRecipe(updatedRecipe, [])
+        await updateRecipeActions.updateRecipe(updatedRecipe as UpdateRecipeRequest, [])
     }
 
     const handlePress = async (e: any) => {

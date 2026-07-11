@@ -6,15 +6,16 @@ import {
     setActiveRecipeFilter,
     setFavoriteRecipes as persistFavoriteRecipes,
 } from "@/lib/recipes"
-import { FilterStates, Recipe } from "@/types/recipes"
+import { FilterStates } from "@/types/recipes"
 import { getUser } from "@/lib/user"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 
 type RecipesState = {
     filter: boolean
     activeFilter: FilterStates
 
-    recipes: Recipe[]
-    userRecipes: Recipe[]
+    recipes: RecipeSummary[]
+    userRecipes: RecipeSummary[]
     favoriteRecipes: string[]
 
     onlineRecipes: number
@@ -25,11 +26,11 @@ type RecipesState = {
     setActiveFilter: (filter: FilterStates) => Promise<void>
     updateFilter: (filter: Partial<FilterStates>) => void
 
-    setRecipes: (recipes: Recipe[]) => void
-    setUserRecipes: (recipes: Recipe[]) => void
+    setRecipes: (recipes: RecipeSummary[]) => void
+    setUserRecipes: (recipes: RecipeSummary[]) => void
 
-    addRecipe: (recipe: Recipe) => void
-    updateRecipe: (recipe: Recipe) => void
+    addRecipe: (recipe: RecipeSummary) => void
+    updateRecipe: (recipe: RecipeSummary) => void
     deleteRecipe: (id: string) => void
 
     setFavoriteRecipes: (recipes: string[]) => Promise<void>
@@ -37,7 +38,7 @@ type RecipesState = {
     setOnlineRecipes: (amount: number) => void
 }
 
-function sortByTitle(recipes: Recipe[]) {
+function sortByTitle(recipes: RecipeSummary[]) {
     return [...recipes].sort((a, b) =>
         a.title.localeCompare(b.title, undefined, {
             sensitivity: "base",

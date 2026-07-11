@@ -1,10 +1,10 @@
-import {CategoriesColors, Theme} from "@/types"
-import Svg, {Circle, Defs, G, Line, Path, Polyline, Rect} from "react-native-svg"
-import {View} from "react-native"
-import {Category} from "@/types/category-model"
-import {ReactNode} from "react"
+import { CategoriesColors, Theme } from "@/types"
+import Svg, { Circle, Defs, G, Line, Path, Polyline, Rect } from "react-native-svg"
+import { View } from "react-native"
+import { ReactNode } from "react"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { Category } from "@/types/generated/models/category"
 
 type Props = {
     category: Category

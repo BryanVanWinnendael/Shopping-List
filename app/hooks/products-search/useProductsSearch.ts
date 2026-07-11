@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react"
 import { productsSearchClient } from "@/lib/product-search"
-import { Category } from "@/types/category-model"
-import { ProductsSearchResponse } from "@/types/products-search"
 import BottomSheet from "@gorhom/bottom-sheet"
 import { useProductsSearchStore } from "@/stores/useProductsSearchStore"
+import { Category } from "@/types/generated/models/category"
+import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
 
 const EMPTY_RESULT: ProductsSearchResponse = {
     products: [],

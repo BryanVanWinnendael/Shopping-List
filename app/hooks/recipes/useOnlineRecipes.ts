@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { OnlineRecipe } from "@/types/recipes"
 import { onlineRecipesClient } from "@/lib/online-recipes"
 import { useRecipesStore } from "@/stores/useRecipesStore"
+import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 
 export default function useOnlineRecipes() {
     const { setOnlineRecipes } = useRecipesStore()

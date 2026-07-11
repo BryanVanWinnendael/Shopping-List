@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from "react-native"
 import { MEALS } from "@/lib/constants"
-import { Recipe } from "@/types/recipes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

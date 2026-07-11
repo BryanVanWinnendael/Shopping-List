@@ -6,9 +6,23 @@ import (
 	netHttp "net/http"
 	"shopping-list/shared/contracts"
 	"shopping-list/shared/http"
-	"shopping-list/shared/models"
 	"strings"
 	"time"
+)
+
+type SpanContext struct {
+	SpanId       string `json:"spanId"`
+	ParentSpanId string `json:"parentSpanId,omitempty"`
+}
+
+type ContextKey string
+
+const (
+	TraceIdHeader                 = "X-Trace-ID"
+	ParentSpanIDHeader            = "X-Parent-Span-ID"
+	SpanIdHeader                  = "X-Span-ID"
+	TraceIdKey         ContextKey = "trace_id"
+	SpanKey            ContextKey = "span"
 )
 
 type Logger struct {
@@ -16,6 +30,22 @@ type Logger struct {
 	LogURL  string
 	Service string
 }
+
+type LogOptions struct {
+	HttpMethod       string
+	DurationMs       int
+	StatusCode       int
+	RequestBody      string
+	RequestBodySize  float64
+	ResponseBody     string
+	ResponseBodySize float64
+	Path             string
+	SpanId           string
+	ParentSpanId     string
+	Phase            string
+}
+
+type Option func(*LogOptions)
 
 const (
 	colorReset  = "\033[0m"
@@ -34,71 +64,71 @@ func New(client *http.Client, logURL string, service string) *Logger {
 	}
 }
 
-func DefaultOptions() models.LogOptions {
-	return models.LogOptions{}
+func DefaultOptions() LogOptions {
+	return LogOptions{}
 }
 
-func WithHTTPMethod(m string) models.Option {
-	return func(o *models.LogOptions) {
+func WithHTTPMethod(m string) Option {
+	return func(o *LogOptions) {
 		o.HttpMethod = m
 	}
 }
 
-func WithPath(p string) models.Option {
-	return func(o *models.LogOptions) {
+func WithPath(p string) Option {
+	return func(o *LogOptions) {
 		o.Path = p
 	}
 }
 
-func WithDuration(d time.Duration) models.Option {
-	return func(o *models.LogOptions) {
+func WithDuration(d time.Duration) Option {
+	return func(o *LogOptions) {
 		o.DurationMs = int(d.Milliseconds())
 	}
 }
 
-func WithStatusCode(code int) models.Option {
-	return func(o *models.LogOptions) {
+func WithStatusCode(code int) Option {
+	return func(o *LogOptions) {
 		o.StatusCode = code
 	}
 }
 
-func WithRequestBody(body string) models.Option {
-	return func(o *models.LogOptions) {
+func WithRequestBody(body string) Option {
+	return func(o *LogOptions) {
 		o.RequestBody = body
 	}
 }
 
-func WithRequestBodySize(bodySize float64) models.Option {
-	return func(o *models.LogOptions) {
+func WithRequestBodySize(bodySize float64) Option {
+	return func(o *LogOptions) {
 		o.RequestBodySize = bodySize
 	}
 }
 
-func WithResponseBody(body string) models.Option {
-	return func(o *models.LogOptions) {
+func WithResponseBody(body string) Option {
+	return func(o *LogOptions) {
 		o.ResponseBody = body
 	}
 }
 
-func WithResponseBodySize(bodySize float64) models.Option {
-	return func(o *models.LogOptions) {
+func WithResponseBodySize(bodySize float64) Option {
+	return func(o *LogOptions) {
 		o.ResponseBodySize = bodySize
 	}
 }
 
-func WithPhase(p string) models.Option {
-	return func(o *models.LogOptions) {
+func WithPhase(p string) Option {
+	return func(o *LogOptions) {
 		o.Phase = p
 	}
 }
 
 func getSpan(ctx context.Context) (spanId string, parentSpanId string) {
-	v := ctx.Value(models.SpanKey)
+	v := ctx.Value(SpanKey)
 	if v == nil {
 		return "-", "-"
 	}
 
-	span, ok := v.(*models.SpanContext)
+	span, ok := v.(*SpanContext)
 	if !ok || span == nil {
 		return "-", "-"
 	}
@@ -106,14 +136,14 @@ func getSpan(ctx context.Context) (spanId string, parentSpanId string) {
 	return span.SpanId, span.ParentSpanId
 }
 
-func (l *Logger) log(ctx context.Context, level string, msg string, opts ...models.Option) {
+func (l *Logger) log(ctx context.Context, level string, msg string, opts ...Option) {
 	options := DefaultOptions()
 
 	for _, opt := range opts {
 		opt(&options)
 	}
 
-	traceID, _ := ctx.Value(models.TraceIdKey).(string)
+	traceID, _ := ctx.Value(TraceIdKey).(string)
 	spanId, parentSpanId := getSpan(ctx)
 
 	isError := level == "ERROR"
@@ -201,11 +231,11 @@ func (l *Logger) log(ctx context.Context, level string, msg string, opts ...mode
 	}(payload)
 }
 
-func (l *Logger) Info(ctx context.Context, msg string, opts ...models.Option) {
+func (l *Logger) Info(ctx context.Context, msg string, opts ...Option) {
 	l.log(ctx, "INFO", msg, opts...)
 }
 
-func (l *Logger) Error(ctx context.Context, msg string, opts ...models.Option) {
+func (l *Logger) Error(ctx context.Context, msg string, opts ...Option) {
 	l.log(ctx, "ERROR", msg, opts...)
 }
 

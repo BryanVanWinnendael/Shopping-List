@@ -1,5 +1,14 @@
 package models
 
+type Action string
+
+const (
+	ActionGET    Action = "GET"
+	ActionPOST   Action = "POST"
+	ActionDELETE Action = "DELETE"
+	ActionPUT    Action = "PUT"
+)
+
 type Log struct {
 	DateTime               string   `json:"dateTime"`
 	Text                   string   `json:"text"`
@@ -12,25 +21,9 @@ type Log struct {
 	ResponseBodySize       *float64 `json:"responseBodySize,omitempty"`
 	DurationMs             *int     `json:"durationMs,omitempty"`
 	StatusCode             *int     `json:"statusCode,omitempty"`
-	HttpMethod             *string  `json:"httpMethod,omitempty"`
+	HttpMethod             *Action  `json:"httpMethod,omitempty"`
 	SpanId                 *string  `json:"spanId,omitempty"`
 	ParentSpanId           *string  `json:"parentSpanId,omitempty"`
 	Phase                  *string  `json:"phase,omitempty"`
 	Error                  *bool    `json:"error,omitempty"`
-}
-
-type Option func(*LogOptions)
-
-type LogOptions struct {
-	HttpMethod       string
-	DurationMs       int
-	StatusCode       int
-	RequestBody      string
-	RequestBodySize  float64
-	ResponseBody     string
-	ResponseBodySize float64
-	Path             string
-	SpanId           string
-	ParentSpanId     string
-	Phase            string
 }

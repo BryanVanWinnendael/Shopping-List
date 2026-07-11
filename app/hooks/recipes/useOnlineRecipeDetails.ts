@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { CreateRecipeRequest, Ingredient, OnlineRecipe } from "@/types/recipes"
+import { CreateRecipeRequest, Ingredient } from "@/types/recipes"
 import { onlineRecipesClient } from "@/lib/online-recipes"
 import { useLocalSearchParams } from "expo-router"
 import GorhomBottomSheet from "@gorhom/bottom-sheet"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useCreateRecipe } from "@/hooks/recipes/useCreateRecipe"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 export default function useOnlineRecipeDetails() {
     const { user } = useSettingsStore()
     const { url } = useLocalSearchParams()
     const { actions: addRecipeActions } = useCreateRecipe()
 
-    const [recipe, setRecipe] = useState<OnlineRecipe | null>(null)
+    const [recipe, setRecipe] = useState<OnlineRecipeDetails | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
 
     const sheetRef = useRef<GorhomBottomSheet>(null)
@@ -30,7 +31,7 @@ export default function useOnlineRecipeDetails() {
         })
     }
 
-    const addOnlineRecipeToRecipes = async (recipe: OnlineRecipe) => {
+    const addOnlineRecipeToRecipes = async (recipe: OnlineRecipeDetails) => {
         if (!user || !recipe) return
 
         const request: CreateRecipeRequest = {
@@ -45,8 +46,7 @@ export default function useOnlineRecipeDetails() {
             time: recipe.time,
         }
 
-        const response = await addRecipeActions.createRecipe(request)
-        return response
+        return await addRecipeActions.createRecipe(request)
     }
 
     const getOnlineRecipeDetails = useCallback(async () => {

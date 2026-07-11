@@ -1,6 +1,5 @@
 import { ActivityIndicator, Image, ScrollView, Text, TextInput, View } from "react-native"
 import { PressableScale } from "pressto"
-import { Recipe } from "@/types/recipes"
 import { useUpdateRecipeForm } from "@/hooks/recipes/useUpdateRecipeForm"
 import { useUpdateRecipe } from "@/hooks/recipes/useUpdateRecipe"
 import Ingredient from "@/components/recipes/update/ingredient"
@@ -15,6 +14,7 @@ import Toast from "react-native-toast-message"
 import Instruction from "@/components/recipes/update/instruction"
 import { delay } from "@/lib/utils"
 import GlassOrBlurView from "@/components/glassOrBlurView"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

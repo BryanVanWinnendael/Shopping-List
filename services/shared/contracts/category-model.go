@@ -8,8 +8,8 @@ type TrainModelResponse struct {
 }
 
 type CreateCategoryRequest struct {
-	Product  string `json:"product" validate:"required"`
-	Category string `json:"category" validate:"required"`
+	Product  string          `json:"product" validate:"required"`
+	Category models.Category `json:"category" validate:"required"`
 }
 
 type CreateCategoryResponse models.CategoryProduct

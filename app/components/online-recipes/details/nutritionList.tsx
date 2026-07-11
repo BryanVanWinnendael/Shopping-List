@@ -1,6 +1,6 @@
 import { Text, View } from "react-native"
-import { Nutrition } from "@/types/recipes"
 import useThemes from "@/hooks/themes/useThemes"
+import { Nutrition } from "@/types/generated/models/nutrition"
 
 type Props = {
     nutrition: Nutrition

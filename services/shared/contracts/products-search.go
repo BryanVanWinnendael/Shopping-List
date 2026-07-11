@@ -10,5 +10,5 @@ type ProductsSearchResponse struct {
 	PageSize    int              `json:"pageSize"`
 	TotalPages  int              `json:"totalPages"`
 	Product     string           `json:"product"`
-	Category    string           `json:"category"`
+	Category    models.Category  `json:"category"`
 }

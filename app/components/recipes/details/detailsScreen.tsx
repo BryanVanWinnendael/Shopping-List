@@ -5,13 +5,13 @@ import RecipeContent from "@/components/recipes/details/content"
 import Background from "@/components/recipes/details/background"
 import BottomSheet from "@/components/recipes/update/bottomSheet"
 import { useUpdateRecipeForm } from "@/hooks/recipes/useUpdateRecipeForm"
-import { Recipe } from "@/types/recipes"
 import { useState } from "react"
 import useThemes from "@/hooks/themes/useThemes"
 import useDeleteRecipe from "@/hooks/recipes/useDeleteRecipe"
 import { router } from "expo-router"
 import Toast from "react-native-toast-message"
 import { delay } from "@/lib/utils"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

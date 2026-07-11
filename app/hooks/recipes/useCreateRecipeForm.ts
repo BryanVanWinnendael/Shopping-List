@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState } from "react"
 import * as ImagePicker from "expo-image-picker"
-import { Country, CreateRecipeRequest, Ingredient, MealType } from "@/types/recipes"
+import { Country, CreateRecipeRequest, Ingredient } from "@/types/recipes"
 import BottomSheet from "@gorhom/bottom-sheet"
 import { useSettingsStore } from "@/stores/useSettingsStore"
+import { MealType } from "@/types/generated/models/meal_type"
 
 export function useCreateRecipeForm() {
     const { user } = useSettingsStore()

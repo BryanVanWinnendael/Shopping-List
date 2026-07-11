@@ -4,10 +4,10 @@ import GlassOrBlurView from "@/components/glassOrBlurView"
 import { Trash } from "lucide-react-native"
 import EditRecipeForm from "@/components/recipes/update/form"
 import CustomBottomSheet from "@/components/customBottomSheet"
-import { Recipe } from "@/types/recipes"
 import { BottomSheetMethods } from "@gorhom/bottom-sheet/lib/typescript/types"
 import { RefObject } from "react"
 import useThemes from "@/hooks/themes/useThemes"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

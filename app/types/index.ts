@@ -1,5 +1,5 @@
 import { USERS } from "@env"
-import { Category } from "@/types/category-model"
+import { Category } from "@/types/generated/models/category"
 
 export type User = (typeof USERS)[number] | "None"
 

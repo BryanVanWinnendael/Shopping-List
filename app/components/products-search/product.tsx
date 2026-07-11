@@ -1,13 +1,13 @@
-import {StyleSheet, Text, View} from "react-native"
-import {IS_DEV} from "@/lib/constants"
-import {Product as ProductType} from "@/types/products-search"
+import { StyleSheet, Text, View } from "react-native"
+import { IS_DEV } from "@/lib/constants"
 import CategoryIcon from "@/components/categoryIcon"
 import AddButton from "@/components/products-search/addButton"
 import useThemes from "@/hooks/themes/useThemes"
 import CustomImage from "@/components/customImage"
+import { Product } from "@/types/generated/models/product"
 
 type Props = {
-    product: ProductType
+    product: Product
 }
 
 export default function Product({ product }: Props) {

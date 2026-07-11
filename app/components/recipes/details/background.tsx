@@ -1,12 +1,12 @@
 import { StyleSheet, View } from "react-native"
 import { useSettingsStore } from "@/stores/useSettingsStore"
-import { Recipe } from "@/types/recipes"
 import { ReactNode } from "react"
 import BackButton from "@/components/recipes/details/backButton"
 import FavoriteButton from "@/components/recipes/details/favoriteButton"
 import BottomSheetButton from "@/components/recipes/update/bottomSheetButton"
 import useThemes from "@/hooks/themes/useThemes"
 import CustomImage from "@/components/customImage"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

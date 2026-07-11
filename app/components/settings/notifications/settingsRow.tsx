@@ -1,5 +1,4 @@
-import React from "react"
-import {StyleSheet, Text, View} from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import CustomSwitch from "@/components/customSwitch"
 import useThemes from "@/hooks/themes/useThemes"
 

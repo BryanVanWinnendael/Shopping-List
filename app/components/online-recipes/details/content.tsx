@@ -1,13 +1,13 @@
 import { Linking, ScrollView, Text, View } from "react-native"
-import { OnlineRecipe } from "@/types/recipes"
 import IngredientsList from "@/components/online-recipes/details/ingredientsList"
 import Instructions from "@/components/online-recipes/details/instructions"
 import NutritionList from "@/components/online-recipes/details/nutritionList"
 import { PressableScale } from "pressto"
 import useThemes from "@/hooks/themes/useThemes"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
-    recipe: OnlineRecipe
+    recipe: OnlineRecipeDetails
     offset: number
     open: () => void
 }

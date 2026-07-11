@@ -1,4 +1,3 @@
-import { OnlineRecipe } from "@/types/recipes"
 import { ActivityIndicator, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
 import { useHeaderHeight } from "@react-navigation/elements"
@@ -6,9 +5,10 @@ import Background from "@/components/online-recipes/details/background"
 import Header from "@/components/online-recipes/details/header"
 import { useState } from "react"
 import RecipeContent from "@/components/online-recipes/details/content"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
-    recipe: OnlineRecipe | null
+    recipe: OnlineRecipeDetails | null
     open: () => void
 }
 

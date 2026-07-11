@@ -20,12 +20,10 @@ func TestUploadRecipeImage(t *testing.T) {
 
 		service := NewStorageService(client, "http://test")
 
-		req := &contracts.UploadImageRequest{
-			Image: tests.MockTestFileHeader(t),
-		}
+		fileHeader := tests.MockTestFileHeader(t)
 
 		// when
-		res, err := service.UploadRecipeImage(context.Background(), "recipe1", req)
+		res, err := service.UploadRecipeImage(context.Background(), "recipe1", fileHeader)
 
 		// then
 		if err != nil {
@@ -43,12 +41,10 @@ func TestUploadRecipeImage(t *testing.T) {
 
 		service := NewStorageService(client, "http://test")
 
-		req := &contracts.UploadImageRequest{
-			Image: tests.MockTestFileHeader(t),
-		}
+		fileHeader := tests.MockTestFileHeader(t)
 
 		// when
-		res, err := service.UploadRecipeImage(context.Background(), "recipe1", req)
+		res, err := service.UploadRecipeImage(context.Background(), "recipe1", fileHeader)
 
 		// then
 		if err == nil {
@@ -68,12 +64,10 @@ func TestUploadRecipeImage(t *testing.T) {
 
 		service := NewStorageService(client, "http://test")
 
-		req := &contracts.UploadImageRequest{
-			Image: tests.MockTestFileHeader(t),
-		}
+		fileHeader := tests.MockTestFileHeader(t)
 
 		// when
-		res, err := service.UploadRecipeImage(context.Background(), "recipe1", req)
+		res, err := service.UploadRecipeImage(context.Background(), "recipe1", fileHeader)
 
 		// then
 		if err == nil {
@@ -227,12 +221,10 @@ func TestUploadListImage(t *testing.T) {
 
 		service := NewStorageService(client, "http://test")
 
-		req := &contracts.UploadImageRequest{
-			Image: tests.MockTestFileHeader(t),
-		}
+		fileHeader := tests.MockTestFileHeader(t)
 
 		// when
-		res, err := service.UploadListImage(context.Background(), "list1", req)
+		res, err := service.UploadListImage(context.Background(), "list1", fileHeader)
 
 		// then
 		if err != nil {
@@ -250,12 +242,10 @@ func TestUploadListImage(t *testing.T) {
 
 		service := NewStorageService(client, "http://test")
 
-		req := &contracts.UploadImageRequest{
-			Image: tests.MockTestFileHeader(t),
-		}
+		fileHeader := tests.MockTestFileHeader(t)
 
 		// when
-		res, err := service.UploadListImage(context.Background(), "list1", req)
+		res, err := service.UploadListImage(context.Background(), "list1", fileHeader)
 
 		// then
 		if err == nil {
@@ -275,12 +265,10 @@ func TestUploadListImage(t *testing.T) {
 
 		service := NewStorageService(client, "http://test")
 
-		req := &contracts.UploadImageRequest{
-			Image: tests.MockTestFileHeader(t),
-		}
+		fileHeader := tests.MockTestFileHeader(t)
 
 		// when
-		res, err := service.UploadListImage(context.Background(), "list1", req)
+		res, err := service.UploadListImage(context.Background(), "list1", fileHeader)
 
 		// then
 		if err == nil {

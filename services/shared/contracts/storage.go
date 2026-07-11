@@ -1,15 +1,10 @@
 package contracts
 
 import (
-	"mime/multipart"
 	"shopping-list/shared/models"
 )
 
 type UploadImageResponse models.Image
-
-type UploadImageRequest struct {
-	Image *multipart.FileHeader `json:"image" validate:"required"`
-}
 
 type DeleteImageRequest struct {
 	URL string `json:"url" validate:"required"`

@@ -1,4 +1,3 @@
-import { OnlineRecipe } from "@/types/recipes"
 import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
@@ -10,9 +9,10 @@ import { useNavigation } from "@react-navigation/native"
 import Toast from "react-native-toast-message"
 import { delay } from "@/lib/utils"
 import { router } from "expo-router"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
-    recipe: OnlineRecipe
+    recipe: OnlineRecipeDetails
 }
 
 export default function AddToRecipesButton({ recipe }: Props) {

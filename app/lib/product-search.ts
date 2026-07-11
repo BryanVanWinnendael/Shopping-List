@@ -1,7 +1,7 @@
 import { httpRequest } from "./httpHelper"
-import { Category } from "@/types/category-model"
-import { ProductsSearchResponse } from "@/types/products-search"
 import Toast from "react-native-toast-message"
+import { Category } from "@/types/generated/models/category"
+import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
 
 const PRODUCT_SEARCH_PATH = "products-search/search"
 

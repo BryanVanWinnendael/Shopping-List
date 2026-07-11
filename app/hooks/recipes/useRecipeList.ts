@@ -3,7 +3,8 @@ import { recipesClient } from "@/lib/recipes"
 import { storageClient } from "@/lib/storage"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import { useSettingsStore } from "@/stores/useSettingsStore"
-import { Recipe } from "@/types/recipes"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
+import { Recipe } from "@/types/generated/models/recipe"
 
 export function useRecipeList() {
     const {
@@ -77,7 +78,7 @@ export function useRecipeList() {
     const sections = useMemo(() => {
         const arr: any[] = []
 
-        const pushSection = (title: string, list: Recipe[]) => {
+        const pushSection = (title: string, list: RecipeSummary[]) => {
             if (!list || list.length === 0) return
 
             arr.push({ type: "section", title })

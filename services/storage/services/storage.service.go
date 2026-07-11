@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 	"shopping-list/shared/contracts"
@@ -31,8 +32,8 @@ func NewStorageService() *StorageService {
 	return &StorageService{}
 }
 
-func (s *StorageService) UploadRecipeImage(request *contracts.UploadImageRequest, recipeID string) (*contracts.UploadImageResponse, error) {
-	smallUrl, largeUrl, err := s.uploadImage(request, recipeID, "recipes")
+func (s *StorageService) UploadRecipeImage(fileHeader *multipart.FileHeader, recipeID string) (*contracts.UploadImageResponse, error) {
+	smallUrl, largeUrl, err := s.uploadImage(fileHeader, recipeID, "recipes")
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +54,8 @@ func (s *StorageService) DeleteRecipeImage(recipeID string, url string) (*contra
 	}, nil
 }
 
-func (s *StorageService) UploadListImage(request *contracts.UploadImageRequest, listID string) (*contracts.UploadImageResponse, error) {
-	smallUrl, largeUrl, err := s.uploadImage(request, listID, "list")
+func (s *StorageService) UploadListImage(fileHeader *multipart.FileHeader, listID string) (*contracts.UploadImageResponse, error) {
+	smallUrl, largeUrl, err := s.uploadImage(fileHeader, listID, "list")
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +85,8 @@ func (s *StorageService) DeleteStorage(id string, category string) (*contracts.D
 	}, nil
 }
 
-func (s *StorageService) uploadImage(request *contracts.UploadImageRequest, id, category string) (string, string, error) {
-	src, err := request.Image.Open()
+func (s *StorageService) uploadImage(fileHeader *multipart.FileHeader, id, category string) (string, string, error) {
+	src, err := fileHeader.Open()
 	if err != nil {
 		return "", "", err
 	}
@@ -107,7 +108,7 @@ func (s *StorageService) uploadImage(request *contracts.UploadImageRequest, id, 
 	}
 
 	uniqueID := uuid.New().String()
-	fileName := sanitizeFileName(request.Image.Filename)
+	fileName := sanitizeFileName(fileHeader.Filename)
 	baseName := fmt.Sprintf("%d-%s-%s", time.Now().Unix(), uniqueID, fileName)
 
 	smallImg := imaging.Resize(img, ThumbnailWidth, 0, imaging.Lanczos)

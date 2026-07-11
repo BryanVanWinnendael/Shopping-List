@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"testing"
 
@@ -14,10 +15,10 @@ import (
 )
 
 type MockStorageService struct {
-	UploadRecipeImageFunc   func(ctx context.Context, id string, req *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error)
+	UploadRecipeImageFunc   func(ctx context.Context, id string, fileHeader *multipart.FileHeader) (*contracts.UploadImageResponse, error)
 	DeleteRecipeImageFunc   func(ctx context.Context, id string, req *contracts.DeleteImageRequest) (*contracts.DeleteImageResponse, error)
 	DeleteRecipeStorageFunc func(ctx context.Context, id string) (*contracts.DeleteStorageResponse, error)
-	UploadListImageFunc     func(ctx context.Context, id string, req *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error)
+	UploadListImageFunc     func(ctx context.Context, id string, fileHeader *multipart.FileHeader) (*contracts.UploadImageResponse, error)
 	DeleteListImageFunc     func(ctx context.Context, id string) (*contracts.DeleteImageResponse, error)
 	GetBackupFunc           func(ctx context.Context) (*http.Response, error)
 }
@@ -332,9 +333,9 @@ func TestDeleteListImage(t *testing.T) {
 	})
 }
 
-func (m *MockStorageService) UploadRecipeImage(ctx context.Context, id string, req *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error) {
+func (m *MockStorageService) UploadRecipeImage(ctx context.Context, id string, fileHeader *multipart.FileHeader) (*contracts.UploadImageResponse, error) {
 	if m.UploadRecipeImageFunc != nil {
-		return m.UploadRecipeImageFunc(ctx, id, req)
+		return m.UploadRecipeImageFunc(ctx, id, fileHeader)
 	}
 	return &contracts.UploadImageResponse{}, nil
 }
@@ -353,9 +354,9 @@ func (m *MockStorageService) DeleteRecipeStorage(ctx context.Context, id string)
 	return &contracts.DeleteStorageResponse{}, nil
 }
 
-func (m *MockStorageService) UploadListImage(ctx context.Context, id string, req *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error) {
+func (m *MockStorageService) UploadListImage(ctx context.Context, id string, fileHeader *multipart.FileHeader) (*contracts.UploadImageResponse, error) {
 	if m.UploadListImageFunc != nil {
-		return m.UploadListImageFunc(ctx, id, req)
+		return m.UploadListImageFunc(ctx, id, fileHeader)
 	}
 	return &contracts.UploadImageResponse{}, nil
 }

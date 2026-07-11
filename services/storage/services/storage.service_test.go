@@ -10,7 +10,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"shopping-list/shared/contracts"
 	"testing"
 
 	"shopping-list/storage/internal/config"
@@ -31,16 +30,13 @@ func TestUploadRecipeImage(t *testing.T) {
 		e := echo.New()
 		c := e.NewContext(req, httptest.NewRecorder())
 
-		fh, err := c.FormFile("image")
+		fileHeader, err := c.FormFile("image")
 		if err != nil {
 			t.Fatalf("failed to get file: %v", err)
 		}
-		request := contracts.UploadImageRequest{
-			Image: fh,
-		}
 
 		// when
-		result, err := service.UploadRecipeImage(&request, "recipe1")
+		result, err := service.UploadRecipeImage(fileHeader, "recipe1")
 
 		// then
 		if err != nil {
@@ -65,16 +61,13 @@ func TestUploadListImage(t *testing.T) {
 		e := echo.New()
 		c := e.NewContext(req, httptest.NewRecorder())
 
-		fh, err := c.FormFile("image")
+		fileHeader, err := c.FormFile("image")
 		if err != nil {
 			t.Fatalf("failed to get file: %v", err)
 		}
-		request := contracts.UploadImageRequest{
-			Image: fh,
-		}
-
+		
 		// when
-		result, err := service.UploadListImage(&request, "list1")
+		result, err := service.UploadListImage(fileHeader, "list1")
 
 		// then
 		if err != nil {
