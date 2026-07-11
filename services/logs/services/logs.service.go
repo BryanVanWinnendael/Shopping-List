@@ -13,6 +13,7 @@ import (
 	"shopping-list/shared/contracts"
 	"shopping-list/shared/models"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +24,8 @@ func NewLogsService() *LogsService {
 }
 
 type LogsService struct{}
+
+type LogFilter func(*models.Log) bool
 
 var mu sync.Mutex
 
@@ -35,212 +38,29 @@ func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	logsPath := filepath.Join(config.Vars.DataDir, config.Vars.LogsFile)
-
-	file, err := os.Open(logsPath)
+	traces, err := buildTraces(nil)
 	if err != nil {
 		return nil, err
 	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Printf("failed to close response body: %v\n", err)
-		}
-	}(file)
 
-	type spanMap map[string]*models.SpanNode
+	return (*contracts.GetLogsResponse)(paginateTraces(traces, page)), nil
+}
 
-	type traceWithMeta struct {
-		TraceID string
-		Roots   []*models.SpanNode
-		Latest  time.Time
-	}
+func (ls *LogsService) SearchLogs(query string, page int) (*contracts.SearchLogsResponse, error) {
+	mu.Lock()
+	defer mu.Unlock()
 
-	traces := map[string]spanMap{}
-	traceMeta := map[string]*traceWithMeta{}
+	query = strings.ToLower(strings.TrimSpace(query))
 
-	scanner := bufio.NewScanner(file)
+	traces, err := buildTraces(func(log *models.Log) bool {
+		return matchesLogSearch(log, query)
+	})
 
-	const maxLineSize = 10 * 1024 * 1024
-	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, maxLineSize)
-
-	for scanner.Scan() {
-		var log models.Log
-
-		if err := json.Unmarshal(scanner.Bytes(), &log); err != nil {
-			continue
-		}
-
-		if log.TraceId == "" {
-			continue
-		}
-
-		traceID := log.TraceId
-
-		if _, ok := traces[traceID]; !ok {
-			traces[traceID] = spanMap{}
-		}
-
-		if _, ok := traceMeta[traceID]; !ok {
-			traceMeta[traceID] = &traceWithMeta{
-				TraceID: traceID,
-			}
-		}
-
-		meta := traceMeta[traceID]
-
-		if log.DateTime != "" {
-			if t, err := time.Parse(time.RFC3339, log.DateTime); err == nil {
-				if t.After(meta.Latest) {
-					meta.Latest = t
-				}
-			}
-		}
-
-		nodes := traces[traceID]
-
-		spanID := ""
-		if log.SpanId != nil {
-			spanID = *log.SpanId
-		} else {
-			spanID = "root-" + traceID
-		}
-
-		parentID := ""
-		if log.ParentSpanId != nil {
-			parentID = *log.ParentSpanId
-		}
-
-		node, ok := nodes[spanID]
-		if !ok {
-			node = &models.SpanNode{
-				SpanID:       spanID,
-				ParentSpanID: parentID,
-				Service:      log.Service,
-			}
-			nodes[spanID] = node
-		}
-
-		if node.Service == "" {
-			node.Service = log.Service
-		}
-
-		if log.Phase != nil {
-			switch *log.Phase {
-			case "REQUEST":
-				node.Request = &log
-			case "RESPONSE":
-				node.Response = &log
-			}
-		}
-
-		if parentID != "" {
-			parent, ok := nodes[parentID]
-			if !ok {
-				parent = &models.SpanNode{
-					SpanID: parentID,
-				}
-				nodes[parentID] = parent
-			}
-
-			found := false
-			for _, child := range parent.Children {
-				if child.SpanID == node.SpanID {
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				parent.Children = append(parent.Children, node)
-			}
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	allTraces := make([]*models.Trace, 0, len(traces))
-
-	for traceID, nodes := range traces {
-		var roots []*models.SpanNode
-
-		for _, node := range nodes {
-			if node.ParentSpanID == "" {
-				roots = append(roots, node)
-			}
-		}
-
-		allTraces = append(allTraces, &models.Trace{
-			TraceID: traceID,
-			Roots:   roots,
-		})
-	}
-
-	sort.Slice(allTraces, func(i, j int) bool {
-		var ti, tj time.Time
-
-		if len(allTraces[i].Roots) > 0 &&
-			allTraces[i].Roots[0].Request != nil &&
-			allTraces[i].Roots[0].Request.DateTime != "" {
-			ti, _ = time.Parse(time.RFC3339, allTraces[i].Roots[0].Request.DateTime)
-		}
-
-		if len(allTraces[j].Roots) > 0 &&
-			allTraces[j].Roots[0].Request != nil &&
-			allTraces[j].Roots[0].Request.DateTime != "" {
-			tj, _ = time.Parse(time.RFC3339, allTraces[j].Roots[0].Request.DateTime)
-		}
-
-		return ti.After(tj)
-	})
-
-	if page < 1 {
-		page = 1
-	}
-
-	start := (page - 1) * pageSize
-
-	if start >= len(allTraces) {
-		return &contracts.GetLogsResponse{
-			Page:        page,
-			PageSize:    pageSize,
-			TotalTraces: len(allTraces),
-			HasNext:     false,
-			Traces:      []*models.Trace{},
-		}, nil
-	}
-
-	const maxResponseBytes = 1 * 1024 * 1024
-
-	selected := make([]*models.Trace, 0, pageSize)
-	currentSize := 0
-
-	for i := start; i < len(allTraces) && len(selected) < pageSize; i++ {
-		b, err := json.Marshal(allTraces[i])
-		if err != nil {
-			continue
-		}
-
-		if currentSize+len(b) > maxResponseBytes {
-			break
-		}
-
-		currentSize += len(b)
-		selected = append(selected, allTraces[i])
-	}
-
-	hasNext := start+len(selected) < len(allTraces)
-
-	return &contracts.GetLogsResponse{
-		Page:        page,
-		PageSize:    len(selected),
-		TotalTraces: len(allTraces),
-		HasNext:     hasNext,
-		Traces:      selected,
-	}, nil
+	return (*contracts.SearchLogsResponse)(paginateTraces(traces, page)), nil
 }
 
 func (ls *LogsService) CreateLog(request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error) {
@@ -285,7 +105,7 @@ func (ls *LogsService) CreateLog(request *contracts.CreateLogRequest) (*contract
 		return nil, err
 	}
 
-	if err := ls.enforceLogEntryLimit(logsPath); err != nil {
+	if err := enforceLogEntryLimit(logsPath); err != nil {
 		return nil, err
 	}
 
@@ -315,29 +135,195 @@ func (ls *LogsService) DeleteLogs() (*contracts.DeleteLogResponse, error) {
 	}, nil
 }
 
-func stringPtrTrimOrNil(s *string) *string {
-	if s == nil {
-		return nil
+func paginateTraces(traces []*models.Trace, page int) *contracts.LogsResponse {
+	if page < 1 {
+		page = 1
 	}
-	trimmed := strings.TrimSpace(*s)
-	if trimmed == "" {
-		return nil
+
+	start := (page - 1) * pageSize
+
+	if start >= len(traces) {
+		return &contracts.LogsResponse{
+			Page:        page,
+			PageSize:    pageSize,
+			TotalTraces: len(traces),
+			HasNext:     false,
+			Traces:      []*models.Trace{},
+		}
 	}
-	return &trimmed
+
+	end := start + pageSize
+
+	if end > len(traces) {
+		end = len(traces)
+	}
+
+	return &contracts.LogsResponse{
+		Page:        page,
+		PageSize:    end - start,
+		TotalTraces: len(traces),
+		HasNext:     end < len(traces),
+		Traces:      traces[start:end],
+	}
 }
 
-func intPtrOrNil(i *int) *int {
-	if i == nil || *i == 0 {
-		return nil
-	}
-	return i
-}
+func buildTraces(filter LogFilter) ([]*models.Trace, error) {
+	logsPath := filepath.Join(config.Vars.DataDir, config.Vars.LogsFile)
 
-func floatPtrOrNil(f *float64) *float64 {
-	if f == nil || *f == 0 {
-		return nil
+	file, err := os.Open(logsPath)
+	if err != nil {
+		return nil, err
 	}
-	return f
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}(file)
+
+	type spanMap map[string]*models.SpanNode
+
+	traces := map[string]spanMap{}
+
+	scanner := bufio.NewScanner(file)
+
+	const maxLineSize = 10 * 1024 * 1024
+	scanner.Buffer(make([]byte, 64*1024), maxLineSize)
+
+	for scanner.Scan() {
+		var log models.Log
+
+		if err := json.Unmarshal(scanner.Bytes(), &log); err != nil {
+			continue
+		}
+
+		if filter != nil && !filter(&log) {
+			continue
+		}
+
+		if log.TraceId == "" {
+			continue
+		}
+
+		traceID := log.TraceId
+
+		if traces[traceID] == nil {
+			traces[traceID] = spanMap{}
+		}
+
+		nodes := traces[traceID]
+
+		spanID := "root-" + traceID
+		if log.SpanId != nil {
+			spanID = *log.SpanId
+		}
+
+		parentID := ""
+		if log.ParentSpanId != nil {
+			parentID = *log.ParentSpanId
+		}
+
+		node, exists := nodes[spanID]
+
+		if !exists {
+			node = &models.SpanNode{
+				SpanID:       spanID,
+				ParentSpanID: parentID,
+				Service:      log.Service,
+			}
+
+			nodes[spanID] = node
+		}
+
+		if node.Service == "" {
+			node.Service = log.Service
+		}
+
+		if log.Phase != nil {
+			switch *log.Phase {
+			case "REQUEST":
+				node.Request = &log
+
+			case "RESPONSE":
+				node.Response = &log
+			}
+		}
+
+		if parentID != "" {
+
+			parent, exists := nodes[parentID]
+
+			if !exists {
+				parent = &models.SpanNode{
+					SpanID: parentID,
+				}
+
+				nodes[parentID] = parent
+			}
+
+			hasChild := false
+
+			for _, child := range parent.Children {
+				if child.SpanID == node.SpanID {
+					hasChild = true
+					break
+				}
+			}
+
+			if !hasChild {
+				parent.Children = append(parent.Children, node)
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	result := make([]*models.Trace, 0, len(traces))
+
+	for traceID, nodes := range traces {
+
+		var roots []*models.SpanNode
+
+		for _, node := range nodes {
+			if node.ParentSpanID == "" {
+				roots = append(roots, node)
+			}
+		}
+
+		result = append(result, &models.Trace{
+			TraceID: traceID,
+			Roots:   roots,
+		})
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+
+		var ti, tj time.Time
+
+		if len(result[i].Roots) > 0 &&
+			result[i].Roots[0].Request != nil {
+
+			ti, _ = time.Parse(
+				time.RFC3339,
+				result[i].Roots[0].Request.DateTime,
+			)
+		}
+
+		if len(result[j].Roots) > 0 &&
+			result[j].Roots[0].Request != nil {
+
+			tj, _ = time.Parse(
+				time.RFC3339,
+				result[j].Roots[0].Request.DateTime,
+			)
+		}
+
+		return ti.After(tj)
+	})
+
+	return result, nil
 }
 
 func compress(text *string) *string {
@@ -363,7 +349,7 @@ func compress(text *string) *string {
 	return &encoded
 }
 
-func (ls *LogsService) enforceLogEntryLimit(path string) error {
+func enforceLogEntryLimit(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -396,4 +382,72 @@ func (ls *LogsService) enforceLogEntryLimit(path string) error {
 	lines = lines[len(lines)-maxLogEntries:]
 
 	return os.WriteFile(path, []byte(strings.Join(lines, "\n")+"\n"), 0644)
+}
+
+func matchesLogSearch(log *models.Log, query string) bool {
+	values := []string{
+		log.Text,
+		log.Service,
+		log.TraceId,
+		log.DateTime,
+	}
+
+	if log.Error != nil {
+		values = append(values, strconv.FormatBool(*log.Error))
+	}
+
+	if log.Path != nil {
+		values = append(values, *log.Path)
+	}
+
+	if log.SpanId != nil {
+		values = append(values, *log.SpanId)
+	}
+
+	if log.ParentSpanId != nil {
+		values = append(values, *log.ParentSpanId)
+	}
+
+	if log.HttpMethod != nil {
+		values = append(values, string(*log.HttpMethod))
+	}
+
+	if log.Phase != nil {
+		values = append(values, *log.Phase)
+	}
+
+	for _, value := range values {
+		lower := strings.ToLower(value)
+
+		if strings.Contains(lower, query) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func stringPtrTrimOrNil(s *string) *string {
+	if s == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*s)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
+}
+
+func intPtrOrNil(i *int) *int {
+	if i == nil || *i == 0 {
+		return nil
+	}
+	return i
+}
+
+func floatPtrOrNil(f *float64) *float64 {
+	if f == nil || *f == 0 {
+		return nil
+	}
+	return f
 }

@@ -83,10 +83,10 @@ func (rs *RecipesService) DeleteRecipe(ctx context.Context, id string) (*contrac
 	return &response, nil
 }
 
-func (rs *RecipesService) GetAllRecipes(ctx context.Context) (*contracts.GetAllRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/recipes", rs.baseURL)
+func (rs *RecipesService) GetRecipes(ctx context.Context, user string, page string, pageSize string) (*contracts.GetRecipesResponse, error) {
+	requestUrl := fmt.Sprintf("%s/recipes?user=%s&page=%s&pageSize=%s", rs.baseURL, user, page, pageSize)
 
-	var response contracts.GetAllRecipesResponse
+	var response contracts.GetRecipesResponse
 
 	_, err := rs.client.DoRequest(
 		ctx,

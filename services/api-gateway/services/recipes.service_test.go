@@ -206,17 +206,17 @@ func TestDeleteRecipe(t *testing.T) {
 	})
 }
 
-func TestGetAllRecipes(t *testing.T) {
-	t.Run("Given valid request, When GetAllRecipes, Then success", func(t *testing.T) {
+func TestGetRecipes(t *testing.T) {
+	t.Run("Given valid request, When GetRecipes, Then success", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(contracts.GetAllRecipesResponse{})
+		body, _ := json.Marshal(contracts.GetRecipesResponse{})
 
 		client := tests.MockJSONResponse(200, body)
 
 		service := NewRecipesService(client, "http://test")
 
 		// when
-		res, err := service.GetAllRecipes(context.Background())
+		res, err := service.GetRecipes(context.Background(), "user", "1", "1")
 
 		// then
 		if err != nil {
@@ -228,14 +228,14 @@ func TestGetAllRecipes(t *testing.T) {
 		}
 	})
 
-	t.Run("Given http client fails, When GetAllRecipes, Then return error", func(t *testing.T) {
+	t.Run("Given http client fails, When GetRecipes, Then return error", func(t *testing.T) {
 		// given
 		client := tests.MockError(errors.New("network error"))
 
 		service := NewRecipesService(client, "http://test")
 
 		// when
-		res, err := service.GetAllRecipes(context.Background())
+		res, err := service.GetRecipes(context.Background(), "user", "1", "1")
 
 		// then
 		if err == nil {
@@ -247,16 +247,16 @@ func TestGetAllRecipes(t *testing.T) {
 		}
 	})
 
-	t.Run("Given API returns error status, When GetAllRecipes, Then return error", func(t *testing.T) {
+	t.Run("Given API returns error status, When GetRecipes, Then return error", func(t *testing.T) {
 		// given
-		body, _ := json.Marshal(contracts.GetAllRecipesResponse{})
+		body, _ := json.Marshal(contracts.GetRecipesResponse{})
 
 		client := tests.MockJSONResponse(500, body)
 
 		service := NewRecipesService(client, "http://test")
 
 		// when
-		res, err := service.GetAllRecipes(context.Background())
+		res, err := service.GetRecipes(context.Background(), "user", "1", "1")
 
 		// then
 		if err == nil {

@@ -6,6 +6,7 @@ import (
 	"shopping-list/api-gateway/response"
 	"shopping-list/shared/contracts"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -14,7 +15,7 @@ type RecipesService interface {
 	CreateRecipe(ctx context.Context, request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipe(ctx context.Context, id string) (*contracts.GetRecipeResponse, error)
 	DeleteRecipe(ctx context.Context, id string) (*contracts.DeleteRecipeResponse, error)
-	GetAllRecipes(ctx context.Context) (*contracts.GetAllRecipesResponse, error)
+	GetRecipes(ctx context.Context, user string, page string, pageSize string) (*contracts.GetRecipesResponse, error)
 	UpdateRecipe(ctx context.Context, id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUser(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountries(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
@@ -83,8 +84,12 @@ func (rh *RecipesHandler) DeleteRecipe(c echo.Context) error {
 	return response.Success(c, http.StatusOK, result)
 }
 
-func (rh *RecipesHandler) GetAllRecipes(c echo.Context) error {
-	result, err := rh.RecipesService.GetAllRecipes(c.Request().Context())
+func (rh *RecipesHandler) GetRecipes(c echo.Context) error {
+	user := strings.TrimSpace(c.QueryParam("user"))
+	page := strings.TrimSpace(c.QueryParam("page"))
+	pageSize := strings.TrimSpace(c.QueryParam("pageSize"))
+
+	result, err := rh.RecipesService.GetRecipes(c.Request().Context(), user, page, pageSize)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

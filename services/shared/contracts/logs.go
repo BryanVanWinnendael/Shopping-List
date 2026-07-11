@@ -2,13 +2,17 @@ package contracts
 
 import "shopping-list/shared/models"
 
-type GetLogsResponse struct {
+type LogsResponse struct {
 	Page        int             `json:"page"`
 	PageSize    int             `json:"pageSize"`
+	TotalTraces int             `json:"totalTraces"`
 	HasNext     bool            `json:"hasNext"`
-	TotalTraces int             `json:"totalTraces,omitempty"`
 	Traces      []*models.Trace `json:"traces"`
 }
+
+type GetLogsResponse LogsResponse
+
+type SearchLogsResponse LogsResponse
 
 type CreateLogRequest struct {
 	DateTime         string   `json:"dateTime" validate:"required"`

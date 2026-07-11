@@ -11,6 +11,7 @@ import (
 
 type LogsService interface {
 	GetLogs(page int) (*contracts.GetLogsResponse, error)
+	SearchLogs(query string, page int) (*contracts.SearchLogsResponse, error)
 	CreateLog(request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error)
 	DeleteLogs() (*contracts.DeleteLogResponse, error)
 }
@@ -65,6 +66,24 @@ func (lh *LogsHandler) CreateLog(c echo.Context) error {
 
 func (lh *LogsHandler) DeleteLogs(c echo.Context) error {
 	result, err := lh.LogsService.DeleteLogs()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func (lh *LogsHandler) SearchLogs(c echo.Context) error {
+	query := strings.TrimSpace(c.QueryParam("q"))
+
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	result, err := lh.LogsService.SearchLogs(query, page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

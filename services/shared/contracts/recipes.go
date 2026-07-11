@@ -21,7 +21,13 @@ type GetRecipeResponse models.Recipe
 
 type CreateRecipeResponse models.Recipe
 
-type GetAllRecipesResponse []models.RecipeSummary
+type GetRecipesResponse struct {
+	Total      int                    `json:"total"`
+	Page       int                    `json:"page"`
+	PageSize   int                    `json:"pageSize"`
+	TotalPages int                    `json:"totalPages"`
+	Recipes    []models.RecipeSummary `json:"recipes"`
+}
 
 type UpdateRecipeRequest struct {
 	User         string              `json:"user" validate:"required"`

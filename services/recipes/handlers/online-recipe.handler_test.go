@@ -215,9 +215,7 @@ func (m *MockOnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOn
 		return m.GetRecipeDetailsFunc(url)
 	}
 
-	return &contracts.GetOnlineRecipeDetailsResponse{
-		Title: "Recipe",
-	}, nil
+	return &contracts.GetOnlineRecipeDetailsResponse{}, nil
 }
 
 func (m *MockOnlineRecipeService) SearchRecipes(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {

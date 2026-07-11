@@ -12,5 +12,6 @@ func SetupRoutes(e *echo.Echo, lh *LogsHandler) {
 	logs.POST("", lh.CreateLog)
 	logs.DELETE("", lh.DeleteLogs)
 	logs.GET("", lh.GetLogs)
+	logs.GET("/search", lh.SearchLogs)
 	logs.GET("/backup", data.BackupFolderHandler(config.Vars.DataDir, "logs"))
 }

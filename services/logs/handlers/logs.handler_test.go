@@ -13,6 +13,7 @@ type MockLogsService struct {
 	GetLogsFunc    func(int) (*contracts.GetLogsResponse, error)
 	CreateLogFunc  func(request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error)
 	DeleteLogsFunc func() (*contracts.DeleteLogResponse, error)
+	SearchLogsFunc func(string, int) (*contracts.SearchLogsResponse, error)
 }
 
 func TestGetLogs(t *testing.T) {
@@ -178,6 +179,73 @@ func TestDeleteLogs(t *testing.T) {
 	})
 }
 
+func TestSearchLogs(t *testing.T) {
+	t.Run("Given service returns search results, When SearchLogs, Then returns 200 with logs", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search?query=recipes", nil)
+
+		handler := NewLogsHandler(&MockLogsService{
+			SearchLogsFunc: func(query string, page int) (*contracts.SearchLogsResponse, error) {
+				return &contracts.SearchLogsResponse{}, nil
+			},
+		})
+
+		// when
+		err := handler.SearchLogs(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given service error, When SearchLogs, Then returns 500", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search?query=recipes", nil)
+
+		handler := NewLogsHandler(&MockLogsService{
+			SearchLogsFunc: func(query string, page int) (*contracts.SearchLogsResponse, error) {
+				return nil, errors.New("fail")
+			},
+		})
+
+		// when
+		err := handler.SearchLogs(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("expected 500, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given empty query, When SearchLogs, Then returns 200", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search", nil)
+
+		handler := NewLogsHandler(&MockLogsService{})
+
+		// when
+		err := handler.SearchLogs(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+}
+
 func (m *MockLogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
 	if m.GetLogsFunc != nil {
 		return m.GetLogsFunc(page)
@@ -197,4 +265,11 @@ func (m *MockLogsService) DeleteLogs() (*contracts.DeleteLogResponse, error) {
 		return m.DeleteLogsFunc()
 	}
 	return &contracts.DeleteLogResponse{}, nil
+}
+
+func (m *MockLogsService) SearchLogs(query string, page int) (*contracts.SearchLogsResponse, error) {
+	if m.SearchLogsFunc != nil {
+		return m.SearchLogsFunc(query, page)
+	}
+	return &contracts.SearchLogsResponse{}, nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"math"
 	"shopping-list/recipes/internal/config"
 	"shopping-list/shared/contracts"
 	"shopping-list/shared/models"
@@ -82,46 +83,83 @@ func (s *RecipeService) GetRecipe(id string) (*contracts.GetRecipeResponse, erro
 	return &result, nil
 }
 
-func (s *RecipeService) GetAllRecipes(skip, limit int) (*contracts.GetAllRecipesResponse, error) {
-	var result contracts.GetAllRecipesResponse
+func (s *RecipeService) GetRecipes(user string, page int, pageSize int) (*contracts.GetRecipesResponse, error) {
+	var recipes []models.RecipeSummary
 
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(config.Vars.Bucket))
+
 		return b.ForEach(func(_, v []byte) error {
 			var r models.RecipeSummary
 			if err := json.Unmarshal(v, &r); err != nil {
 				return err
 			}
-			if r.Public != nil && *r.Public {
-				result = append(result, r)
+
+			// Include public recipes and user's private recipes
+			if (r.Public != nil && *r.Public) || (user != "" && r.User == user) {
+				recipes = append(recipes, r)
 			}
+
 			return nil
 		})
 	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Title < result[j].Title
+	sort.Slice(recipes, func(i, j int) bool {
+		iIsOwner := user != "" && recipes[i].User == user
+		jIsOwner := user != "" && recipes[j].User == user
+
+		// User's recipes first
+		if iIsOwner != jIsOwner {
+			return iIsOwner
+		}
+
+		// Then sort alphabetically inside each group
+		return recipes[i].Title < recipes[j].Title
 	})
 
-	if skip >= len(result) {
-		empty := contracts.GetAllRecipesResponse{}
-		return &empty, nil
+	total := len(recipes)
+
+	if page < 1 {
+		page = 1
 	}
 
-	end := skip + limit
-	if end > len(result) {
-		end = len(result)
+	if pageSize < 1 {
+		pageSize = 10
 	}
 
-	paginated := result[skip:end]
+	start := (page - 1) * pageSize
+	end := start + pageSize
 
-	return &paginated, nil
+	paginated := []models.RecipeSummary{}
+
+	if start < total {
+		if end > total {
+			end = total
+		}
+		paginated = recipes[start:end]
+	}
+
+	totalPages := 0
+	if total > 0 {
+		totalPages = int(math.Ceil(float64(total) / float64(pageSize)))
+	}
+
+	return &contracts.GetRecipesResponse{
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+		Recipes:    paginated,
+	}, nil
 }
 
-func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) (*contracts.GetRecipesByUserResponse, error) {
+// Should always return everything
+// Used by FE to add product to recipe
+func (s *RecipeService) GetRecipesByUser(user string) (*contracts.GetRecipesByUserResponse, error) {
 	var result contracts.GetRecipesByUserResponse
 
 	err := s.db.View(func(tx *bbolt.Tx) error {
@@ -135,12 +173,15 @@ func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) (*contrac
 			if err := json.Unmarshal(v, &r); err != nil {
 				return err
 			}
+
 			if r.User == user {
 				result = append(result, r)
 			}
+
 			return nil
 		})
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -149,19 +190,7 @@ func (s *RecipeService) GetRecipesByUser(user string, skip, limit int) (*contrac
 		return result[i].Title < result[j].Title
 	})
 
-	if skip >= len(result) {
-		empty := contracts.GetRecipesByUserResponse{}
-		return &empty, nil
-	}
-
-	end := skip + limit
-	if end > len(result) {
-		end = len(result)
-	}
-
-	paginated := result[skip:end]
-
-	return &paginated, nil
+	return &result, nil
 }
 
 func (s *RecipeService) UpdateRecipe(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error) {

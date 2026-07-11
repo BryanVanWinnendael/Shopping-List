@@ -94,3 +94,24 @@ func (ls *LogsService) GetBackup(ctx context.Context) (*http.Response, error) {
 
 	return response, nil
 }
+
+func (ls *LogsService) SearchLogs(ctx context.Context, query string, page string) (*contracts.SearchLogsResponse, error) {
+	requestUrl := fmt.Sprintf("%s/search?q=%s&page=%s", ls.baseURL, query, page)
+
+	var response contracts.SearchLogsResponse
+
+	_, err := ls.client.DoRequest(
+		ctx,
+		http.MethodGet,
+		requestUrl,
+		nil,
+		nil,
+		&response,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}

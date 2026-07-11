@@ -12,8 +12,8 @@ import (
 type MockRecipeService struct {
 	CreateRecipeFunc            func(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipeFunc               func(id string) (*contracts.GetRecipeResponse, error)
-	GetAllRecipesFunc           func(skip, limit int) (*contracts.GetAllRecipesResponse, error)
-	GetRecipesByUserFunc        func(user string, skip, limit int) (*contracts.GetRecipesByUserResponse, error)
+	GetRecipesFunc              func(user string, page, pageSize int) (*contracts.GetRecipesResponse, error)
+	GetRecipesByUserFunc        func(user string) (*contracts.GetRecipesByUserResponse, error)
 	UpdateRecipeFunc            func(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	DeleteRecipeFunc            func(id string) (*contracts.DeleteRecipeResponse, error)
 	GetAllDistinctCountriesFunc func() (*contracts.GetDistinctCountriesResponse, error)
@@ -75,18 +75,18 @@ func TestCreateRecipe(t *testing.T) {
 }
 
 func TestGetRecipes(t *testing.T) {
-	t.Run("Given service error, When GetAllRecipes, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When GetRecipes, Then returns 500", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetAllRecipesFunc: func(int, int) (*contracts.GetAllRecipesResponse, error) {
+			GetRecipesFunc: func(string, int, int) (*contracts.GetRecipesResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
 
 		// when
-		_ = handler.GetAllRecipes(c)
+		_ = handler.GetRecipes(c)
 
 		// then
 		if rec.Code != http.StatusInternalServerError {
@@ -94,14 +94,14 @@ func TestGetRecipes(t *testing.T) {
 		}
 	})
 
-	t.Run("Given valid request, When GetAllRecipes, Then returns 200", func(t *testing.T) {
+	t.Run("Given valid request, When GetRecipes, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{})
 
 		// when
-		_ = handler.GetAllRecipes(c)
+		_ = handler.GetRecipes(c)
 
 		// then
 		if rec.Code != http.StatusOK {
@@ -314,7 +314,7 @@ func TestGetRecipesByUser(t *testing.T) {
 		c.SetParamValues("john")
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetRecipesByUserFunc: func(string, int, int) (*contracts.GetRecipesByUserResponse, error) {
+			GetRecipesByUserFunc: func(string) (*contracts.GetRecipesByUserResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -344,40 +344,13 @@ func TestGetRecipesByUser(t *testing.T) {
 			t.Fatalf("expected 200, got %d", rec.Code)
 		}
 	})
-
-	t.Run("Given no limit provided, When GetRecipesByUser, Then defaults to 100", func(t *testing.T) {
-		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/user/john?skip=0", nil)
-		c.SetParamNames("username")
-		c.SetParamValues("john")
-
-		handler := NewRecipeHandler(&MockRecipeService{
-			GetRecipesByUserFunc: func(user string, skip, limit int) (*contracts.GetRecipesByUserResponse, error) {
-				if limit != 100 {
-					t.Fatalf("expected default limit 100, got %d", limit)
-				}
-				return &contracts.GetRecipesByUserResponse{}, nil
-			},
-		})
-
-		// when
-		_ = handler.GetRecipesByUser(c)
-
-		// then
-		if rec.Code != http.StatusOK {
-			t.Fatalf("expected 200, got %d", rec.Code)
-		}
-	})
 }
 
 func (m *MockRecipeService) CreateRecipe(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error) {
 	if m.CreateRecipeFunc != nil {
 		return m.CreateRecipeFunc(request)
 	}
-	return &contracts.CreateRecipeResponse{
-		User:  request.User,
-		Title: request.Title,
-	}, nil
+	return &contracts.CreateRecipeResponse{}, nil
 }
 
 func (m *MockRecipeService) GetRecipe(id string) (*contracts.GetRecipeResponse, error) {
@@ -387,32 +360,18 @@ func (m *MockRecipeService) GetRecipe(id string) (*contracts.GetRecipeResponse, 
 	return &contracts.GetRecipeResponse{Id: id}, nil
 }
 
-func (m *MockRecipeService) GetAllRecipes(skip, limit int) (*contracts.GetAllRecipesResponse, error) {
-	if m.GetAllRecipesFunc != nil {
-		return m.GetAllRecipesFunc(skip, limit)
+func (m *MockRecipeService) GetRecipes(user string, page, pageSize int) (*contracts.GetRecipesResponse, error) {
+	if m.GetRecipesFunc != nil {
+		return m.GetRecipesFunc(user, page, pageSize)
 	}
-	return &contracts.GetAllRecipesResponse{
-		{
-			Id: "1",
-		},
-		{
-			Id: "2",
-		},
-	}, nil
+	return &contracts.GetRecipesResponse{}, nil
 }
 
-func (m *MockRecipeService) GetRecipesByUser(user string, skip, limit int) (*contracts.GetRecipesByUserResponse, error) {
+func (m *MockRecipeService) GetRecipesByUser(user string) (*contracts.GetRecipesByUserResponse, error) {
 	if m.GetRecipesByUserFunc != nil {
-		return m.GetRecipesByUserFunc(user, skip, limit)
+		return m.GetRecipesByUserFunc(user)
 	}
-	return &contracts.GetRecipesByUserResponse{
-		{
-			Id: "1",
-		},
-		{
-			Id: "2",
-		},
-	}, nil
+	return &contracts.GetRecipesByUserResponse{}, nil
 }
 
 func (m *MockRecipeService) UpdateRecipe(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error) {
@@ -426,17 +385,12 @@ func (m *MockRecipeService) DeleteRecipe(id string) (*contracts.DeleteRecipeResp
 	if m.DeleteRecipeFunc != nil {
 		return m.DeleteRecipeFunc(id)
 	}
-	return &contracts.DeleteRecipeResponse{
-		Id:      "1",
-		Message: "Recipe deleted",
-	}, nil
+	return &contracts.DeleteRecipeResponse{}, nil
 }
 
 func (m *MockRecipeService) GetAllDistinctCountries() (*contracts.GetDistinctCountriesResponse, error) {
 	if m.GetAllDistinctCountriesFunc != nil {
 		return m.GetAllDistinctCountriesFunc()
 	}
-	return &contracts.GetDistinctCountriesResponse{
-		"m",
-	}, nil
+	return &contracts.GetDistinctCountriesResponse{}, nil
 }

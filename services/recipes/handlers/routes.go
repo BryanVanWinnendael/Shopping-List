@@ -10,7 +10,7 @@ import (
 func SetupRoutes(e *echo.Echo, rh *RecipeHandler, orh *OnlineRecipeHandler) {
 	recipes := e.Group("/api/recipes")
 	recipes.POST("", rh.CreateRecipe)
-	recipes.GET("", rh.GetAllRecipes)
+	recipes.GET("", rh.GetRecipes)
 	recipes.GET("/countries", rh.GetDistinctCountries)
 	recipes.GET("/users/:username", rh.GetRecipesByUser)
 	recipes.GET("/:id", rh.GetRecipe)

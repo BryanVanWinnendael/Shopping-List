@@ -288,3 +288,66 @@ func TestGetLogsBackup(t *testing.T) {
 		}
 	})
 }
+
+func TestSearchLogs(t *testing.T) {
+	t.Run("Given valid request, When SearchLogs, Then success", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(contracts.SearchLogsResponse{})
+
+		client := tests.MockJSONResponse(200, body)
+
+		service := NewLogsService(client, "http://test")
+
+		// when
+		res, err := service.SearchLogs(context.Background(), "recipes", "1")
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if res == nil {
+			t.Fatalf("expected response, got nil")
+		}
+	})
+
+	t.Run("Given http client fails, When SearchLogs, Then return error", func(t *testing.T) {
+		// given
+		client := tests.MockError(errors.New("network error"))
+
+		service := NewLogsService(client, "http://test")
+
+		// when
+		res, err := service.SearchLogs(context.Background(), "recipes", "1")
+
+		// then
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+
+		if res != nil {
+			t.Fatalf("expected nil response on error")
+		}
+	})
+
+	t.Run("Given API returns error status, When SearchLogs, Then return error", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(contracts.SearchLogsResponse{})
+
+		client := tests.MockJSONResponse(500, body)
+
+		service := NewLogsService(client, "http://test")
+
+		// when
+		res, err := service.SearchLogs(context.Background(), "recipes", "1")
+
+		// then
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+
+		if res != nil {
+			t.Fatalf("expected nil response on error")
+		}
+	})
+}

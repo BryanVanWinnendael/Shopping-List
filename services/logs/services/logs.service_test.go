@@ -418,6 +418,194 @@ func TestCompress(t *testing.T) {
 	})
 }
 
+func TestSearchLogs(t *testing.T) {
+	t.Run("Given logs with matching service, When SearchLogs, Then returns matching trace", func(t *testing.T) {
+		// given
+		logs := []models.Log{
+			{
+				Text:     "incoming request",
+				Service:  "Recipes µS",
+				TraceId:  "trace-1",
+				DateTime: "2021-01-01T00:00:00Z",
+			},
+			{
+				Text:     "notification sent",
+				Service:  "Notifications µS",
+				TraceId:  "trace-2",
+				DateTime: "2021-01-01T00:00:01Z",
+			},
+		}
+
+		var content []byte
+		for _, l := range logs {
+			b, _ := json.Marshal(l)
+			content = append(content, append(b, '\n')...)
+		}
+
+		setup(t, content)
+
+		service := NewLogsService()
+
+		// when
+		res, err := service.SearchLogs("recipes", 1)
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if res.TotalTraces != 1 {
+			t.Fatalf("expected 1 trace, got %d", res.TotalTraces)
+		}
+
+		if len(res.Traces) != 1 {
+			t.Fatalf("expected 1 result, got %d", len(res.Traces))
+		}
+
+		if res.Traces[0].TraceID != "trace-1" {
+			t.Fatalf("expected trace-1, got %s", res.Traces[0].TraceID)
+		}
+	})
+
+	t.Run("Given uppercase query, When SearchLogs, Then search is case insensitive", func(t *testing.T) {
+		// given
+		serviceName := "Recipes µS"
+
+		log := models.Log{
+			Text:     "incoming request",
+			Service:  serviceName,
+			TraceId:  "trace-1",
+			DateTime: "2021-01-01T00:00:00Z",
+		}
+
+		b, _ := json.Marshal(log)
+
+		setup(t, append(b, '\n'))
+
+		service := NewLogsService()
+
+		// when
+		res, err := service.SearchLogs("RECIPES", 1)
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if len(res.Traces) != 1 {
+			t.Fatalf("expected 1 trace, got %d", len(res.Traces))
+		}
+	})
+
+	t.Run("Given no matching logs, When SearchLogs, Then returns empty result", func(t *testing.T) {
+		// given
+		log := models.Log{
+			Text:     "hello world",
+			Service:  "api",
+			TraceId:  "trace-1",
+			DateTime: "2021-01-01T00:00:00Z",
+		}
+
+		b, _ := json.Marshal(log)
+
+		setup(t, append(b, '\n'))
+
+		service := NewLogsService()
+
+		// when
+		res, err := service.SearchLogs("recipes", 1)
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if res.TotalTraces != 0 {
+			t.Fatalf("expected 0 traces, got %d", res.TotalTraces)
+		}
+
+		if len(res.Traces) != 0 {
+			t.Fatalf("expected empty traces, got %d", len(res.Traces))
+		}
+	})
+
+	t.Run("Given multiple matching logs, When SearchLogs page 2, Then returns next page", func(t *testing.T) {
+		// given
+		var content []byte
+
+		for i := 0; i < 15; i++ {
+			log := models.Log{
+				Text:     "recipe request",
+				Service:  "Recipes µS",
+				TraceId:  fmt.Sprintf("trace-%d", i),
+				DateTime: "2021-01-01T00:00:00Z",
+			}
+
+			b, _ := json.Marshal(log)
+			content = append(content, append(b, '\n')...)
+		}
+
+		setup(t, content)
+
+		service := NewLogsService()
+
+		// when
+		res, err := service.SearchLogs("recipes", 2)
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if res.Page != 2 {
+			t.Fatalf("expected page 2, got %d", res.Page)
+		}
+
+		if res.PageSize != 5 {
+			t.Fatalf("expected 5 results, got %d", res.PageSize)
+		}
+
+		if res.TotalTraces != 15 {
+			t.Fatalf("expected 15 total traces, got %d", res.TotalTraces)
+		}
+
+		if res.HasNext {
+			t.Fatal("expected no next page")
+		}
+	})
+
+	t.Run("Given matching path, When SearchLogs, Then returns trace", func(t *testing.T) {
+		// given
+		path := "/api/recipes/users"
+
+		log := models.Log{
+			Text:     "request",
+			Service:  "api gateway",
+			TraceId:  "trace-path",
+			DateTime: "2021-01-01T00:00:00Z",
+			Path:     &path,
+		}
+
+		b, _ := json.Marshal(log)
+
+		setup(t, append(b, '\n'))
+
+		service := NewLogsService()
+
+		// when
+		res, err := service.SearchLogs("/recipes", 1)
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if len(res.Traces) != 1 {
+			t.Fatalf("expected 1 trace, got %d", len(res.Traces))
+		}
+	})
+}
+
 func setup(t *testing.T, data []byte) {
 	config.Vars.LogsFile = "test.txt"
 	tests.SetupFile(t, "test.txt", data)

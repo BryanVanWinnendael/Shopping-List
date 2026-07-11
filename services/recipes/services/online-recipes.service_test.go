@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestGetRecipes(t *testing.T) {
+func TestGetOnlineRecipes(t *testing.T) {
 	t.Run("Given page greater than one, When GetRecipes, Then append page query", func(t *testing.T) {
 		// given
 		var receivedPage string

@@ -11,8 +11,8 @@ import (
 type RecipeService interface {
 	CreateRecipe(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipe(id string) (*contracts.GetRecipeResponse, error)
-	GetAllRecipes(skip, limit int) (*contracts.GetAllRecipesResponse, error)
-	GetRecipesByUser(user string, skip, limit int) (*contracts.GetRecipesByUserResponse, error)
+	GetRecipes(user string, page int, pageSize int) (*contracts.GetRecipesResponse, error)
+	GetRecipesByUser(user string) (*contracts.GetRecipesByUserResponse, error)
 	UpdateRecipe(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	DeleteRecipe(id string) (*contracts.DeleteRecipeResponse, error)
 	GetAllDistinctCountries() (*contracts.GetDistinctCountriesResponse, error)
@@ -40,14 +40,20 @@ func (rh *RecipeHandler) CreateRecipe(c echo.Context) error {
 	return c.JSON(http.StatusOK, created)
 }
 
-func (rh *RecipeHandler) GetAllRecipes(c echo.Context) error {
-	skip, _ := strconv.Atoi(c.QueryParam("skip"))
-	limit, _ := strconv.Atoi(c.QueryParam("limit"))
-	if limit == 0 {
-		limit = 100
+func (rh *RecipeHandler) GetRecipes(c echo.Context) error {
+	user := c.QueryParam("user")
+
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
 	}
 
-	recipes, err := rh.RecipeService.GetAllRecipes(skip, limit)
+	pageSize, err := strconv.Atoi(c.QueryParam("pageSize"))
+	if err != nil || pageSize < 1 {
+		pageSize = 100
+	}
+
+	recipes, err := rh.RecipeService.GetRecipes(user, page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -64,14 +70,9 @@ func (rh *RecipeHandler) GetDistinctCountries(c echo.Context) error {
 }
 
 func (rh *RecipeHandler) GetRecipesByUser(c echo.Context) error {
-	user := c.Param("username")
-	skip, _ := strconv.Atoi(c.QueryParam("skip"))
-	limit, _ := strconv.Atoi(c.QueryParam("limit"))
-	if limit == 0 {
-		limit = 100
-	}
+	user := c.Param("user")
 
-	recipes, err := rh.RecipeService.GetRecipesByUser(user, skip, limit)
+	recipes, err := rh.RecipeService.GetRecipesByUser(user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

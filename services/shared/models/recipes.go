@@ -10,7 +10,7 @@ type Recipe struct {
 	Id           string       `json:"id"`
 	User         string       `json:"user"`
 	Title        string       `json:"title"`
-	Public       *bool        `json:"public"`
+	Public       *bool        `json:"public,omitempty"`
 	Banner       *string      `json:"banner,omitempty"`
 	Ingredients  []Ingredient `json:"ingredients,omitempty"`
 	Source       *string      `json:"source,omitempty"`
@@ -25,7 +25,7 @@ type RecipeSummary struct {
 	Id       string    `json:"id"`
 	User     string    `json:"user"`
 	Title    string    `json:"title"`
-	Public   *bool     `json:"public"`
+	Public   *bool     `json:"public,omitempty"`
 	Banner   *string   `json:"banner,omitempty"`
 	Time     *int      `json:"time,omitempty"`
 	MealType *MealType `json:"mealType,omitempty"`

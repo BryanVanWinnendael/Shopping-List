@@ -17,7 +17,7 @@ type MockRecipesService struct {
 	CreateRecipeFunc           func(ctx context.Context, req *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipeFunc              func(ctx context.Context, id string) (*contracts.GetRecipeResponse, error)
 	DeleteRecipeFunc           func(ctx context.Context, id string) (*contracts.DeleteRecipeResponse, error)
-	GetAllRecipesFunc          func(ctx context.Context) (*contracts.GetAllRecipesResponse, error)
+	GetRecipesFunc             func(ctx context.Context, user string, page, pageSize string) (*contracts.GetRecipesResponse, error)
 	UpdateRecipeFunc           func(ctx context.Context, id string, req *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUserFunc       func(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountriesFunc   func(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
@@ -167,15 +167,15 @@ func TestGetRecipe(t *testing.T) {
 	})
 }
 
-func TestGetAllRecipes(t *testing.T) {
-	t.Run("Given service success, When GetAllRecipes, Then returns 200", func(t *testing.T) {
+func TestGetRecipes(t *testing.T) {
+	t.Run("Given service success, When GetRecipes, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{})
 
 		// when
-		err := handler.GetAllRecipes(c)
+		err := handler.GetRecipes(c)
 
 		// then
 		if err != nil {
@@ -187,18 +187,18 @@ func TestGetAllRecipes(t *testing.T) {
 		}
 	})
 
-	t.Run("Given service error, When GetAllRecipes, Then returns 500", func(t *testing.T) {
+	t.Run("Given service error, When GetRecipes, Then returns 500", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{
-			GetAllRecipesFunc: func(context.Context) (*contracts.GetAllRecipesResponse, error) {
+			GetRecipesFunc: func(context.Context, string, string, string) (*contracts.GetRecipesResponse, error) {
 				return nil, errors.New("failed")
 			},
 		})
 
 		// when
-		err := handler.GetAllRecipes(c)
+		err := handler.GetRecipes(c)
 
 		// then
 		if err != nil {
@@ -668,11 +668,11 @@ func (m *MockRecipesService) DeleteRecipe(ctx context.Context, id string) (*cont
 	return &contracts.DeleteRecipeResponse{}, nil
 }
 
-func (m *MockRecipesService) GetAllRecipes(ctx context.Context) (*contracts.GetAllRecipesResponse, error) {
-	if m.GetAllRecipesFunc != nil {
-		return m.GetAllRecipesFunc(ctx)
+func (m *MockRecipesService) GetRecipes(ctx context.Context, user string, page, pageSize string) (*contracts.GetRecipesResponse, error) {
+	if m.GetRecipesFunc != nil {
+		return m.GetRecipesFunc(ctx, user, page, pageSize)
 	}
-	return &contracts.GetAllRecipesResponse{}, nil
+	return &contracts.GetRecipesResponse{}, nil
 }
 
 func (m *MockRecipesService) UpdateRecipe(ctx context.Context, id string, req *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error) {

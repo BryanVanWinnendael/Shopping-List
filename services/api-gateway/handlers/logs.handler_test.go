@@ -17,6 +17,7 @@ type MockLogsService struct {
 	CreateLogFunc  func(ctx context.Context, request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error)
 	DeleteLogsFunc func(ctx context.Context) (*contracts.DeleteLogResponse, error)
 	GetBackupFunc  func(ctx context.Context) (*http.Response, error)
+	SearchLogsFunc func(ctx context.Context, query string, page string) (*contracts.SearchLogsResponse, error)
 }
 
 func TestGetLogs(t *testing.T) {
@@ -208,6 +209,89 @@ func TestDeleteLogs(t *testing.T) {
 	})
 }
 
+func TestSearchLogs(t *testing.T) {
+	t.Run("Given service success, When SearchLogs, Then returns 200", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search?q=recipes&page=1", nil)
+
+		handler := NewLogsHandler(&MockLogsService{
+			SearchLogsFunc: func(ctx context.Context, query string, page string) (*contracts.SearchLogsResponse, error) {
+				if query != "recipes" {
+					t.Fatalf("expected query recipes, got %s", query)
+				}
+
+				if page != "1" {
+					t.Fatalf("expected page 1, got %s", page)
+				}
+
+				return &contracts.SearchLogsResponse{}, nil
+			},
+		})
+
+		// when
+		err := handler.SearchLogs(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given service error, When SearchLogs, Then returns 500", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search?query=recipes&page=1", nil)
+
+		handler := NewLogsHandler(&MockLogsService{
+			SearchLogsFunc: func(ctx context.Context, query string, page string) (*contracts.SearchLogsResponse, error) {
+				return nil, errors.New("search failed")
+			},
+		})
+
+		// when
+		err := handler.SearchLogs(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("expected 500, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given no query, When SearchLogs, Then returns 200", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search", nil)
+
+		handler := NewLogsHandler(&MockLogsService{
+			SearchLogsFunc: func(ctx context.Context, query string, page string) (*contracts.SearchLogsResponse, error) {
+				if query != "" {
+					t.Fatalf("expected empty query, got %s", query)
+				}
+
+				return &contracts.SearchLogsResponse{}, nil
+			},
+		})
+
+		// when
+		err := handler.SearchLogs(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+}
+
 func (m *MockLogsService) GetLogs(ctx context.Context, page string) (*contracts.GetLogsResponse, error) {
 	if m.GetLogsFunc != nil {
 		return m.GetLogsFunc(ctx, page)
@@ -239,4 +323,11 @@ func (m *MockLogsService) GetBackup(ctx context.Context) (*http.Response, error)
 		Header:     make(http.Header),
 		Body:       io.NopCloser(bytes.NewBuffer([]byte("logs-zip"))),
 	}, nil
+}
+
+func (m *MockLogsService) SearchLogs(ctx context.Context, query string, page string) (*contracts.SearchLogsResponse, error) {
+	if m.SearchLogsFunc != nil {
+		return m.SearchLogsFunc(ctx, query, page)
+	}
+	return &contracts.SearchLogsResponse{}, nil
 }
