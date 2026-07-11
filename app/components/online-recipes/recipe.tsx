@@ -1,9 +1,9 @@
-import {StyleSheet, Text, View} from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
-import {Link} from "expo-router"
+import { Link } from "expo-router"
 import GlassOrBlurView from "@/components/glassOrBlurView"
-import {Image} from "expo-image"
-import {OnlineRecipe} from "@/types/generated/models/online_recipe"
+import { Image } from "expo-image"
+import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 
 type Props = {
     recipe: OnlineRecipe
