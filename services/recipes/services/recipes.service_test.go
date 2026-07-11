@@ -335,6 +335,164 @@ func TestGetAllDistinctCountries(t *testing.T) {
 	})
 }
 
+func TestSearchRecipes(t *testing.T) {
+	t.Run("Given recipes, When SearchRecipes with matching query, Then returns matching recipes", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		service := NewRecipeService(db)
+
+		pub := true
+
+		recipe1 := models.Recipe{
+			Id:     "1",
+			Title:  "Pizza Margherita",
+			Public: &pub,
+		}
+
+		recipe2 := models.Recipe{
+			Id:     "2",
+			Title:  "Pasta Carbonara",
+			Public: &pub,
+		}
+
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe1)
+		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
+
+		// when
+		result, err := service.SearchRecipes("", "pizza", 1, 10)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if result.Total != 1 {
+			t.Fatalf("expected 1 recipe, got %d", result.Total)
+		}
+
+		if len(result.Recipes) != 1 {
+			t.Fatalf("expected 1 recipe in result, got %d", len(result.Recipes))
+		}
+
+		if result.Recipes[0].Title != "Pizza Margherita" {
+			t.Fatalf("expected Pizza Margherita")
+		}
+	})
+
+	t.Run("Given private recipes, When SearchRecipes, Then excludes private recipes", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		service := NewRecipeService(db)
+
+		pub := true
+		priv := false
+
+		recipe1 := models.Recipe{
+			Id:     "1",
+			Title:  "Public Pizza",
+			Public: &pub,
+		}
+
+		recipe2 := models.Recipe{
+			Id:     "2",
+			Title:  "Private Pizza",
+			Public: &priv,
+			User:   "user1",
+		}
+
+		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe1)
+		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
+
+		// when
+		result, err := service.SearchRecipes("", "pizza", 1, 10)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if result.Total != 1 {
+			t.Fatalf("expected 1 recipe, got %d", result.Total)
+		}
+
+		if result.Recipes[0].Title != "Public Pizza" {
+			t.Fatalf("expected public recipe")
+		}
+	})
+
+	t.Run("Given multiple matches, When SearchRecipes, Then returns correct page", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		service := NewRecipeService(db)
+
+		pub := true
+
+		for i, title := range []string{
+			"Pizza One",
+			"Pizza Two",
+			"Pizza Three",
+		} {
+			tests.Put(
+				t,
+				db,
+				config.Vars.Bucket,
+				[]byte(string(rune(i+1))),
+				models.Recipe{
+					Id:     string(rune(i + 1)),
+					Title:  title,
+					Public: &pub,
+				},
+			)
+		}
+
+		// when
+		result, err := service.SearchRecipes("", "pizza", 2, 2)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if result.Total != 3 {
+			t.Fatalf("expected total 3, got %d", result.Total)
+		}
+
+		if result.Page != 2 {
+			t.Fatalf("expected page 2, got %d", result.Page)
+		}
+
+		if len(result.Recipes) != 1 {
+			t.Fatalf("expected 1 recipe on second page, got %d", len(result.Recipes))
+		}
+	})
+
+	t.Run("Given invalid JSON, When SearchRecipes, Then returns error", func(t *testing.T) {
+		// given
+		db := setup(t)
+
+		service := NewRecipeService(db)
+
+		tests.Put(
+			t,
+			db,
+			config.Vars.Bucket,
+			[]byte("1"),
+			[]byte("invalid"),
+		)
+
+		// when
+		_, err := service.SearchRecipes("", "pizza", 1, 10)
+
+		// then
+		if err == nil {
+			t.Fatalf("expected error")
+		}
+	})
+}
+
 func setup(t *testing.T) *bbolt.DB {
 	config.Vars.Bucket = "test-bucket"
 	db := tests.SetupDB(t, "test.db", "test-bucket")

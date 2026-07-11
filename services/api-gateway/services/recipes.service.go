@@ -210,7 +210,7 @@ func (rs *RecipesService) GetOnlineRecipeDetails(ctx context.Context, url string
 }
 
 func (rs *RecipesService) SearchOnlineRecipes(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/online-recipes/search?q=%s&page=%s", rs.baseURL, query, page)
+	requestUrl := fmt.Sprintf("%s/online-recipes/search?query=%s&page=%s", rs.baseURL, query, page)
 
 	var response contracts.GetOnlineRecipesResponse
 
@@ -240,4 +240,25 @@ func (rs *RecipesService) GetBackup(ctx context.Context) (*http.Response, error)
 	}
 
 	return response, nil
+}
+
+func (rs *RecipesService) SearchRecipes(ctx context.Context, user string, query string, page string, pageSize string) (*contracts.SearchRecipesResponse, error) {
+	requestUrl := fmt.Sprintf("%s/recipes/search?user=%s&query=%s&page=%s&pageSize=%s", rs.baseURL, user, query, page, pageSize)
+
+	var response contracts.SearchRecipesResponse
+
+	_, err := rs.client.DoRequest(
+		ctx,
+		http.MethodGet,
+		requestUrl,
+		nil,
+		nil,
+		&response,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

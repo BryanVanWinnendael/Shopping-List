@@ -22,13 +22,13 @@ func NewOnlineRecipeHandler(rs OnlineRecipeService) *OnlineRecipeHandler {
 	return &OnlineRecipeHandler{RecipeService: rs}
 }
 
-func (rh *OnlineRecipeHandler) GetRecipes(c echo.Context) error {
+func (orh *OnlineRecipeHandler) GetRecipes(c echo.Context) error {
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
 		page = 0
 	}
 
-	recipes, err := rh.RecipeService.GetRecipes(page)
+	recipes, err := orh.RecipeService.GetRecipes(page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -36,13 +36,13 @@ func (rh *OnlineRecipeHandler) GetRecipes(c echo.Context) error {
 	return c.JSON(http.StatusOK, recipes)
 }
 
-func (rh *OnlineRecipeHandler) GetRecipeDetails(c echo.Context) error {
+func (orh *OnlineRecipeHandler) GetRecipeDetails(c echo.Context) error {
 	url := c.QueryParam("url")
 	if url == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "url query parameter is required"})
 	}
 
-	recipe, err := rh.RecipeService.GetRecipeDetails(url)
+	recipe, err := orh.RecipeService.GetRecipeDetails(url)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -50,11 +50,11 @@ func (rh *OnlineRecipeHandler) GetRecipeDetails(c echo.Context) error {
 	return c.JSON(http.StatusOK, recipe)
 }
 
-func (rh *OnlineRecipeHandler) SearchRecipes(c echo.Context) error {
-	query := c.QueryParam("q")
+func (orh *OnlineRecipeHandler) SearchRecipes(c echo.Context) error {
+	query := c.QueryParam("query")
 	if query == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "q query parameter is required",
+			"error": "query query parameter is required",
 		})
 	}
 
@@ -63,7 +63,7 @@ func (rh *OnlineRecipeHandler) SearchRecipes(c echo.Context) error {
 		page = 1
 	}
 
-	recipes, err := rh.RecipeService.SearchRecipes(query, page)
+	recipes, err := orh.RecipeService.SearchRecipes(query, page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

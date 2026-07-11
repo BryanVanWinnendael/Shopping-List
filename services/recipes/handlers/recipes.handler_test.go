@@ -13,6 +13,7 @@ type MockRecipeService struct {
 	CreateRecipeFunc            func(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipeFunc               func(id string) (*contracts.GetRecipeResponse, error)
 	GetRecipesFunc              func(user string, page, pageSize int) (*contracts.GetRecipesResponse, error)
+	SearchRecipesFunc           func(user string, query string, page int, pageSize int) (*contracts.SearchRecipesResponse, error)
 	GetRecipesByUserFunc        func(user string) (*contracts.GetRecipesByUserResponse, error)
 	UpdateRecipeFunc            func(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	DeleteRecipeFunc            func(id string) (*contracts.DeleteRecipeResponse, error)
@@ -346,6 +347,42 @@ func TestGetRecipesByUser(t *testing.T) {
 	})
 }
 
+func TestSearchRecipes(t *testing.T) {
+	t.Run("Given service error, When SearchRecipes, Then returns 500", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=pasta", nil)
+
+		handler := NewRecipeHandler(&MockRecipeService{
+			SearchRecipesFunc: func(string, string, int, int) (*contracts.SearchRecipesResponse, error) {
+				return nil, errors.New("fail")
+			},
+		})
+
+		// when
+		_ = handler.SearchRecipes(c)
+
+		// then
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("expected 500, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given valid request, When SearchRecipes, Then returns 200", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=pasta&page=1&pageSize=10", nil)
+
+		handler := NewRecipeHandler(&MockRecipeService{})
+
+		// when
+		_ = handler.SearchRecipes(c)
+
+		// then
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+}
+
 func (m *MockRecipeService) CreateRecipe(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error) {
 	if m.CreateRecipeFunc != nil {
 		return m.CreateRecipeFunc(request)
@@ -393,4 +430,11 @@ func (m *MockRecipeService) GetAllDistinctCountries() (*contracts.GetDistinctCou
 		return m.GetAllDistinctCountriesFunc()
 	}
 	return &contracts.GetDistinctCountriesResponse{}, nil
+}
+
+func (m *MockRecipeService) SearchRecipes(user string, query string, page int, pageSize int) (*contracts.SearchRecipesResponse, error) {
+	if m.SearchRecipesFunc != nil {
+		return m.SearchRecipesFunc(user, query, page, pageSize)
+	}
+	return &contracts.SearchRecipesResponse{}, nil
 }

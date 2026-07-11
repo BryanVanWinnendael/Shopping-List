@@ -18,6 +18,7 @@ type MockRecipesService struct {
 	GetRecipeFunc              func(ctx context.Context, id string) (*contracts.GetRecipeResponse, error)
 	DeleteRecipeFunc           func(ctx context.Context, id string) (*contracts.DeleteRecipeResponse, error)
 	GetRecipesFunc             func(ctx context.Context, user string, page, pageSize string) (*contracts.GetRecipesResponse, error)
+	SearchRecipesFunc          func(ctx context.Context, user string, query string, page string, pageSize string) (*contracts.SearchRecipesResponse, error)
 	UpdateRecipeFunc           func(ctx context.Context, id string, req *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUserFunc       func(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountriesFunc   func(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
@@ -599,7 +600,7 @@ func TestSearchOnlineRecipes(t *testing.T) {
 
 	t.Run("Given invalid page, When SearchOnlineRecipes, Then returns 400", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?q=milk&page=abc", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=milk&page=abc", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{})
 
@@ -614,7 +615,7 @@ func TestSearchOnlineRecipes(t *testing.T) {
 
 	t.Run("Given valid query, When SearchOnlineRecipes, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?q=milk&page=1", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=milk&page=1", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{})
 
@@ -629,7 +630,7 @@ func TestSearchOnlineRecipes(t *testing.T) {
 
 	t.Run("Given service error, When SearchOnlineRecipes, Then returns 500", func(t *testing.T) {
 		//given
-		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?q=milk&page=1", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=milk&page=1", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{
 			SearchOnlineRecipesFunc: func(context.Context, string, string) (*contracts.GetOnlineRecipesResponse, error) {
@@ -641,6 +642,120 @@ func TestSearchOnlineRecipes(t *testing.T) {
 		_ = handler.SearchOnlineRecipes(c)
 
 		// then
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("expected 500, got %d", rec.Code)
+		}
+	})
+}
+
+func TestSearchRecipes(t *testing.T) {
+	t.Run("Given missing query, When SearchRecipes, Then returns 400", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search", nil)
+
+		handler := NewRecipesHandler(&MockRecipesService{})
+
+		// when
+		err := handler.SearchRecipes(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given valid query, When SearchRecipes, Then returns 200", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=pasta&page=1&pageSize=10", nil)
+
+		handler := NewRecipesHandler(&MockRecipesService{})
+
+		// when
+		err := handler.SearchRecipes(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given user and pagination, When SearchRecipes, Then passes params", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?user=Bryan&query=pasta&page=2&pageSize=20", nil)
+
+		handler := NewRecipesHandler(&MockRecipesService{
+			SearchRecipesFunc: func(
+				_ context.Context,
+				user string,
+				query string,
+				page string,
+				pageSize string,
+			) (*contracts.SearchRecipesResponse, error) {
+				if user != "Bryan" {
+					t.Fatalf("expected user Bryan, got %s", user)
+				}
+
+				if query != "pasta" {
+					t.Fatalf("expected query pasta, got %s", query)
+				}
+
+				if page != "2" {
+					t.Fatalf("expected page 2, got %s", page)
+				}
+
+				if pageSize != "20" {
+					t.Fatalf("expected pageSize 20, got %s", pageSize)
+				}
+
+				return &contracts.SearchRecipesResponse{}, nil
+			},
+		})
+
+		// when
+		err := handler.SearchRecipes(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Given service error, When SearchRecipes, Then returns 500", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=pasta", nil)
+
+		handler := NewRecipesHandler(&MockRecipesService{
+			SearchRecipesFunc: func(
+				context.Context,
+				string,
+				string,
+				string,
+				string,
+			) (*contracts.SearchRecipesResponse, error) {
+				return nil, errors.New("search failed")
+			},
+		})
+
+		// when
+		err := handler.SearchRecipes(c)
+
+		// then
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
 		if rec.Code != http.StatusInternalServerError {
 			t.Fatalf("expected 500, got %d", rec.Code)
 		}
@@ -727,4 +842,11 @@ func (m *MockRecipesService) GetBackup(ctx context.Context) (*http.Response, err
 		Header:     make(http.Header),
 		Body:       io.NopCloser(bytes.NewBuffer([]byte("recipes-zip"))),
 	}, nil
+}
+
+func (m *MockRecipesService) SearchRecipes(ctx context.Context, user string, query string, page string, pageSize string) (*contracts.SearchRecipesResponse, error) {
+	if m.SearchRecipesFunc != nil {
+		return m.SearchRecipesFunc(ctx, user, query, page, pageSize)
+	}
+	return &contracts.SearchRecipesResponse{}, nil
 }

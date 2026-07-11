@@ -96,7 +96,7 @@ func (ls *LogsService) GetBackup(ctx context.Context) (*http.Response, error) {
 }
 
 func (ls *LogsService) SearchLogs(ctx context.Context, query string, page string) (*contracts.SearchLogsResponse, error) {
-	requestUrl := fmt.Sprintf("%s/search?q=%s&page=%s", ls.baseURL, query, page)
+	requestUrl := fmt.Sprintf("%s/search?query=%s&page=%s", ls.baseURL, query, page)
 
 	var response contracts.SearchLogsResponse
 

@@ -418,3 +418,66 @@ func TestGetRecipesBackup(t *testing.T) {
 		}
 	})
 }
+
+func TestSearchRecipes(t *testing.T) {
+	t.Run("Given valid request, When SearchRecipes, Then success", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(contracts.SearchRecipesResponse{})
+
+		client := tests.MockJSONResponse(200, body)
+
+		service := NewRecipesService(client, "http://test")
+
+		// when
+		res, err := service.SearchRecipes(context.Background(), "user", "pizza", "1", "10")
+
+		// then
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if res == nil {
+			t.Fatalf("expected response, got nil")
+		}
+	})
+
+	t.Run("Given http client fails, When SearchRecipes, Then return error", func(t *testing.T) {
+		// given
+		client := tests.MockError(errors.New("network error"))
+
+		service := NewRecipesService(client, "http://test")
+
+		// when
+		res, err := service.SearchRecipes(context.Background(), "user", "pizza", "1", "10")
+
+		// then
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+
+		if res != nil {
+			t.Fatalf("expected nil response on error")
+		}
+	})
+
+	t.Run("Given API returns error status, When SearchRecipes, Then return error", func(t *testing.T) {
+		// given
+		body, _ := json.Marshal(contracts.SearchRecipesResponse{})
+
+		client := tests.MockJSONResponse(500, body)
+
+		service := NewRecipesService(client, "http://test")
+
+		// when
+		res, err := service.SearchRecipes(context.Background(), "user", "pizza", "1", "10")
+
+		// then
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+
+		if res != nil {
+			t.Fatalf("expected nil response on error")
+		}
+	})
+}

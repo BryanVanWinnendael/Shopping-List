@@ -12,6 +12,7 @@ type RecipeService interface {
 	CreateRecipe(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipe(id string) (*contracts.GetRecipeResponse, error)
 	GetRecipes(user string, page int, pageSize int) (*contracts.GetRecipesResponse, error)
+	SearchRecipes(user string, query string, page int, pageSize int) (*contracts.SearchRecipesResponse, error)
 	GetRecipesByUser(user string) (*contracts.GetRecipesByUserResponse, error)
 	UpdateRecipe(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	DeleteRecipe(id string) (*contracts.DeleteRecipeResponse, error)
@@ -116,4 +117,26 @@ func (rh *RecipeHandler) DeleteRecipe(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, result)
+}
+
+func (rh *RecipeHandler) SearchRecipes(c echo.Context) error {
+	user := c.QueryParam("user")
+	query := c.QueryParam("query")
+
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(c.QueryParam("pageSize"))
+	if err != nil || pageSize < 1 {
+		pageSize = 100
+	}
+
+	recipes, err := rh.RecipeService.SearchRecipes(user, query, page, pageSize)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, recipes)
 }

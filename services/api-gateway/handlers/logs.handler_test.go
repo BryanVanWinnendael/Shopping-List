@@ -212,7 +212,7 @@ func TestDeleteLogs(t *testing.T) {
 func TestSearchLogs(t *testing.T) {
 	t.Run("Given service success, When SearchLogs, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search?q=recipes&page=1", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search?query=recipes&page=1", nil)
 
 		handler := NewLogsHandler(&MockLogsService{
 			SearchLogsFunc: func(ctx context.Context, query string, page string) (*contracts.SearchLogsResponse, error) {
@@ -264,7 +264,7 @@ func TestSearchLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given no query, When SearchLogs, Then returns 200", func(t *testing.T) {
+	t.Run("Given no query, When SearchLogs, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/logs/search", nil)
 
@@ -286,8 +286,8 @@ func TestSearchLogs(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if rec.Code != http.StatusOK {
-			t.Fatalf("expected 200, got %d", rec.Code)
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400, got %d", rec.Code)
 		}
 	})
 }

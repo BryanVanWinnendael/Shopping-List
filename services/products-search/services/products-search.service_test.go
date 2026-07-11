@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"shopping-list/products-search/internal/config"
+	"shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
 )
@@ -36,13 +37,13 @@ func TestSearchProducts(t *testing.T) {
 		setup(t, [][]string{
 			{"pid", "name", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
-			{"2", "Bread", "BrandB", "bakery", "img"},
+			{"2", "Bread", "BrandB", "bread", "img"},
 		})
 
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("a", []string{"bakery"}, 1, 10)
+		res, err := service.SearchProducts("a", []models.Category{"bread"}, 1, 10)
 
 		// then
 		if err != nil {
@@ -51,8 +52,8 @@ func TestSearchProducts(t *testing.T) {
 		if len(res.Products) != 1 {
 			t.Fatalf("expected 1 product, got %d", len(res.Products))
 		}
-		if res.Products[0].Category != "bakery" {
-			t.Fatalf("expected bakery category")
+		if res.Products[0].Category != "bread" {
+			t.Fatalf("expected bread category")
 		}
 	})
 

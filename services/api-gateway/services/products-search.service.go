@@ -25,7 +25,7 @@ func NewProductsSearchService(client *httphelper.Client, baseURL string) *Produc
 
 func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error) {
 	var requestUrl strings.Builder
-	_, err2 := fmt.Fprintf(&requestUrl, "%s/search?q=%s&page=%s&pageSize=%s", pss.baseURL, netUrl.QueryEscape(query), page, pageSize)
+	_, err2 := fmt.Fprintf(&requestUrl, "%s/search?query=%s&page=%s&pageSize=%s", pss.baseURL, netUrl.QueryEscape(query), page, pageSize)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -56,7 +56,7 @@ func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query stri
 }
 
 func (pss *ProductsSearchService) FuzzySearchProducts(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error) {
-	requestUrl := fmt.Sprintf("%s/search/fuzzy?q=%s&category=%s&page=%s&pageSize=%s", pss.baseURL, url.QueryEscape(query), category, page, pageSize)
+	requestUrl := fmt.Sprintf("%s/search/fuzzy?query=%s&category=%s&page=%s&pageSize=%s", pss.baseURL, url.QueryEscape(query), category, page, pageSize)
 
 	var response contracts.ProductsSearchResponse
 

@@ -42,6 +42,7 @@ func SetupRoutes(e *echo.Group, cmh *CategoryModelHandler, lh *LogsHandler,
 	// Recipes routes
 	recipes := e.Group("/api/recipes")
 	recipes.GET("", rh.GetRecipes)
+	recipes.GET("/search", rh.SearchRecipes)
 	recipes.POST("", rh.CreateRecipe)
 	recipes.GET("/:id", rh.GetRecipe)
 	recipes.DELETE("/:id", rh.DeleteRecipe)

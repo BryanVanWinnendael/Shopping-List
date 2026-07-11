@@ -29,15 +29,15 @@ func NewOnlineRecipeService(client *httphelper.Client, baseURL string) *OnlineRe
 	}
 }
 
-func (s *OnlineRecipeService) GetRecipes(page int) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := s.baseURL
+func (ors *OnlineRecipeService) GetRecipes(page int) (*contracts.GetOnlineRecipesResponse, error) {
+	requestUrl := ors.baseURL
 
 	requestUrl += "?page=" + strconv.Itoa(page+1)
 
 	return fetchRecipes(requestUrl, page)
 }
 
-func (s *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
+func (ors *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -150,8 +150,8 @@ func (s *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnline
 	}, nil
 }
 
-func (s *OnlineRecipeService) SearchRecipes(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/search?q=%s&page=%d", s.baseURL, urlQueryEscape(query), page)
+func (ors *OnlineRecipeService) SearchRecipes(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {
+	requestUrl := fmt.Sprintf("%s/search?q=%s&page=%d", ors.baseURL, urlQueryEscape(query), page)
 
 	return fetchRecipes(requestUrl, page)
 }

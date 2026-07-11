@@ -66,7 +66,13 @@ func (lh *LogsHandler) DeleteLogs(c echo.Context) error {
 }
 
 func (lh *LogsHandler) SearchLogs(c echo.Context) error {
-	query := strings.TrimSpace(c.QueryParam("q"))
+	query := strings.TrimSpace(c.QueryParam("query"))
+
+	missingQueryParams := response.GetMissingQueryParams(c, "query")
+	if len(missingQueryParams) > 0 {
+		return response.Missing(c, response.SourceQuery, missingQueryParams...)
+	}
+
 	page := strings.TrimSpace(c.QueryParam("page"))
 
 	result, err := lh.LogsService.SearchLogs(c.Request().Context(), query, page)

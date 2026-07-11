@@ -32,7 +32,7 @@ func getCategoryPriority(category sharedModels.Category) int {
 
 func (pss *ProductsSearchService) SearchProducts(
 	query string,
-	categories []string,
+	categories []sharedModels.Category,
 	page int,
 	pageSize int,
 ) (*contracts.ProductsSearchResponse, error) {
@@ -41,7 +41,7 @@ func (pss *ProductsSearchService) SearchProducts(
 
 	categorySet := make(map[string]struct{})
 	for _, c := range categories {
-		categorySet[strings.ToLower(c)] = struct{}{}
+		categorySet[strings.ToLower(string(c))] = struct{}{}
 	}
 
 	records, err := getRecords()
@@ -98,7 +98,12 @@ func (pss *ProductsSearchService) SearchProducts(
 	})
 
 	paginated, totalPages := paginate(matches, page, pageSize)
-	categoriesString := strings.Join(categories, ",")
+
+	categoryStrings := make([]string, len(categories))
+	for i, category := range categories {
+		categoryStrings[i] = string(category)
+	}
+	categoriesString := strings.Join(categoryStrings, ",")
 
 	return &contracts.ProductsSearchResponse{
 		Products:    paginated,

@@ -16,6 +16,7 @@ type RecipesService interface {
 	GetRecipe(ctx context.Context, id string) (*contracts.GetRecipeResponse, error)
 	DeleteRecipe(ctx context.Context, id string) (*contracts.DeleteRecipeResponse, error)
 	GetRecipes(ctx context.Context, user string, page string, pageSize string) (*contracts.GetRecipesResponse, error)
+	SearchRecipes(ctx context.Context, user string, query string, page string, pageSize string) (*contracts.SearchRecipesResponse, error)
 	UpdateRecipe(ctx context.Context, id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUser(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountries(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
@@ -167,8 +168,10 @@ func (rh *RecipesHandler) GetOnlineRecipes(c echo.Context) error {
 
 func (rh *RecipesHandler) GetOnlineRecipeDetails(c echo.Context) error {
 	url := c.QueryParam("url")
-	if url == "" {
-		return response.Missing(c, response.SourceQuery, "url")
+
+	missingQueryParams := response.GetMissingQueryParams(c, "url")
+	if len(missingQueryParams) > 0 {
+		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
 
 	result, err := rh.RecipesService.GetOnlineRecipeDetails(c.Request().Context(), url)
@@ -180,9 +183,11 @@ func (rh *RecipesHandler) GetOnlineRecipeDetails(c echo.Context) error {
 }
 
 func (rh *RecipesHandler) SearchOnlineRecipes(c echo.Context) error {
-	query := c.QueryParam("q")
-	if query == "" {
-		return response.Missing(c, response.SourceQuery, "q")
+	query := c.QueryParam("query")
+
+	missingQueryParams := response.GetMissingQueryParams(c, "query")
+	if len(missingQueryParams) > 0 {
+		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
 
 	pageStr := c.QueryParam("page")
@@ -194,6 +199,32 @@ func (rh *RecipesHandler) SearchOnlineRecipes(c echo.Context) error {
 	}
 
 	result, err := rh.RecipesService.SearchOnlineRecipes(c.Request().Context(), query, pageStr)
+	if err != nil {
+		return response.Error(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return response.Success(c, http.StatusOK, result)
+}
+
+func (rh *RecipesHandler) SearchRecipes(c echo.Context) error {
+	user := strings.TrimSpace(c.QueryParam("user"))
+	query := strings.TrimSpace(c.QueryParam("query"))
+	page := strings.TrimSpace(c.QueryParam("page"))
+	pageSize := strings.TrimSpace(c.QueryParam("pageSize"))
+
+	missingQueryParams := response.GetMissingQueryParams(c, "query")
+	if len(missingQueryParams) > 0 {
+		return response.Missing(c, response.SourceQuery, missingQueryParams...)
+	}
+
+	result, err := rh.RecipesService.SearchRecipes(
+		c.Request().Context(),
+		user,
+		query,
+		page,
+		pageSize,
+	)
+
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

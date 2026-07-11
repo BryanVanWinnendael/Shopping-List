@@ -40,7 +40,7 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given valid query, When SearchProducts, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?q=milk&category=dairy", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?query=milk&category=dairy", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
@@ -59,7 +59,7 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given service error, When SearchProducts, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?q=milk", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?query=milk", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			SearchProductsFunc: func(context.Context, string, []string, string, string) (*contracts.ProductsSearchResponse, error) {
@@ -103,7 +103,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 
 	t.Run("Given valid query, When FuzzySearchProducts, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?q=milk&category=dairy", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?query=milk&category=dairy", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
@@ -122,7 +122,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 
 	t.Run("Given service error, When FuzzySearchProducts, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?q=milk", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?query=milk", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
 			FuzzySearchProductsFunc: func(context.Context, string, string, string, string) (*contracts.ProductsSearchResponse, error) {
