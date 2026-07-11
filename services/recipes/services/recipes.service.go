@@ -47,7 +47,7 @@ func (s *RecipeService) CreateRecipe(request *contracts.CreateRecipeRequest) (*c
 		Source:       stringPtrTrimOrNil(request.Source),
 		Instructions: normalizeInstructions(request.Instructions),
 		Time:         request.Time,
-		MealType:     stringPtrTrimOrNil(request.MealType),
+		MealType:     (*models.MealType)(stringPtrTrimOrNil((*string)(request.MealType))),
 		Country:      stringPtrTrimOrNil(request.Country),
 		Persons:      request.Persons,
 	}
@@ -202,8 +202,8 @@ func (s *RecipeService) UpdateRecipe(id string, request *contracts.UpdateRecipeR
 			recipe.Time = request.Time
 		}
 		if request.MealType != nil {
-			val := stringPtrTrimOrNil(request.MealType)
-			recipe.MealType = val
+			val := stringPtrTrimOrNil((*string)(request.MealType))
+			recipe.MealType = (*models.MealType)(val)
 		}
 		if request.Country != nil {
 			val := stringPtrTrimOrNil(request.Country)

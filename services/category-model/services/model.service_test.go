@@ -4,6 +4,7 @@ import (
 	"os"
 	"shopping-list/category-model/internal/config"
 	"shopping-list/category-model/models"
+	sharedModels "shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
 )
@@ -144,8 +145,8 @@ func TestTokenize(t *testing.T) {
 
 func createTestNaiveBayes() *models.NaiveBayes {
 	return &models.NaiveBayes{
-		ClassCounts: make(map[string]int),
-		WordCounts:  make(map[string]map[string]int),
+		ClassCounts: make(map[sharedModels.Category]int),
+		WordCounts:  make(map[sharedModels.Category]map[string]int),
 		Vocabulary:  make(map[string]bool),
 		TotalDocs:   0,
 	}

@@ -363,6 +363,35 @@ func TestUploadListImage(t *testing.T) {
 			t.Fatalf("expected 200, got %d", rec.Code)
 		}
 	})
+
+	t.Run("Given service error, When UploadListImage, Then returns 500", func(t *testing.T) {
+		// given
+		files := []tests.MultipartFile{
+			{
+				FieldName: "image",
+				FileName:  "test.jpg",
+				Content:   []byte("fake-image"),
+			},
+		}
+
+		c, rec := tests.SetupMultipartEcho(t, http.MethodPost, "/list/1", files, nil)
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		handler := NewStorageHandler(&MockStorageService{
+			UploadListImageFunc: func(*multipart.FileHeader, string) (*contracts.UploadImageResponse, error) {
+				return nil, errors.New("fail")
+			},
+		})
+
+		// when
+		_ = handler.UploadListImage(c)
+
+		// then
+		if rec.Code != http.StatusInternalServerError {
+			t.Fatalf("expected 500, got %d", rec.Code)
+		}
+	})
 }
 
 func (m *MockStorageService) UploadRecipeImage(fileHeader *multipart.FileHeader, recipeID string) (*contracts.UploadImageResponse, error) {

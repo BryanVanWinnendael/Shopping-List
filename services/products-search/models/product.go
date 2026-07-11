@@ -5,6 +5,6 @@ import "shopping-list/shared/models"
 type ScoredProduct struct {
 	ProductObject models.Product
 	Score         int
-	Category      string
+	Category      models.Category
 	Product       string
 }

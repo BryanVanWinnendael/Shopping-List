@@ -23,8 +23,8 @@ func NewProductsSearchService() *ProductsSearchService {
 	return &ProductsSearchService{}
 }
 
-func getCategoryPriority(category string) int {
-	if p, ok := categoryPriority[strings.ToLower(category)]; ok {
+func getCategoryPriority(category sharedModels.Category) int {
+	if p, ok := categoryPriority[strings.ToLower(string(category))]; ok {
 		return p
 	}
 	return 999
@@ -82,7 +82,7 @@ func (pss *ProductsSearchService) SearchProducts(
 			PID:      pid,
 			Name:     name,
 			Brand:    brand,
-			Category: category,
+			Category: sharedModels.Category(category),
 			Image:    image,
 		})
 	}
@@ -108,13 +108,13 @@ func (pss *ProductsSearchService) SearchProducts(
 		PageSize:    pageSize,
 		TotalPages:  totalPages,
 		Product:     query,
-		Category:    categoriesString,
+		Category:    sharedModels.Category(categoriesString),
 	}, nil
 }
 
 func (pss *ProductsSearchService) FuzzySearchProducts(
 	query string,
-	category string,
+	category sharedModels.Category,
 	page int,
 	pageSize int,
 ) (*contracts.ProductsSearchResponse, error) {
@@ -134,7 +134,7 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 
 	categorySet := make(map[string]struct{})
 	if category != "" {
-		categorySet[strings.ToLower(category)] = struct{}{}
+		categorySet[strings.ToLower(string(category))] = struct{}{}
 	}
 
 	var results []models.ScoredProduct
@@ -192,7 +192,7 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 					PID:      row[0],
 					Name:     row[1],
 					Brand:    row[2],
-					Category: row[3],
+					Category: sharedModels.Category(row[3]),
 					Image:    row[4],
 				},
 				Score: score,

@@ -269,7 +269,7 @@ func (ls *LogsService) CreateLog(request *contracts.CreateLogRequest) (*contract
 		ResponseBodyCompressed: compress(request.ResponseBody),
 		ResponseBodySize:       floatPtrOrNil(request.ResponseBodySize),
 		Path:                   stringPtrTrimOrNil(request.Path),
-		HttpMethod:             stringPtrTrimOrNil(request.HttpMethod),
+		HttpMethod:             (*models.Action)(stringPtrTrimOrNil(request.HttpMethod)),
 		Error:                  request.Error,
 	}
 
@@ -294,7 +294,7 @@ func (ls *LogsService) CreateLog(request *contracts.CreateLogRequest) (*contract
 		Text:       request.Text,
 		Service:    request.Service,
 		TraceId:    request.TraceId,
-		HttpMethod: stringPtrTrimOrNil(request.HttpMethod),
+		HttpMethod: (*models.Action)(stringPtrTrimOrNil(request.HttpMethod)),
 		Error:      request.Error,
 	}, nil
 }
