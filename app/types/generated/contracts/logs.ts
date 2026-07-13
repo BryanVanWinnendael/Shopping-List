@@ -1,15 +1,19 @@
 // THIS IS AN AUTO GENERATED FILE BY SHOPPING LIST CONTRACT GENERATOR. DO NOT EDIT.
 
-import { Trace } from "../models/trace"
 import { Log } from "../models/log"
+import { Trace } from "../models/trace"
 
-export interface GetLogsResponse {
+export interface LogsResponse {
   page: number
   pageSize: number
+  totalTraces: number
   hasNext: boolean
-  totalTraces?: number | null
   traces: Trace[]
 }
+
+export type GetLogsResponse = LogsResponse
+
+export type SearchLogsResponse = LogsResponse
 
 export interface CreateLogRequest {
   dateTime: string

@@ -68,6 +68,7 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
             </View>
 
             <FlatList
+                showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.flatListContent}
                 data={cronProducts}
                 renderItem={({ item }) => renderItem(item)}

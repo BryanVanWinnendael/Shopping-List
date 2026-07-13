@@ -1,7 +1,7 @@
 // THIS IS AN AUTO GENERATED FILE BY SHOPPING LIST CONTRACT GENERATOR. DO NOT EDIT.
 
-import { Product } from "../models/product"
 import { Category } from "../models/category"
+import { Product } from "../models/product"
 
 export interface ProductsSearchResponse {
   products: Product[]

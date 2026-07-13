@@ -14,6 +14,7 @@ export function List({ results, loading, onEndReached }: Props) {
 
     return (
         <FlatList
+            showsVerticalScrollIndicator={false}
             data={results.products}
             keyExtractor={(product, index) => product.name + index}
             renderItem={({ item }) => <Product product={item} />}

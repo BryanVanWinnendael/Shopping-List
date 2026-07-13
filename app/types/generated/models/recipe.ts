@@ -7,7 +7,7 @@ export interface Recipe {
   id: string
   user: string
   title: string
-  public: boolean
+  public?: boolean | null
   banner?: string | null
   ingredients?: Ingredient[] | null
   source?: string | null

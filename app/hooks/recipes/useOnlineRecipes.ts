@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { onlineRecipesClient } from "@/lib/online-recipes"
-import { useRecipesStore } from "@/stores/useRecipesStore"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
+import { useHeaderStore } from "@/stores/useHeaderStore"
 
 export default function useOnlineRecipes() {
-    const { setOnlineRecipes } = useRecipesStore()
+    const { setText } = useHeaderStore()
 
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
+    const loadingRef = useRef(false)
 
     const [recipes, setRecipes] = useState<OnlineRecipe[]>([])
     const [page, setPage] = useState(0)
@@ -19,66 +20,81 @@ export default function useOnlineRecipes() {
     const [query, setQuery] = useState("")
     const [isSearching, setIsSearching] = useState(false)
 
+    const setLoadingState = (value: boolean) => {
+        loadingRef.current = value
+        setLoading(value)
+    }
+
     const getPage = useCallback(
         async (pageNumber: number) => {
-            if (loading) return
+            if (loadingRef.current) return
             if (isSearching) return
 
-            setLoading(true)
+            setLoadingState(true)
 
-            const response = await onlineRecipesClient.getOnlineRecipes(pageNumber)
+            try {
+                const response = await onlineRecipesClient.getOnlineRecipes(pageNumber)
 
-            if (response) {
-                setPage(response.page)
-                setMaxPages(response.maxPages)
-                setTotalRecipes(response.totalRecipes)
-                setOnlineRecipes(response.totalRecipes)
+                if (response) {
+                    setPage(response.page)
+                    setMaxPages(response.maxPages)
+                    setTotalRecipes(response.totalRecipes)
+                    setText(`${response.totalRecipes} Recipes`)
 
-                if (pageNumber === 0) {
-                    setRecipes(response.recipes)
-                } else {
-                    setRecipes((prev) => [...prev, ...response.recipes])
+                    if (pageNumber === 0) {
+                        setRecipes(response.recipes)
+                    } else {
+                        setRecipes((prev) => [...prev, ...response.recipes])
+                    }
                 }
+            } finally {
+                setLoadingState(false)
             }
-
-            setLoading(false)
         },
-        [isSearching]
+        [isSearching, setText]
     )
 
-    const search = useCallback(async (q: string, pageNumber = 1) => {
-        if (loading) return
+    const search = useCallback(
+        async (q: string, pageNumber = 1) => {
+            if (loadingRef.current) return
 
-        if (!q.trim()) {
-            setOnlineRecipes(0)
-            setRecipes([])
-            return
-        }
-
-        setLoading(true)
-        setIsSearching(true)
-        setQuery(q)
-
-        const response = await onlineRecipesClient.searchOnlineRecipes(q, pageNumber)
-
-        if (response) {
-            setPage(response.page)
-            setMaxPages(response.maxPages)
-            setTotalRecipes(response.totalRecipes)
-            setOnlineRecipes(response.totalRecipes)
-
-            if (pageNumber === 1) {
-                setRecipes(response.recipes)
-            } else {
-                setRecipes((prev) => [...prev, ...response.recipes])
+            if (!q.trim()) {
+                setQuery("")
+                setIsSearching(false)
+                setText(null)
+                setRecipes([])
+                await getPage(0)
+                return
             }
-        }
 
-        setLoading(false)
-    }, [])
+            setLoadingState(true)
+            setIsSearching(true)
+            setQuery(q)
+
+            try {
+                const response = await onlineRecipesClient.searchOnlineRecipes(q, pageNumber)
+
+                if (response) {
+                    setPage(response.page)
+                    setMaxPages(response.maxPages)
+                    setTotalRecipes(response.totalRecipes)
+                    setText(`${response.totalRecipes} Recipes`)
+
+                    if (pageNumber === 1) {
+                        setRecipes(response.recipes)
+                    } else {
+                        setRecipes((prev) => [...prev, ...response.recipes])
+                    }
+                }
+            } finally {
+                setLoadingState(false)
+            }
+        },
+        [getPage, setText]
+    )
 
     const getNextPage = useCallback(async () => {
-        if (loading) return
+        if (loadingRef.current) return
         if (page >= maxPages - 1) return
 
         if (isSearching) {
@@ -86,7 +102,7 @@ export default function useOnlineRecipes() {
         } else {
             await getPage(page + 1)
         }
-    }, [page, maxPages, loading, isSearching, query, search, getPage])
+    }, [page, maxPages, isSearching, query, search, getPage])
 
     const updateQuery = (q: string) => {
         setQuery(q)

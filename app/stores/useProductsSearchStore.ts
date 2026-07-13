@@ -6,8 +6,6 @@ type SearchProductsState = {
     setQuery: (query: string | null) => void
     products: ProductsSearchResponse
     setProducts: (products: ProductsSearchResponse) => void
-    found: number
-    setFound: (found: number) => void
 }
 
 export const useProductsSearchStore = create<SearchProductsState>((set) => ({
@@ -22,7 +20,6 @@ export const useProductsSearchStore = create<SearchProductsState>((set) => ({
         product: "",
     },
     query: null,
-    found: 0,
 
     setProducts: (products: ProductsSearchResponse) => {
         set({ products })
@@ -30,9 +27,5 @@ export const useProductsSearchStore = create<SearchProductsState>((set) => ({
 
     setQuery: (query: string | null) => {
         set({ query })
-    },
-
-    setFound: (found: number) => {
-        set({ found })
     },
 }))

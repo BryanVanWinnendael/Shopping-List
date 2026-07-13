@@ -42,9 +42,9 @@ const getOnlineRecipeDetails = async (url: string): Promise<GetOnlineRecipeDetai
     }
 }
 
-const searchOnlineRecipes = async (q: string, page: number): Promise<GetOnlineRecipesResponse | null> => {
+const searchOnlineRecipes = async (query: string, page: number): Promise<GetOnlineRecipesResponse | null> => {
     try {
-        const params: Record<string, any> = { q, page }
+        const params: Record<string, any> = { query, page }
 
         const response = await httpRequest<GetOnlineRecipesResponse>({
             url: `${ONLINE_RECIPES_PATH}/search`,

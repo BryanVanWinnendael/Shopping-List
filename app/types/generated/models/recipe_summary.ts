@@ -6,7 +6,7 @@ export interface RecipeSummary {
   id: string
   user: string
   title: string
-  public: boolean
+  public?: boolean | null
   banner?: string | null
   time?: number | null
   mealType?: MealType | null

@@ -31,7 +31,7 @@ var mu sync.Mutex
 
 const (
 	pageSize      = 10
-	maxLogEntries = 50
+	maxLogEntries = 100
 )
 
 func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
@@ -52,8 +52,13 @@ func (ls *LogsService) SearchLogs(query string, page int) (*contracts.SearchLogs
 
 	query = strings.ToLower(strings.TrimSpace(query))
 
+	traceIDs, err := findMatchingTraceIDs(query)
+	if err != nil {
+		return nil, err
+	}
+
 	traces, err := buildTraces(func(log *models.Log) bool {
-		return matchesLogSearch(log, query)
+		return traceIDs[log.TraceId]
 	})
 
 	if err != nil {
@@ -133,6 +138,28 @@ func (ls *LogsService) DeleteLogs() (*contracts.DeleteLogResponse, error) {
 	return &contracts.DeleteLogResponse{
 		Message: "logs deleted successfully",
 	}, nil
+}
+
+func matchesSpanNodeSearch(node *models.SpanNode, query string) bool {
+	if node == nil {
+		return false
+	}
+
+	if node.Request != nil && matchesLogSearch(node.Request, query) {
+		return true
+	}
+
+	if node.Response != nil && matchesLogSearch(node.Response, query) {
+		return true
+	}
+
+	for _, child := range node.Children {
+		if matchesSpanNodeSearch(child, query) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func paginateTraces(traces []*models.Trace, page int) *contracts.LogsResponse {
@@ -324,6 +351,48 @@ func buildTraces(filter LogFilter) ([]*models.Trace, error) {
 	})
 
 	return result, nil
+}
+
+func findMatchingTraceIDs(query string) (map[string]bool, error) {
+	logsPath := filepath.Join(config.Vars.DataDir, config.Vars.LogsFile)
+
+	file, err := os.Open(logsPath)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = file.Close()
+	}()
+
+	traceIDs := make(map[string]bool)
+
+	scanner := bufio.NewScanner(file)
+
+	const maxLineSize = 10 * 1024 * 1024
+	scanner.Buffer(make([]byte, 64*1024), maxLineSize)
+
+	for scanner.Scan() {
+		var log models.Log
+
+		if err := json.Unmarshal(scanner.Bytes(), &log); err != nil {
+			continue
+		}
+
+		if log.TraceId == "" {
+			continue
+		}
+
+		if matchesLogSearch(&log, query) {
+			traceIDs[log.TraceId] = true
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return traceIDs, nil
 }
 
 func compress(text *string) *string {

@@ -3,8 +3,7 @@ import { useNavigationState } from "@react-navigation/native"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import ListHeader from "@/components/listHeader"
 import useThemes from "@/hooks/themes/useThemes"
-import { useRecipesStore } from "@/stores/useRecipesStore"
-import { useProductsSearchStore } from "@/stores/useProductsSearchStore"
+import { useHeaderStore } from "@/stores/useHeaderStore"
 
 const ROUTE_TITLES: Record<string, string> = {
     weeklyCategories: "Weekly Categories",
@@ -14,8 +13,7 @@ const ROUTE_TITLES: Record<string, string> = {
 export default function Header() {
     const { vars } = useThemes()
     const { products } = useProductsListStore()
-    const { onlineRecipes } = useRecipesStore()
-    const { found } = useProductsSearchStore()
+    const { text } = useHeaderStore()
 
     const totalProducts = products ? Object.keys(products).length : 0
 
@@ -29,18 +27,22 @@ export default function Header() {
 
     const getCustomHeaderTitle = (title: string) => {
         if (title === "online-recipes") {
-            if (onlineRecipes === 0) {
+            if (!text) {
                 return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>Search Recipes</Text>
             }
-            return (
-                <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{onlineRecipes} Recipes</Text>
-            )
+            return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{text}</Text>
         } else if (title === "search") {
-            if (found === 0) {
+            if (!text) {
                 return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>Search Products</Text>
             }
 
-            return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{found} Products</Text>
+            return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{text}</Text>
+        } else if (title === "logs") {
+            if (!text) {
+                return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>Logs</Text>
+            }
+
+            return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{text}</Text>
         }
 
         return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{headerTitle}</Text>

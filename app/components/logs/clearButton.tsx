@@ -1,7 +1,8 @@
-import { ActivityIndicator, Text } from "react-native"
+import { ActivityIndicator, View } from "react-native"
 import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { Trash } from "lucide-react-native"
 
 type Props = {
     clearLogs: () => void
@@ -12,36 +13,41 @@ export default function ClearButton({ clearLogs, loading }: Props) {
     const { vars } = useThemes()
 
     return (
-        <PressableScale
-            enabled={!loading}
-            onPress={clearLogs}
+        <View
             style={{
-                paddingVertical: 10,
-                borderRadius: 24,
-                height: 40,
+                position: "absolute",
+                bottom: 24,
+                right: 24,
+                zIndex: 1,
             }}
         >
             <GlassOrBlurView
+                style={{
+                    flexDirection: "row",
+                    borderRadius: 26,
+                    overflow: "hidden",
+                    borderWidth: 1,
+                }}
                 backgroundColor={vars.secondaryBackgroundColor}
                 borderColor={`${vars.secondaryBorderColor}50`}
-                style={[
-                    {
-                        borderRadius: 24,
-                        overflow: "hidden",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        marginBottom: 8,
-                        height: 40,
-                        paddingHorizontal: 8,
-                    },
-                ]}
             >
-                {loading ? (
-                    <ActivityIndicator color={vars.textColor} />
-                ) : (
-                    <Text style={{ color: vars.textColor, fontWeight: "600", fontSize: 16 }}>Clear Logs</Text>
-                )}
+                <PressableScale
+                    enabled={!loading}
+                    onPress={clearLogs}
+                    style={{
+                        height: 52,
+                        width: 52,
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    {loading ? (
+                        <ActivityIndicator color={vars.textColor} />
+                    ) : (
+                        <Trash size={20} color={vars.textColor} />
+                    )}
+                </PressableScale>
             </GlassOrBlurView>
-        </PressableScale>
+        </View>
     )
 }

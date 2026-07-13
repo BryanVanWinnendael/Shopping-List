@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react"
-import { Pressable, StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import Accordion from "@/components/accordion"
 import useThemes from "@/hooks/themes/useThemes"
 import { decompress } from "@/lib/logs"
 import LogBodyModal from "@/components/logs/logBodyModal"
 import { Trace } from "@/types/generated/models/trace"
 import { SpanNode } from "@/types/generated/models/span_node"
-import { Log } from "@/types/generated/models/log"
+import { Log as LogType } from "@/types/generated/models/log"
+import { PressableScale } from "pressto"
 
 type Props = {
     trace: Trace
@@ -16,12 +17,12 @@ type Event =
     | {
           type: "request"
           span: SpanNode
-          log: Log
+          log: LogType
       }
     | {
           type: "response"
           span: SpanNode
-          log: Log
+          log: LogType
       }
 
 function buildEvents(node: SpanNode): Event[] {
@@ -86,7 +87,7 @@ export default function Log({ trace }: Props) {
                     },
                 ]}
             >
-                <Pressable onPress={() => setExpanded((v) => !v)}>
+                <PressableScale onPress={() => setExpanded((v) => !v)}>
                     <Text
                         style={[
                             styles.title,
@@ -123,7 +124,7 @@ export default function Log({ trace }: Props) {
                             {rootResponse.statusCode} • {rootResponse.durationMs} ms
                         </Text>
                     )}
-                </Pressable>
+                </PressableScale>
 
                 <Accordion expanded={expanded}>
                     <View style={{ marginTop: 16 }}>
@@ -217,17 +218,19 @@ export default function Log({ trace }: Props) {
                                     )}
 
                                     {log.requestBodyCompressed && (
-                                        <Pressable onPress={() => openBody(log.requestBodyCompressed, "Request Body")}>
+                                        <PressableScale
+                                            onPress={() => openBody(log.requestBodyCompressed, "Request Body")}
+                                        >
                                             <Text style={styles.link}>View Request Body</Text>
-                                        </Pressable>
+                                        </PressableScale>
                                     )}
 
                                     {log.responseBodyCompressed && (
-                                        <Pressable
+                                        <PressableScale
                                             onPress={() => openBody(log.responseBodyCompressed, "Response Body")}
                                         >
                                             <Text style={styles.link}>View Response Body</Text>
-                                        </Pressable>
+                                        </PressableScale>
                                     )}
                                 </View>
                             )

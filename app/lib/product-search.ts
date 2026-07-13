@@ -6,12 +6,12 @@ import { ProductsSearchResponse } from "@/types/generated/contracts/products-sea
 const PRODUCT_SEARCH_PATH = "products-search/search"
 
 const searchProducts = async (
-    q: string,
+    query: string,
     page: number,
     categories?: Category[]
 ): Promise<ProductsSearchResponse | null> => {
     try {
-        const params: Record<string, any> = { q, page }
+        const params: Record<string, any> = { query, page }
         if (categories?.length) {
             params.category = categories
         }
@@ -33,7 +33,7 @@ const searchProducts = async (
 }
 
 const fuzzySearchProducts = async (
-    q: string,
+    query: string,
     category: Category,
     page: number
 ): Promise<ProductsSearchResponse | null> => {
@@ -41,7 +41,7 @@ const fuzzySearchProducts = async (
         const response = await httpRequest<ProductsSearchResponse>({
             url: `${PRODUCT_SEARCH_PATH}/fuzzy`,
             method: "GET",
-            params: { q, category, page },
+            params: { query, category, page },
         })
 
         return response.data

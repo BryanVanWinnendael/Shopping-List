@@ -76,7 +76,7 @@ func (lh *LogsHandler) DeleteLogs(c echo.Context) error {
 }
 
 func (lh *LogsHandler) SearchLogs(c echo.Context) error {
-	query := strings.TrimSpace(c.QueryParam("q"))
+	query := strings.TrimSpace(c.QueryParam("query"))
 
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil || page < 1 {

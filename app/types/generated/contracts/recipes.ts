@@ -1,11 +1,11 @@
 // THIS IS AN AUTO GENERATED FILE BY SHOPPING LIST CONTRACT GENERATOR. DO NOT EDIT.
 
-import { MealType } from "../models/meal_type"
-import { Recipe } from "../models/recipe"
 import { RecipeSummary } from "../models/recipe_summary"
 import { OnlineRecipe } from "../models/online_recipe"
 import { OnlineRecipeDetails } from "../models/online_recipe_details"
 import { Ingredient } from "../models/ingredient"
+import { MealType } from "../models/meal_type"
+import { Recipe } from "../models/recipe"
 
 export interface CreateRecipeRequest {
   id?: string | null
@@ -26,7 +26,17 @@ export type GetRecipeResponse = Recipe
 
 export type CreateRecipeResponse = Recipe
 
-export type GetAllRecipesResponse = RecipeSummary[]
+export interface RecipesResponse {
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+  recipes: RecipeSummary[]
+}
+
+export type GetRecipesResponse = RecipesResponse
+
+export type SearchRecipesResponse = RecipesResponse
 
 export interface UpdateRecipeRequest {
   user: string

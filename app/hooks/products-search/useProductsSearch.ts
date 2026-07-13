@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react"
 import { productsSearchClient } from "@/lib/product-search"
 import BottomSheet from "@gorhom/bottom-sheet"
-import { useProductsSearchStore } from "@/stores/useProductsSearchStore"
 import { Category } from "@/types/generated/models/category"
 import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
+import { useHeaderStore } from "@/stores/useHeaderStore"
 
 const EMPTY_RESULT: ProductsSearchResponse = {
     products: [],
@@ -17,7 +17,7 @@ const EMPTY_RESULT: ProductsSearchResponse = {
 }
 
 export function useProductsSearch() {
-    const { setFound } = useProductsSearchStore()
+    const { setText } = useHeaderStore()
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const isFetching = useRef(false)
 
@@ -38,7 +38,7 @@ export function useProductsSearch() {
 
     const fetchProducts = useCallback(async (text: string, categories: Category[], page = 1, replace = false) => {
         if (!text.trim()) {
-            setFound(0)
+            setText(null)
             setResults(EMPTY_RESULT)
             return
         }
@@ -50,7 +50,7 @@ export function useProductsSearch() {
 
         const response = await productsSearchClient.searchProducts(text, page, categories)
         if (response) {
-            setFound(response.total)
+            setText(`${response.total} Products`)
             setResults((prev) =>
                 replace
                     ? response

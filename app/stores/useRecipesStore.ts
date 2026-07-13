@@ -18,8 +18,6 @@ type RecipesState = {
     userRecipes: RecipeSummary[]
     favoriteRecipes: string[]
 
-    onlineRecipes: number
-
     loadRecipes: () => Promise<void>
 
     setFilter: (filter: boolean) => void
@@ -34,8 +32,6 @@ type RecipesState = {
     deleteRecipe: (id: string) => void
 
     setFavoriteRecipes: (recipes: string[]) => Promise<void>
-
-    setOnlineRecipes: (amount: number) => void
 }
 
 function sortByTitle(recipes: RecipeSummary[]) {
@@ -58,8 +54,6 @@ export const useRecipesStore = create<RecipesState>((set) => ({
     recipes: [],
     userRecipes: [],
     favoriteRecipes: [],
-
-    onlineRecipes: 0,
 
     loadRecipes: async () => {
         const storedFilter = await getActiveRecipeFilter()
@@ -124,9 +118,5 @@ export const useRecipesStore = create<RecipesState>((set) => ({
     setFavoriteRecipes: async (recipes) => {
         set({ favoriteRecipes: recipes })
         await persistFavoriteRecipes(recipes)
-    },
-
-    setOnlineRecipes: (amount) => {
-        set({ onlineRecipes: amount })
     },
 }))

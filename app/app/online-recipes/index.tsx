@@ -27,8 +27,6 @@ export default function OnlineRecipes() {
                 variant={states.style}
             />
 
-            <StyleButton value={states.style} setStyle={actions.setStyle} collapsed={searchFocused} />
-
             <SearchBar
                 value={states.query}
                 onChange={actions.updateQuery}
@@ -36,6 +34,8 @@ export default function OnlineRecipes() {
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
             />
+
+            <StyleButton value={states.style} setStyle={actions.setStyle} collapsed={searchFocused} />
         </View>
     )
 }

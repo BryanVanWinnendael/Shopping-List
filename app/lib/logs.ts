@@ -8,6 +8,7 @@ import {
     CreateLogResponse,
     DeleteLogResponse,
     GetLogsResponse,
+    SearchLogsResponse,
 } from "@/types/generated/contracts/logs"
 
 const LOGS_PATH = "logs"
@@ -88,6 +89,26 @@ const deleteLogs = async (): Promise<DeleteLogResponse | null> => {
     }
 }
 
+const searchLogs = async (query: string, page: number): Promise<SearchLogsResponse | null> => {
+    const params: Record<string, any> = { query, page }
+
+    try {
+        const response = await httpRequest<SearchLogsResponse>({
+            url: `${LOGS_PATH}/search`,
+            method: "GET",
+            params,
+        })
+
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to search logs",
+        })
+        return null
+    }
+}
+
 export function decompress(text: string) {
     const binary = atob(text)
     const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
@@ -104,4 +125,5 @@ export const logsClient = {
     createLog,
     getLogs,
     deleteLogs,
+    searchLogs,
 }

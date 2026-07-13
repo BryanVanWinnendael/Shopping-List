@@ -574,21 +574,53 @@ func TestSearchLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given matching path, When SearchLogs, Then returns trace", func(t *testing.T) {
+	t.Run("Given matching path, When SearchLogs, Then returns full trace", func(t *testing.T) {
 		// given
 		path := "/api/recipes/users"
+		spanID := "span-root-1"
+		spanChildID := "span-child-1"
+		phaseRequest := "REQUEST"
+		phaseResponse := "RESPONSE"
 
-		log := models.Log{
-			Text:     "request",
-			Service:  "api gateway",
-			TraceId:  "trace-path",
-			DateTime: "2021-01-01T00:00:00Z",
-			Path:     &path,
+		logs := []models.Log{
+			{
+				Text:     "incoming request",
+				Service:  "api gateway",
+				TraceId:  "trace-id",
+				DateTime: "2021-01-01T00:00:00Z",
+				Path:     &path,
+				SpanId:   &spanID,
+				Phase:    &phaseRequest,
+			},
+			{
+				Text:         "database request",
+				Service:      "database",
+				TraceId:      "trace-id",
+				DateTime:     "2021-01-01T00:00:01Z",
+				SpanId:       &spanChildID,
+				ParentSpanId: &spanID,
+				Phase:        &phaseRequest,
+			},
+			{
+				Text:     "request completed",
+				Service:  "api gateway",
+				TraceId:  "trace-id",
+				DateTime: "2021-01-01T00:00:02Z",
+				Path:     &path,
+				SpanId:   &spanID,
+				Phase:    &phaseResponse,
+			},
 		}
 
-		b, _ := json.Marshal(log)
+		var data []byte
 
-		setup(t, append(b, '\n'))
+		for _, log := range logs {
+			b, _ := json.Marshal(log)
+			data = append(data, b...)
+			data = append(data, '\n')
+		}
+
+		setup(t, data)
 
 		service := NewLogsService()
 
@@ -602,6 +634,32 @@ func TestSearchLogs(t *testing.T) {
 
 		if len(res.Traces) != 1 {
 			t.Fatalf("expected 1 trace, got %d", len(res.Traces))
+		}
+
+		trace := res.Traces[0]
+
+		if trace.TraceID != "trace-id" {
+			t.Fatalf("expected trace-id, got %s", trace.TraceID)
+		}
+
+		if len(trace.Roots) != 1 {
+			t.Fatalf("expected 1 root, got %d", len(trace.Roots))
+		}
+
+		root := trace.Roots[0]
+
+		if root.SpanID != "span-root-1" {
+			t.Fatalf("expected root span-root-1, got %s", root.SpanID)
+		}
+
+		if len(root.Children) != 1 {
+			t.Fatalf("expected 1 child, got %d", len(root.Children))
+		}
+
+		child := root.Children[0]
+
+		if child.SpanID != "span-child-1" {
+			t.Fatalf("expected child span-child-1, got %s", child.SpanID)
 		}
 	})
 }

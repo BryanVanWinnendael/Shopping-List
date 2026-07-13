@@ -6,10 +6,10 @@ import {
     CreateRecipeRequest,
     CreateRecipeResponse,
     DeleteRecipeResponse,
-    GetAllRecipesResponse,
     GetDistinctCountriesResponse,
     GetRecipeResponse,
     GetRecipesByUserResponse,
+    GetRecipesResponse,
     UpdateRecipeRequest,
     UpdateRecipeResponse,
 } from "@/types/generated/contracts/recipes"
@@ -18,9 +18,9 @@ const RECIPES_PATH = "/recipes"
 const FAVORITE_RECIPES_KEY = "app_favoriteRecipes"
 const ACTIVE_RECIPE_FILTER_KEY = "app_recipeFilter"
 
-const getRecipes = async (): Promise<GetAllRecipesResponse | null> => {
+const getRecipes = async (): Promise<GetRecipesResponse | null> => {
     try {
-        const response = await httpRequest<GetAllRecipesResponse>({
+        const response = await httpRequest<GetRecipesResponse>({
             url: RECIPES_PATH,
             method: "GET",
         })

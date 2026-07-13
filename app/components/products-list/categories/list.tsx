@@ -17,6 +17,7 @@ export default function List({ products, open, headerHeight }: Props) {
 
     return (
         <FlatList
+            showsVerticalScrollIndicator={false}
             data={textProducts}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingBottom: 50 }}

@@ -102,7 +102,7 @@ export function useRecipeList() {
         const responseRecipes = await recipesClient.getRecipes()
 
         if (!responseRecipes) return
-        const filteredRecipes = responseRecipes.filter((recipe) => recipe.user !== user)
+        const filteredRecipes = responseRecipes.recipes.filter((recipe) => recipe.user !== user)
 
         const responseUserRecipes = await recipesClient.getUserRecipes(user)
         if (responseUserRecipes) {
