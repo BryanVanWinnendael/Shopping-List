@@ -22,7 +22,6 @@ export default function Logs() {
             <List
                 traces={states.traces}
                 headerHeight={headerHeight}
-                hasNext={states.hasNext}
                 loading={states.loading}
                 refreshing={states.refreshing}
                 onRefresh={actions.refresh}

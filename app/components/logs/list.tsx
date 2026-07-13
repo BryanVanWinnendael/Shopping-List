@@ -5,14 +5,13 @@ import { Trace } from "@/types/generated/models/trace"
 type Props = {
     traces: Trace[]
     headerHeight: number
-    hasNext: boolean
     loading: boolean
     refreshing: boolean
     onRefresh: () => void
     onEndReached: () => void
 }
 
-export default function List({ traces, headerHeight, hasNext, loading, onEndReached, refreshing, onRefresh }: Props) {
+export default function List({ traces, headerHeight, loading, onEndReached, refreshing, onRefresh }: Props) {
     return (
         <FlatList
             data={traces}
