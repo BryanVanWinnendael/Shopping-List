@@ -1,7 +1,7 @@
 // THIS IS AN AUTO GENERATED FILE BY SHOPPING LIST CONTRACT GENERATOR. DO NOT EDIT.
 
-import { Log } from "../models/log"
 import { Trace } from "../models/trace"
+import { Log } from "../models/log"
 
 export interface LogsResponse {
   page: number

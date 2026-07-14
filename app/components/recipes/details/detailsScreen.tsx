@@ -9,8 +9,6 @@ import { useState } from "react"
 import useThemes from "@/hooks/themes/useThemes"
 import useDeleteRecipe from "@/hooks/recipes/useDeleteRecipe"
 import { router } from "expo-router"
-import Toast from "react-native-toast-message"
-import { delay } from "@/lib/utils"
 import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
@@ -29,31 +27,10 @@ export default function DetailsScreen({ recipe, setRecipe, open }: Props) {
     const [offset, setOffset] = useState(0)
 
     const deleteRecipe = async () => {
-        Toast.show({
-            type: "success",
-            text1: "Deleting Recipe...",
-            autoHide: false,
-        })
-        deleteRecipeActions.setLoading(true)
-
         const response = await deleteRecipeActions.deleteRecipe(recipe.id)
-
-        await delay(2000)
-
-        deleteRecipeActions.setLoading(false)
-
         if (response) {
-            Toast.show({
-                type: "success",
-                text1: "Recipe deleted successfully",
-            })
             editRecipeFormActions.close()
             router.replace("/recipes")
-        } else {
-            Toast.show({
-                type: "error",
-                text1: "Failed to delete Recipe",
-            })
         }
     }
 

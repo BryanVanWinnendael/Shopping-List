@@ -12,8 +12,8 @@ import (
 type MockRecipeService struct {
 	CreateRecipeFunc            func(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipeFunc               func(id string) (*contracts.GetRecipeResponse, error)
-	GetRecipesFunc              func(user string, page, pageSize int) (*contracts.GetRecipesResponse, error)
-	SearchRecipesFunc           func(user string, query string, page int, pageSize int) (*contracts.SearchRecipesResponse, error)
+	GetRecipesFunc              func(user string, page int) (*contracts.GetRecipesResponse, error)
+	SearchRecipesFunc           func(user string, query string, page int) (*contracts.SearchRecipesResponse, error)
 	GetRecipesByUserFunc        func(user string) (*contracts.GetRecipesByUserResponse, error)
 	UpdateRecipeFunc            func(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	DeleteRecipeFunc            func(id string) (*contracts.DeleteRecipeResponse, error)
@@ -81,7 +81,7 @@ func TestGetRecipes(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			GetRecipesFunc: func(string, int, int) (*contracts.GetRecipesResponse, error) {
+			GetRecipesFunc: func(string, int) (*contracts.GetRecipesResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -353,7 +353,7 @@ func TestSearchRecipes(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=pasta", nil)
 
 		handler := NewRecipeHandler(&MockRecipeService{
-			SearchRecipesFunc: func(string, string, int, int) (*contracts.SearchRecipesResponse, error) {
+			SearchRecipesFunc: func(string, string, int) (*contracts.SearchRecipesResponse, error) {
 				return nil, errors.New("fail")
 			},
 		})
@@ -397,9 +397,9 @@ func (m *MockRecipeService) GetRecipe(id string) (*contracts.GetRecipeResponse, 
 	return &contracts.GetRecipeResponse{Id: id}, nil
 }
 
-func (m *MockRecipeService) GetRecipes(user string, page, pageSize int) (*contracts.GetRecipesResponse, error) {
+func (m *MockRecipeService) GetRecipes(user string, page int) (*contracts.GetRecipesResponse, error) {
 	if m.GetRecipesFunc != nil {
-		return m.GetRecipesFunc(user, page, pageSize)
+		return m.GetRecipesFunc(user, page)
 	}
 	return &contracts.GetRecipesResponse{}, nil
 }
@@ -432,9 +432,9 @@ func (m *MockRecipeService) GetAllDistinctCountries() (*contracts.GetDistinctCou
 	return &contracts.GetDistinctCountriesResponse{}, nil
 }
 
-func (m *MockRecipeService) SearchRecipes(user string, query string, page int, pageSize int) (*contracts.SearchRecipesResponse, error) {
+func (m *MockRecipeService) SearchRecipes(user string, query string, page int) (*contracts.SearchRecipesResponse, error) {
 	if m.SearchRecipesFunc != nil {
-		return m.SearchRecipesFunc(user, query, page, pageSize)
+		return m.SearchRecipesFunc(user, query, page)
 	}
 	return &contracts.SearchRecipesResponse{}, nil
 }

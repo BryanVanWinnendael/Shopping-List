@@ -1,22 +1,16 @@
-import { useEffect, useRef } from "react"
-import { FlatList, RefreshControl, Text } from "react-native"
+import { useRef } from "react"
+import { ActivityIndicator, FlatList, View } from "react-native"
 import { useHeaderHeight } from "@react-navigation/elements"
 import { useRecipeList } from "@/hooks/recipes/useRecipeList"
 import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
-import useThemes from "@/hooks/themes/useThemes"
 
 export default function RecipesList() {
-    const { vars, theme } = useThemes()
     const headerHeight = useHeaderHeight()
 
     const { actions, states } = useRecipeList()
 
     const flatListRef = useRef<FlatList>(null)
-
-    useEffect(() => {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
-    }, [states.sections])
 
     const renderRecipe = ({ item }: any) => {
         if (!item) return null
@@ -29,7 +23,6 @@ export default function RecipesList() {
             <RecipeCard
                 recipe={item.recipe}
                 favoriteRecipes={states.favoriteRecipes}
-                deleteRecipe={actions.deleteRecipe}
                 toggleFavorite={actions.toggleFavorite}
             />
         )
@@ -42,33 +35,17 @@ export default function RecipesList() {
             keyExtractor={(item, index) =>
                 item.type === "section" ? `section-${item.title}-${index}` : `recipe-${item.recipe.id}`
             }
+            ListHeaderComponent={<View style={{ height: headerHeight }} />}
+            onEndReached={actions.getNextPage}
+            onEndReachedThreshold={0.5}
+            refreshing={states.refreshing}
+            onRefresh={actions.refresh}
             renderItem={renderRecipe}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
-                paddingTop: headerHeight,
-                paddingBottom: headerHeight + 60,
+                paddingBottom: 90,
             }}
-            refreshControl={
-                <RefreshControl
-                    refreshing={states.refreshing}
-                    onRefresh={actions.refresh}
-                    tintColor={theme === "light" ? "black" : "white"}
-                    colors={[theme === "light" ? "black" : "white"]}
-                    progressViewOffset={headerHeight}
-                />
-            }
-            ListEmptyComponent={
-                <Text
-                    style={{
-                        textAlign: "center",
-                        marginTop: 40,
-                        color: vars.textColor,
-                        fontSize: 16,
-                    }}
-                >
-                    No recipes found
-                </Text>
-            }
+            ListFooterComponent={states.loading ? <ActivityIndicator style={{ marginTop: 10 }} /> : null}
         />
     )
 }

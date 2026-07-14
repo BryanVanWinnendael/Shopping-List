@@ -16,7 +16,7 @@ type RecipesState = {
 
     recipes: RecipeSummary[]
     userRecipes: RecipeSummary[]
-    favoriteRecipes: string[]
+    favoriteRecipes: RecipeSummary[]
 
     loadRecipes: () => Promise<void>
 
@@ -24,14 +24,14 @@ type RecipesState = {
     setActiveFilter: (filter: FilterStates) => Promise<void>
     updateFilter: (filter: Partial<FilterStates>) => void
 
-    setRecipes: (recipes: RecipeSummary[]) => void
+    setRecipes: (recipes: RecipeSummary[] | ((prev: RecipeSummary[]) => RecipeSummary[])) => void
     setUserRecipes: (recipes: RecipeSummary[]) => void
 
     addRecipe: (recipe: RecipeSummary) => void
     updateRecipe: (recipe: RecipeSummary) => void
     deleteRecipe: (id: string) => void
 
-    setFavoriteRecipes: (recipes: string[]) => Promise<void>
+    setFavoriteRecipes: (recipes: RecipeSummary[]) => Promise<void>
 }
 
 function sortByTitle(recipes: RecipeSummary[]) {
@@ -87,10 +87,10 @@ export const useRecipesStore = create<RecipesState>((set) => ({
             activeFilter: { ...state.activeFilter, ...data },
         })),
 
-    setRecipes: (recipes) =>
-        set({
-            recipes: sortByTitle(recipes),
-        }),
+    setRecipes: (recipes: RecipeSummary[] | ((prev: RecipeSummary[]) => RecipeSummary[])) =>
+        set((state) => ({
+            recipes: typeof recipes === "function" ? recipes(state.recipes) : recipes,
+        })),
 
     setUserRecipes: (recipes) =>
         set({
@@ -115,7 +115,7 @@ export const useRecipesStore = create<RecipesState>((set) => ({
             userRecipes: state.userRecipes.filter((r) => r.id !== id),
         })),
 
-    setFavoriteRecipes: async (recipes) => {
+    setFavoriteRecipes: async (recipes: RecipeSummary[]) => {
         set({ favoriteRecipes: recipes })
         await persistFavoriteRecipes(recipes)
     },

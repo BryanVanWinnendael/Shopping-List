@@ -11,8 +11,8 @@ import (
 )
 
 type ProductsSearchService interface {
-	SearchProducts(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
-	FuzzySearchProducts(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
+	SearchProducts(ctx context.Context, query string, categories []string, page string) (*contracts.ProductsSearchResponse, error)
+	FuzzySearchProducts(ctx context.Context, query string, category string, page string) (*contracts.ProductsSearchResponse, error)
 	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
@@ -28,14 +28,13 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("query"))
 	categories := c.QueryParams()["category"]
 	page := strings.TrimSpace(c.QueryParam("page"))
-	pageSize := strings.TrimSpace(c.QueryParam("pageSize"))
 
 	missingQueryParams := response.GetMissingQueryParams(c, "query")
 	if len(missingQueryParams) > 0 {
 		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
 
-	result, err := psh.ProductsSearchService.SearchProducts(c.Request().Context(), query, categories, page, pageSize)
+	result, err := psh.ProductsSearchService.SearchProducts(c.Request().Context(), query, categories, page)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -47,14 +46,13 @@ func (psh *ProductsSearchHandler) FuzzySearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("query"))
 	category := strings.TrimSpace(c.QueryParam("category"))
 	page := strings.TrimSpace(c.QueryParam("page"))
-	pageSize := strings.TrimSpace(c.QueryParam("pageSize"))
 
 	missingQueryParams := response.GetMissingQueryParams(c, "query")
 	if len(missingQueryParams) > 0 {
 		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
 
-	result, err := psh.ProductsSearchService.FuzzySearchProducts(c.Request().Context(), query, category, page, pageSize)
+	result, err := psh.ProductsSearchService.FuzzySearchProducts(c.Request().Context(), query, category, page)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

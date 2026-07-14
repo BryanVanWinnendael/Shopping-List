@@ -21,7 +21,7 @@ func TestSearchProducts(t *testing.T) {
 		service := NewProductsSearchService(client, "http://test")
 
 		// when
-		res, err := service.SearchProducts(context.Background(), "milk", []string{"dairy"}, "1", "10")
+		res, err := service.SearchProducts(context.Background(), "milk", []string{"dairy"}, "1")
 
 		// then
 		if err != nil {
@@ -40,7 +40,7 @@ func TestSearchProducts(t *testing.T) {
 		service := NewProductsSearchService(client, "http://test")
 
 		// when
-		res, err := service.SearchProducts(context.Background(), "", []string{"dairy"}, "1", "10")
+		res, err := service.SearchProducts(context.Background(), "", []string{"dairy"}, "1")
 
 		// then
 		if err == nil {
@@ -61,7 +61,7 @@ func TestSearchProducts(t *testing.T) {
 		service := NewProductsSearchService(client, "http://test")
 
 		// when
-		res, err := service.SearchProducts(context.Background(), "milk", []string{"dairy"}, "1", "10")
+		res, err := service.SearchProducts(context.Background(), "milk", []string{"dairy"}, "1")
 
 		// then
 		if err == nil {
@@ -84,7 +84,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService(client, "http://test")
 
 		// when
-		res, err := service.FuzzySearchProducts(context.Background(), "milk", "dairy", "1", "10")
+		res, err := service.FuzzySearchProducts(context.Background(), "milk", "dairy", "1")
 
 		// then
 		if err != nil {
@@ -103,7 +103,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService(client, "http://test")
 
 		// when
-		res, err := service.FuzzySearchProducts(context.Background(), "", "dairy", "1", "10")
+		res, err := service.FuzzySearchProducts(context.Background(), "", "dairy", "1")
 
 		// then
 		if err == nil {
@@ -124,7 +124,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService(client, "http://test")
 
 		// when
-		res, err := service.FuzzySearchProducts(context.Background(), "milk", "dairy", "1", "10")
+		res, err := service.FuzzySearchProducts(context.Background(), "milk", "dairy", "1")
 
 		// then
 		if err == nil {

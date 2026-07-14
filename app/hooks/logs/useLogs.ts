@@ -11,8 +11,6 @@ export function useLogs() {
 
     const [traces, setTraces] = useState<Trace[]>([])
     const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(0)
-    const [totalTraces, setTotalTraces] = useState(0)
     const [hasNext, setHasNext] = useState(false)
 
     const [loading, setLoading] = useState(false)
@@ -39,8 +37,6 @@ export function useLogs() {
 
                 if (response) {
                     setPage(response.page)
-                    setPageSize(response.pageSize)
-                    setTotalTraces(response.totalTraces ?? 0)
                     setText(`${response.totalTraces} Logs`)
                     setHasNext(response.hasNext)
 
@@ -66,7 +62,6 @@ export function useLogs() {
                 setIsSearching(false)
                 setText(null)
                 setTraces([])
-                setTotalTraces(0)
                 await getLogs(1)
                 return
             }
@@ -80,8 +75,6 @@ export function useLogs() {
 
                 if (response) {
                     setPage(response.page)
-                    setPageSize(response.pageSize)
-                    setTotalTraces(response.totalTraces ?? 0)
                     setText(`${response.totalTraces} Logs`)
                     setHasNext(response.hasNext)
 
@@ -150,8 +143,6 @@ export function useLogs() {
             if (response) {
                 setTraces([])
                 setPage(1)
-                setPageSize(0)
-                setTotalTraces(0)
                 setHasNext(false)
             }
         } finally {
@@ -167,8 +158,6 @@ export function useLogs() {
         states: {
             traces,
             page,
-            pageSize,
-            totalTraces,
             hasNext,
             loading,
             loadingDelete,

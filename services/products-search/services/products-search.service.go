@@ -23,6 +23,10 @@ func NewProductsSearchService() *ProductsSearchService {
 	return &ProductsSearchService{}
 }
 
+const (
+	pageSize = 50
+)
+
 func getCategoryPriority(category sharedModels.Category) int {
 	if p, ok := categoryPriority[strings.ToLower(string(category))]; ok {
 		return p
@@ -34,7 +38,6 @@ func (pss *ProductsSearchService) SearchProducts(
 	query string,
 	categories []sharedModels.Category,
 	page int,
-	pageSize int,
 ) (*contracts.ProductsSearchResponse, error) {
 
 	query = strings.ToLower(query)
@@ -121,7 +124,6 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 	query string,
 	category sharedModels.Category,
 	page int,
-	pageSize int,
 ) (*contracts.ProductsSearchResponse, error) {
 
 	query = strings.ToLower(strings.TrimSpace(query))

@@ -30,8 +30,8 @@ type LogFilter func(*models.Log) bool
 var mu sync.Mutex
 
 const (
-	pageSize      = 10
-	maxLogEntries = 100
+	pageSize      = 50
+	maxLogEntries = 100 // max logs/traces in total that can be saved
 )
 
 func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
@@ -138,28 +138,6 @@ func (ls *LogsService) DeleteLogs() (*contracts.DeleteLogResponse, error) {
 	return &contracts.DeleteLogResponse{
 		Message: "logs deleted successfully",
 	}, nil
-}
-
-func matchesSpanNodeSearch(node *models.SpanNode, query string) bool {
-	if node == nil {
-		return false
-	}
-
-	if node.Request != nil && matchesLogSearch(node.Request, query) {
-		return true
-	}
-
-	if node.Response != nil && matchesLogSearch(node.Response, query) {
-		return true
-	}
-
-	for _, child := range node.Children {
-		if matchesSpanNodeSearch(child, query) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func paginateTraces(traces []*models.Trace, page int) *contracts.LogsResponse {

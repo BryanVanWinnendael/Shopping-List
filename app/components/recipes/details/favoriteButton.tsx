@@ -12,13 +12,13 @@ type Props = {
 export default function FavoriteButton({ recipe }: Props) {
     const { vars } = useThemes()
     const { setFavoriteRecipes, favoriteRecipes } = useRecipesStore()
-    const isFavorite = favoriteRecipes.includes(recipe.id)
+    const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
 
     const handleAddToFavorites = async () => {
         if (isFavorite) {
-            await setFavoriteRecipes(favoriteRecipes.filter((r) => r !== recipe.id))
+            await setFavoriteRecipes(favoriteRecipes.filter((r) => r.id !== recipe.id))
         } else {
-            await setFavoriteRecipes([...favoriteRecipes, recipe.id])
+            await setFavoriteRecipes([...favoriteRecipes, recipe])
         }
     }
 

@@ -1,7 +1,7 @@
-import {FlatList, RefreshControl, Text, View} from "react-native"
-import {BottomSheetButton} from "@/components/weekly/categories/bottomSheetButton"
+import { FlatList, RefreshControl, Text, View } from "react-native"
+import { BottomSheetButton } from "@/components/weekly/categories/bottomSheetButton"
 import useThemes from "@/hooks/themes/useThemes"
-import {CronProduct} from "@/types/generated/models/cron_product"
+import { CronProduct } from "@/types/generated/models/cron_product"
 
 type Props = {
     cronProducts: CronProduct[]

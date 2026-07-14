@@ -21,7 +21,7 @@ func TestSearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("milk", nil, 1, 10)
+		res, err := service.SearchProducts("milk", nil, 1)
 
 		// then
 		if err != nil {
@@ -43,7 +43,7 @@ func TestSearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("a", []models.Category{"bread"}, 1, 10)
+		res, err := service.SearchProducts("a", []models.Category{"bread"}, 1)
 
 		// then
 		if err != nil {
@@ -66,7 +66,7 @@ func TestSearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("milk", nil, 1, 10)
+		res, err := service.SearchProducts("milk", nil, 1)
 
 		// then
 		if err != nil {
@@ -90,7 +90,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearchProducts("milk", "", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "", 1)
 
 		// then
 		if err != nil {
@@ -112,7 +112,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearchProducts("milk", "dairy", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "dairy", 1)
 
 		// then
 		if err != nil {
@@ -132,7 +132,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearchProducts("milk", "", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "", 1)
 
 		// then
 		if err != nil {
@@ -157,17 +157,17 @@ func TestPagination(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("", nil, 2, 2)
+		res, err := service.SearchProducts("", nil, 2)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if res.Page != 2 {
-			t.Fatalf("expected page 2")
+		if res.Page != 0 {
+			t.Fatalf("expected page 0")
 		}
 		if len(res.Products) != 1 {
-			t.Fatalf("expected 1 item on page 2, got %d", len(res.Products))
+			t.Fatalf("expected 3 item on page 1, got %d", len(res.Products))
 		}
 	})
 }

@@ -4022,6 +4022,11 @@ expo-modules-core@3.0.29, expo-modules-core@~3.0.22:
   dependencies:
     invariant "^2.2.4"
 
+expo-network@~8.0.8:
+  version "8.0.8"
+  resolved "https://registry.yarnpkg.com/expo-network/-/expo-network-8.0.8.tgz#d8eb25b60a93b010e635192f343d3a955a763df5"
+  integrity sha512-dgrL8UHAmWofqeY4UEjWskCl/RoQAM0DG6PZR8xz2WZt+6aQEboQgFRXowCfhbKZ71d16sNuKXtwBEsp2DtdNw==
+
 expo-notifications@~0.32.16:
   version "0.32.16"
   resolved "https://registry.yarnpkg.com/expo-notifications/-/expo-notifications-0.32.16.tgz#1a1304b89efedd7cdeba92de39b21f09fb2db2c7"

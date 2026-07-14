@@ -20,6 +20,8 @@ type RecipeService struct {
 	db *bbolt.DB
 }
 
+const pageSize = 50
+
 func NewRecipeService(db *bbolt.DB) *RecipeService {
 	err := db.Update(func(tx *bbolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(config.Vars.Bucket))
@@ -83,7 +85,7 @@ func (rs *RecipeService) GetRecipe(id string) (*contracts.GetRecipeResponse, err
 	return &result, nil
 }
 
-func (rs *RecipeService) GetRecipes(user string, page int, pageSize int) (*contracts.GetRecipesResponse, error) {
+func (rs *RecipeService) GetRecipes(user string, page int) (*contracts.GetRecipesResponse, error) {
 	recipes, err := rs.getVisibleRecipes(user)
 	if err != nil {
 		return nil, err
@@ -92,7 +94,7 @@ func (rs *RecipeService) GetRecipes(user string, page int, pageSize int) (*contr
 	return (*contracts.GetRecipesResponse)(paginateRecipes(recipes, page, pageSize)), nil
 }
 
-func (rs *RecipeService) SearchRecipes(user string, query string, page int, pageSize int) (*contracts.SearchRecipesResponse, error) {
+func (rs *RecipeService) SearchRecipes(user string, query string, page int) (*contracts.SearchRecipesResponse, error) {
 	recipes, err := rs.getVisibleRecipes(user)
 	if err != nil {
 		return nil, err
@@ -184,6 +186,7 @@ func paginateRecipes(recipes []models.RecipeSummary, page int, pageSize int) *co
 		Total:      total,
 		Page:       page,
 		PageSize:   pageSize,
+		HasNext:    page < totalPages,
 		TotalPages: totalPages,
 		Recipes:    paginated,
 	}

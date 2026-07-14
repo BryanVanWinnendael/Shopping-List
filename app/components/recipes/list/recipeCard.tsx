@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native"
-import { Link } from "expo-router"
+import { Link, router } from "expo-router"
 import { MEALS } from "@/lib/constants"
 import * as Haptics from "expo-haptics"
 import { useSettingsStore } from "@/stores/useSettingsStore"
@@ -8,21 +8,30 @@ import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { Image } from "expo-image"
 import { Recipe } from "@/types/generated/models/recipe"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
+import useDeleteRecipe from "@/hooks/recipes/useDeleteRecipe"
 
 type Props = {
     recipe: Recipe
-    favoriteRecipes: string[]
-    deleteRecipe: (recipe: Recipe) => void
-    toggleFavorite: (id: string) => void
+    favoriteRecipes: RecipeSummary[]
+    toggleFavorite: (recipe: RecipeSummary) => void
 }
 
-export default function RecipeCard({ recipe, deleteRecipe, toggleFavorite }: Props) {
+export default function RecipeCard({ recipe, toggleFavorite }: Props) {
+    const { actions } = useDeleteRecipe()
     const { vars } = useThemes()
     const { favoriteRecipes } = useRecipesStore()
     const { user } = useSettingsStore()
 
     const canEdit = recipe.user === user
-    const isFavorite = favoriteRecipes.includes(recipe.id)
+    const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
+
+    const deleteRecipe = async () => {
+        const response = await actions.deleteRecipe(recipe.id)
+        if (response) {
+            router.replace("/recipes")
+        }
+    }
 
     return (
         <Link href={`/recipes/${recipe.id}`} key={recipe.id} style={{ marginBottom: 16 }}>
@@ -129,7 +138,7 @@ export default function RecipeCard({ recipe, deleteRecipe, toggleFavorite }: Pro
                     icon="star"
                     onPress={async () => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                        toggleFavorite(recipe.id)
+                        toggleFavorite(recipe)
                     }}
                 />
 
@@ -140,7 +149,7 @@ export default function RecipeCard({ recipe, deleteRecipe, toggleFavorite }: Pro
                         icon="trash"
                         onPress={async () => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                            deleteRecipe(recipe)
+                            await deleteRecipe()
                         }}
                     />
                 ) : (

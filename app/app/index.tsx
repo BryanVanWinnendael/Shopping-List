@@ -7,8 +7,11 @@ import BottomSheet from "@/components/products-list/products-search/bottomSheet"
 import { Modal } from "@/components/inputs/update/modal"
 import ProductInput from "@/components/inputs/productInput"
 import useThemes from "@/hooks/themes/useThemes"
+import { useNetworkMonitor } from "@/hooks/useNetworkMonitor"
 
 export default function Index() {
+    useNetworkMonitor()
+
     const { vars } = useThemes()
     const { actions: editItemActions, states: editItemStates } = useUpdateProduct()
     const { actions: editModalActions, states: editModalStates } = useUpdateProductModal()

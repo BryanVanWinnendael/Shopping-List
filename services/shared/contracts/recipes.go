@@ -26,6 +26,7 @@ type RecipesResponse struct {
 	Page       int                    `json:"page"`
 	PageSize   int                    `json:"pageSize"`
 	TotalPages int                    `json:"totalPages"`
+	HasNext    bool                   `json:"hasNext"`
 	Recipes    []models.RecipeSummary `json:"recipes"`
 }
 

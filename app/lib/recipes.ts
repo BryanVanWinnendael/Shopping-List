@@ -13,16 +13,20 @@ import {
     UpdateRecipeRequest,
     UpdateRecipeResponse,
 } from "@/types/generated/contracts/recipes"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 
 const RECIPES_PATH = "/recipes"
 const FAVORITE_RECIPES_KEY = "app_favoriteRecipes"
 const ACTIVE_RECIPE_FILTER_KEY = "app_recipeFilter"
 
-const getRecipes = async (): Promise<GetRecipesResponse | null> => {
+const getRecipes = async (user: User, page: number): Promise<GetRecipesResponse | null> => {
+    const params: Record<string, any> = { user, page }
+
     try {
         const response = await httpRequest<GetRecipesResponse>({
             url: RECIPES_PATH,
             method: "GET",
+            params,
         })
 
         return response.data
@@ -142,10 +146,10 @@ const getRecipesCountries = async (): Promise<GetDistinctCountriesResponse | nul
 export const getFavoriteRecipes = async () => {
     const storedFavoriteRecipes = await AsyncStorage.getItem(FAVORITE_RECIPES_KEY)
     if (!storedFavoriteRecipes) return []
-    return JSON.parse(storedFavoriteRecipes)
+    return JSON.parse(storedFavoriteRecipes) as RecipeSummary[]
 }
 
-export const setFavoriteRecipes = async (recipes: string[]) => {
+export const setFavoriteRecipes = async (recipes: RecipeSummary[]) => {
     await AsyncStorage.setItem(FAVORITE_RECIPES_KEY, JSON.stringify(recipes))
 }
 

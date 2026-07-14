@@ -20,7 +20,7 @@ type OnlineRecipeService struct {
 	baseURL string
 }
 
-const TOTAL_RECIPES_PER_PAGE = 24
+const totalRecipesPerPage = 24
 
 func NewOnlineRecipeService(client *httphelper.Client, baseURL string) *OnlineRecipeService {
 	return &OnlineRecipeService{
@@ -208,7 +208,7 @@ func fetchRecipes(url string, page int) (*contracts.GetOnlineRecipesResponse, er
 		total = len(recipes)
 	}
 
-	maxPages := int(math.Ceil(float64(total) / TOTAL_RECIPES_PER_PAGE))
+	maxPages := int(math.Ceil(float64(total) / totalRecipesPerPage))
 
 	return &contracts.GetOnlineRecipesResponse{
 		Page:         page,

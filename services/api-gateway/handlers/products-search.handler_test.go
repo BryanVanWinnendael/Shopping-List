@@ -13,8 +13,8 @@ import (
 )
 
 type MockProductsSearchService struct {
-	SearchProductsFunc      func(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
-	FuzzySearchProductsFunc func(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
+	SearchProductsFunc      func(ctx context.Context, query string, categories []string, page string) (*contracts.ProductsSearchResponse, error)
+	FuzzySearchProductsFunc func(ctx context.Context, query string, category string, page string) (*contracts.ProductsSearchResponse, error)
 	GetBackupFunc           func(ctx context.Context) (*http.Response, error)
 }
 
@@ -62,7 +62,7 @@ func TestSearchProducts(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?query=milk", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			SearchProductsFunc: func(context.Context, string, []string, string, string) (*contracts.ProductsSearchResponse, error) {
+			SearchProductsFunc: func(context.Context, string, []string, string) (*contracts.ProductsSearchResponse, error) {
 				return nil, errors.New("search failed")
 			},
 		})
@@ -125,7 +125,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?query=milk", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			FuzzySearchProductsFunc: func(context.Context, string, string, string, string) (*contracts.ProductsSearchResponse, error) {
+			FuzzySearchProductsFunc: func(context.Context, string, string, string) (*contracts.ProductsSearchResponse, error) {
 				return nil, errors.New("fuzzy search failed")
 			},
 		})
@@ -144,16 +144,16 @@ func TestFuzzySearchProducts(t *testing.T) {
 	})
 }
 
-func (m *MockProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error) {
+func (m *MockProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string, page string) (*contracts.ProductsSearchResponse, error) {
 	if m.SearchProductsFunc != nil {
-		return m.SearchProductsFunc(ctx, query, categories, page, pageSize)
+		return m.SearchProductsFunc(ctx, query, categories, page)
 	}
 	return &contracts.ProductsSearchResponse{}, nil
 }
 
-func (m *MockProductsSearchService) FuzzySearchProducts(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error) {
+func (m *MockProductsSearchService) FuzzySearchProducts(ctx context.Context, query string, category string, page string) (*contracts.ProductsSearchResponse, error) {
 	if m.FuzzySearchProductsFunc != nil {
-		return m.FuzzySearchProductsFunc(ctx, query, category, page, pageSize)
+		return m.FuzzySearchProductsFunc(ctx, query, category, page)
 	}
 	return &contracts.ProductsSearchResponse{}, nil
 }

@@ -11,8 +11,8 @@ import (
 )
 
 type ProductsSearchService interface {
-	SearchProducts(query string, categories []models.Category, page int, pageSize int) (*contracts.ProductsSearchResponse, error)
-	FuzzySearchProducts(query string, category models.Category, page int, pageSize int) (*contracts.ProductsSearchResponse, error)
+	SearchProducts(query string, categories []models.Category, page int) (*contracts.ProductsSearchResponse, error)
+	FuzzySearchProducts(query string, category models.Category, page int) (*contracts.ProductsSearchResponse, error)
 }
 
 type ProductsSearchHandler struct {
@@ -31,7 +31,10 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 		})
 	}
 
-	page, pageSize := parsePagination(c)
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
 
 	categoryParams := c.QueryParams()["category"]
 	categories := make([]models.Category, 0, len(categoryParams))
@@ -43,7 +46,7 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 		categories = append(categories, models.Category(category))
 	}
 
-	results, err := psh.ProductsSearchService.SearchProducts(query, categories, page, pageSize)
+	results, err := psh.ProductsSearchService.SearchProducts(query, categories, page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -61,7 +64,10 @@ func (psh *ProductsSearchHandler) FuzzySearchProducts(c echo.Context) error {
 		})
 	}
 
-	page, pageSize := parsePagination(c)
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
 
 	category := strings.ToLower(strings.TrimSpace(c.QueryParam("category")))
 	if category == "fish" {
@@ -69,7 +75,7 @@ func (psh *ProductsSearchHandler) FuzzySearchProducts(c echo.Context) error {
 	}
 	categoryType := models.Category(category)
 
-	results, err := psh.ProductsSearchService.FuzzySearchProducts(query, categoryType, page, pageSize)
+	results, err := psh.ProductsSearchService.FuzzySearchProducts(query, categoryType, page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -77,22 +83,4 @@ func (psh *ProductsSearchHandler) FuzzySearchProducts(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, results)
-}
-
-func parsePagination(c echo.Context) (int, int) {
-	page, err := strconv.Atoi(c.QueryParam("page"))
-	if err != nil || page < 1 {
-		page = 1
-	}
-
-	pageSize, err := strconv.Atoi(c.QueryParam("pageSize"))
-	if err != nil || pageSize <= 0 {
-		pageSize = 10
-	}
-
-	if pageSize > 100 {
-		pageSize = 100
-	}
-
-	return page, pageSize
 }
