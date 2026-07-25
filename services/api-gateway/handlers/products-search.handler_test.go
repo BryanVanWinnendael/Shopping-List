@@ -19,7 +19,7 @@ type MockProductsSearchService struct {
 }
 
 func TestSearchProducts(t *testing.T) {
-	t.Run("Given missing query param, When SearchProducts, Then returns 400", func(t *testing.T) {
+	t.Run("Given missing query param, When SearchProducts, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products", nil)
 
@@ -33,8 +33,8 @@ func TestSearchProducts(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if rec.Code != http.StatusBadRequest {
-			t.Fatalf("expected 400, got %d", rec.Code)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
 		}
 	})
 

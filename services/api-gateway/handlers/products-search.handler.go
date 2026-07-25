@@ -29,11 +29,6 @@ func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	categories := c.QueryParams()["category"]
 	page := strings.TrimSpace(c.QueryParam("page"))
 
-	missingQueryParams := response.GetMissingQueryParams(c, "query")
-	if len(missingQueryParams) > 0 {
-		return response.Missing(c, response.SourceQuery, missingQueryParams...)
-	}
-
 	result, err := psh.ProductsSearchService.SearchProducts(c.Request().Context(), query, categories, page)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())

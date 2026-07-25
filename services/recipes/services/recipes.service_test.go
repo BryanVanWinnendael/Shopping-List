@@ -100,7 +100,7 @@ func TestGetRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
 		// when
-		res, err := service.GetRecipes("", 1, 10)
+		res, err := service.GetRecipes("", 1)
 
 		// then
 		if err != nil {
@@ -155,7 +155,7 @@ func TestGetRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("3"), recipe3)
 
 		// when
-		res, err := service.GetRecipes("user1", 1, 10)
+		res, err := service.GetRecipes("user1", 1)
 
 		// then
 		if err != nil {
@@ -186,7 +186,7 @@ func TestGetRecipes(t *testing.T) {
 		)
 
 		// when
-		_, err := service.GetRecipes("", 1, 10)
+		_, err := service.GetRecipes("", 1)
 
 		// then
 		if err == nil {
@@ -360,7 +360,7 @@ func TestSearchRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
 		// when
-		result, err := service.SearchRecipes("", "pizza", 1, 10)
+		result, err := service.SearchRecipes("", "pizza", 1)
 
 		// then
 		if err != nil {
@@ -406,7 +406,7 @@ func TestSearchRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
 		// when
-		result, err := service.SearchRecipes("", "pizza", 1, 10)
+		result, err := service.SearchRecipes("", "pizza", 1)
 
 		// then
 		if err != nil {
@@ -449,7 +449,7 @@ func TestSearchRecipes(t *testing.T) {
 		}
 
 		// when
-		result, err := service.SearchRecipes("", "pizza", 2, 2)
+		result, err := service.SearchRecipes("", "pizza", 2)
 
 		// then
 		if err != nil {
@@ -484,7 +484,7 @@ func TestSearchRecipes(t *testing.T) {
 		)
 
 		// when
-		_, err := service.SearchRecipes("", "pizza", 1, 10)
+		_, err := service.SearchRecipes("", "pizza", 1)
 
 		// then
 		if err == nil {

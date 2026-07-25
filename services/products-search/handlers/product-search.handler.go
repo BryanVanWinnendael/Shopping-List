@@ -25,11 +25,6 @@ func NewProductsSearchHandler(pss ProductsSearchService) *ProductsSearchHandler 
 
 func (psh *ProductsSearchHandler) SearchProducts(c echo.Context) error {
 	query := strings.TrimSpace(c.QueryParam("query"))
-	if query == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "missing query parameter ?query=",
-		})
-	}
 
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil || page < 1 {

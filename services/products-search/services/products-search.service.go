@@ -39,8 +39,7 @@ func (pss *ProductsSearchService) SearchProducts(
 	categories []sharedModels.Category,
 	page int,
 ) (*contracts.ProductsSearchResponse, error) {
-
-	query = strings.ToLower(query)
+	query = strings.TrimSpace(strings.ToLower(query))
 
 	categorySet := make(map[string]struct{})
 	for _, c := range categories {
@@ -69,10 +68,13 @@ func (pss *ProductsSearchService) SearchProducts(
 		brandLower := strings.ToLower(brand)
 		categoryLower := strings.ToLower(category)
 
-		if !strings.Contains(nameLower, query) &&
-			!strings.Contains(brandLower, query) &&
-			!strings.Contains(categoryLower, query) {
-			continue
+		// Skip text filtering if query is empty.
+		if query != "" {
+			if !strings.Contains(nameLower, query) &&
+				!strings.Contains(brandLower, query) &&
+				!strings.Contains(categoryLower, query) {
+				continue
+			}
 		}
 
 		if len(categorySet) > 0 {
