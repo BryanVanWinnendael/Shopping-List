@@ -8,22 +8,8 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"shopping-list/shared/consts/trace"
 )
-
-type ContextKey string
-
-const (
-	TraceIdHeader                 = "X-Trace-ID"
-	ParentSpanIDHeader            = "X-Parent-Span-ID"
-	SpanIdHeader                  = "X-Span-ID"
-	TraceIdKey         ContextKey = "trace_id"
-	SpanKey            ContextKey = "span"
-)
-
-type SpanContext struct {
-	SpanId       string `json:"spanId"`
-	ParentSpanId string `json:"parentSpanId,omitempty"`
-}
 
 func (c *Client) DoMultipartRequest(
 	ctx context.Context,
@@ -79,13 +65,13 @@ func (c *Client) DoMultipartRequest(
 		req.Header.Set("Authorization", "Bearer "+c.defaultToken)
 	}
 
-	if traceID, ok := ctx.Value(TraceIdKey).(string); ok && traceID != "" {
-		req.Header.Set(TraceIdHeader, traceID)
+	if traceID, ok := ctx.Value(trace.TraceIdKey).(string); ok && traceID != "" {
+		req.Header.Set(trace.TraceIdHeader, traceID)
 	}
 
-	if span, ok := ctx.Value(SpanKey).(*SpanContext); ok && span != nil {
-		req.Header.Set(SpanIdHeader, span.SpanId)
-		req.Header.Set(ParentSpanIDHeader, span.ParentSpanId)
+	if span, ok := ctx.Value(trace.SpanKey).(*trace.SpanContext); ok && span != nil {
+		req.Header.Set(trace.SpanIdHeader, span.SpanId)
+		req.Header.Set(trace.ParentSpanIDHeader, span.ParentSpanId)
 	}
 
 	resp, err := c.HttpClient.Do(req)

@@ -4,25 +4,11 @@ import (
 	"context"
 	"fmt"
 	netHttp "net/http"
+	"shopping-list/shared/consts/trace"
 	"shopping-list/shared/contracts"
 	"shopping-list/shared/http"
 	"strings"
 	"time"
-)
-
-type SpanContext struct {
-	SpanId       string `json:"spanId"`
-	ParentSpanId string `json:"parentSpanId,omitempty"`
-}
-
-type ContextKey string
-
-const (
-	TraceIdHeader                 = "X-Trace-ID"
-	ParentSpanIDHeader            = "X-Parent-Span-ID"
-	SpanIdHeader                  = "X-Span-ID"
-	TraceIdKey         ContextKey = "trace_id"
-	SpanKey            ContextKey = "span"
 )
 
 type Logger struct {
@@ -123,12 +109,12 @@ func WithPhase(p string) Option {
 }
 
 func getSpan(ctx context.Context) (spanId string, parentSpanId string) {
-	v := ctx.Value(SpanKey)
+	v := ctx.Value(trace.SpanKey)
 	if v == nil {
 		return "-", "-"
 	}
 
-	span, ok := v.(*SpanContext)
+	span, ok := v.(*trace.SpanContext)
 	if !ok || span == nil {
 		return "-", "-"
 	}
@@ -143,7 +129,7 @@ func (l *Logger) log(ctx context.Context, level string, msg string, opts ...Opti
 		opt(&options)
 	}
 
-	traceID, _ := ctx.Value(TraceIdKey).(string)
+	traceID, _ := ctx.Value(trace.TraceIdKey).(string)
 	spanId, parentSpanId := getSpan(ctx)
 
 	isError := level == "ERROR"

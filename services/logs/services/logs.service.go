@@ -232,12 +232,19 @@ func buildTraces(filter LogFilter) ([]*models.Trace, error) {
 
 		if !exists {
 			node = &models.SpanNode{
-				SpanID:       spanID,
-				ParentSpanID: parentID,
-				Service:      log.Service,
+				SpanID: spanID,
 			}
 
 			nodes[spanID] = node
+		}
+
+		// Always update metadata
+		if node.ParentSpanID == "" {
+			node.ParentSpanID = parentID
+		}
+
+		if node.Service == "" {
+			node.Service = log.Service
 		}
 
 		if node.Service == "" {
