@@ -13,32 +13,39 @@ for %%f in (%folders%) do (
 
     pushd %%f
 
-    set handlersCoverage=
-    set servicesCoverage=
-
     REM ==========================
     REM Handlers coverage
     REM ==========================
     if exist handlers (
-        go test ./handlers -coverprofile=handlers.out >nul 2>&1
 
-        for /f "tokens=3" %%a in ('go tool cover -func=handlers.out ^| findstr total:') do (
-            set handlersCoverage=%%a
-        )
+        set handlersCoverage=
+        set hInt=0
 
-        echo Handlers: !handlersCoverage!
-
-        set h=!handlersCoverage:%%=!
-        for /f "tokens=1 delims=." %%a in ("!h!") do set hInt=%%a
-
-        if !hInt! LSS 80 (
-            echo [FAIL] handlers coverage below 80%%
+        go test ./handlers -coverprofile=handlers.out
+        if errorlevel 1 (
+            echo [FAIL] Handler tests failed
             set failed=1
         ) else (
-            echo [PASS] handlers coverage
+
+            for /f "tokens=3" %%a in ('go tool cover -func=handlers.out ^| findstr total:') do (
+                set handlersCoverage=%%a
+            )
+
+            echo Handlers: !handlersCoverage!
+
+            set h=!handlersCoverage:%%=!
+            for /f "tokens=1 delims=." %%a in ("!h!") do set hInt=%%a
+
+            if !hInt! LSS 80 (
+                echo [FAIL] Handlers coverage below 80%%
+                set failed=1
+            ) else (
+                echo [PASS] Handlers coverage
+            )
         )
 
-        del handlers.out >nul 2>&1
+        if exist handlers.out del handlers.out >nul 2>&1
+
     ) else (
         echo Handlers folder not found
     )
@@ -47,25 +54,35 @@ for %%f in (%folders%) do (
     REM Services coverage
     REM ==========================
     if exist services (
-        go test ./services -coverprofile=services.out >nul 2>&1
 
-        for /f "tokens=3" %%a in ('go tool cover -func=services.out ^| findstr total:') do (
-            set servicesCoverage=%%a
-        )
+        set servicesCoverage=
+        set sInt=0
 
-        echo Services: !servicesCoverage!
-
-        set s=!servicesCoverage:%%=!
-        for /f "tokens=1 delims=." %%a in ("!s!") do set sInt=%%a
-
-        if !sInt! LSS 80 (
-            echo [FAIL] services coverage below 80%%
+        go test ./services -coverprofile=services.out
+        if errorlevel 1 (
+            echo [FAIL] Service tests failed
             set failed=1
         ) else (
-            echo [PASS] services coverage
+
+            for /f "tokens=3" %%a in ('go tool cover -func=services.out ^| findstr total:') do (
+                set servicesCoverage=%%a
+            )
+
+            echo Services: !servicesCoverage!
+
+            set s=!servicesCoverage:%%=!
+            for /f "tokens=1 delims=." %%a in ("!s!") do set sInt=%%a
+
+            if !sInt! LSS 80 (
+                echo [FAIL] Services coverage below 80%%
+                set failed=1
+            ) else (
+                echo [PASS] Services coverage
+            )
         )
 
-        del services.out >nul 2>&1
+        if exist services.out del services.out >nul 2>&1
+
     ) else (
         echo Services folder not found
     )

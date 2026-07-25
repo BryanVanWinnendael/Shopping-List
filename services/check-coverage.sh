@@ -23,46 +23,56 @@ for folder in "${folders[@]}"; do
 
   cd "$folder"
 
+  # ==========================
   # Handlers
+  # ==========================
   if [ -d "handlers" ]; then
-    go test ./handlers -coverprofile=handlers.out >/dev/null 2>&1
-
-    handlersCoverage=$(go tool cover -func=handlers.out | grep total: | awk '{print $3}')
-    handlersInt=${handlersCoverage%\%}
-    handlersInt=${handlersInt%%.*}
-
-    echo "Handlers: $handlersCoverage"
-
-    if [ "$handlersInt" -lt 80 ]; then
-      echo "[FAIL] handlers coverage below 80%"
+    if ! go test ./handlers -coverprofile=handlers.out >/dev/null 2>&1; then
+      echo "[FAIL] handlers tests failed"
       failed=1
     else
-      echo "[PASS] handlers coverage"
-    fi
+      handlersCoverage=$(go tool cover -func=handlers.out | grep total: | awk '{print $3}')
+      handlersInt=${handlersCoverage%\%}
+      handlersInt=${handlersInt%%.*}
 
-    rm -f handlers.out
+      echo "Handlers: $handlersCoverage"
+
+      if [ "$handlersInt" -lt 80 ]; then
+        echo "[FAIL] handlers coverage below 80%"
+        failed=1
+      else
+        echo "[PASS] handlers coverage"
+      fi
+
+      rm -f handlers.out
+    fi
   else
     echo "Handlers folder not found"
   fi
 
+  # ==========================
   # Services
+  # ==========================
   if [ -d "services" ]; then
-    go test ./services -coverprofile=services.out >/dev/null 2>&1
-
-    servicesCoverage=$(go tool cover -func=services.out | grep total: | awk '{print $3}')
-    servicesInt=${servicesCoverage%\%}
-    servicesInt=${servicesInt%%.*}
-
-    echo "Services: $servicesCoverage"
-
-    if [ "$servicesInt" -lt 80 ]; then
-      echo "[FAIL] services coverage below 80%"
+    if ! go test ./services -coverprofile=services.out >/dev/null 2>&1; then
+      echo "[FAIL] services tests failed"
       failed=1
     else
-      echo "[PASS] services coverage"
-    fi
+      servicesCoverage=$(go tool cover -func=services.out | grep total: | awk '{print $3}')
+      servicesInt=${servicesCoverage%\%}
+      servicesInt=${servicesInt%%.*}
 
-    rm -f services.out
+      echo "Services: $servicesCoverage"
+
+      if [ "$servicesInt" -lt 80 ]; then
+        echo "[FAIL] services coverage below 80%"
+        failed=1
+      else
+        echo "[PASS] services coverage"
+      fi
+
+      rm -f services.out
+    fi
   else
     echo "Services folder not found"
   fi

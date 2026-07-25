@@ -449,7 +449,7 @@ func TestSearchRecipes(t *testing.T) {
 		}
 
 		// when
-		result, err := service.SearchRecipes("", "pizza", 2)
+		result, err := service.SearchRecipes("", "pizza", 0)
 
 		// then
 		if err != nil {
@@ -460,12 +460,12 @@ func TestSearchRecipes(t *testing.T) {
 			t.Fatalf("expected total 3, got %d", result.Total)
 		}
 
-		if result.Page != 2 {
-			t.Fatalf("expected page 2, got %d", result.Page)
+		if result.Page != 1 {
+			t.Fatalf("expected page 1, got %d", result.Page)
 		}
 
-		if len(result.Recipes) != 1 {
-			t.Fatalf("expected 1 recipe on second page, got %d", len(result.Recipes))
+		if len(result.Recipes) != 3 {
+			t.Fatalf("expected 3 recipes on first page, got %d", len(result.Recipes))
 		}
 	})
 

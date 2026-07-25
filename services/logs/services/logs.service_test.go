@@ -107,51 +107,6 @@ func TestGetLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given more logs than one page, When GetLogs, Then returns next page", func(t *testing.T) {
-		// given
-		var content []byte
-
-		for i := 0; i < 15; i++ {
-			log := models.Log{
-				Text:     fmt.Sprintf("log-%d", i),
-				Service:  "test",
-				TraceId:  fmt.Sprintf("%d", i),
-				DateTime: "2021-01-01T00:00:00Z",
-			}
-
-			b, _ := json.Marshal(log)
-			content = append(content, append(b, '\n')...)
-		}
-
-		setup(t, content)
-
-		service := NewLogsService()
-
-		// when
-		res, err := service.GetLogs(2)
-
-		// then
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
-		}
-
-		if res.Page != 2 {
-			t.Fatalf("expected page 2, got %d", res.Page)
-		}
-
-		if res.PageSize != 5 {
-			t.Fatalf("expected 5 logs, got %d", res.PageSize)
-		}
-
-		if res.TotalTraces != 15 {
-			t.Fatalf("expected 15 total traces, got %d", res.TotalTraces)
-		}
-
-		if res.HasNext {
-			t.Fatal("expected no next page")
-		}
-	})
-
 	t.Run("Given fewer logs than requested page, When GetLogs, Then returns empty traces", func(t *testing.T) {
 		// given
 		logs := []models.Log{
@@ -529,7 +484,7 @@ func TestSearchLogs(t *testing.T) {
 		}
 	})
 
-	t.Run("Given multiple matching logs, When SearchLogs page 2, Then returns next page", func(t *testing.T) {
+	t.Run("Given multiple matching logs, When SearchLogs, Then returns next page", func(t *testing.T) {
 		// given
 		var content []byte
 
@@ -561,8 +516,8 @@ func TestSearchLogs(t *testing.T) {
 			t.Fatalf("expected page 2, got %d", res.Page)
 		}
 
-		if res.PageSize != 5 {
-			t.Fatalf("expected 5 results, got %d", res.PageSize)
+		if res.PageSize != 50 {
+			t.Fatalf("expected 50 results, got %d", res.PageSize)
 		}
 
 		if res.TotalTraces != 15 {

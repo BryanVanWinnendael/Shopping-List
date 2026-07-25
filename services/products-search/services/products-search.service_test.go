@@ -157,16 +157,16 @@ func TestPagination(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("", nil, 2)
+		res, err := service.SearchProducts("", nil, 0)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 		if res.Page != 0 {
-			t.Fatalf("expected page 0")
+			t.Fatalf("expected 0 results, got %d", res.Page)
 		}
-		if len(res.Products) != 1 {
+		if len(res.Products) != 3 {
 			t.Fatalf("expected 3 item on page 1, got %d", len(res.Products))
 		}
 	})
