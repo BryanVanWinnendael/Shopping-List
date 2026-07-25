@@ -103,3 +103,5 @@ export const THEMES: { key: Theme; label: string }[] = [
 export const DEFAULT_FONT_SIZE = 35
 export const MIN_FONT_SIZE = 30
 export const MAX_FONT_SIZE = 80
+
+export const DEBOUNCE_TIME = 1000

@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { productsSearchClient } from "@/lib/product-search"
 import BottomSheet from "@gorhom/bottom-sheet"
 import { Category } from "@/types/generated/models/category"
 import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
 import { useHeaderStore } from "@/stores/useHeaderStore"
+import { DEBOUNCE_TIME } from "@/lib/constants"
 
 const EMPTY_RESULT: ProductsSearchResponse = {
     products: [],
@@ -36,21 +37,15 @@ export function useProductsSearch() {
         bottomSheetRef.current?.close()
     }, [])
 
-    const fetchProducts = useCallback(async (text: string, categories: Category[], page = 1, replace = false) => {
-        if (!text.trim()) {
-            setText(null)
-            setResults(EMPTY_RESULT)
-            return
-        }
-
+    const getProducts = useCallback(async (query: string, categories: Category[], page = 1, replace = false) => {
         if (isFetching.current) return
         isFetching.current = true
 
         if (replace) setLoading(true)
 
-        const response = await productsSearchClient.searchProducts(text, page, categories)
+        const response = await productsSearchClient.searchProducts(query, page, categories)
         if (response) {
-            setText(`${response.total} Products`)
+            setText("searchProducts", `${response.total} Products`)
             setResults((prev) =>
                 replace
                     ? response
@@ -74,22 +69,23 @@ export function useProductsSearch() {
         }
 
         debounceTimeout.current = setTimeout(async () => {
-            await fetchProducts(text, selectedCategories, 1, true)
-        }, 500)
+            await getProducts(text, selectedCategories, 1, true)
+        }, DEBOUNCE_TIME)
     }
 
     const applyFilters = async (categories: Category[]) => {
         setSelectedCategories(categories)
-
-        if (query.trim()) {
-            await fetchProducts(query, categories, 1, true)
-        }
+        await getProducts(query, categories, 1, true)
     }
 
-    const fetchNextPage = async () => {
+    const getNextPage = async () => {
         if (results.page >= results.totalPages) return
-        await fetchProducts(query, selectedCategories, results.page + 1, false)
+        await getProducts(query, selectedCategories, results.page + 1, false)
     }
+
+    useEffect(() => {
+        getProducts("", [])
+    }, [getProducts])
 
     return {
         states: {
@@ -101,7 +97,7 @@ export function useProductsSearch() {
         actions: {
             updateQuery,
             applyFilters,
-            fetchNextPage,
+            getNextPage,
             close,
             open,
         },

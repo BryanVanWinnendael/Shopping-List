@@ -39,7 +39,7 @@ export default function useOnlineRecipes() {
                     setPage(response.page)
                     setMaxPages(response.maxPages)
                     setTotalRecipes(response.totalRecipes)
-                    setText(`${response.totalRecipes} Recipes`)
+                    setText("online-recipes", `${response.totalRecipes} Recipes`)
 
                     if (pageNumber === 0) {
                         setRecipes(response.recipes)
@@ -61,7 +61,7 @@ export default function useOnlineRecipes() {
             if (!q.trim()) {
                 setQuery("")
                 setIsSearching(false)
-                setText(null)
+                setText("online-recipes", null)
                 setRecipes([])
                 await getPage(0)
                 return
@@ -78,7 +78,7 @@ export default function useOnlineRecipes() {
                     setPage(response.page)
                     setMaxPages(response.maxPages)
                     setTotalRecipes(response.totalRecipes)
-                    setText(`${response.totalRecipes} Recipes`)
+                    setText("online-recipes", `${response.totalRecipes} Recipes`)
 
                     if (pageNumber === 1) {
                         setRecipes(response.recipes)

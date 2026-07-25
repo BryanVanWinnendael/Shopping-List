@@ -1,15 +1,32 @@
 import { create } from "zustand"
 
-type HeaderState = {
-    text: string | null
+// route name
+type HeaderKey = "searchProducts" | "logs" | "recipes" | "online-recipes"
 
-    setText: (val: string | null) => void
+type HeaderState = {
+    headers: Record<HeaderKey, string | null>
+    setText: (key: HeaderKey, value: string | null) => void
+    getText: (key: HeaderKey) => string | null
 }
 
-export const useHeaderStore = create<HeaderState>((set) => ({
-    text: null,
+export const useHeaderStore = create<HeaderState>((set, get) => ({
+    headers: {
+        searchProducts: null,
+        logs: null,
+        recipes: null,
+        "online-recipes": null,
+    },
 
-    setText: (val: string | null) => {
-        set({ text: val })
+    setText: (key, value) => {
+        set((state) => ({
+            headers: {
+                ...state.headers,
+                [key]: value,
+            },
+        }))
+    },
+
+    getText: (key) => {
+        return get().headers[key]
     },
 }))

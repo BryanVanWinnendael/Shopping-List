@@ -10,6 +10,7 @@ import {
     GetRecipeResponse,
     GetRecipesByUserResponse,
     GetRecipesResponse,
+    SearchRecipesResponse,
     UpdateRecipeRequest,
     UpdateRecipeResponse,
 } from "@/types/generated/contracts/recipes"
@@ -143,6 +144,26 @@ const getRecipesCountries = async (): Promise<GetDistinctCountriesResponse | nul
     }
 }
 
+const searchRecipes = async (user: User, page: number, query: string): Promise<SearchRecipesResponse | null> => {
+    const params: Record<string, any> = { user, page, query }
+
+    try {
+        const response = await httpRequest<SearchRecipesResponse>({
+            url: `${RECIPES_PATH}/search`,
+            method: "GET",
+            params,
+        })
+
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to get recipes",
+        })
+        return null
+    }
+}
+
 export const getFavoriteRecipes = async () => {
     const storedFavoriteRecipes = await AsyncStorage.getItem(FAVORITE_RECIPES_KEY)
     if (!storedFavoriteRecipes) return []
@@ -171,4 +192,5 @@ export const recipesClient = {
     createRecipe,
     getUserRecipes,
     getRecipe,
+    searchRecipes,
 }

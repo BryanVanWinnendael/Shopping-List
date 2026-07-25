@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { logsClient } from "@/lib/logs"
 import { Trace } from "@/types/generated/models/trace"
 import { useHeaderStore } from "@/stores/useHeaderStore"
+import { DEBOUNCE_TIME } from "@/lib/constants"
 
 export function useLogs() {
     const { setText } = useHeaderStore()
@@ -37,7 +38,7 @@ export function useLogs() {
 
                 if (response) {
                     setPage(response.page)
-                    setText(`${response.totalTraces} Logs`)
+                    setText("logs", `${response.totalTraces} Logs`)
                     setHasNext(response.hasNext)
 
                     if (pageNumber === 1) {
@@ -60,7 +61,7 @@ export function useLogs() {
             if (!q.trim()) {
                 setQuery("")
                 setIsSearching(false)
-                setText(null)
+                setText("logs", null)
                 setTraces([])
                 await getLogs(1)
                 return
@@ -75,7 +76,7 @@ export function useLogs() {
 
                 if (response) {
                     setPage(response.page)
-                    setText(`${response.totalTraces} Logs`)
+                    setText("logs", `${response.totalTraces} Logs`)
                     setHasNext(response.hasNext)
 
                     if (pageNumber === 1) {
@@ -111,14 +112,8 @@ export function useLogs() {
 
         debounceTimeout.current = setTimeout(async () => {
             await search(q, 1)
-        }, 500)
+        }, DEBOUNCE_TIME)
     }
-
-    const clearSearch = useCallback(() => {
-        setQuery("")
-        setIsSearching(false)
-        getLogs(1)
-    }, [getLogs])
 
     const refresh = useCallback(async () => {
         setRefreshing(true)
@@ -163,14 +158,12 @@ export function useLogs() {
             loadingDelete,
             refreshing,
             query,
-            isSearching,
         },
         actions: {
             getLogs,
             search,
             getNextPage,
             updateQuery,
-            clearSearch,
             refresh,
             deleteLogs,
         },

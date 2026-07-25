@@ -16,17 +16,18 @@ export default function BottomSheetButton({ onPress }: Props) {
         <GlassOrBlurView
             style={{
                 position: "absolute",
-                bottom: 30,
-                right: 24,
+                bottom: 26,
+                right: 20,
                 borderRadius: 50,
-                width: 48,
-                height: 48,
+                height: 52,
+                width: 52,
                 justifyContent: "center",
                 alignItems: "center",
                 overflow: "hidden",
+                zIndex: 1,
             }}
             backgroundColor={vars.secondaryBackgroundColor}
-            borderColor={newUI ? `${vars.secondaryBorderColor}50` : vars.secondaryBorderColor}
+            borderColor={`${vars.secondaryBorderColor}50`}
         >
             <PressableScale onPress={onPress} style={{ justifyContent: "center", alignItems: "center" }}>
                 <Plus size={20} color={vars.textColor} />

@@ -13,7 +13,7 @@ const ROUTE_TITLES: Record<string, string> = {
 export default function Header() {
     const { vars } = useThemes()
     const { products } = useProductsListStore()
-    const { text } = useHeaderStore()
+    const { headers } = useHeaderStore()
 
     const totalProducts = products ? Object.keys(products).length : 0
 
@@ -25,27 +25,34 @@ export default function Header() {
     const headerTitle =
         ROUTE_TITLES[currentRouteName] ?? currentRouteName.charAt(0).toUpperCase() + currentRouteName.slice(1)
 
-    const getCustomHeaderTitle = (title: string) => {
-        if (title === "online-recipes") {
-            if (!text) {
-                return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>Search Recipes</Text>
-            }
-            return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{text}</Text>
-        } else if (title === "search") {
-            if (!text) {
-                return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>Search Products</Text>
-            }
+    const getCustomHeaderTitle = () => {
+        const text = headers[currentRouteName as keyof typeof headers]
 
-            return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{text}</Text>
-        } else if (title === "logs") {
-            if (!text) {
-                return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>Logs</Text>
-            }
-
-            return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{text}</Text>
+        if (text) {
+            return (
+                <Text
+                    style={{
+                        fontWeight: "600",
+                        fontSize: 16,
+                        color: vars.textColor,
+                    }}
+                >
+                    {text}
+                </Text>
+            )
         }
 
-        return <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>{headerTitle}</Text>
+        return (
+            <Text
+                style={{
+                    fontWeight: "600",
+                    fontSize: 16,
+                    color: vars.textColor,
+                }}
+            >
+                {headerTitle}
+            </Text>
+        )
     }
 
     return (
@@ -53,11 +60,19 @@ export default function Header() {
             {products === null ? (
                 <ActivityIndicator size="small" color={vars.textColor} />
             ) : currentRouteName !== "index" ? (
-                getCustomHeaderTitle(currentRouteName)
+                getCustomHeaderTitle()
             ) : totalProducts > 0 ? (
                 <ListHeader />
             ) : (
-                <Text style={{ fontWeight: "600", fontSize: 16, color: vars.textColor }}>No products yet</Text>
+                <Text
+                    style={{
+                        fontWeight: "600",
+                        fontSize: 16,
+                        color: vars.textColor,
+                    }}
+                >
+                    No products yet
+                </Text>
             )}
         </View>
     )

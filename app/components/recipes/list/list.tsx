@@ -1,14 +1,30 @@
 import { useRef } from "react"
 import { ActivityIndicator, FlatList, View } from "react-native"
 import { useHeaderHeight } from "@react-navigation/elements"
-import { useRecipeList } from "@/hooks/recipes/useRecipeList"
 import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 
-export default function RecipesList() {
+type Props = {
+    favoriteRecipes: RecipeSummary[]
+    toggleFavorite: (recipe: RecipeSummary) => void
+    sections: any[]
+    getNextPage: () => void
+    refreshing: boolean
+    refresh: () => void
+    loading: boolean
+}
+
+export default function RecipesList({
+    favoriteRecipes,
+    toggleFavorite,
+    sections,
+    getNextPage,
+    refreshing,
+    refresh,
+    loading,
+}: Props) {
     const headerHeight = useHeaderHeight()
-
-    const { actions, states } = useRecipeList()
 
     const flatListRef = useRef<FlatList>(null)
 
@@ -19,33 +35,27 @@ export default function RecipesList() {
             return <RecipeSectionHeader title={item.title} />
         }
 
-        return (
-            <RecipeCard
-                recipe={item.recipe}
-                favoriteRecipes={states.favoriteRecipes}
-                toggleFavorite={actions.toggleFavorite}
-            />
-        )
+        return <RecipeCard recipe={item.recipe} favoriteRecipes={favoriteRecipes} toggleFavorite={toggleFavorite} />
     }
 
     return (
         <FlatList
             ref={flatListRef}
-            data={states.sections}
+            data={sections}
             keyExtractor={(item, index) =>
                 item.type === "section" ? `section-${item.title}-${index}` : `recipe-${item.recipe.id}`
             }
             ListHeaderComponent={<View style={{ height: headerHeight }} />}
-            onEndReached={actions.getNextPage}
+            onEndReached={getNextPage}
             onEndReachedThreshold={0.5}
-            refreshing={states.refreshing}
-            onRefresh={actions.refresh}
+            refreshing={refreshing}
+            onRefresh={refresh}
             renderItem={renderRecipe}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
                 paddingBottom: 90,
             }}
-            ListFooterComponent={states.loading ? <ActivityIndicator style={{ marginTop: 10 }} /> : null}
+            ListFooterComponent={loading ? <ActivityIndicator style={{ marginTop: 10 }} /> : null}
         />
     )
 }

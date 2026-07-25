@@ -7,7 +7,7 @@ import Filter from "@/components/products-search/filter"
 import useThemes from "@/hooks/themes/useThemes"
 import FilterButton from "@/components/products-search/filterButton"
 
-export default function Search() {
+export default function SearchProducts() {
     const { vars } = useThemes()
     const { states, actions, refs } = useProductsSearch()
 
@@ -16,7 +16,7 @@ export default function Search() {
             <View style={{ backgroundColor: vars.backgroundColor, flex: 1, padding: 16 }}>
                 <SearchBar value={states.query} updateQuery={actions.updateQuery} />
                 <FilterButton open={actions.open} />
-                <List results={states.results} loading={states.loading} onEndReached={actions.fetchNextPage} />
+                <List results={states.results} loading={states.loading} getNextPage={actions.getNextPage} />
             </View>
 
             <CustomBottomSheet sheetRef={refs.bottomSheetRef} onClose={actions.close} snapPoints={["30%"]}>

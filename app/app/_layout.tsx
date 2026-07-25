@@ -145,7 +145,7 @@ export default function RootLayout() {
                             <Drawer.Screen
                                 name="online-recipes"
                                 options={{
-                                    drawerLabel: "Search Recipes",
+                                    drawerLabel: "Online Recipes",
                                     title: "",
                                     headerTransparent: true,
                                     drawerIcon: ({ color }) => (
@@ -155,7 +155,7 @@ export default function RootLayout() {
                             />
 
                             <Drawer.Screen
-                                name="search"
+                                name="searchProducts"
                                 options={{
                                     drawerLabel: "Search Products",
                                     title: "",

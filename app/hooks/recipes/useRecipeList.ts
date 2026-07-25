@@ -3,19 +3,24 @@ import { recipesClient } from "@/lib/recipes"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
+import { DEBOUNCE_TIME } from "@/lib/constants"
+import { useHeaderStore } from "@/stores/useHeaderStore"
 
 export function useRecipeList() {
-    const { recipes, favoriteRecipes, setFavoriteRecipes, deleteRecipe: deleteRecipeStore } = useRecipesStore()
+    const { recipes, favoriteRecipes, setFavoriteRecipes } = useRecipesStore()
     const { activeFilter, filter, setRecipes } = useRecipesStore()
     const { user } = useSettingsStore()
+    const { setText } = useHeaderStore()
 
+    const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const loadingRef = useRef(false)
 
     const [page, setPage] = useState(1)
     const [hasNext, setHasNext] = useState(false)
-
+    const [query, setQuery] = useState("")
     const [loading, setLoading] = useState(false)
     const [refreshing, setRefreshing] = useState(false)
+    const [isSearching, setIsSearching] = useState(false)
 
     const setLoadingState = (value: boolean) => {
         loadingRef.current = value
@@ -35,6 +40,7 @@ export function useRecipeList() {
                 if (response) {
                     setPage(response.page)
                     setHasNext(response.hasNext)
+                    setText("recipes", `${response.total} Recipes`)
 
                     if (pageNumber === 1) {
                         setRecipes(response.recipes)
@@ -46,25 +52,84 @@ export function useRecipeList() {
                 setLoadingState(false)
             }
         },
-        [user, setRecipes]
+        [user, setRecipes, setText]
+    )
+
+    const search = useCallback(
+        async (q: string, pageNumber = 1) => {
+            if (!user) return
+            if (loadingRef.current) return
+
+            if (!q.trim()) {
+                setQuery("")
+                setIsSearching(false)
+                setText("recipes", null)
+                setRecipes([])
+                await getRecipes(1)
+                return
+            }
+
+            setLoadingState(true)
+            setIsSearching(true)
+            setQuery(q)
+
+            try {
+                const response = await recipesClient.searchRecipes(user, pageNumber, q)
+
+                if (response) {
+                    setPage(response.page)
+                    setHasNext(response.hasNext)
+                    setText("recipes", `${response.total} Recipes`)
+
+                    if (pageNumber === 1) {
+                        setRecipes(response.recipes)
+                    } else {
+                        setRecipes((prev) => [...prev, ...response.recipes])
+                    }
+                }
+            } finally {
+                setLoadingState(false)
+            }
+        },
+        [user, getRecipes, setRecipes, setText]
     )
 
     const getNextPage = useCallback(async () => {
         if (loading) return
         if (!hasNext) return
 
-        await getRecipes(page + 1)
-    }, [loading, hasNext, page, getRecipes])
+        if (isSearching) {
+            await search(query, page + 1)
+        } else {
+            await getRecipes(page + 1)
+        }
+    }, [loading, hasNext, page, isSearching, query, search, getRecipes])
+
+    const updateQuery = (q: string) => {
+        setQuery(q)
+
+        if (debounceTimeout.current) {
+            clearTimeout(debounceTimeout.current)
+        }
+
+        debounceTimeout.current = setTimeout(async () => {
+            await search(q, 1)
+        }, DEBOUNCE_TIME)
+    }
 
     const refresh = useCallback(async () => {
         setRefreshing(true)
 
         try {
-            await getRecipes(1)
+            if (isSearching) {
+                await search(query, 1)
+            } else {
+                await getRecipes(1)
+            }
         } finally {
             setRefreshing(false)
         }
-    }, [getRecipes])
+    }, [isSearching, query, search, getRecipes])
 
     const toggleFavorite = async (recipe: RecipeSummary) => {
         const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
@@ -164,12 +229,14 @@ export function useRecipeList() {
             favoriteRecipes,
             page,
             hasNext,
+            query,
         },
         actions: {
             refresh,
             toggleFavorite,
             getRecipes,
             getNextPage,
+            updateQuery,
         },
     }
 }
