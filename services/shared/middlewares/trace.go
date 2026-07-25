@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"context"
-	"fmt"
 	"shopping-list/shared/consts/trace"
 
 	"github.com/google/uuid"
@@ -11,8 +10,6 @@ import (
 
 func TraceMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fmt.Println("Incoming Trace:", c.Request().Header.Get(trace.TraceIdHeader))
-		fmt.Println("Incoming Span :", c.Request().Header.Get(trace.SpanIdHeader))
 		traceId := c.Request().Header.Get(trace.TraceIdHeader)
 		if traceId == "" {
 			traceId = uuid.NewString()
