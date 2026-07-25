@@ -36,7 +36,7 @@ export const MEALS: { [key in MealType]: string } = {
     Dessert: "🍰",
 }
 
-export const GRADIENT = ["#4E64D4", "#D0ACCA", "#F2B297"] as const
+export const GRADIENT = ["#1e55fc", "#1e55fc", "#fc559f", "#fda848"] as const
 
 export const COUNTRIES: Country[] = [
     { name: "Argentina", flag: "🇦🇷" },
@@ -105,3 +105,5 @@ export const MIN_FONT_SIZE = 30
 export const MAX_FONT_SIZE = 80
 
 export const DEBOUNCE_TIME = 1000
+
+export const VERSION = Constants.expoConfig?.version ?? Constants.manifest2?.extra?.expoClient?.version ?? "Unknown"

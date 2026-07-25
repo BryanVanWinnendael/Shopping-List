@@ -5,19 +5,19 @@ type HeaderKey = "searchProducts" | "logs" | "recipes" | "online-recipes"
 
 type HeaderState = {
     headers: Record<HeaderKey, string | null>
-    setText: (key: HeaderKey, value: string | null) => void
-    getText: (key: HeaderKey) => string | null
+    setHeaderText: (key: HeaderKey, value: string | null) => void
+    getHeaderText: (key: HeaderKey) => string | null
 }
 
 export const useHeaderStore = create<HeaderState>((set, get) => ({
     headers: {
-        searchProducts: null,
-        logs: null,
-        recipes: null,
-        "online-recipes": null,
+        searchProducts: "Search Products",
+        logs: "Logs",
+        recipes: "Recipes",
+        "online-recipes": "Online Recipes",
     },
 
-    setText: (key, value) => {
+    setHeaderText: (key, value) => {
         set((state) => ({
             headers: {
                 ...state.headers,
@@ -26,7 +26,7 @@ export const useHeaderStore = create<HeaderState>((set, get) => ({
         }))
     },
 
-    getText: (key) => {
+    getHeaderText: (key) => {
         return get().headers[key]
     },
 }))

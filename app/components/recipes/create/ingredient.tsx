@@ -60,7 +60,7 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Pr
                 }}
                 placeholder="Type here..."
                 keyboardAppearance={theme === "light" ? "light" : "dark"}
-                placeholderTextColor="#aaa"
+                placeholderTextColor="gray"
             />
 
             {ingredient.image ? (

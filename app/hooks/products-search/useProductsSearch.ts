@@ -18,7 +18,7 @@ const EMPTY_RESULT: ProductsSearchResponse = {
 }
 
 export function useProductsSearch() {
-    const { setText } = useHeaderStore()
+    const { setHeaderText } = useHeaderStore()
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const isFetching = useRef(false)
 
@@ -45,7 +45,7 @@ export function useProductsSearch() {
 
         const response = await productsSearchClient.searchProducts(query, page, categories)
         if (response) {
-            setText("searchProducts", `${response.total} Products`)
+            setHeaderText("searchProducts", `${response.total} Products`)
             setResults((prev) =>
                 replace
                     ? response

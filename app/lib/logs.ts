@@ -25,16 +25,22 @@ const formatDate = (date: Date) => {
     return `${timeString} ${dateString}`
 }
 
-const createLog = async (text: string, action: Action, error: boolean = false): Promise<CreateLogResponse | null> => {
+const createLog = async (
+    responseBody: string,
+    action: Action,
+    error: boolean = false
+): Promise<CreateLogResponse | null> => {
     try {
-        const date = formatDate(new Date())
         const request: CreateLogRequest = {
-            dateTime: date,
-            text,
+            dateTime: new Date().toISOString(),
+            text: error ? "Firebase request failed" : "Firebase request completed",
             service: "App",
+            path: "Firebase",
             traceId: uuid.v4(),
             httpMethod: action,
+            responseBody: responseBody,
             error,
+            phase: "REQUEST",
         }
 
         const response = await httpRequest<CreateLogResponse>({
@@ -49,6 +55,7 @@ const createLog = async (text: string, action: Action, error: boolean = false): 
             type: "error",
             text1: "Error: Failed to create log",
         })
+        console.error(error)
         return null
     }
 }
@@ -112,7 +119,6 @@ const searchLogs = async (query: string, page: number): Promise<SearchLogsRespon
 export function decompress(text: string) {
     const binary = atob(text)
     const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
-    console.log(ungzip(bytes, { toText: true }))
     try {
         return ungzip(bytes, { toText: true })
     } catch (error) {

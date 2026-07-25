@@ -1,8 +1,8 @@
 import { Text } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
-import { GRADIENT } from "@/lib/constants"
+import { GRADIENT, IS_DEV, VERSION } from "@/lib/constants"
 
-export default function DevScreen() {
+export default function InfoChip() {
     return (
         <LinearGradient
             pointerEvents="none"
@@ -28,7 +28,7 @@ export default function DevScreen() {
                     letterSpacing: 0.6,
                 }}
             >
-                IN DEV
+                {!IS_DEV ? "DEV " : ""}V{VERSION}
             </Text>
         </LinearGradient>
     )

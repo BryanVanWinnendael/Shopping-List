@@ -56,13 +56,13 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
                     marginBottom: 8,
                     borderWidth: 1,
                     borderColor: vars.secondaryBorderColor,
-                    borderRadius: 8,
+                    borderRadius: 14,
                     paddingHorizontal: 12,
                     paddingVertical: 8,
                 }}
                 placeholder="Type here..."
                 keyboardAppearance={theme === "light" ? "light" : "dark"}
-                placeholderTextColor="#aaa"
+                placeholderTextColor="gray"
             />
 
             {ingredient.url || ingredient.image ? (

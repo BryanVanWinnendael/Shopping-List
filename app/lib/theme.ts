@@ -3,7 +3,7 @@ import { Theme } from "@/types"
 
 const THEME_KEY = "app_theme"
 
-export const DEFAULT_ACOLOR = "#4E64D4"
+export const DEFAULT_ACOLOR = "#1e55fc"
 export const DEFAULT_ACOLORUSE = {
     image: false,
     input: false,

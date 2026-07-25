@@ -5,7 +5,7 @@ import { useHeaderStore } from "@/stores/useHeaderStore"
 import { DEBOUNCE_TIME } from "@/lib/constants"
 
 export function useLogs() {
-    const { setText } = useHeaderStore()
+    const { setHeaderText } = useHeaderStore()
 
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const loadingRef = useRef(false)
@@ -38,7 +38,7 @@ export function useLogs() {
 
                 if (response) {
                     setPage(response.page)
-                    setText("logs", `${response.totalTraces} Logs`)
+                    setHeaderText("logs", `${response.totalTraces} Logs`)
                     setHasNext(response.hasNext)
 
                     if (pageNumber === 1) {
@@ -51,7 +51,7 @@ export function useLogs() {
                 setLoadingState(false)
             }
         },
-        [isSearching, setText]
+        [isSearching, setHeaderText]
     )
 
     const search = useCallback(
@@ -61,7 +61,7 @@ export function useLogs() {
             if (!q.trim()) {
                 setQuery("")
                 setIsSearching(false)
-                setText("logs", null)
+                setHeaderText("logs", null)
                 setTraces([])
                 await getLogs(1)
                 return
@@ -76,7 +76,7 @@ export function useLogs() {
 
                 if (response) {
                     setPage(response.page)
-                    setText("logs", `${response.totalTraces} Logs`)
+                    setHeaderText("logs", `${response.totalTraces} Logs`)
                     setHasNext(response.hasNext)
 
                     if (pageNumber === 1) {
@@ -89,7 +89,7 @@ export function useLogs() {
                 setLoadingState(false)
             }
         },
-        [getLogs, setText]
+        [getLogs, setHeaderText]
     )
 
     const getNextPage = useCallback(async () => {

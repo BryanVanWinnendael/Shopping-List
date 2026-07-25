@@ -80,6 +80,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         borderColor={vars.secondaryBorderColor}
                         backgroundColor={vars.secondaryBackgroundColor}
                         textColor={vars.textColor}
+                        theme={theme}
                     />
 
                     <FieldLabel label="Public" textColor={vars.textColor} />
@@ -266,7 +267,7 @@ function StyledInput({ textColor, backgroundColor, borderColor, theme, ...props 
                 paddingVertical: 8,
                 marginBottom: 8,
             }}
-            placeholderTextColor="#aaa"
+            placeholderTextColor="gray"
         />
     )
 }

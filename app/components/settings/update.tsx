@@ -187,21 +187,54 @@ export default function Update() {
                                     >
                                         <View
                                             style={{
-                                                backgroundColor: `${vars.accentColor}20`,
-                                                paddingHorizontal: 12,
-                                                paddingVertical: 6,
-                                                borderRadius: 999,
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                marginBottom: 12,
+                                                gap: 8,
+                                                flexWrap: "wrap",
                                             }}
                                         >
-                                            <Text
+                                            <View
                                                 style={{
-                                                    color: vars.accentColor,
-                                                    fontWeight: "700",
-                                                    fontSize: 13,
+                                                    backgroundColor: `${vars.accentColor}20`,
+                                                    paddingHorizontal: 12,
+                                                    paddingVertical: 6,
+                                                    borderRadius: 999,
                                                 }}
                                             >
-                                                {update.date}
-                                            </Text>
+                                                <Text
+                                                    style={{
+                                                        color: vars.accentColor,
+                                                        fontWeight: "700",
+                                                        fontSize: 13,
+                                                    }}
+                                                >
+                                                    {update.date}
+                                                </Text>
+                                            </View>
+
+                                            {update.version && (
+                                                <View
+                                                    style={{
+                                                        backgroundColor: vars.secondaryBackgroundColor,
+                                                        borderWidth: 1,
+                                                        borderColor: vars.secondaryBorderColor,
+                                                        paddingHorizontal: 10,
+                                                        paddingVertical: 6,
+                                                        borderRadius: 999,
+                                                    }}
+                                                >
+                                                    <Text
+                                                        style={{
+                                                            color: vars.textColor,
+                                                            fontWeight: "600",
+                                                            fontSize: 12,
+                                                        }}
+                                                    >
+                                                        v{update.version}
+                                                    </Text>
+                                                </View>
+                                            )}
                                         </View>
                                     </View>
 

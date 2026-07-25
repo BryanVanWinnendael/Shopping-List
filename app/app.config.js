@@ -5,7 +5,7 @@ export default {
         scheme: "shopping-list-scheme",
         version: "2.4.0",
         orientation: "portrait",
-        icon: "./assets/old-icon.png",
+        icon: "./assets/icon.png",
         userInterfaceStyle: "automatic",
         newArchEnabled: true,
 
@@ -69,17 +69,6 @@ export default {
                     ios: {
                         useFrameworks: "static",
                         buildReactNativeFromSource: true,
-                    },
-                },
-            ],
-            [
-                "@sefatunckanat/expo-dynamic-app-icon",
-                {
-                    new: {
-                        ios: "./assets/new-icon.png",
-                    },
-                    old: {
-                        ios: "./assets/old-icon.png",
                     },
                 },
             ],

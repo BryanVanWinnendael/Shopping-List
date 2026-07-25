@@ -1,4 +1,4 @@
-# Shopping RecipesList - App
+# Shopping List - App
 
 ## Requirements
 
@@ -34,17 +34,15 @@ Your Apple developer email
 
 ### Firebase
 
-Generate the google-services.json and GoogleService-Info.plist files for your project.
-Place these in the root and upload these to expo.dev Environment variables as GOOGLE_SERVICES_PLIST and
-GOOGLE_SERVICES_JSON.
+Generate the google-services.json and GoogleService-Info.plist files for your project. Place these in the root and
+upload these to expo.dev Environment variables as GOOGLE_SERVICES_PLIST and GOOGLE_SERVICES_JSON.
 
-Enable Realtime Database and Authentication in the Project Overview.
-For Authentication you will only need to enable Authentication sign-in method.
+Enable Realtime Database and Authentication in the Project Overview. For Authentication you will only need to enable
+Authentication sign-in method.
 
 #### .env
 
-Firebase Console → Project Settings → General → Your Apps
-and copy values for:
+Firebase Console → Project Settings → General → Your Apps and copy values for:
 
 ```
 API_KEY_DEV=***

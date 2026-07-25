@@ -10,7 +10,7 @@ export function useRecipeList() {
     const { recipes, favoriteRecipes, setFavoriteRecipes } = useRecipesStore()
     const { activeFilter, filter, setRecipes } = useRecipesStore()
     const { user } = useSettingsStore()
-    const { setText } = useHeaderStore()
+    const { setHeaderText } = useHeaderStore()
 
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const loadingRef = useRef(false)
@@ -40,7 +40,7 @@ export function useRecipeList() {
                 if (response) {
                     setPage(response.page)
                     setHasNext(response.hasNext)
-                    setText("recipes", `${response.total} Recipes`)
+                    setHeaderText("recipes", `${response.total} Recipes`)
 
                     if (pageNumber === 1) {
                         setRecipes(response.recipes)
@@ -52,7 +52,7 @@ export function useRecipeList() {
                 setLoadingState(false)
             }
         },
-        [user, setRecipes, setText]
+        [user, setRecipes, setHeaderText]
     )
 
     const search = useCallback(
@@ -63,7 +63,7 @@ export function useRecipeList() {
             if (!q.trim()) {
                 setQuery("")
                 setIsSearching(false)
-                setText("recipes", null)
+                setHeaderText("recipes", null)
                 setRecipes([])
                 await getRecipes(1)
                 return
@@ -79,7 +79,7 @@ export function useRecipeList() {
                 if (response) {
                     setPage(response.page)
                     setHasNext(response.hasNext)
-                    setText("recipes", `${response.total} Recipes`)
+                    setHeaderText("recipes", `${response.total} Recipes`)
 
                     if (pageNumber === 1) {
                         setRecipes(response.recipes)
@@ -91,7 +91,7 @@ export function useRecipeList() {
                 setLoadingState(false)
             }
         },
-        [user, getRecipes, setRecipes, setText]
+        [user, getRecipes, setRecipes, setHeaderText]
     )
 
     const getNextPage = useCallback(async () => {

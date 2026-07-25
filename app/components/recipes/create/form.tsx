@@ -88,7 +88,7 @@ export default function Form({ onClose }: Props) {
                                 paddingVertical: 8,
                             }}
                             placeholder="Recipe title"
-                            placeholderTextColor="#aaa"
+                            placeholderTextColor="gray"
                             keyboardAppearance={theme === "light" ? "light" : "dark"}
                         />
                     </View>
@@ -170,7 +170,7 @@ export default function Form({ onClose }: Props) {
                                 paddingVertical: 8,
                             }}
                             placeholder="https://..."
-                            placeholderTextColor="#aaa"
+                            placeholderTextColor="gray"
                             keyboardAppearance={theme === "light" ? "light" : "dark"}
                         />
                     </View>
@@ -232,7 +232,7 @@ export default function Form({ onClose }: Props) {
                                 paddingVertical: 8,
                             }}
                             placeholder="e.g. 45"
-                            placeholderTextColor="#aaa"
+                            placeholderTextColor="gray"
                             keyboardAppearance={theme === "light" ? "light" : "dark"}
                         />
                     </View>
@@ -262,7 +262,7 @@ export default function Form({ onClose }: Props) {
                                 paddingVertical: 8,
                             }}
                             placeholder="e.g. 4"
-                            placeholderTextColor="#aaa"
+                            placeholderTextColor="gray"
                             keyboardAppearance={theme === "light" ? "light" : "dark"}
                         />
                     </View>

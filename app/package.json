@@ -27,7 +27,6 @@
         "@react-navigation/native": "^7.1.6",
         "@react-navigation/native-stack": "^7.3.16",
         "@react-navigation/stack": "^7.4.2",
-        "@sefatunckanat/expo-dynamic-app-icon": "^2.0.11",
         "axios": "^1.10.0",
         "babel-plugin-module-resolver": "^5.0.2",
         "base-64": "^1.0.0",

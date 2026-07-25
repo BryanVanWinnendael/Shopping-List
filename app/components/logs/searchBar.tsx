@@ -21,7 +21,7 @@ type Props = {
 const AnimatedView = Animated.createAnimatedComponent(Animated.View)
 
 export function SearchBar({ value, updateQuery }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
 
     const scale = useSharedValue(1)
 
@@ -72,6 +72,7 @@ export function SearchBar({ value, updateQuery }: Props) {
                         fontSize: 17,
                         color: vars.textColor,
                     }}
+                    keyboardAppearance={theme === "light" ? "light" : "dark"}
                 />
 
                 {value.length > 0 && (

@@ -4,7 +4,7 @@ import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 import { useHeaderStore } from "@/stores/useHeaderStore"
 
 export default function useOnlineRecipes() {
-    const { setText } = useHeaderStore()
+    const { setHeaderText } = useHeaderStore()
 
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const loadingRef = useRef(false)
@@ -39,7 +39,7 @@ export default function useOnlineRecipes() {
                     setPage(response.page)
                     setMaxPages(response.maxPages)
                     setTotalRecipes(response.totalRecipes)
-                    setText("online-recipes", `${response.totalRecipes} Recipes`)
+                    setHeaderText("online-recipes", `${response.totalRecipes} Recipes`)
 
                     if (pageNumber === 0) {
                         setRecipes(response.recipes)
@@ -51,7 +51,7 @@ export default function useOnlineRecipes() {
                 setLoadingState(false)
             }
         },
-        [isSearching, setText]
+        [isSearching, setHeaderText]
     )
 
     const search = useCallback(
@@ -61,7 +61,7 @@ export default function useOnlineRecipes() {
             if (!q.trim()) {
                 setQuery("")
                 setIsSearching(false)
-                setText("online-recipes", null)
+                setHeaderText("online-recipes", null)
                 setRecipes([])
                 await getPage(0)
                 return
@@ -78,7 +78,7 @@ export default function useOnlineRecipes() {
                     setPage(response.page)
                     setMaxPages(response.maxPages)
                     setTotalRecipes(response.totalRecipes)
-                    setText("online-recipes", `${response.totalRecipes} Recipes`)
+                    setHeaderText("online-recipes", `${response.totalRecipes} Recipes`)
 
                     if (pageNumber === 1) {
                         setRecipes(response.recipes)
@@ -90,7 +90,7 @@ export default function useOnlineRecipes() {
                 setLoadingState(false)
             }
         },
-        [getPage, setText]
+        [getPage, setHeaderText]
     )
 
     const getNextPage = useCallback(async () => {
@@ -116,12 +116,6 @@ export default function useOnlineRecipes() {
         }, 500)
     }
 
-    const clearSearch = useCallback(() => {
-        setQuery("")
-        setIsSearching(false)
-        getPage(0)
-    }, [getPage])
-
     useEffect(() => {
         getPage(0)
     }, [getPage])
@@ -141,7 +135,6 @@ export default function useOnlineRecipes() {
             getNextPage,
             setStyle,
             search,
-            clearSearch,
             updateQuery,
         },
     }
