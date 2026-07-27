@@ -36,6 +36,7 @@ export default function ProductInput() {
 
         setProductName("")
         setPreviewUrl(null)
+        setImageFile(null)
     }
 
     useEffect(() => {

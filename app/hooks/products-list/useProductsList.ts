@@ -35,6 +35,7 @@ export function useProductsList() {
         } as Product
     }
 
+    // url is used for existing images
     const createImage = async (
         product?: string | null,
         url?: string | null,
