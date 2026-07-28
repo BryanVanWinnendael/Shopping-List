@@ -4,6 +4,7 @@ import { Country } from "@/types/recipes"
 import { Theme, User } from "@/types"
 import { Category } from "@/types/generated/models/category"
 import { MealType } from "@/types/generated/models/meal_type"
+import { ViewStyle } from "react-native"
 
 export const CATEGORY_ORDER: Category[] = [
     "remaining",
@@ -107,3 +108,24 @@ export const MAX_FONT_SIZE = 80
 export const DEBOUNCE_TIME = 1000
 
 export const VERSION = Constants.expoConfig?.version ?? Constants.manifest2?.extra?.expoClient?.version ?? "Unknown"
+
+export const SHADOW_STYLE: ViewStyle = {
+    shadowColor: "#000",
+    shadowOffset: {
+        width: 0,
+        height: 8,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+}
+
+export const SHADOW_STYLE_LIGHT: ViewStyle = {
+    shadowColor: "#000",
+    shadowOffset: {
+        width: 0,
+        height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+}

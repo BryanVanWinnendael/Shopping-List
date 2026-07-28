@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 export default function BackButton() {
     const { vars } = useThemes()
@@ -11,12 +12,15 @@ export default function BackButton() {
     return (
         <PressableScale
             onPress={() => navigation.goBack()}
-            style={{
-                justifyContent: "center",
-                alignItems: "center",
-                width: 40,
-                height: 40,
-            }}
+            style={[
+                {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: 40,
+                    height: 40,
+                },
+                SHADOW_STYLE,
+            ]}
         >
             <GlassOrBlurView
                 borderColor={`${vars.borderColor}50`}

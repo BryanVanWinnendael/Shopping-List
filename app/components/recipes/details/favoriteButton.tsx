@@ -4,6 +4,7 @@ import { useRecipesStore } from "@/stores/useRecipesStore"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { Recipe } from "@/types/generated/models/recipe"
+import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
 
 type Props = {
     recipe: Recipe
@@ -25,12 +26,15 @@ export default function FavoriteButton({ recipe }: Props) {
     return (
         <PressableScale
             onPress={handleAddToFavorites}
-            style={{
-                justifyContent: "center",
-                alignItems: "center",
-                width: 40,
-                height: 40,
-            }}
+            style={[
+                {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: 40,
+                    height: 40,
+                },
+                SHADOW_STYLE_LIGHT,
+            ]}
         >
             <GlassOrBlurView
                 borderColor={`${vars.secondaryBorderColor}50`}

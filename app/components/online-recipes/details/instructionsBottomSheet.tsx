@@ -26,7 +26,7 @@ export default function InstructionsBottomSheet({ sheetRef, close, instructions 
                 Instructions
             </Text>
 
-            <ScrollView style={{ height: 650 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ height: 650 }}>
                 {instructions.map((instruction, index) => (
                     <Text
                         key={index}

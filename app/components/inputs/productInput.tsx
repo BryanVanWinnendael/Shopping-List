@@ -10,6 +10,7 @@ import { useProductsList } from "@/hooks/products-list/useProductsList"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import ImageInput from "@/components/inputs/imageInput"
 import useThemes from "@/hooks/themes/useThemes"
+import { SHADOW_STYLE, SHADOW_STYLE_LIGHT } from "@/lib/constants"
 
 export default function ProductInput() {
     const { vars } = useThemes()
@@ -44,7 +45,7 @@ export default function ProductInput() {
     }, [previewUrl])
 
     return (
-        <View style={[styles.blurContainer]}>
+        <View style={[styles.blurContainer, SHADOW_STYLE_LIGHT]}>
             <GlassOrBlurView
                 style={styles.glassView}
                 backgroundColor={vars.secondaryBackgroundColor}
@@ -54,11 +55,13 @@ export default function ProductInput() {
                     <View style={styles.previewWrapper}>
                         <Image source={{ uri: previewUrl }} resizeMode="cover" style={styles.previewImage} />
 
-                        <GlassOrBlurView style={styles.closeButtonGlass} borderColor={`${vars.borderColor}50`}>
-                            <PressableScale onPress={removeImage}>
-                                <X size={16} color={vars.textColor} />
-                            </PressableScale>
-                        </GlassOrBlurView>
+                        <View style={[styles.closeButtonGlass, SHADOW_STYLE]}>
+                            <GlassOrBlurView borderColor={`${vars.borderColor}50`}>
+                                <PressableScale onPress={removeImage}>
+                                    <X size={16} color={vars.textColor} />
+                                </PressableScale>
+                            </GlassOrBlurView>
+                        </View>
                     </View>
                 )}
 

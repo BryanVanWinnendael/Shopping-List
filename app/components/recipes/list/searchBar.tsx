@@ -13,6 +13,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import { PressableScale } from "pressto"
 import { useEffect } from "react"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     value: string
@@ -59,6 +60,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                 },
                 containerStyle,
                 animatedStyle,
+                SHADOW_STYLE,
             ]}
         >
             <GlassOrBlurView

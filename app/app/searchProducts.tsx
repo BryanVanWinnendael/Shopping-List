@@ -13,7 +13,7 @@ export default function SearchProducts() {
 
     return (
         <>
-            <View style={{ backgroundColor: vars.backgroundColor, flex: 1, padding: 16 }}>
+            <View style={{ backgroundColor: vars.backgroundColor, flex: 1, paddingHorizontal: 16 }}>
                 <SearchBar value={states.query} updateQuery={actions.updateQuery} />
                 <FilterButton open={actions.open} />
                 <List results={states.results} loading={states.loading} getNextPage={actions.getNextPage} />

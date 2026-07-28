@@ -10,6 +10,7 @@ import Toast from "react-native-toast-message"
 import { delay } from "@/lib/utils"
 import { router } from "expo-router"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
+import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
 
 type Props = {
     recipe: OnlineRecipeDetails
@@ -64,12 +65,15 @@ export default function AddToRecipesButton({ recipe }: Props) {
         <PressableScale
             enabled={!states.loading}
             onPress={addToRecipe}
-            style={{
-                justifyContent: "center",
-                alignItems: "center",
-                width: 40,
-                height: 40,
-            }}
+            style={[
+                {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: 40,
+                    height: 40,
+                },
+                SHADOW_STYLE_LIGHT,
+            ]}
         >
             <GlassOrBlurView
                 borderColor={`${vars.secondaryBorderColor}50`}

@@ -25,7 +25,7 @@ export default function Recipes() {
             style={{
                 backgroundColor: vars.backgroundColor,
                 flex: 1,
-                padding: 16,
+                paddingHorizontal: 16,
             }}
         >
             <SearchBar

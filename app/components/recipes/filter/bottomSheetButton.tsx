@@ -3,7 +3,6 @@ import { useSettingsStore } from "@/stores/useSettingsStore"
 import { ChevronDown, ListFilter } from "lucide-react-native"
 import { BlurView } from "expo-blur"
 import Animated, {
-    interpolate,
     useAnimatedProps,
     useAnimatedStyle,
     useSharedValue,
@@ -16,6 +15,7 @@ import { useRecipesFilter } from "@/hooks/recipes/useRecipesFilter"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import useThemes from "@/hooks/themes/useThemes"
 import { useCallback, useEffect } from "react"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     onPress: () => void
@@ -39,7 +39,6 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
 
     const animatedStyle = useAnimatedStyle(() => ({
         width: width.value,
-        borderRadius: interpolate(width.value, [50, 220], [24, 200]),
     }))
 
     const animatedBlurProps = useAnimatedProps(() => ({
@@ -101,46 +100,52 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
                     position: "absolute",
                     bottom: 26,
                     right: 80,
-                    overflow: "hidden",
-                    width: 52,
-                    height: 52,
-                    borderRadius: 50,
-                    borderWidth: newUI ? 0 : 1,
-                    borderColor: `${vars.secondaryBorderColor}50`,
                     zIndex: 1,
                 },
                 animatedStyle,
+                SHADOW_STYLE,
             ]}
         >
-            {newUI ? (
-                <GlassOrBlurView
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        paddingHorizontal: expanded ? 6 : 14,
-                        height: 52,
-                    }}
-                    backgroundColor={vars.secondaryBackgroundColor}
-                    borderColor={`${vars.secondaryBorderColor}50`}
-                >
-                    {Content}
-                </GlassOrBlurView>
-            ) : (
-                <AnimatedBlurView
-                    animatedProps={animatedBlurProps}
-                    tint={backgroundColorTint}
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        paddingHorizontal: expanded ? 6 : 14,
-                        height: 52,
-                    }}
-                >
-                    {Content}
-                </AnimatedBlurView>
-            )}
+            <View
+                style={{
+                    borderRadius: 100,
+                    overflow: newUI ? "visible" : "hidden",
+                    borderWidth: newUI ? 0 : 1,
+                    borderColor: `${vars.secondaryBorderColor}50`,
+                }}
+            >
+                {newUI ? (
+                    <GlassOrBlurView
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                            paddingHorizontal: expanded ? 6 : 14,
+                            height: 52,
+                            borderRadius: 100,
+                        }}
+                        backgroundColor={vars.secondaryBackgroundColor}
+                        borderColor={`${vars.secondaryBorderColor}50`}
+                    >
+                        {Content}
+                    </GlassOrBlurView>
+                ) : (
+                    <AnimatedBlurView
+                        animatedProps={animatedBlurProps}
+                        tint={backgroundColorTint}
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                            paddingHorizontal: expanded ? 6 : 14,
+                            height: 52,
+                            borderRadius: 100,
+                        }}
+                    >
+                        {Content}
+                    </AnimatedBlurView>
+                )}
+            </View>
         </Animated.View>
     )
 }

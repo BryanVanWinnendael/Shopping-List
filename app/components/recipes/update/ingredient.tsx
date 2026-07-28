@@ -5,6 +5,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import { PressableScale } from "pressto"
 import { X } from "lucide-react-native"
 import ImageInput from "@/components/inputs/imageInput"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     ingredient: IngredientType
@@ -28,24 +29,31 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
                 backgroundColor: vars.secondaryBackgroundColor,
             }}
         >
-            <GlassOrBlurView
-                borderColor={vars.secondaryBorderColor}
-                style={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    borderRadius: 12,
-                    width: 24,
-                    height: 24,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    zIndex: 10,
-                }}
+            <View
+                style={[
+                    {
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        borderRadius: 100,
+                        zIndex: 1,
+                    },
+                    SHADOW_STYLE,
+                ]}
             >
-                <PressableScale onPress={() => onRemove(index)}>
-                    <X size={16} color={vars.textColor} />
-                </PressableScale>
-            </GlassOrBlurView>
+                <GlassOrBlurView
+                    style={{
+                        width: 24,
+                        height: 24,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <PressableScale onPress={() => onRemove(index)}>
+                        <X size={16} color={vars.textColor} />
+                    </PressableScale>
+                </GlassOrBlurView>
+            </View>
 
             <TextInput
                 value={ingredient.product ?? ""}
@@ -78,22 +86,30 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
                         source={{ uri: ingredient.url ?? ingredient.image?.uri }}
                         style={{ width: 100, height: 100, borderRadius: 12 }}
                     />
-                    <GlassOrBlurView
-                        style={{
-                            position: "absolute",
-                            top: -6,
-                            right: -6,
-                            borderRadius: 50,
-                            width: 24,
-                            height: 24,
-                            justifyContent: "center",
-                            alignItems: "center",
-                        }}
+                    <View
+                        style={[
+                            {
+                                position: "absolute",
+                                top: -8,
+                                right: -8,
+                                borderRadius: 100,
+                            },
+                            SHADOW_STYLE,
+                        ]}
                     >
-                        <PressableScale onPress={() => onRemoveImage(index)}>
-                            <X size={16} color={vars.textColor} />
-                        </PressableScale>
-                    </GlassOrBlurView>
+                        <GlassOrBlurView
+                            style={{
+                                width: 24,
+                                height: 24,
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <PressableScale onPress={() => onRemoveImage(index)}>
+                                <X size={16} color={vars.textColor} />
+                            </PressableScale>
+                        </GlassOrBlurView>
+                    </View>
                 </View>
             ) : (
                 <ImageInput

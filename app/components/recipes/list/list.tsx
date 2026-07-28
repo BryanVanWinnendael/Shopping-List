@@ -51,7 +51,6 @@ export default function RecipesList({
             refreshing={refreshing}
             onRefresh={refresh}
             renderItem={renderRecipe}
-            showsVerticalScrollIndicator={false}
             contentContainerStyle={{
                 paddingBottom: 90,
             }}

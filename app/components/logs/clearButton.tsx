@@ -3,6 +3,7 @@ import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { Trash } from "lucide-react-native"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     clearLogs: () => void
@@ -14,12 +15,15 @@ export default function ClearButton({ clearLogs, loading }: Props) {
 
     return (
         <View
-            style={{
-                position: "absolute",
-                bottom: 24,
-                right: 24,
-                zIndex: 1,
-            }}
+            style={[
+                {
+                    position: "absolute",
+                    bottom: 24,
+                    right: 24,
+                    zIndex: 1,
+                },
+                SHADOW_STYLE,
+            ]}
         >
             <GlassOrBlurView
                 style={{

@@ -34,7 +34,6 @@ export function List({ results, onEndReached, loading, variant = "list" }: Props
             }}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
-            showsVerticalScrollIndicator={false}
         />
     )
 }

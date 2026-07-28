@@ -15,6 +15,7 @@ import Instruction from "@/components/recipes/update/instruction"
 import { delay } from "@/lib/utils"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import { Recipe } from "@/types/generated/models/recipe"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     recipe: Recipe
@@ -98,22 +99,30 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                                 }}
                                 style={{ width: 120, height: 120, borderRadius: 12 }}
                             />
-                            <GlassOrBlurView
-                                style={{
-                                    position: "absolute",
-                                    top: -8,
-                                    right: -8,
-                                    borderRadius: 24,
-                                    width: 24,
-                                    height: 24,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
+                            <View
+                                style={[
+                                    {
+                                        position: "absolute",
+                                        top: -8,
+                                        right: -8,
+                                        borderRadius: 100,
+                                    },
+                                    SHADOW_STYLE,
+                                ]}
                             >
-                                <PressableScale onPress={() => formActions.setBannerImage(null, null)}>
-                                    <X size={16} color={vars.textColor} />
-                                </PressableScale>
-                            </GlassOrBlurView>
+                                <GlassOrBlurView
+                                    style={{
+                                        width: 24,
+                                        height: 24,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <PressableScale onPress={() => formActions.setBannerImage(null, null)}>
+                                        <X size={16} color={vars.textColor} />
+                                    </PressableScale>
+                                </GlassOrBlurView>
+                            </View>
                         </View>
                     ) : (
                         <ImageInput type="recipe" onPick={formActions.setBannerImage} />

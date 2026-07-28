@@ -12,6 +12,7 @@ import { Search, X } from "lucide-react-native"
 import useThemes from "@/hooks/themes/useThemes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import { PressableScale } from "pressto"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     value: string
@@ -46,6 +47,7 @@ export function SearchBar({ value, updateQuery }: Props) {
                     zIndex: 1,
                 },
                 animatedStyle,
+                SHADOW_STYLE,
             ]}
         >
             <GlassOrBlurView

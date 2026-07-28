@@ -13,6 +13,7 @@ import Animated, {
 import useThemes from "@/hooks/themes/useThemes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import { PressableScale } from "pressto"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     value: string
@@ -56,6 +57,7 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                     zIndex: 1,
                 },
                 animatedStyle,
+                SHADOW_STYLE,
             ]}
         >
             <GlassOrBlurView

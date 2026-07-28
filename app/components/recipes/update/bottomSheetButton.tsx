@@ -2,6 +2,7 @@ import { Pencil } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
 
 type Props = {
     open?: () => void
@@ -13,12 +14,15 @@ export default function BottomSheetButton({ open }: Props) {
     return (
         <PressableScale
             onPress={open}
-            style={{
-                justifyContent: "center",
-                alignItems: "center",
-                width: 40,
-                height: 40,
-            }}
+            style={[
+                {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: 40,
+                    height: 40,
+                },
+                SHADOW_STYLE_LIGHT,
+            ]}
         >
             <GlassOrBlurView
                 borderColor={`${vars.secondaryBorderColor}50`}

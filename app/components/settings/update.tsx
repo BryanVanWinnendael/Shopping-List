@@ -174,7 +174,6 @@ export default function Update() {
                                 paddingBottom: 10,
                                 gap: 24,
                             }}
-                            showsVerticalScrollIndicator={false}
                         >
                             {updates.map((update, index) => (
                                 <View key={index}>

@@ -22,7 +22,6 @@ export default function List({ traces, headerHeight, loading, onEndReached, refr
             onEndReachedThreshold={0.5}
             refreshing={refreshing}
             onRefresh={onRefresh}
-            showsVerticalScrollIndicator={false}
             contentContainerStyle={{
                 paddingBottom: 90,
             }}
