@@ -19,8 +19,8 @@ export default function BottomSheetButton({ onPress }: Props) {
                     position: "absolute",
                     bottom: 26,
                     right: 20,
-                    height: 52,
-                    width: 52,
+                    height: 48,
+                    width: 48,
                     zIndex: 1,
                 },
                 SHADOW_STYLE,
@@ -28,8 +28,8 @@ export default function BottomSheetButton({ onPress }: Props) {
         >
             <GlassOrBlurView
                 style={{
-                    height: 52,
-                    width: 52,
+                    height: 48,
+                    width: 48,
                     justifyContent: "center",
                     alignItems: "center",
                     overflow: "hidden",
@@ -39,7 +39,7 @@ export default function BottomSheetButton({ onPress }: Props) {
                 borderColor={`${vars.secondaryBorderColor}50`}
             >
                 <PressableScale onPress={onPress} style={{ justifyContent: "center", alignItems: "center" }}>
-                    <Plus size={20} color={vars.textColor} />
+                    <Plus size={24} color={vars.textColor} />
                 </PressableScale>
             </GlassOrBlurView>
         </View>

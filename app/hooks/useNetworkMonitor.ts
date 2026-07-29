@@ -2,69 +2,90 @@ import { useEffect, useRef } from "react"
 import { Alert } from "react-native"
 import * as Network from "expo-network"
 
-export function useNetworkMonitor({ checkInterval = 30000, latencyThreshold = 1500 } = {}) {
-    const alertShown = useRef(false)
+type NetworkIssue = "none" | "offline" | "slow"
 
-    const checkNetwork = async () => {
-        try {
-            const networkState = await Network.getNetworkStateAsync()
+export function useNetworkMonitor({ checkInterval = 5000, latencyThreshold = 1500 } = {}) {
+    const checking = useRef(false)
+    const currentIssue = useRef<NetworkIssue>("none")
 
-            if (!networkState.isConnected) {
-                showAlert("No Internet Connection", "Please check your network connection.")
-                return
-            }
-
-            if (networkState.type === Network.NetworkStateType.WIFI) {
-                await checkInternetSpeed()
-            }
-        } catch (error) {
-            console.log("Network check error:", error)
-        }
+    const showAlert = (title: string, message: string) => {
+        Alert.alert(title, message)
     }
 
-    const checkInternetSpeed = async () => {
+    const checkInternetSpeed = async (): Promise<boolean> => {
+        const controller = new AbortController()
+
+        const timeout = setTimeout(() => {
+            controller.abort()
+        }, latencyThreshold + 1000)
+
         const start = Date.now()
 
         try {
-            await fetch("https://www.google.com", {
-                method: "HEAD",
+            await fetch("https://clients3.google.com/generate_204", {
+                method: "GET",
+                signal: controller.signal,
+                cache: "no-store",
             })
 
-            const latency = Date.now() - start
+            clearTimeout(timeout)
 
-            if (latency > latencyThreshold) {
-                showAlert("Slow Connection", "Your WiFi connection seems slow. Please check your network.")
-            } else {
-                alertShown.current = false
-            }
-        } catch (error) {
-            showAlert("Network Error", "Unable to reach the internet.")
+            const latency = Date.now() - start
+            return latency > latencyThreshold
+        } catch {
+            clearTimeout(timeout)
+            return true
         }
     }
 
-    const showAlert = (title: string, message: string) => {
-        // Prevent alert spam
-        if (alertShown.current) return
+    const checkNetwork = async () => {
+        if (checking.current) return
+        checking.current = true
 
-        alertShown.current = true
+        try {
+            const networkState = await Network.getNetworkStateAsync()
 
-        Alert.alert(title, message, [
-            {
-                text: "OK",
-                onPress: () => {
-                    alertShown.current = false
-                },
-            },
-        ])
+            let issue: NetworkIssue = "none"
+
+            if (!networkState.isConnected || !networkState.isInternetReachable) {
+                issue = "offline"
+            } else if (networkState.type === Network.NetworkStateType.WIFI) {
+                const slow = await checkInternetSpeed()
+
+                if (slow) {
+                    issue = "slow"
+                }
+            }
+
+            // Only alert when the issue changes.
+            if (issue !== currentIssue.current) {
+                currentIssue.current = issue
+
+                switch (issue) {
+                    case "offline":
+                        showAlert("No Internet Connection", "Please check your network connection.")
+                        break
+
+                    case "slow":
+                        showAlert("Slow Connection", "Your WiFi connection seems slow.")
+                        break
+
+                    case "none":
+                        break
+                }
+            }
+        } catch (error) {
+            console.log("Network monitor:", error)
+        } finally {
+            checking.current = false
+        }
     }
 
     useEffect(() => {
         checkNetwork()
 
-        const interval = setInterval(() => {
-            checkNetwork()
-        }, checkInterval)
+        const interval = setInterval(checkNetwork, checkInterval)
 
         return () => clearInterval(interval)
-    }, [])
+    }, [checkInterval, latencyThreshold])
 }

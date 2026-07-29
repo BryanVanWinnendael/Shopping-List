@@ -30,8 +30,8 @@ export default function FavoriteButton({ recipe }: Props) {
                 {
                     justifyContent: "center",
                     alignItems: "center",
-                    width: 40,
-                    height: 40,
+                    width: 48,
+                    height: 48,
                 },
                 SHADOW_STYLE_LIGHT,
             ]}
@@ -44,9 +44,8 @@ export default function FavoriteButton({ recipe }: Props) {
                         overflow: "hidden",
                         justifyContent: "center",
                         alignItems: "center",
-                        marginBottom: 8,
-                        width: 40,
-                        height: 40,
+                        width: 48,
+                        height: 48,
                     },
                 ]}
             >

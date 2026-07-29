@@ -4,6 +4,7 @@
         "date": "25/07/2026",
         "text": [
             "Various UI improvements and polish across the app",
+            "Made Liquid Glass Style default",
             "Added search functionality for recipes",
             "Improved the admin logs page with tracing and navigation",
             "Products Search now displays the first page of products by default when no search is active"

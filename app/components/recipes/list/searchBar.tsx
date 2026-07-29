@@ -70,7 +70,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                     flexDirection: "row",
                     alignItems: "center",
                     paddingHorizontal: 16,
-                    height: 52,
+                    height: 48,
                     borderRadius: 26,
                 }}
             >

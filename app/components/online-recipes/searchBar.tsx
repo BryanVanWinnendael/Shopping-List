@@ -67,7 +67,7 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                     flexDirection: "row",
                     alignItems: "center",
                     paddingHorizontal: 16,
-                    height: 52,
+                    height: 48,
                     borderRadius: 26,
                 }}
             >

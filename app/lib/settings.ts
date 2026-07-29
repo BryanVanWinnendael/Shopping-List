@@ -21,6 +21,7 @@ export const setNewUI = async (bool: boolean) => {
 
 export const getNewUI = async () => {
     const storedNewUI = await AsyncStorage.getItem(NEW_UI_KEY)
+    if (!storedNewUI) return true
     return storedNewUI === "true"
 }
 

@@ -52,7 +52,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         cron: false,
         expoToken: null,
     },
-    newUI: false,
+    newUI: true,
     useHeaderColor: false,
 
     loadSettings: async () => {

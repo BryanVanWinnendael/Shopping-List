@@ -1,84 +1,57 @@
-import { StyleSheet, View } from "react-native"
-import { useSettingsStore } from "@/stores/useSettingsStore"
-import { ReactNode } from "react"
-import BackButton from "@/components/recipes/details/backButton"
-import FavoriteButton from "@/components/recipes/details/favoriteButton"
-import BottomSheetButton from "@/components/recipes/update/bottomSheetButton"
-import useThemes from "@/hooks/themes/useThemes"
+import { StyleSheet } from "react-native"
+import Animated, { Extrapolation, interpolate, SharedValue, useAnimatedStyle } from "react-native-reanimated"
 import CustomImage from "@/components/customImage"
 import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe
-    children?: ReactNode
-    open: () => void
+    scrollY: SharedValue<number>
 }
 
-export default function Background({ recipe, children, open }: Props) {
-    const { vars } = useThemes()
-    const { user } = useSettingsStore()
+export default function Background({ recipe, scrollY }: Props) {
+    const containerStyle = useAnimatedStyle(() => {
+        const pullDown = Math.max(0, -scrollY.value)
 
-    const canEdit = recipe?.user === user
+        return {
+            height: interpolate(scrollY.value, [0, 240], [240, 0], Extrapolation.CLAMP) + pullDown,
+        }
+    })
+
+    const imageStyle = useAnimatedStyle(() => {
+        const pullDown = Math.max(0, -scrollY.value)
+
+        return {
+            height: 240 + pullDown,
+            transform: [
+                {
+                    translateY: interpolate(scrollY.value, [0, 240], [0, -80], Extrapolation.CLAMP),
+                },
+            ],
+        }
+    })
 
     return (
-        <View style={styles.container}>
-            <View
-                style={[StyleSheet.absoluteFill, { backgroundColor: vars.secondaryBackgroundColor }]}
-                pointerEvents="none"
-            />
-
-            {recipe.banner && (
-                <View style={StyleSheet.absoluteFill}>
-                    <CustomImage url={recipe.banner} style={StyleSheet.absoluteFill} />
-                </View>
-            )}
-
-            <View style={styles.backButtonContainer}>
-                <BackButton />
-            </View>
-
-            {recipe.title && (
-                <View style={[styles.favoriteButtonContainer, { right: canEdit ? 70 : 16 }]}>
-                    <FavoriteButton recipe={recipe} />
-                </View>
-            )}
-
-            {canEdit && (
-                <View style={styles.favoriteButtonContainer}>
-                    <BottomSheetButton open={open} />
-                </View>
-            )}
-
-            {children && <View style={styles.floatingContent}>{children}</View>}
-        </View>
+        <Animated.View pointerEvents="none" style={[styles.container, containerStyle]}>
+            <Animated.View pointerEvents="none" style={[styles.image, imageStyle]}>
+                {recipe.banner && <CustomImage url={recipe.banner} style={StyleSheet.absoluteFill} />}
+            </Animated.View>
+        </Animated.View>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        width: "100%",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
         overflow: "hidden",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        height: 160,
     },
-    backButtonContainer: {
+    image: {
         position: "absolute",
-        left: 10,
-        top: 15,
-        zIndex: 10,
-    },
-    favoriteButtonContainer: {
-        position: "absolute",
-        top: 15,
-        zIndex: 10,
-        right: 16,
-    },
-    floatingContent: {
-        position: "absolute",
-        left: 16,
-        right: 16,
-        bottom: -40,
-        zIndex: 10,
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: 240,
     },
 })

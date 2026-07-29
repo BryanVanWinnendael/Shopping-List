@@ -60,7 +60,12 @@ const Wrapper = ({
     theme: Theme
     children: ReactNode
 }) => {
-    const backgroundColor = backgroundColors[category].light
+    let backgroundColor
+    if (theme == "light") {
+        backgroundColor = backgroundColors[category].light
+    } else {
+        backgroundColor = backgroundColors[category].dark
+    }
 
     return (
         <View
@@ -74,9 +79,7 @@ const Wrapper = ({
             }}
         >
             <GlassOrBlurView
-                glassEffectStyle={"regular"}
-                blur={0}
-                glassBackgroundColor={theme === "light" ? `${backgroundColor}40` : undefined}
+                glassBackgroundColor={backgroundColor}
                 style={{
                     width: size,
                     height: size,

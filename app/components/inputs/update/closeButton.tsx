@@ -18,8 +18,8 @@ export default function CloseButton({ close }: Props) {
                 {
                     justifyContent: "center",
                     alignItems: "center",
-                    width: 40,
-                    height: 40,
+                    width: 48,
+                    height: 48,
                 },
                 SHADOW_STYLE,
             ]}
@@ -33,8 +33,8 @@ export default function CloseButton({ close }: Props) {
                         justifyContent: "center",
                         alignItems: "center",
                         marginBottom: 8,
-                        width: 40,
-                        height: 40,
+                        width: 48,
+                        height: 48,
                     },
                 ]}
             >

@@ -24,7 +24,7 @@ type Props = {
 const OPTIONS: Array<"grid" | "list"> = ["grid", "list"]
 
 const EXPANDED_WIDTH = 110
-const COLLAPSED_WIDTH = 52
+const COLLAPSED_WIDTH = 48
 const SEGMENT_WIDTH = EXPANDED_WIDTH / OPTIONS.length
 
 export default function StyleButton({ value, setStyle, collapsed }: Props) {
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         borderRadius: 26,
-        height: 52,
+        height: 48,
         overflow: "hidden",
         borderWidth: 1,
 

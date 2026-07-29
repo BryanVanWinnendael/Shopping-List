@@ -26,7 +26,7 @@ export default function TrainButton({ training, trainModel }: Props) {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    height: 52,
+                    height: 48,
                 },
                 SHADOW_STYLE,
             ]}
@@ -41,7 +41,7 @@ export default function TrainButton({ training, trainModel }: Props) {
                         justifyContent: "center",
                         alignItems: "center",
                         marginBottom: 8,
-                        height: 52,
+                        height: 48,
                         paddingHorizontal: 8,
                     },
                 ]}

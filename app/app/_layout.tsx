@@ -247,7 +247,7 @@ export default function RootLayout() {
                             success: ({ text1, text2 }: any) => <Success text1={text1} text2={text2} />,
                             error: ({ text1, text2 }: any) => <Error text1={text1} text2={text2} />,
                         }}
-                        topOffset={60}
+                        topOffset={100}
                     />
                 </GestureHandlerRootView>
             </PressablesConfig>

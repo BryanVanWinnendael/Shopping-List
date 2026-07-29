@@ -32,7 +32,7 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
     const { states } = useRecipesFilter()
     const { setFilter } = useRecipesStore()
 
-    const width = useSharedValue(52)
+    const width = useSharedValue(48)
     const blurIntensity = useSharedValue(50)
 
     const backgroundColorTint = theme === "light" ? "systemThickMaterialLight" : "systemThickMaterialDark"
@@ -58,7 +58,7 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
 
             setFilter(true)
         } else {
-            width.value = withSequence(withTiming(44, { duration: 150 }), withTiming(52, { duration: 150 }))
+            width.value = withSequence(withTiming(48, { duration: 150 }), withTiming(48, { duration: 150 }))
 
             blurIntensity.value = withSequence(withTiming(80, { duration: 100 }), withTiming(50, { duration: 150 }))
 
@@ -67,7 +67,10 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
     }, [expanded])
 
     const Content = (
-        <PressableScale onPress={toggle} style={{ flexDirection: "row", alignItems: "center" }}>
+        <PressableScale
+            onPress={toggle}
+            style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
+        >
             {expanded && (
                 <PressableScale onPress={onPress} style={{ paddingRight: 10 }}>
                     <Text style={{ color: vars.textColor }}>Filtered by</Text>
@@ -82,13 +85,15 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
 
             <View
                 style={{
+                    justifyContent: "center",
+                    alignItems: "center",
                     backgroundColor: expanded ? vars.accentColor : "transparent",
                     padding: expanded ? 8 : 0,
                     borderRadius: 20,
                     paddingHorizontal: expanded ? 20 : 0,
                 }}
             >
-                <ListFilter size={22} color={vars.textColor} />
+                <ListFilter size={22} color={vars.textColor} style={{ transform: [{ translateX: 1 }] }} />
             </View>
         </PressableScale>
     )
@@ -121,7 +126,7 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
                             alignItems: "center",
                             justifyContent: "flex-end",
                             paddingHorizontal: expanded ? 6 : 14,
-                            height: 52,
+                            height: 48,
                             borderRadius: 100,
                         }}
                         backgroundColor={vars.secondaryBackgroundColor}
@@ -138,7 +143,7 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
                             alignItems: "center",
                             justifyContent: "flex-end",
                             paddingHorizontal: expanded ? 6 : 14,
-                            height: 52,
+                            height: 48,
                             borderRadius: 100,
                         }}
                     >

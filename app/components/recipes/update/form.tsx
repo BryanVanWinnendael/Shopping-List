@@ -116,6 +116,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                                         height: 24,
                                         justifyContent: "center",
                                         alignItems: "center",
+                                        overflow: "hidden",
                                     }}
                                 >
                                     <PressableScale onPress={() => formActions.setBannerImage(null, null)}>

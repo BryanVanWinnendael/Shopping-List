@@ -39,8 +39,8 @@ export default function ClearButton({ clearLogs, loading }: Props) {
                     enabled={!loading}
                     onPress={clearLogs}
                     style={{
-                        height: 52,
-                        width: 52,
+                        height: 48,
+                        width: 48,
                         alignItems: "center",
                         justifyContent: "center",
                     }}
