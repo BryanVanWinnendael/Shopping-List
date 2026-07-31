@@ -6,6 +6,7 @@ const path = require("path")
 const ROOT = path.resolve(__dirname, "..")
 const API_KEY_PATH = path.join(ROOT, "auth.p8")
 
+
 const required = [
     "EXPO_ASC_KEY_ID",
     "EXPO_ASC_ISSUER_ID",
@@ -20,6 +21,30 @@ for (const key of required) {
         process.exit(1)
     }
 }
+
+const versionArg = process.argv.find((arg) => arg.startsWith("--v="))
+const version = versionArg ? versionArg.split("=")[1] : null
+
+if (!version) {
+    console.error("❌ Missing version. Use: yarn build --v=2.2.0")
+    process.exit(1)
+}
+
+const versionRegex = /version:\s*["']([^"']+)["']/
+const versionMatch = fileText.match(versionRegex)
+
+if (!versionMatch) {
+    console.error("❌ Could not find version in app.config.js")
+    process.exit(1)
+}
+
+fileText = fileText.replace(
+    versionRegex,
+    `version: "${version}"`
+)
+
+console.log(`✅ Updated version to ${version}`)
+console.log(`📦 Building version: ${version}`)
 
 //  Run EAS build for ios + submit
 try {

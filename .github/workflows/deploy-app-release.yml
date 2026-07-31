@@ -1,0 +1,72 @@
+name: Deploy App
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "App version (e.g. 2.5.0)"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: app/yarn.lock
+
+      - name: Install dependencies
+        working-directory: app
+        run: yarn install --frozen-lockfile
+
+      - name: Create App Store Connect API key
+        working-directory: app
+        run: |
+          cat > auth.p8 << 'EOF'
+          ${{ secrets.EXPO_ASC_API_KEY }}
+          EOF
+
+      - name: Build & Submit
+        working-directory: app
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_ASC_API_KEY: ${{ secrets.EXPO_ASC_API_KEY }}
+          EXPO_ASC_KEY_ID: ${{ secrets.EXPO_ASC_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.EXPO_ASC_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_APPLE_TEAM_ID }}
+          EXPO_APPLE_TEAM_TYPE: ${{ secrets.EXPO_APPLE_TEAM_TYPE }}
+          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+        run: |
+          yarn build --v=${{ inputs.version }}
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add app/app.config.js
+
+          git commit -m "[Build] bump version to ${{ inputs.version }}" || echo "No changes to commit"
+
+          git pull --rebase origin main
+          git push origin main
+
+      - name: Cleanup
+        if: always()
+        working-directory: app
+        run: rm -f auth.p8
