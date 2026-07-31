@@ -69,7 +69,7 @@ try {
     console.log("🚀 Starting EAS iOS build & submit...")
 
     execSync(
-        "eas build -p ios --profile production --auto-submit --clear-cache",
+        "npx eas build -p ios --profile production --auto-submit --clear-cache",
         {
             stdio: "inherit",
             cwd: ROOT,
