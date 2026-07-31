@@ -93,7 +93,7 @@ jobs:
 
       - name: Commit version/build bump
         run: |
-          git config user.name "github-actions"
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add app/app.config.js
