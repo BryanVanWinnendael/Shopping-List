@@ -85,7 +85,6 @@ let newBuildNumber = currentBuildNumber
 
 // Version supplied
 if (versionInput) {
-
     newVersion = versionInput
 
     if (versionInput !== currentVersion) {

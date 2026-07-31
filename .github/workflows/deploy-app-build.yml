@@ -1,50 +1,68 @@
-name: Deploy App Cron
+name: Cron App Build
 
 on:
   schedule:
-    # Run every 45 days at midnight UTC
     - cron: "0 0 1 */2 *"
 
 jobs:
-  deploy:
+  build:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
+
+    permissions:
+      contents: write
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: app/yarn.lock
 
-      - name: Increment build number
-        run: node app/scripts/next-build.js
+      - name: Install dependencies
+        working-directory: app
+        run: yarn install --frozen-lockfile
 
-      - name: Commit & push changes
+      - name: Create App Store Connect API key
+        working-directory: app
+        run: |
+          cat > auth.p8 << 'EOF'
+          ${{ secrets.EXPO_ASC_API_KEY }}
+          EOF
+
+      - name: Build next release
+        working-directory: app
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_ASC_KEY_ID: ${{ secrets.EXPO_ASC_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.EXPO_ASC_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_APPLE_TEAM_ID }}
+          EXPO_APPLE_TEAM_TYPE: ${{ secrets.EXPO_APPLE_TEAM_TYPE }}
+          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+        run: |
+          npx eas --version
+          node scripts/eas-build.js
+
+      - name: Commit new build number
         run: |
           git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add app/app.config.js
-          git commit -m "[App Build] bump iOS buildNumber" || echo "No changes to commit"
-          git push
 
-      - name: Set up SSH
-        run: |
-          install -m 600 -D /dev/null ~/.ssh/id_rsa
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+          git commit -m "[Cron App Build] bump build number" || echo "No changes"
 
-      - name: Deploy App
-        run: |
-          timeout 120 ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          cd ~/projects/shopping-list/app
-          git fetch origin main
-          git reset --hard origin/main
-          EXPO_TOKEN=${{ secrets.EXPO_TOKEN }} yarn build
-          EOF || true
+          git pull --rebase origin main
+          git push origin main
+
+      - name: Cleanup
+        if: always()
+        working-directory: app
+        run: rm -f auth.p8

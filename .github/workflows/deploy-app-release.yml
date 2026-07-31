@@ -9,7 +9,7 @@ on:
         type: string
 
       buildNumber:
-        description: "iOS build number (optional)"
+        description: "App build number (optional)"
         required: false
         type: string
 
@@ -91,14 +91,27 @@ jobs:
             yarn build --build=${{ inputs.buildNumber }}
           fi
 
-      - name: Commit version bump
+      - name: Commit version/build bump
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add app/app.config.js
 
-          git commit -m "[Build] bump version to ${{ inputs.version }}" || echo "No changes to commit"
+          if [ -n "${{ inputs.version }}" ] && [ -n "${{ inputs.buildNumber }}" ]; then
+            COMMIT_MSG="[App Build] bump version to ${{ inputs.version }} and build number to ${{ inputs.buildNumber }}"
+
+          elif [ -n "${{ inputs.version }}" ]; then
+            COMMIT_MSG="[App Build] bump version to ${{ inputs.version }}"
+
+          elif [ -n "${{ inputs.buildNumber }}" ]; then
+            COMMIT_MSG="[App Build] bump build number to ${{ inputs.buildNumber }}"
+
+          else
+            COMMIT_MSG="[App Build] update app config"
+          fi
+
+          git commit -m "$COMMIT_MSG" || echo "No changes to commit"
 
           git pull --rebase origin main
           git push origin main

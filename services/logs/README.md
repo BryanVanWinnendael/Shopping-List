@@ -7,28 +7,25 @@
 ```
 DATA_DIR=./data
 LOGS_FILE=logs.txt
+PORT=3000
 ```
 
 DATA_DIR:
-Directory used to store the logs file. Intended for development environments only. Defaults to ./data if not specified.
+Intended for local environments only. Directory used to store the generated data. Defaults to './data' if not specified.
 
 LOGS_FILE:
-File name of the logs. Intended for development environments only. Defaults to 'logs.txt' if not specified.
+Intended for local environments only. File name of the stored logs. Defaults to 'logs.txt' if not specified.
 
 ## Setup
-
-Create a **Docker Network**
 
 ### Run locally
 
 For Unix:
-
 ```bash
 air -c .air.unix.toml
 ```
 
 For Windows:
-
 ```bash
 air -c .air.windows.toml
 ```

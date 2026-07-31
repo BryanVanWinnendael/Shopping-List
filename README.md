@@ -11,9 +11,9 @@ It is only tested and recommended for iOS.
 ### For All Users
 
 - **Shopping List Management**
-  - Add, edit, and delete items from the shopping list
+  - Add, edit, and delete products from the shopping list
   - Add images to the shopping list
-  - Items are automatically categorized using a prediction model
+  - Products are automatically categorized using a prediction model
 
 - **Recipes**
   - Add, edit, and delete recipes
@@ -23,12 +23,12 @@ It is only tested and recommended for iOS.
 - **Product Search**
   - Search for products to quickly add them to your list or recipes
 
-- **Weekly Items**
-  - Add items to a weekly list
-  - These items are automatically added to the shopping list every week
+- **Weekly Products**
+  - Add products to a weekly list
+  - These products are automatically added to the shopping list every week
 
 - **Notifications**
-  - Receive notifications when someone adds or deletes items from the shopping list
+  - Receive notifications when someone adds or deletes products from the shopping list
   - Receive notifications when an item from the weekly list is automatically added
 
 - **Customization**
@@ -89,10 +89,24 @@ Each microservice manages its own responsibilities and storage.
 
 The application uses multiple storage solutions depending on the type of data:
 
-- **Firebase Realtime Database** – Used to store and synchronize **shopping list items** in real time between users and devices.
+- **Firebase Realtime Database** – Used to store and synchronize **shopping list products** in real time between users and devices.
 - **bbolt (embedded database)** – Each microservice manages its own local database for persistent service-specific data such as recipes, notifications, and cron items.
 
 Using Firebase allows the shopping list to update instantly across devices, while the microservices maintain their own independent storage for backend functionality.
+
+### Shared Contracts and Models
+
+To ensure consistency across all services, the backend uses shared contracts and models.
+
+Contracts define the request and response structures exchanged between the mobile application and the backend services.
+Models define the shared domain entities used across the microservices.
+
+By sharing these definitions, all services use the same data structures, reducing duplication and preventing inconsistencies between services.
+
+For the mobile application, TypeScript types are automatically generated from the shared contracts and models with the following command:
+```bash
+yarn generate
+```
 
 ### System Architecture
 
@@ -108,13 +122,114 @@ The project uses **GitHub Actions** to automate building and deployment.
 
 The mobile application pipeline builds the app using **EAS Build** and publishes it to **TestFlight**.
 
-![App CI/CD Pipeline](./assets/app-diagram.png)
+```mermaid
+flowchart LR
+
+    A([Trigger Workflow]) --> B{Validate inputs}
+
+    B -->|Invalid| C["Stop workflow"]
+    B -->|Valid| D["Checkout repository"]
+
+    D --> E["Setup Node.js 20<br/>Enable Yarn cache"]
+
+    E --> F["Install dependencies"]
+
+    F --> G["Create App Store Connect API key<br/>auth.p8"]
+
+    G --> H["Build & Submit"]
+
+    H --> I{Inputs}
+
+    I -->|Version + Build| J["yarn build<br/>--v=VERSION<br/>--build=BUILD_NUMBER"]
+
+    I -->|Version only| K["yarn build<br/>--v=VERSION"]
+
+    I -->|Build only| L["yarn build<br/>--build=BUILD_NUMBER"]
+
+
+    J --> M["eas-release.js"]
+    K --> M
+    L --> M
+
+
+    M --> N{Update app.config.js}
+
+
+    N -->|New version| O["Set version<br/>Reset buildNumber = 0"]
+
+    N -->|Same version| P["Keep version<br/>Increment buildNumber +1"]
+
+    N -->|Build only| Q["Keep version<br/>Replace buildNumber"]
+
+    N -->|Version + Build| R["Set version<br/>Set buildNumber"]
+
+
+    O --> S["EAS iOS Build"]
+
+    P --> S
+
+    Q --> S
+
+    R --> S
+
+
+    S --> T["Submit to App Store Connect"]
+
+    T --> U["Cleanup<br/>Remove auth.p8"]
+
+    U --> V([Workflow complete])
+
+
+    S --> ERR1["Build failed"]
+
+    T --> ERR2["Submit failed"]
+```
 
 #### Cron Mobile App Pipeline
 
 The CI/CD cron workflow runs every two months to ensure the app remains active and does not expire. The TestFlight provisioning profile, however, has a validity period of 90 days.
 
-![App CI/CD Pipeline](./assets/cron-app-diagram.png)
+```mermaid
+flowchart LR
+
+    A([Cron Trigger<br/>Every 2 months<br/>1st day at 00:00 UTC])
+
+    A --> B["Checkout repository"]
+
+    B --> C["Setup Node.js 20<br/>Enable Yarn cache"]
+
+    C --> D["Install dependencies<br/>yarn install --frozen-lockfile"]
+
+    D --> E["Create App Store Connect API key<br/>Generate auth.p8"]
+
+    E --> F["Run next build script<br/>node scripts/eas-build.js"]
+
+
+    F --> G["Read app.config.js"]
+
+    G --> H["Get current version"]
+
+    G --> I["Get current App buildNumber"]
+
+    I --> J["Increment buildNumber +1"]
+
+    J --> K["Update app.config.js<br/>Save new buildNumber"]
+
+
+    K --> L["Run EAS iOS Build"]
+
+    L --> M["Submit build to App Store Connect"]
+
+
+    M --> N["Cleanup<br/>Remove auth.p8"]
+
+    N --> O([Workflow complete])
+
+
+    L --> X["Build failed"]
+
+    M --> Y["Submit failed"]
+```
 
 #### Microservices Pipeline
 
@@ -184,15 +299,23 @@ flowchart LR
 
 ### Requirements
 
-- [ Node.js ≥ v22](https://nodejs.org/en)
+#### Development Environment
+
+- [Node.js ≥ v22](https://nodejs.org/en)
 - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#windows-stable)
-- [Go ≥ 1.25.0](https://go.dev/doc/install)
+- [Go ≥ v1.25.0](https://go.dev/doc/install)
 - [Air](https://github.com/air-verse/air)
 - [Docker](https://docs.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Expo Go](https://expo.dev/go)
-- [Expo Access Token](https://docs.expo.dev/accounts/programmatic-access/)
 - [Firebase](https://console.firebase.google.com/u/0/)
+
+#### Expo / App Store
+
+- [Expo Access Token](https://docs.expo.dev/accounts/programmatic-access/)
+- App Store Connect API Key (`.p8`)
+- Apple Developer Team ID
+- Apple Developer Account
 
 ### Setup
 
@@ -205,16 +328,40 @@ git clone https://github.com/BryanVanWinnendael/shopping-list
 #### CI/CD Pipelines
 
 In your repository:
-Settings -> Secrets and Variables -> Actions -> New repository secret
 
-EXPO_TOKEN:
-The Expo Access Token
+`Settings → Secrets and Variables → Actions → New repository secret`
 
-SSH_HOST:
-The host of your server
+### Expo
 
-SSH_PRIVATE_KEY:
-The private key of your server
+#### EXPO_TOKEN
+The Expo access token used by EAS CLI for authentication.
 
-SSH_USER:
-The user of your server
+#### EXPO_ASC_API_KEY
+The App Store Connect API private key (`.p8` file contents).
+
+#### EXPO_ASC_KEY_ID
+The App Store Connect API Key ID.
+
+#### EXPO_ASC_ISSUER_ID
+The App Store Connect API Issuer ID.
+
+#### EXPO_APPLE_TEAM_ID
+The Apple Developer Team ID.
+
+#### EXPO_APPLE_TEAM_TYPE
+The Apple team type (for example: `INDIVIDUAL`).
+
+#### EXPO_APPLE_ID
+The Apple Developer account email address.
+
+
+### Server / Deployment
+
+#### SSH_HOST
+The host or IP address of your server.
+
+#### SSH_PRIVATE_KEY
+The private SSH key used to connect to your server.
+
+#### SSH_USER
+The username used for SSH access to your server.

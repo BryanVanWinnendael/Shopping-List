@@ -81,25 +81,23 @@ Admin users that can access private views.
 
 ## Commands
 
+Install all packages
 ```bash
 yarn install
 ```
 
-Install all packages
-
+Run locally (same Wi-Fi). Open with Expo Go or simulator.
 ```bash
 yarn start
 ```
 
-Run locally (same WiFi). Open with Expo Go or simulator.
-
+Run via tunnel (different network). Works anywhere.
 ```bash
 yarn tunnel
 ```
 
-Run via tunnel (different network). Works anywhere.
+Generate all model and contract types with:
+```bash
+yarn generate
+```
 
-## Creating a Release or Build
-
-When CI/CD is setup, you can create a new release/build when changing the version or build number in the **app.config.js
-**.
