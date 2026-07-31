@@ -28,48 +28,103 @@ if (!fs.existsSync(API_KEY_PATH)) {
     process.exit(1)
 }
 
-// Parse version argument
+// Parse arguments
 const versionArg = process.argv.find((arg) => arg.startsWith("--v="))
-const version = versionArg?.split("=")[1]
+const buildNumberArg = process.argv.find((arg) => arg.startsWith("--build="))
 
-if (!version) {
-    console.error("❌ Missing version. Use: yarn build --v=2.2.0")
+const versionInput = versionArg?.split("=")[1]
+const buildNumberInput = buildNumberArg?.split("=")[1]
+
+if (!versionInput && !buildNumberInput) {
+    console.error(
+        "❌ Missing version or build number. Use: yarn build --v=2.5.0 [--build=3]"
+    )
     process.exit(1)
 }
 
-// Validate version format
-if (!/^\d+\.\d+\.\d+$/.test(version)) {
+if (versionInput && !/^\d+\.\d+\.\d+$/.test(versionInput)) {
     console.error("❌ Invalid version. Expected format: x.y.z")
+    process.exit(1)
+}
+
+if (buildNumberInput && !/^\d+$/.test(buildNumberInput)) {
+    console.error("❌ Invalid build number. Expected integer")
     process.exit(1)
 }
 
 // Read app.config.js
 let fileText = fs.readFileSync(CONFIG_PATH, "utf8")
 
-// Update version
-const versionRegex = /version:\s*["']([^"']+)["']/
 
-if (!versionRegex.test(fileText)) {
+// Extract current version
+const currentVersionMatch = fileText.match(
+    /version:\s*["']([^"']+)["']/
+)
+
+if (!currentVersionMatch) {
     console.error("❌ Could not find version in app.config.js")
     process.exit(1)
 }
 
+const currentVersion = currentVersionMatch[1]
+
+// Extract current build number
+const currentBuildMatch = fileText.match(
+    /buildNumber:\s*["'](\d+)["']/
+)
+
+if (!currentBuildMatch) {
+    console.error("❌ Could not find ios buildNumber in app.config.js")
+    process.exit(1)
+}
+
+const currentBuildNumber = Number(currentBuildMatch[1])
+
+let newVersion = currentVersion
+let newBuildNumber = currentBuildNumber
+
+// Version supplied
+if (versionInput) {
+
+    newVersion = versionInput
+
+    if (versionInput !== currentVersion) {
+        // New version -> reset build number
+        newBuildNumber = 0
+    } else {
+        // Same version -> increment
+        newBuildNumber = currentBuildNumber + 1
+    }
+}
+
+// Build number supplied
+if (buildNumberInput) {
+    newBuildNumber = Number(buildNumberInput)
+}
+
+// Replace version
 fileText = fileText.replace(
-    versionRegex,
-    `version: "${version}"`
+    /version:\s*["']([^"']+)["']/,
+    `version: "${newVersion}"`
+)
+
+// Replace build number
+fileText = fileText.replace(
+    /buildNumber:\s*["'](\d+)["']/,
+    `buildNumber: "${newBuildNumber}"`
 )
 
 fs.writeFileSync(CONFIG_PATH, fileText)
 
-console.log(`✅ Updated version to ${version}`)
-console.log(`📦 Building version ${version}`)
+console.log(`✅ Version: ${newVersion}`)
+console.log(`✅ iOS build number: ${newBuildNumber}`)
 
 // Run EAS build
 try {
     console.log("🚀 Starting EAS iOS build & submit...")
 
     execSync(
-        "npx eas build -p ios --profile production --auto-submit --clear-cache",
+        "npx eas build -p ios --profile production --auto-submit --clear-cache --no-wait",
         {
             stdio: "inherit",
             cwd: ROOT,

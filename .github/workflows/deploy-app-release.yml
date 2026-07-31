@@ -5,7 +5,12 @@ on:
     inputs:
       version:
         description: "App version (e.g. 2.5.0)"
-        required: true
+        required: false
+        type: string
+
+      buildNumber:
+        description: "iOS build number (optional)"
+        required: false
         type: string
 
 jobs:
@@ -41,37 +46,6 @@ jobs:
           ${{ secrets.EXPO_ASC_API_KEY }}
           EOF
 
-      - name: Verify auth.p8
-        working-directory: app
-        run: |
-          ls -la
-          test -f auth.p8 && echo "auth.p8 exists"
-
-      - name: Verify env
-        working-directory: app
-        run: |
-          echo "KEY_ID=${EXPO_ASC_KEY_ID:+set}"
-          echo "ISSUER_ID=${EXPO_ASC_ISSUER_ID:+set}"
-          echo "APPLE_ID=${EXPO_APPLE_ID:+set}"
-          echo "API_KEY_PATH=$(pwd)/auth.p8"
-        env:
-          EXPO_ASC_KEY_ID: ${{ secrets.EXPO_ASC_KEY_ID }}
-          EXPO_ASC_ISSUER_ID: ${{ secrets.EXPO_ASC_ISSUER_ID }}
-          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
-
-      - name: Test EAS
-        working-directory: app
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EXPO_ASC_API_KEY_PATH: auth.p8
-          EXPO_ASC_KEY_ID: ${{ secrets.EXPO_ASC_KEY_ID }}
-          EXPO_ASC_ISSUER_ID: ${{ secrets.EXPO_ASC_ISSUER_ID }}
-          EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_APPLE_TEAM_ID }}
-          EXPO_APPLE_TEAM_TYPE: ${{ secrets.EXPO_APPLE_TEAM_TYPE }}
-          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
-        run: |
-          npx eas whoami
-
       - name: Build & Submit
         working-directory: app
         env:
@@ -83,7 +57,20 @@ jobs:
           EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
         run: |
           npx eas --version
-          yarn build --v=${{ inputs.version }}
+
+          if [ -n "${{ inputs.version }}" ] && [ -n "${{ inputs.buildNumber }}" ]; then
+            yarn build --v=${{ inputs.version }} --build=${{ inputs.buildNumber }}
+
+          elif [ -n "${{ inputs.version }}" ]; then
+            yarn build --v=${{ inputs.version }}
+
+          elif [ -n "${{ inputs.buildNumber }}" ]; then
+            yarn build --build=${{ inputs.buildNumber }}
+
+          else
+            echo "❌ Version or buildNumber required"
+            exit 1
+          fi
 
       - name: Commit version bump
         run: |

@@ -28,7 +28,7 @@ export default function InfoChip() {
                     letterSpacing: 0.6,
                 }}
             >
-                {!IS_DEV ? "DEV " : ""}V{VERSION}
+                {IS_DEV ? "DEV " : ""}V{VERSION}
             </Text>
         </LinearGradient>
     )
