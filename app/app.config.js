@@ -3,7 +3,7 @@ export default {
         name: "Shopping List",
         slug: "shopping-list",
         scheme: "shopping-list-scheme",
-        version: "2.4.0",
+        version: "2.5.0",
         orientation: "portrait",
         icon: "./assets/icon.png",
         userInterfaceStyle: "automatic",
