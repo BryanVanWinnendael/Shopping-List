@@ -23,6 +23,29 @@ jobs:
       contents: write
 
     steps:
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ inputs.version }}" ] && [ -z "${{ inputs.buildNumber }}" ]; then
+            echo "❌ Version or buildNumber required"
+            exit 1
+          fi
+          
+          if [ -n "${{ inputs.version }}" ]; then
+            if ! echo "${{ inputs.version }}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "❌ Invalid version format. Expected x.y.z"
+              exit 1
+            fi
+          fi
+          
+          if [ -n "${{ inputs.buildNumber }}" ]; then
+            if ! echo "${{ inputs.buildNumber }}" | grep -Eq '^[0-9]+$'; then
+              echo "❌ Invalid build number. Expected integer"
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Inputs valid"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -57,19 +80,15 @@ jobs:
           EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
         run: |
           npx eas --version
-
+          
           if [ -n "${{ inputs.version }}" ] && [ -n "${{ inputs.buildNumber }}" ]; then
             yarn build --v=${{ inputs.version }} --build=${{ inputs.buildNumber }}
-
+          
           elif [ -n "${{ inputs.version }}" ]; then
             yarn build --v=${{ inputs.version }}
-
-          elif [ -n "${{ inputs.buildNumber }}" ]; then
-            yarn build --build=${{ inputs.buildNumber }}
-
+          
           else
-            echo "❌ Version or buildNumber required"
-            exit 1
+            yarn build --build=${{ inputs.buildNumber }}
           fi
 
       - name: Commit version bump
