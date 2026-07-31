@@ -83,6 +83,7 @@ jobs:
           EXPO_APPLE_TEAM_TYPE: ${{ secrets.EXPO_APPLE_TEAM_TYPE }}
           EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
         run: |
+          npx eas --version
           yarn build --v=${{ inputs.version }}
 
       - name: Commit version bump
