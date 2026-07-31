@@ -17,7 +17,7 @@ export default function OnlineRecipes() {
             style={{
                 backgroundColor: vars.backgroundColor,
                 flex: 1,
-                padding: 16,
+                paddingHorizontal: 16,
             }}
         >
             <List
@@ -27,8 +27,6 @@ export default function OnlineRecipes() {
                 variant={states.style}
             />
 
-            <StyleButton value={states.style} setStyle={actions.setStyle} collapsed={searchFocused} />
-
             <SearchBar
                 value={states.query}
                 onChange={actions.updateQuery}
@@ -36,6 +34,8 @@ export default function OnlineRecipes() {
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
             />
+
+            <StyleButton value={states.style} setStyle={actions.setStyle} collapsed={searchFocused} />
         </View>
     )
 }

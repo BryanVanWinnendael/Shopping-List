@@ -1,12 +1,12 @@
-import {useCallback, useMemo, useState} from "react"
-import {ActivityIndicator, StyleSheet, Text, View} from "react-native"
-import {Check, ShoppingBasket} from "lucide-react-native"
-import {PressableScale} from "pressto"
-import {Recipe} from "@/types/recipes"
-import {useProductsList} from "@/hooks/products-list/useProductsList"
+import { useCallback, useMemo, useState } from "react"
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
+import { Check, ShoppingBasket } from "lucide-react-native"
+import { PressableScale } from "pressto"
+import { useProductsList } from "@/hooks/products-list/useProductsList"
 import useThemes from "@/hooks/themes/useThemes"
 import CustomImage from "@/components/customImage"
 import Toast from "react-native-toast-message"
+import { Recipe } from "@/types/generated/models/recipe"
 
 type Props = {
     recipe: Recipe

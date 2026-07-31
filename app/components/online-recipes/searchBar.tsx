@@ -13,6 +13,7 @@ import Animated, {
 import useThemes from "@/hooks/themes/useThemes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import { PressableScale } from "pressto"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     value: string
@@ -25,7 +26,7 @@ type Props = {
 const AnimatedView = Animated.createAnimatedComponent(Animated.View)
 
 export default function SearchBar({ value, onChange, focused, onFocus, onBlur }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
 
     const scale = useSharedValue(1)
 
@@ -56,6 +57,7 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                     zIndex: 1,
                 },
                 animatedStyle,
+                SHADOW_STYLE,
             ]}
         >
             <GlassOrBlurView
@@ -65,7 +67,7 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                     flexDirection: "row",
                     alignItems: "center",
                     paddingHorizontal: 16,
-                    height: 52,
+                    height: 48,
                     borderRadius: 26,
                 }}
             >
@@ -85,6 +87,7 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                         color: vars.textColor,
                         fontSize: 17,
                     }}
+                    keyboardAppearance={theme === "light" ? "light" : "dark"}
                 />
 
                 {value.length > 0 && (

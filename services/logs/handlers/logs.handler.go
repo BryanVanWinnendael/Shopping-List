@@ -3,15 +3,17 @@ package handlers
 import (
 	"net/http"
 	"shopping-list/shared/contracts"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
 type LogsService interface {
-	GetAppLogs() (*contracts.GetAppLogsResponse, error)
-	CreateAppLog(request *contracts.CreateAppLogRequest) (*contracts.CreateAppLogResponse, error)
-	DeleteAppLogs() (*contracts.DeleteAppLogResponse, error)
+	GetLogs(page int) (*contracts.GetLogsResponse, error)
+	SearchLogs(query string, page int) (*contracts.SearchLogsResponse, error)
+	CreateLog(request *contracts.CreateLogRequest) (*contracts.CreateLogResponse, error)
+	DeleteLogs() (*contracts.DeleteLogResponse, error)
 }
 
 func NewLogsHandler(ls LogsService) *LogsHandler {
@@ -22,8 +24,13 @@ type LogsHandler struct {
 	LogsService LogsService
 }
 
-func (lh *LogsHandler) GetAppLogs(c echo.Context) error {
-	result, err := lh.LogsService.GetAppLogs()
+func (lh *LogsHandler) GetLogs(c echo.Context) error {
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	result, err := lh.LogsService.GetLogs(page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -33,8 +40,8 @@ func (lh *LogsHandler) GetAppLogs(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
-	var request contracts.CreateAppLogRequest
+func (lh *LogsHandler) CreateLog(c echo.Context) error {
+	var request contracts.CreateLogRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "invalid JSON body",
@@ -47,7 +54,7 @@ func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
 		})
 	}
 
-	result, err := lh.LogsService.CreateAppLog(&request)
+	result, err := lh.LogsService.CreateLog(&request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -57,8 +64,26 @@ func (lh *LogsHandler) CreateAppLog(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func (lh *LogsHandler) DeleteAppLogs(c echo.Context) error {
-	result, err := lh.LogsService.DeleteAppLogs()
+func (lh *LogsHandler) DeleteLogs(c echo.Context) error {
+	result, err := lh.LogsService.DeleteLogs()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func (lh *LogsHandler) SearchLogs(c echo.Context) error {
+	query := strings.TrimSpace(c.QueryParam("query"))
+
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	result, err := lh.LogsService.SearchLogs(query, page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

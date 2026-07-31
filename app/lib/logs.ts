@@ -1,45 +1,37 @@
-import { getUser } from "./user"
 import { httpRequest } from "./httpHelper"
-import {
-    Action,
-    CreateAppLogRequest,
-    CreateAppLogResponse,
-    DeleteAppLogResponse,
-    GetAppLogsResponse,
-} from "@/types/logs"
 import Toast from "react-native-toast-message"
+import uuid from "react-native-uuid"
+import { ungzip } from "pako"
+import { Action } from "@/types/generated/models/action"
+import {
+    CreateLogRequest,
+    CreateLogResponse,
+    DeleteLogResponse,
+    GetLogsResponse,
+    SearchLogsResponse,
+} from "@/types/generated/contracts/logs"
 
-const LOGS_PATH = "logs/app"
-
-const formatDate = (date: Date) => {
-    const options: Intl.DateTimeFormatOptions = {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-    }
-    const timeString = date.toLocaleTimeString([], options)
-    const dateString = date.toLocaleDateString()
-    return `${timeString} ${dateString}`
-}
+const LOGS_PATH = "logs"
 
 const createLog = async (
+    responseBody: string,
     action: Action,
-    text: string,
     error: boolean = false
-): Promise<CreateAppLogResponse | null> => {
+): Promise<CreateLogResponse | null> => {
     try {
-        const date = formatDate(new Date())
-        const user = await getUser()
-        const request: CreateAppLogRequest = {
-            text: text,
-            action: action,
-            user: user,
-            date: date,
-            error: error,
+        const request: CreateLogRequest = {
+            dateTime: new Date().toISOString(),
+            text: error ? "Firebase request failed" : "Firebase request completed",
+            service: "App",
+            path: "Firebase",
+            traceId: uuid.v4(),
+            httpMethod: action,
+            responseBody: responseBody,
+            error,
+            phase: "REQUEST",
         }
 
-        const response = await httpRequest<CreateAppLogResponse>({
+        const response = await httpRequest<CreateLogResponse>({
             url: LOGS_PATH,
             method: "POST",
             body: request,
@@ -51,15 +43,18 @@ const createLog = async (
             type: "error",
             text1: "Error: Failed to create log",
         })
+        console.error(error)
         return null
     }
 }
 
-const getLogs = async (): Promise<GetAppLogsResponse | null> => {
+const getLogs = async (pageNumber: number): Promise<GetLogsResponse | null> => {
     try {
-        const response = await httpRequest<GetAppLogsResponse>({
+        const params: Record<string, any> = { page: pageNumber }
+        const response = await httpRequest<GetLogsResponse>({
             url: LOGS_PATH,
             method: "GET",
+            params,
         })
 
         return response.data
@@ -72,9 +67,9 @@ const getLogs = async (): Promise<GetAppLogsResponse | null> => {
     }
 }
 
-const deleteLogs = async (): Promise<DeleteAppLogResponse | null> => {
+const deleteLogs = async (): Promise<DeleteLogResponse | null> => {
     try {
-        const response = await httpRequest<DeleteAppLogResponse>({
+        const response = await httpRequest<DeleteLogResponse>({
             url: LOGS_PATH,
             method: "DELETE",
         })
@@ -89,8 +84,40 @@ const deleteLogs = async (): Promise<DeleteAppLogResponse | null> => {
     }
 }
 
+const searchLogs = async (query: string, page: number): Promise<SearchLogsResponse | null> => {
+    const params: Record<string, any> = { query, page }
+
+    try {
+        const response = await httpRequest<SearchLogsResponse>({
+            url: `${LOGS_PATH}/search`,
+            method: "GET",
+            params,
+        })
+
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to search logs",
+        })
+        return null
+    }
+}
+
+export function decompress(text: string) {
+    const binary = atob(text)
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+    try {
+        return ungzip(bytes, { toText: true })
+    } catch (error) {
+        console.error("decompress failed:", error)
+        return null
+    }
+}
+
 export const logsClient = {
     createLog,
     getLogs,
     deleteLogs,
+    searchLogs,
 }

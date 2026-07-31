@@ -1,4 +1,4 @@
-import {useCallback, useRef} from "react"
+import { useCallback, useRef } from "react"
 import BottomSheet from "@gorhom/bottom-sheet"
 
 export default function useUsers() {

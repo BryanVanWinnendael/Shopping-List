@@ -1,11 +1,15 @@
 import { StyleSheet } from "react-native"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { LinearGradient } from "expo-linear-gradient"
+import { usePathname } from "expo-router"
 
 export default function GradientBackground() {
     const { aColor, aColorUse } = useSettingsStore()
+    const pathname = usePathname()
 
-    if (!aColorUse.header) return null
+    const inRecipeDetail = /^\/recipes\/[^/]+$/.test(pathname) || /^\/online-recipes\/[^/]+$/.test(pathname)
+
+    if (!aColorUse.header || inRecipeDetail) return null
 
     return (
         <LinearGradient

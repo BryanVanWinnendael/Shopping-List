@@ -1,28 +1,33 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { httpRequest } from "./httpHelper"
+import { User } from "@/types"
+import Toast from "react-native-toast-message"
 import {
     CreateRecipeRequest,
     CreateRecipeResponse,
     DeleteRecipeResponse,
-    GetAllRecipesResponse,
     GetDistinctCountriesResponse,
     GetRecipeResponse,
     GetRecipesByUserResponse,
+    GetRecipesResponse,
+    SearchRecipesResponse,
     UpdateRecipeRequest,
     UpdateRecipeResponse,
-} from "@/types/recipes"
-import { User } from "@/types"
-import Toast from "react-native-toast-message"
+} from "@/types/generated/contracts/recipes"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 
 const RECIPES_PATH = "/recipes"
 const FAVORITE_RECIPES_KEY = "app_favoriteRecipes"
 const ACTIVE_RECIPE_FILTER_KEY = "app_recipeFilter"
 
-const getRecipes = async (): Promise<GetAllRecipesResponse | null> => {
+const getRecipes = async (user: User, page: number): Promise<GetRecipesResponse | null> => {
+    const params: Record<string, any> = { user, page }
+
     try {
-        const response = await httpRequest<GetAllRecipesResponse>({
+        const response = await httpRequest<GetRecipesResponse>({
             url: RECIPES_PATH,
             method: "GET",
+            params,
         })
 
         return response.data
@@ -139,13 +144,33 @@ const getRecipesCountries = async (): Promise<GetDistinctCountriesResponse | nul
     }
 }
 
+const searchRecipes = async (user: User, page: number, query: string): Promise<SearchRecipesResponse | null> => {
+    const params: Record<string, any> = { user, page, query }
+
+    try {
+        const response = await httpRequest<SearchRecipesResponse>({
+            url: `${RECIPES_PATH}/search`,
+            method: "GET",
+            params,
+        })
+
+        return response.data
+    } catch (error) {
+        Toast.show({
+            type: "error",
+            text1: "Error: Failed to get recipes",
+        })
+        return null
+    }
+}
+
 export const getFavoriteRecipes = async () => {
     const storedFavoriteRecipes = await AsyncStorage.getItem(FAVORITE_RECIPES_KEY)
     if (!storedFavoriteRecipes) return []
-    return JSON.parse(storedFavoriteRecipes)
+    return JSON.parse(storedFavoriteRecipes) as RecipeSummary[]
 }
 
-export const setFavoriteRecipes = async (recipes: string[]) => {
+export const setFavoriteRecipes = async (recipes: RecipeSummary[]) => {
     await AsyncStorage.setItem(FAVORITE_RECIPES_KEY, JSON.stringify(recipes))
 }
 
@@ -167,4 +192,5 @@ export const recipesClient = {
     createRecipe,
     getUserRecipes,
     getRecipe,
+    searchRecipes,
 }

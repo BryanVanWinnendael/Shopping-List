@@ -1,71 +1,98 @@
 package middlewares
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"shopping-list/shared/logger"
 	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
-func RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		start := time.Now()
+func RequestLogger(l *logger.Logger) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
 
-		req := c.Request()
-		res := c.Response()
+			req := c.Request()
+			ctx := req.Context()
 
-		ct := req.Header.Get("Content-Type")
-		cl := req.ContentLength
+			start := time.Now()
 
-		if cl > 0 {
-			fmt.Printf(
-				"[%s] %s %s | Content-Type=%s | Content-Length=%.2f MB\n",
-				start.Format(time.RFC3339),
-				req.Method,
-				req.URL.Path,
-				ct,
-				bytesToMB(cl),
-			)
-		} else {
-			fmt.Printf(
-				"[%s] %s %s | Content-Type=%s | Content-Length=unknown\n",
-				start.Format(time.RFC3339),
-				req.Method,
-				req.URL.Path,
-				ct,
-			)
-		}
+			ct := req.Header.Get("Content-Type")
 
-		if strings.HasPrefix(ct, "multipart/form-data") {
-			form, err := c.MultipartForm()
-			if err == nil && form != nil {
-				for field, files := range form.File {
-					for _, f := range files {
-						fmt.Printf(
-							"  File field=%s name=%s size=%.2f MB mime=%s\n",
-							field,
-							f.Filename,
-							bytesToMB(f.Size),
-							f.Header.Get("Content-Type"),
-						)
+			path := req.URL.Path
+			if req.URL.RawQuery != "" {
+				path = fmt.Sprintf("%s?%s", path, req.URL.RawQuery)
+			}
+
+			opts := []logger.Option{
+				logger.WithHTTPMethod(req.Method),
+				logger.WithPath(path),
+			}
+
+			if strings.HasPrefix(ct, "multipart/form-data") {
+				if err := req.ParseMultipartForm(32 << 20); err == nil && req.MultipartForm != nil {
+
+					var totalSize int64
+
+					var fileSummary []string
+
+					for field, files := range req.MultipartForm.File {
+						for _, f := range files {
+							totalSize += f.Size
+							fileSummary = append(fileSummary, fmt.Sprintf("%s:%s", field, f.Filename))
+						}
 					}
+
+					opts = append(opts,
+						logger.WithRequestBodySize(float64(totalSize)/1024/1024), // MB
+					)
+				}
+
+			} else {
+				body, _ := readRequestBody(c)
+
+				if body != "" {
+					opts = append(opts,
+						logger.WithRequestBody(body),
+						logger.WithRequestBodySize(float64(len(body))/1024/1024), // MB
+					)
+				} else if req.ContentLength > 0 {
+					opts = append(opts,
+						logger.WithRequestBodySize(float64(req.ContentLength)/1024/1024),
+					)
 				}
 			}
+
+			err := next(c)
+
+			opts = append(opts,
+				logger.WithDuration(time.Since(start)),
+				logger.WithPhase("REQUEST"),
+			)
+
+			l.Info(ctx, "incoming request", opts...)
+
+			return err
 		}
-
-		err := next(c)
-
-		fmt.Printf(
-			"Completed %d in %v\n",
-			res.Status,
-			time.Since(start),
-		)
-
-		return err
 	}
 }
 
-func bytesToMB(b int64) float64 {
-	return float64(b) / 1024 / 1024
+func readRequestBody(c echo.Context) (string, error) {
+	req := c.Request()
+
+	if req.Body == nil {
+		return "", nil
+	}
+
+	b, err := io.ReadAll(req.Body)
+	if err != nil {
+		return "", err
+	}
+
+	req.Body = io.NopCloser(bytes.NewBuffer(b))
+
+	return string(b), nil
 }

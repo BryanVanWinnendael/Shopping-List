@@ -35,11 +35,14 @@ export default function GlassOrBlurView({
     const { vars, theme } = useThemes()
     const { newUI } = useSettingsStore()
 
+    const tint = glassBackgroundColor ?? vars.backgroundColor
+
     if (newUI && !forceBlur) {
         return (
             <GlassView
+                key={`${tint}-${glassEffectStyle}`}
                 glassEffectStyle={glassEffectStyle}
-                tintColor={glassBackgroundColor ? glassBackgroundColor : (backgroundColor ?? vars.backgroundColor)}
+                tintColor={tint}
                 style={[
                     {
                         borderWidth: glassBorderWidth,

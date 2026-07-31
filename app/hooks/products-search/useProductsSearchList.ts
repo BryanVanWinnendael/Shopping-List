@@ -3,7 +3,7 @@ import BottomSheet from "@gorhom/bottom-sheet"
 import { FlatList } from "react-native"
 import { useProductsSearchStore } from "@/stores/useProductsSearchStore"
 import { productsSearchClient } from "@/lib/product-search"
-import { Category } from "@/types/category-model"
+import { Category } from "@/types/generated/models/category"
 
 export function useProductsSearchList() {
     const { products: response, setProducts, setQuery } = useProductsSearchStore()

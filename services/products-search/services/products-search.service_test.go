@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"shopping-list/products-search/internal/config"
+	"shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
 )
@@ -20,7 +21,7 @@ func TestSearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("milk", nil, 1, 10)
+		res, err := service.SearchProducts("milk", nil, 1)
 
 		// then
 		if err != nil {
@@ -36,13 +37,13 @@ func TestSearchProducts(t *testing.T) {
 		setup(t, [][]string{
 			{"pid", "name", "brand", "category", "image"},
 			{"1", "Milk", "BrandA", "dairy", "img"},
-			{"2", "Bread", "BrandB", "bakery", "img"},
+			{"2", "Bread", "BrandB", "bread", "img"},
 		})
 
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("a", []string{"bakery"}, 1, 10)
+		res, err := service.SearchProducts("a", []models.Category{"bread"}, 1)
 
 		// then
 		if err != nil {
@@ -51,8 +52,8 @@ func TestSearchProducts(t *testing.T) {
 		if len(res.Products) != 1 {
 			t.Fatalf("expected 1 product, got %d", len(res.Products))
 		}
-		if res.Products[0].Category != "bakery" {
-			t.Fatalf("expected bakery category")
+		if res.Products[0].Category != "bread" {
+			t.Fatalf("expected bread category")
 		}
 	})
 
@@ -65,7 +66,7 @@ func TestSearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("milk", nil, 1, 10)
+		res, err := service.SearchProducts("milk", nil, 1)
 
 		// then
 		if err != nil {
@@ -89,7 +90,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearchProducts("milk", "", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "", 1)
 
 		// then
 		if err != nil {
@@ -111,7 +112,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearchProducts("milk", "dairy", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "dairy", 1)
 
 		// then
 		if err != nil {
@@ -131,7 +132,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.FuzzySearchProducts("milk", "", 1, 10)
+		res, err := service.FuzzySearchProducts("milk", "", 1)
 
 		// then
 		if err != nil {
@@ -156,17 +157,17 @@ func TestPagination(t *testing.T) {
 		service := NewProductsSearchService()
 
 		// when
-		res, err := service.SearchProducts("", nil, 2, 2)
+		res, err := service.SearchProducts("", nil, 0)
 
 		// then
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if res.Page != 2 {
-			t.Fatalf("expected page 2")
+		if res.Page != 0 {
+			t.Fatalf("expected 0 results, got %d", res.Page)
 		}
-		if len(res.Products) != 1 {
-			t.Fatalf("expected 1 item on page 2, got %d", len(res.Products))
+		if len(res.Products) != 3 {
+			t.Fatalf("expected 3 item on page 1, got %d", len(res.Products))
 		}
 	})
 }

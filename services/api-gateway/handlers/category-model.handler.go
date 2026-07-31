@@ -14,6 +14,7 @@ type CategoryModelService interface {
 	TrainModel(ctx context.Context) (*contracts.TrainModelResponse, error)
 	GetCategory(ctx context.Context, product string) (*contracts.GetCategoryResponse, error)
 	CreateCategory(ctx context.Context, request *contracts.CreateCategoryRequest) (*contracts.CreateCategoryResponse, error)
+	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
 func NewCategoryModelHandler(cms CategoryModelService) *CategoryModelHandler {

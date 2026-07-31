@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { AColorUse, Theme, User, UserColorSettings } from "@/types"
-import { DEFAULT_USERCOLORS, getUser, getUserColors, setUser, setUserColors } from "@/lib/user"
+import { DEFAULT_USER_COLORS, getUser, getUserColors, setUser, setUserColors } from "@/lib/user"
 import { DEFAULT_ACOLOR, DEFAULT_ACOLORUSE, getTheme, setTheme } from "@/lib/theme"
 import {
     getAColor,
@@ -40,7 +40,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     theme: "light",
     aColor: DEFAULT_ACOLOR,
     aColorUse: DEFAULT_ACOLORUSE,
-    userColors: DEFAULT_USERCOLORS,
+    userColors: DEFAULT_USER_COLORS,
     menuIcon: true,
     showFontSizeSheet: false,
     recipes: [],
@@ -52,7 +52,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         cron: false,
         expoToken: null,
     },
-    newUI: false,
+    newUI: true,
     useHeaderColor: false,
 
     loadSettings: async () => {

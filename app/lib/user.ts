@@ -2,9 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { User, UserColorSettings } from "@/types"
 
 const USER_KEY = "app_user"
-const USERCOLORS_KEY = "app_usercolors"
+const USER_COLORS_KEY = "app_user_colors"
 
-export const DEFAULT_USERCOLORS: UserColorSettings = {
+export const DEFAULT_USER_COLORS: UserColorSettings = {
     enabled: false,
     colors: {},
 }
@@ -20,11 +20,11 @@ export const setUser = async (user: string) => {
 }
 
 export const getUserColors = async () => {
-    const storedUserColors = await AsyncStorage.getItem(USERCOLORS_KEY)
-    if (!storedUserColors) return DEFAULT_USERCOLORS
+    const storedUserColors = await AsyncStorage.getItem(USER_COLORS_KEY)
+    if (!storedUserColors) return DEFAULT_USER_COLORS
     return JSON.parse(storedUserColors)
 }
 
 export const setUserColors = async (userColors: UserColorSettings) => {
-    await AsyncStorage.setItem(USERCOLORS_KEY, JSON.stringify(userColors))
+    await AsyncStorage.setItem(USER_COLORS_KEY, JSON.stringify(userColors))
 }

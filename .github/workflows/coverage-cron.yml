@@ -2,8 +2,6 @@ name: Coverage Cron µS
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "services/cron/**"
       - "!services/cron/README.md"

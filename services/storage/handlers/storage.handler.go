@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"mime/multipart"
 	"net/http"
 	"shopping-list/shared/contracts"
 	"shopping-list/storage/internal/config"
@@ -11,9 +12,9 @@ import (
 
 type StorageService interface {
 	DeleteStorage(itemID string, category string) (*contracts.DeleteStorageResponse, error)
-	UploadRecipeImage(request *contracts.UploadImageRequest, recipeID string) (*contracts.UploadImageResponse, error)
+	UploadRecipeImage(fileHeader *multipart.FileHeader, recipeID string) (*contracts.UploadImageResponse, error)
 	DeleteRecipeImage(recipeID string, url string) (*contracts.DeleteRecipeResponse, error)
-	UploadListImage(request *contracts.UploadImageRequest, listID string) (*contracts.UploadImageResponse, error)
+	UploadListImage(fileHeader *multipart.FileHeader, listID string) (*contracts.UploadImageResponse, error)
 }
 
 type StorageHandler struct {
@@ -49,7 +50,6 @@ func (sh *StorageHandler) uploadImage(c echo.Context, category string) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "missing or invalid image file"})
 	}
-	request := contracts.UploadImageRequest{Image: fileHeader}
 
 	id := c.Param("id")
 	if id == "" {
@@ -57,13 +57,13 @@ func (sh *StorageHandler) uploadImage(c echo.Context, category string) error {
 	}
 
 	if category == "recipes" {
-		result, err := sh.StorageService.UploadRecipeImage(&request, id)
+		result, err := sh.StorageService.UploadRecipeImage(fileHeader, id)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return c.JSON(http.StatusOK, result)
 	} else if category == "list" {
-		result, err := sh.StorageService.UploadListImage(&request, id)
+		result, err := sh.StorageService.UploadListImage(fileHeader, id)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}

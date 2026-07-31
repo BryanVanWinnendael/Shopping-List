@@ -4,10 +4,11 @@ import GlassOrBlurView from "@/components/glassOrBlurView"
 import { Trash } from "lucide-react-native"
 import EditRecipeForm from "@/components/recipes/update/form"
 import CustomBottomSheet from "@/components/customBottomSheet"
-import { Recipe } from "@/types/recipes"
 import { BottomSheetMethods } from "@gorhom/bottom-sheet/lib/typescript/types"
 import { RefObject } from "react"
 import useThemes from "@/hooks/themes/useThemes"
+import { Recipe } from "@/types/generated/models/recipe"
+import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
 
 type Props = {
     recipe: Recipe
@@ -61,15 +62,20 @@ export default function BottomSheet({
                 <PressableScale
                     enabled={!deleteLoading}
                     onPress={confirmDelete}
-                    style={{
-                        justifyContent: "center",
-                        alignItems: "center",
-                        width: 40,
-                        height: 40,
-                    }}
+                    style={[
+                        {
+                            justifyContent: "center",
+                            alignItems: "center",
+                            width: 40,
+                            height: 40,
+                        },
+                        SHADOW_STYLE_LIGHT,
+                    ]}
                 >
                     <GlassOrBlurView
-                        borderColor={`${vars.secondaryBorderColor}70`}
+                        backgroundColor={vars.secondaryBackgroundColor}
+                        glassBackgroundColor={vars.secondaryBackgroundColor}
+                        borderColor={`${vars.secondaryBorderColor}50`}
                         style={[
                             {
                                 borderRadius: 50,

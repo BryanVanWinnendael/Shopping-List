@@ -1,7 +1,6 @@
 import { KeyboardAvoidingView, Platform, Text, TextInput, View } from "react-native"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import { PressableScale } from "pressto"
-import { MealType } from "@/types/recipes"
 import { RefObject } from "react"
 import GorhomBottomSheet from "@gorhom/bottom-sheet"
 import MealTypeSegment from "@/components/recipes/mealTypeSegment"
@@ -10,6 +9,7 @@ import Field from "@/components/recipes/filter/field"
 import CountriesFilter from "@/components/recipes/filter/countriesFilter"
 import useThemes from "@/hooks/themes/useThemes"
 import CustomSwitch from "@/components/customSwitch"
+import { MealType } from "@/types/generated/models/meal_type"
 
 type Props = {
     sheetRef: RefObject<GorhomBottomSheet | null>

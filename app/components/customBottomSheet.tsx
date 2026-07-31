@@ -1,7 +1,7 @@
-import { ReactNode, RefObject, useEffect, useMemo, useState } from "react"
+import { ReactNode, RefObject, useMemo } from "react"
 import { StyleSheet, View } from "react-native"
 import BottomSheet, { BottomSheetBackdrop, BottomSheetBackgroundProps, BottomSheetView } from "@gorhom/bottom-sheet"
-import Animated, { Extrapolate, interpolate, useAnimatedStyle } from "react-native-reanimated"
+import Animated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { useSettingsStore } from "@/stores/useSettingsStore"
@@ -23,13 +23,8 @@ export default function CustomBottomSheet({
 }: Props) {
     const { newUI } = useSettingsStore()
     const { vars } = useThemes()
+
     const memoSnapPoints = useMemo(() => snapPoints, [])
-
-    const [blurReady, setBlurReady] = useState(false)
-
-    useEffect(() => {
-        requestAnimationFrame(() => setBlurReady(true))
-    }, [])
 
     const SheetBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) => {
         if (backgroundMode === "half") {
@@ -48,33 +43,41 @@ export default function CustomBottomSheet({
             )
         }
 
-        const solidStyle = useAnimatedStyle(() => ({
-            opacity: interpolate(animatedIndex.value, [-1, 0, 1], [1, 0, 1], Extrapolate.CLAMP),
+        const containerAnimatedStyle = useAnimatedStyle(() => ({
+            margin: interpolate(animatedIndex.value, [-1, 0, 1], [12, 12, 0], Extrapolation.CLAMP),
         }))
 
-        const containerAnimatedStyle = useAnimatedStyle(() => ({
-            margin: interpolate(animatedIndex.value, [-1, 0, 1], [12, 12, 0], Extrapolate.CLAMP),
+        const solidOverlayStyle = useAnimatedStyle(() => ({
+            opacity: interpolate(animatedIndex.value, [0, 0.5, 1], [0, 0, 1], Extrapolation.CLAMP),
         }))
 
         return (
-            <Animated.View style={[style, { borderRadius: 35, overflow: "hidden" }, containerAnimatedStyle]}>
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFillObject,
-                        solidStyle,
-                        { backgroundColor: vars.secondaryBackgroundColor },
-                    ]}
+            <Animated.View
+                style={[
+                    style,
+                    {
+                        borderRadius: 35,
+                        overflow: "hidden",
+                    },
+                    containerAnimatedStyle,
+                ]}
+            >
+                <GlassOrBlurView
+                    borderColor={newUI ? vars.secondaryBorderColor : `${vars.secondaryBorderColor}50`}
+                    backgroundColor={vars.secondaryBackgroundColor}
+                    style={StyleSheet.absoluteFillObject}
                 />
 
-                <Animated.View style={[StyleSheet.absoluteFillObject]}>
-                    {blurReady && (
-                        <GlassOrBlurView
-                            borderColor={newUI ? vars.secondaryBorderColor : `${vars.secondaryBorderColor}50`}
-                            backgroundColor={vars.secondaryBackgroundColor}
-                            style={StyleSheet.absoluteFillObject}
-                        />
-                    )}
-                </Animated.View>
+                <Animated.View
+                    pointerEvents="none"
+                    style={[
+                        StyleSheet.absoluteFillObject,
+                        solidOverlayStyle,
+                        {
+                            backgroundColor: vars.secondaryBackgroundColor,
+                        },
+                    ]}
+                />
             </Animated.View>
         )
     }
@@ -93,7 +96,12 @@ export default function CustomBottomSheet({
                 <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.5} />
             )}
         >
-            <BottomSheetView style={{ flex: 1, padding: 25 }}>
+            <BottomSheetView
+                style={{
+                    flex: 1,
+                    padding: 25,
+                }}
+            >
                 <View
                     style={{
                         width: "100%",

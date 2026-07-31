@@ -1,42 +1,147 @@
-import { Linking, ScrollView, Text, View } from "react-native"
-import { PressableScale } from "pressto"
+import { Linking, StyleSheet, Text, View } from "react-native"
+import Animated, { SharedValue, useAnimatedScrollHandler } from "react-native-reanimated"
 import IngredientsList from "@/components/recipes/details/ingredientsList"
-import { Recipe } from "@/types/recipes"
-import useThemes from "@/hooks/themes/useThemes"
 import Instructions from "@/components/recipes/details/instructions"
+import useThemes from "@/hooks/themes/useThemes"
+import { Recipe } from "@/types/generated/models/recipe"
+import { PressableScale } from "pressto"
+import { ChevronRight } from "lucide-react-native"
+import { MEALS } from "@/lib/constants"
 
 type Props = {
     recipe: Recipe
-    offset: number
     open: () => void
+    scrollY: SharedValue<number>
 }
 
-export default function RecipeContent({ recipe, offset, open }: Props) {
+export default function RecipeContent({ recipe, open, scrollY }: Props) {
     const { vars } = useThemes()
 
+    const onScroll = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            scrollY.value = event.contentOffset.y
+        },
+    })
+
     return (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: offset - 20, paddingHorizontal: 16 }}>
-            {recipe.source && (
-                <PressableScale
-                    onPress={async () => {
-                        if (recipe.source) await Linking.openURL(recipe.source)
-                    }}
-                    style={{
-                        backgroundColor: `${vars.accentColor}33`,
-                        padding: 12,
-                        borderRadius: 20,
-                        marginBottom: 16,
-                    }}
+        <Animated.ScrollView onScroll={onScroll} scrollEventThrottle={16} showsVerticalScrollIndicator={false}>
+            <View style={styles.content}>
+                <Text
+                    style={[
+                        styles.title,
+                        {
+                            color: vars.textColor,
+                        },
+                    ]}
                 >
-                    <Text style={{ color: vars.accentColor }}>View full recipe ↗</Text>
-                </PressableScale>
-            )}
+                    {recipe.title}
+                </Text>
 
-            {recipe.ingredients != null && recipe.ingredients.length > 0 && <IngredientsList recipe={recipe} />}
+                <View style={styles.info}>
+                    {recipe.country ? <Meta text={recipe.country} accent={vars.accentColor} /> : null}
 
-            {recipe.instructions && <Instructions recipe={recipe} open={open} />}
+                    {recipe.mealType && recipe.mealType !== "Any" ? (
+                        <Meta text={`${MEALS[recipe.mealType]} ${recipe.mealType}`} accent={vars.accentColor} />
+                    ) : null}
 
-            <View style={{ height: 50 }} />
-        </ScrollView>
+                    {recipe.time && recipe.time != 0 ? (
+                        <Meta text={`⏱ ${recipe.time} min`} accent={vars.accentColor} />
+                    ) : null}
+
+                    {recipe.persons ? <Meta text={`👥 ${recipe.persons}`} accent={vars.accentColor} /> : null}
+                </View>
+
+                <View>
+                    {recipe.ingredients && recipe.ingredients.length > 0 && <IngredientsList recipe={recipe} />}
+                </View>
+
+                <View>{recipe.instructions && <Instructions recipe={recipe} open={open} />}</View>
+
+                {recipe.source && (
+                    <PressableScale onPress={() => Linking.openURL(recipe.source!)} style={[styles.source]}>
+                        <Text
+                            style={[
+                                styles.sourceText,
+                                {
+                                    color: vars.accentColor,
+                                },
+                            ]}
+                        >
+                            View original recipe
+                        </Text>
+                        <ChevronRight color={vars.accentColor} />
+                    </PressableScale>
+                )}
+            </View>
+        </Animated.ScrollView>
     )
 }
+
+function Meta({ text, accent }: { text: string; accent: string }) {
+    return (
+        <View
+            style={[
+                styles.meta,
+                {
+                    backgroundColor: `${accent}20`,
+                },
+            ]}
+        >
+            <Text
+                style={[
+                    styles.metaText,
+                    {
+                        color: accent,
+                    },
+                ]}
+            >
+                {text}
+            </Text>
+        </View>
+    )
+}
+
+const styles = StyleSheet.create({
+    content: {
+        paddingTop: 240,
+        paddingHorizontal: 20,
+        paddingBottom: 80,
+    },
+    title: {
+        fontSize: 32,
+        lineHeight: 40,
+        fontWeight: "800",
+        letterSpacing: -1.5,
+        marginBottom: 14,
+        paddingTop: 8,
+    },
+    info: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 8,
+        marginBottom: 14,
+    },
+    meta: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 11,
+        paddingVertical: 6,
+        borderRadius: 14,
+    },
+    metaText: {
+        fontSize: 13,
+        fontWeight: "600",
+        letterSpacing: -0.1,
+    },
+    source: {
+        paddingVertical: 15,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+    sourceText: {
+        fontSize: 16,
+        fontWeight: "600",
+        letterSpacing: -0.2,
+    },
+})

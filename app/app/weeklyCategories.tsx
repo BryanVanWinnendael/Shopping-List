@@ -1,12 +1,12 @@
-import {View} from "react-native"
-import {useHeaderHeight} from "@react-navigation/elements"
-import {useWeeklyCategories} from "@/hooks/weekly/useWeeklyCategories"
+import { View } from "react-native"
+import { useHeaderHeight } from "@react-navigation/elements"
+import { useWeeklyCategories } from "@/hooks/weekly/useWeeklyCategories"
 import BottomSheet from "@/components/weekly/categories/bottomSheet"
 import List from "@/components/weekly/categories/list"
-import {Category} from "@/types/category-model"
-import {useWeeklyProducts} from "@/hooks/weekly/useWeeklyProducts"
+import { useWeeklyProducts } from "@/hooks/weekly/useWeeklyProducts"
 import useThemes from "@/hooks/themes/useThemes"
 import Toast from "react-native-toast-message"
+import { Category } from "@/types/generated/models/category"
 
 export default function WeeklyCategories() {
     const { vars } = useThemes()

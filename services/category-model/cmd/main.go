@@ -5,7 +5,10 @@ import (
 	"shopping-list/category-model/handlers"
 	"shopping-list/category-model/internal/config"
 	"shopping-list/category-model/services"
+	httphelper "shopping-list/shared/http"
+	"shopping-list/shared/logger"
 	"shopping-list/shared/middlewares"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -14,7 +17,13 @@ func main() {
 	config.LoadEnv()
 
 	e := echo.New()
-	e.Use(middlewares.RequestLogger)
+
+	httpClient := httphelper.NewClient(60*time.Second, "")
+	loggerClient := logger.New(httpClient, config.Vars.LogsAPIURL, "Category Model µS")
+
+	e.Use(middlewares.TraceMiddleware)
+	e.Use(middlewares.RequestLogger(loggerClient))
+	e.Use(middlewares.ResponseLogger(loggerClient))
 
 	nb := services.NewNaiveBayes()
 	ms := services.NewModelService(nb)

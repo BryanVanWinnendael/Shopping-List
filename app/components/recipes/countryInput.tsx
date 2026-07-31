@@ -116,7 +116,7 @@ export default function CountryInput({ value, onChange }: Props) {
                             backgroundColor: vars.accentColor,
                         }}
                     >
-                        <Text style={{ fontWeight: "600", color: vars.textColor }}>Close</Text>
+                        <Text style={{ fontWeight: "600", color: "#fff" }}>Close</Text>
                     </Pressable>
                 </View>
             </Modal>

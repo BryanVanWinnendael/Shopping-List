@@ -20,7 +20,7 @@ type OnlineRecipeService struct {
 	baseURL string
 }
 
-const TOTAL_RECIPES_PER_PAGE = 24
+const totalRecipesPerPage = 24
 
 func NewOnlineRecipeService(client *httphelper.Client, baseURL string) *OnlineRecipeService {
 	return &OnlineRecipeService{
@@ -29,15 +29,15 @@ func NewOnlineRecipeService(client *httphelper.Client, baseURL string) *OnlineRe
 	}
 }
 
-func (s *OnlineRecipeService) GetRecipes(page int) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := s.baseURL
+func (ors *OnlineRecipeService) GetRecipes(page int) (*contracts.GetOnlineRecipesResponse, error) {
+	requestUrl := ors.baseURL
 
 	requestUrl += "?page=" + strconv.Itoa(page+1)
 
 	return fetchRecipes(requestUrl, page)
 }
 
-func (s *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
+func (ors *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -150,8 +150,8 @@ func (s *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnline
 	}, nil
 }
 
-func (s *OnlineRecipeService) SearchRecipes(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/search?q=%s&page=%d", s.baseURL, urlQueryEscape(query), page)
+func (ors *OnlineRecipeService) SearchRecipes(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {
+	requestUrl := fmt.Sprintf("%s/search?q=%s&page=%d", ors.baseURL, urlQueryEscape(query), page)
 
 	return fetchRecipes(requestUrl, page)
 }
@@ -208,7 +208,7 @@ func fetchRecipes(url string, page int) (*contracts.GetOnlineRecipesResponse, er
 		total = len(recipes)
 	}
 
-	maxPages := int(math.Ceil(float64(total) / TOTAL_RECIPES_PER_PAGE))
+	maxPages := int(math.Ceil(float64(total) / totalRecipesPerPage))
 
 	return &contracts.GetOnlineRecipesResponse{
 		Page:         page,

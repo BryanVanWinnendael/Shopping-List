@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import BottomSheet from "@gorhom/bottom-sheet"
 import { cronClient } from "@/lib/cron"
 import { categoryClient } from "@/lib/category"
-import { CronProduct, UpdateCronProductCategoryRequest } from "@/types/cron"
-import { Category, CreateCategoryRequest } from "@/types/category-model"
+import { Category } from "@/types/generated/models/category"
+import { CreateCategoryRequest } from "@/types/generated/contracts/category-model"
+import { CronProduct } from "@/types/generated/models/cron_product"
+import { UpdateCronProductCategoryRequest } from "@/types/generated/contracts/cron"
 
 export function useWeeklyCategories() {
     const bottomSheetRef = useRef<BottomSheet>(null)

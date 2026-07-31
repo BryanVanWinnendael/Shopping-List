@@ -1,27 +1,27 @@
 import Drawer from "expo-router/drawer"
-import {KeyboardAvoidingView, Platform, StatusBar} from "react-native"
-import {GestureHandlerRootView} from "react-native-gesture-handler"
+import { KeyboardAvoidingView, Platform, StatusBar } from "react-native"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
 import CustomDrawerContent from "@/components/customDrawerContent"
 import NavButton from "@/components/navButton"
 import Header from "@/components/header"
-import {useEffect} from "react"
-import {useSettingsStore} from "@/stores/useSettingsStore"
-import {usePathname} from "expo-router"
+import { useEffect } from "react"
+import { useSettingsStore } from "@/stores/useSettingsStore"
+import { usePathname } from "expo-router"
 import ThemesBottomSheet from "@/components/themes/bottomSheet"
 import SelectUser from "@/components/users/selectUser"
 import UsersBottomSheet from "@/components/users/bottomSheet"
 import CustomHeader from "@/components/customHeader"
-import {PressablesConfig} from "pressto"
+import { PressablesConfig } from "pressto"
 import * as Haptics from "expo-haptics"
-import {useRecipesStore} from "@/stores/useRecipesStore"
-import {ADMIN_USERS_ARRAY} from "@/lib/constants"
+import { useRecipesStore } from "@/stores/useRecipesStore"
+import { ADMIN_USERS_ARRAY } from "@/lib/constants"
 import GradientBackground from "@/components/gradientBackground"
 import useThemes from "@/hooks/themes/useThemes"
 import useUsers from "@/hooks/users/useUsers"
 import Toast from "react-native-toast-message"
 import Success from "@/components/toasts/success"
 import Error from "@/components/toasts/error"
-import {useNotificationsStore} from "@/stores/useNotificationsStore"
+import { useNotificationsStore } from "@/stores/useNotificationsStore"
 import {
     Bookmark,
     BookOpen,
@@ -145,7 +145,7 @@ export default function RootLayout() {
                             <Drawer.Screen
                                 name="online-recipes"
                                 options={{
-                                    drawerLabel: "Search Recipes",
+                                    drawerLabel: "Online Recipes",
                                     title: "",
                                     headerTransparent: true,
                                     drawerIcon: ({ color }) => (
@@ -155,7 +155,7 @@ export default function RootLayout() {
                             />
 
                             <Drawer.Screen
-                                name="search"
+                                name="searchProducts"
                                 options={{
                                     drawerLabel: "Search Products",
                                     title: "",
@@ -247,7 +247,7 @@ export default function RootLayout() {
                             success: ({ text1, text2 }: any) => <Success text1={text1} text2={text2} />,
                             error: ({ text1, text2 }: any) => <Error text1={text1} text2={text2} />,
                         }}
-                        topOffset={60}
+                        topOffset={100}
                     />
                 </GestureHandlerRootView>
             </PressablesConfig>

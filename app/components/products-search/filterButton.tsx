@@ -5,6 +5,7 @@ import { View } from "react-native"
 import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated"
 
 import GlassOrBlurView from "@/components/glassOrBlurView"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     open: () => void
@@ -37,7 +38,7 @@ export default function FilterButton({ open, shifted }: Props) {
                 zIndex: 1,
             }}
         >
-            <Animated.View style={animatedStyle}>
+            <Animated.View style={[animatedStyle, SHADOW_STYLE]}>
                 <GlassOrBlurView
                     style={{
                         flexDirection: "row",
@@ -53,8 +54,8 @@ export default function FilterButton({ open, shifted }: Props) {
                             open()
                         }}
                         style={{
-                            height: 52,
-                            width: 52,
+                            height: 48,
+                            width: 48,
                             alignItems: "center",
                             justifyContent: "center",
                         }}

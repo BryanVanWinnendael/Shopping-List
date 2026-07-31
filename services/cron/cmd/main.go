@@ -7,6 +7,7 @@ import (
 	"shopping-list/cron/services"
 	"shopping-list/shared/db"
 	httphelper "shopping-list/shared/http"
+	"shopping-list/shared/logger"
 	"shopping-list/shared/middlewares"
 	"time"
 
@@ -20,16 +21,20 @@ func main() {
 	firebase := db.InitFirebase(config.Vars.GoogleApplicationCred, config.Vars.FireBaseUrl)
 
 	e := echo.New()
-	e.Use(middlewares.RequestLogger)
 
 	httpClient := httphelper.NewClient(60*time.Second, "")
+	loggerClient := logger.New(httpClient, config.Vars.LogsAPIURL, "Cron µS")
+
+	e.Use(middlewares.TraceMiddleware)
+	e.Use(middlewares.RequestLogger(loggerClient))
+	e.Use(middlewares.ResponseLogger(loggerClient))
 
 	ns := services.NewNotificationService(httpClient, config.Vars.NotificationsAPIUrl)
 	firebaseClient := services.NewFirebaseClient(firebase)
 	cs := services.NewCronService(firebaseClient, bbolt, ns)
 	ch := handlers.NewCronHandler(cs)
 
-	handlers.SetupRoutes(e, ch, bbolt)
+	handlers.SetupRoutes(e, ch)
 
 	c := cron.StartCronJobs(cs)
 	defer c.Stop()

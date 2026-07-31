@@ -13,6 +13,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import Toast from "react-native-toast-message"
 import Instruction from "@/components/recipes/create/instruction"
 import { delay } from "@/lib/utils"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     onClose: () => void
@@ -88,7 +89,7 @@ export default function Form({ onClose }: Props) {
                                 paddingVertical: 8,
                             }}
                             placeholder="Recipe title"
-                            placeholderTextColor="#aaa"
+                            placeholderTextColor="gray"
                             keyboardAppearance={theme === "light" ? "light" : "dark"}
                         />
                     </View>
@@ -125,22 +126,30 @@ export default function Form({ onClose }: Props) {
                                     source={{ uri: addRecipeFormStates.banner }}
                                     style={{ width: 120, height: 120, borderRadius: 12 }}
                                 />
-                                <GlassOrBlurView
-                                    style={{
-                                        position: "absolute",
-                                        top: -8,
-                                        right: -8,
-                                        borderRadius: 24,
-                                        width: 24,
-                                        height: 24,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }}
+                                <View
+                                    style={[
+                                        {
+                                            position: "absolute",
+                                            top: -8,
+                                            right: -8,
+                                            borderRadius: 100,
+                                        },
+                                        SHADOW_STYLE,
+                                    ]}
                                 >
-                                    <PressableScale onPress={() => addRecipeFormActions.setBannerImage(null, null)}>
-                                        <X size={16} color={vars.textColor} />
-                                    </PressableScale>
-                                </GlassOrBlurView>
+                                    <GlassOrBlurView
+                                        style={{
+                                            width: 24,
+                                            height: 24,
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <PressableScale onPress={() => addRecipeFormActions.setBannerImage(null, null)}>
+                                            <X size={16} color={vars.textColor} />
+                                        </PressableScale>
+                                    </GlassOrBlurView>
+                                </View>
                             </View>
                         ) : (
                             <ImageInput type="recipe" onPick={addRecipeFormActions.setBannerImage} />
@@ -170,7 +179,7 @@ export default function Form({ onClose }: Props) {
                                 paddingVertical: 8,
                             }}
                             placeholder="https://..."
-                            placeholderTextColor="#aaa"
+                            placeholderTextColor="gray"
                             keyboardAppearance={theme === "light" ? "light" : "dark"}
                         />
                     </View>
@@ -232,7 +241,7 @@ export default function Form({ onClose }: Props) {
                                 paddingVertical: 8,
                             }}
                             placeholder="e.g. 45"
-                            placeholderTextColor="#aaa"
+                            placeholderTextColor="gray"
                             keyboardAppearance={theme === "light" ? "light" : "dark"}
                         />
                     </View>
@@ -262,7 +271,7 @@ export default function Form({ onClose }: Props) {
                                 paddingVertical: 8,
                             }}
                             placeholder="e.g. 4"
-                            placeholderTextColor="#aaa"
+                            placeholderTextColor="gray"
                             keyboardAppearance={theme === "light" ? "light" : "dark"}
                         />
                     </View>

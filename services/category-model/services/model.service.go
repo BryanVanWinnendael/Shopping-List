@@ -11,6 +11,7 @@ import (
 	"shopping-list/category-model/internal/config"
 	"shopping-list/category-model/models"
 	"shopping-list/shared/contracts"
+	sharedModels "shopping-list/shared/models"
 	"strings"
 )
 
@@ -81,7 +82,7 @@ func (ms *ModelService) trainAndSave() error {
 	return err
 }
 
-func (ms *ModelService) Predict(item string) (string, error) {
+func (ms *ModelService) Predict(item string) (sharedModels.Category, error) {
 	if ms.naiveBayes == nil {
 
 		return "", errors.New("model not loaded, call TrainModel or LoadModel first")
@@ -89,9 +90,9 @@ func (ms *ModelService) Predict(item string) (string, error) {
 	return getBestClass(item, ms.naiveBayes), nil
 }
 
-func getBestClass(text string, nb *models.NaiveBayes) string {
+func getBestClass(text string, nb *models.NaiveBayes) sharedModels.Category {
 	maxScore := -1e9
-	bestClass := ""
+	bestClass := sharedModels.Category("")
 
 	for class := range nb.ClassCounts {
 		score := math.Log(float64(nb.ClassCounts[class]) / float64(nb.TotalDocs))
@@ -119,7 +120,7 @@ func getBestClass(text string, nb *models.NaiveBayes) string {
 		}
 	}
 
-	return bestClass
+	return sharedModels.Category(bestClass)
 }
 
 func train(data []models.TrainingData, nb *models.NaiveBayes) {
@@ -187,7 +188,7 @@ func loadCSV() ([]models.TrainingData, error) {
 		}
 		data = append(data, models.TrainingData{
 			Item:     rec[0],
-			Category: rec[1],
+			Category: sharedModels.Category(rec[1]),
 		})
 	}
 	return data, nil

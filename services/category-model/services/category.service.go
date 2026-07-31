@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 	"shopping-list/category-model/internal/config"
 	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 )
 
 type Modeler interface {
 	LoadModel() error
-	Predict(product string) (string, error)
+	Predict(product string) (models.Category, error)
 }
 
 type CategoryService struct {
@@ -53,7 +54,7 @@ func (cs *CategoryService) CreateCategory(request *contracts.CreateCategoryReque
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	if err := writer.Write([]string{request.Product, request.Category}); err != nil {
+	if err := writer.Write([]string{request.Product, string(request.Category)}); err != nil {
 		return nil, err
 	}
 

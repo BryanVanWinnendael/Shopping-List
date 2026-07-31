@@ -11,7 +11,7 @@ type Props = {
 }
 
 export default function Instruction({ instruction, index, onUpdate, onRemove }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
 
     return (
         <View
@@ -27,7 +27,7 @@ export default function Instruction({ instruction, index, onUpdate, onRemove }: 
                     value={instruction}
                     onChangeText={(text) => onUpdate(index, text)}
                     placeholder={`Step ${index + 1}`}
-                    placeholderTextColor="#aaa"
+                    placeholderTextColor="gray"
                     style={{
                         color: vars.textColor,
                         backgroundColor: vars.secondaryBackgroundColor,
@@ -37,6 +37,7 @@ export default function Instruction({ instruction, index, onUpdate, onRemove }: 
                         paddingHorizontal: 12,
                         paddingVertical: 8,
                     }}
+                    keyboardAppearance={theme === "light" ? "light" : "dark"}
                 />
             </View>
 

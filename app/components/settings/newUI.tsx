@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View } from "react-native"
 import { useSettingsStore } from "@/stores/useSettingsStore"
-import { setAppIconSafe } from "@/lib/appIcon"
 import CustomSwitch from "@/components/customSwitch"
 import useThemes from "@/hooks/themes/useThemes"
 import { Wand2 } from "lucide-react-native"
@@ -8,16 +7,6 @@ import { Wand2 } from "lucide-react-native"
 export default function NewUI() {
     const { vars, theme } = useThemes()
     const { setNewUI, newUI } = useSettingsStore()
-
-    const handleChangeUI = async (useNewUI: boolean) => {
-        if (useNewUI) {
-            setNewUI(true)
-            await setAppIconSafe("new", false)
-        } else {
-            setNewUI(false)
-            await setAppIconSafe("old", false)
-        }
-    }
 
     return (
         <View
@@ -58,7 +47,7 @@ export default function NewUI() {
                     </View>
                 </View>
 
-                <CustomSwitch value={newUI} onChange={(val) => handleChangeUI(val)} />
+                <CustomSwitch value={newUI} onChange={setNewUI} />
             </View>
         </View>
     )

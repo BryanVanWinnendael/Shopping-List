@@ -1,6 +1,5 @@
 import { ActivityIndicator, Image, ScrollView, Text, TextInput, View } from "react-native"
 import { PressableScale } from "pressto"
-import { Recipe } from "@/types/recipes"
 import { useUpdateRecipeForm } from "@/hooks/recipes/useUpdateRecipeForm"
 import { useUpdateRecipe } from "@/hooks/recipes/useUpdateRecipe"
 import Ingredient from "@/components/recipes/update/ingredient"
@@ -15,6 +14,8 @@ import Toast from "react-native-toast-message"
 import Instruction from "@/components/recipes/update/instruction"
 import { delay } from "@/lib/utils"
 import GlassOrBlurView from "@/components/glassOrBlurView"
+import { Recipe } from "@/types/generated/models/recipe"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     recipe: Recipe
@@ -80,6 +81,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         borderColor={vars.secondaryBorderColor}
                         backgroundColor={vars.secondaryBackgroundColor}
                         textColor={vars.textColor}
+                        theme={theme}
                     />
 
                     <FieldLabel label="Public" textColor={vars.textColor} />
@@ -97,22 +99,31 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                                 }}
                                 style={{ width: 120, height: 120, borderRadius: 12 }}
                             />
-                            <GlassOrBlurView
-                                style={{
-                                    position: "absolute",
-                                    top: -8,
-                                    right: -8,
-                                    borderRadius: 24,
-                                    width: 24,
-                                    height: 24,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
+                            <View
+                                style={[
+                                    {
+                                        position: "absolute",
+                                        top: -8,
+                                        right: -8,
+                                        borderRadius: 100,
+                                    },
+                                    SHADOW_STYLE,
+                                ]}
                             >
-                                <PressableScale onPress={() => formActions.setBannerImage(null, null)}>
-                                    <X size={16} color={vars.textColor} />
-                                </PressableScale>
-                            </GlassOrBlurView>
+                                <GlassOrBlurView
+                                    style={{
+                                        width: 24,
+                                        height: 24,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        overflow: "hidden",
+                                    }}
+                                >
+                                    <PressableScale onPress={() => formActions.setBannerImage(null, null)}>
+                                        <X size={16} color={vars.textColor} />
+                                    </PressableScale>
+                                </GlassOrBlurView>
+                            </View>
                         </View>
                     ) : (
                         <ImageInput type="recipe" onPick={formActions.setBannerImage} />
@@ -266,7 +277,7 @@ function StyledInput({ textColor, backgroundColor, borderColor, theme, ...props 
                 paddingVertical: 8,
                 marginBottom: 8,
             }}
-            placeholderTextColor="#aaa"
+            placeholderTextColor="gray"
         />
     )
 }

@@ -23,9 +23,9 @@ func NewProductsSearchService(client *httphelper.Client, baseURL string) *Produc
 	}
 }
 
-func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error) {
+func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string, page string) (*contracts.ProductsSearchResponse, error) {
 	var requestUrl strings.Builder
-	_, err2 := fmt.Fprintf(&requestUrl, "%s/search?q=%s&page=%s&pageSize=%s", pss.baseURL, netUrl.QueryEscape(query), page, pageSize)
+	_, err2 := fmt.Fprintf(&requestUrl, "%s/search?query=%s&page=%s", pss.baseURL, netUrl.QueryEscape(query), page)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -55,8 +55,8 @@ func (pss *ProductsSearchService) SearchProducts(ctx context.Context, query stri
 	return &response, nil
 }
 
-func (pss *ProductsSearchService) FuzzySearchProducts(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error) {
-	requestUrl := fmt.Sprintf("%s/search/fuzzy?q=%s&category=%s&page=%s&pageSize=%s", pss.baseURL, url.QueryEscape(query), category, page, pageSize)
+func (pss *ProductsSearchService) FuzzySearchProducts(ctx context.Context, query string, category string, page string) (*contracts.ProductsSearchResponse, error) {
+	requestUrl := fmt.Sprintf("%s/search/fuzzy?query=%s&category=%s&page=%s", pss.baseURL, url.QueryEscape(query), category, page)
 
 	var response contracts.ProductsSearchResponse
 
@@ -74,4 +74,16 @@ func (pss *ProductsSearchService) FuzzySearchProducts(ctx context.Context, query
 	}
 
 	return &response, nil
+}
+
+func (pss *ProductsSearchService) GetBackup(ctx context.Context) (*http.Response, error) {
+	requestUrl := fmt.Sprintf("%s/backup", pss.baseURL)
+
+	response, err := pss.client.DoGetBackup(ctx, requestUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

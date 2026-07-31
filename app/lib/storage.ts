@@ -1,7 +1,12 @@
 import * as ImagePicker from "expo-image-picker"
-import {httpRequest} from "./httpHelper"
-import {DeleteImageRequest, DeleteImageResponse, DeleteStorageResponse, UploadImageResponse} from "@/types/storage"
+import { httpRequest } from "./httpHelper"
 import Toast from "react-native-toast-message"
+import {
+    DeleteImageRequest,
+    DeleteImageResponse,
+    DeleteStorageResponse,
+    UploadImageResponse,
+} from "@/types/generated/contracts/storage"
 
 const STORAGE_PATH = "storage"
 

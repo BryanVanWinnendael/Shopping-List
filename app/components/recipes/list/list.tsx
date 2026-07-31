@@ -1,22 +1,32 @@
-import { useEffect, useRef } from "react"
-import { FlatList, RefreshControl, Text } from "react-native"
+import { useRef } from "react"
+import { ActivityIndicator, FlatList, View } from "react-native"
 import { useHeaderHeight } from "@react-navigation/elements"
-import { useRecipeList } from "@/hooks/recipes/useRecipeList"
 import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
-import useThemes from "@/hooks/themes/useThemes"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 
-export default function RecipesList() {
-    const { vars, theme } = useThemes()
+type Props = {
+    favoriteRecipes: RecipeSummary[]
+    toggleFavorite: (recipe: RecipeSummary) => void
+    sections: any[]
+    getNextPage: () => void
+    refreshing: boolean
+    refresh: () => void
+    loading: boolean
+}
+
+export default function RecipesList({
+    favoriteRecipes,
+    toggleFavorite,
+    sections,
+    getNextPage,
+    refreshing,
+    refresh,
+    loading,
+}: Props) {
     const headerHeight = useHeaderHeight()
 
-    const { actions, states } = useRecipeList()
-
     const flatListRef = useRef<FlatList>(null)
-
-    useEffect(() => {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
-    }, [states.sections])
 
     const renderRecipe = ({ item }: any) => {
         if (!item) return null
@@ -25,50 +35,26 @@ export default function RecipesList() {
             return <RecipeSectionHeader title={item.title} />
         }
 
-        return (
-            <RecipeCard
-                recipe={item.recipe}
-                favoriteRecipes={states.favoriteRecipes}
-                deleteRecipe={actions.deleteRecipe}
-                toggleFavorite={actions.toggleFavorite}
-            />
-        )
+        return <RecipeCard recipe={item.recipe} favoriteRecipes={favoriteRecipes} toggleFavorite={toggleFavorite} />
     }
 
     return (
         <FlatList
             ref={flatListRef}
-            data={states.sections}
+            data={sections}
             keyExtractor={(item, index) =>
                 item.type === "section" ? `section-${item.title}-${index}` : `recipe-${item.recipe.id}`
             }
+            ListHeaderComponent={<View style={{ height: headerHeight }} />}
+            onEndReached={getNextPage}
+            onEndReachedThreshold={0.5}
+            refreshing={refreshing}
+            onRefresh={refresh}
             renderItem={renderRecipe}
-            showsVerticalScrollIndicator={false}
             contentContainerStyle={{
-                paddingTop: headerHeight,
-                paddingBottom: headerHeight + 60,
+                paddingBottom: 90,
             }}
-            refreshControl={
-                <RefreshControl
-                    refreshing={states.refreshing}
-                    onRefresh={actions.refresh}
-                    tintColor={theme === "light" ? "black" : "white"}
-                    colors={[theme === "light" ? "black" : "white"]}
-                    progressViewOffset={headerHeight}
-                />
-            }
-            ListEmptyComponent={
-                <Text
-                    style={{
-                        textAlign: "center",
-                        marginTop: 40,
-                        color: vars.textColor,
-                        fontSize: 16,
-                    }}
-                >
-                    No recipes found
-                </Text>
-            }
+            ListFooterComponent={loading ? <ActivityIndicator style={{ marginTop: 10 }} /> : null}
         />
     )
 }

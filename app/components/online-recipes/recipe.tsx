@@ -1,9 +1,9 @@
-import {StyleSheet, Text, View} from "react-native"
-import {OnlineRecipe} from "@/types/recipes"
+import { StyleSheet, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
-import {Link} from "expo-router"
+import { Link } from "expo-router"
 import GlassOrBlurView from "@/components/glassOrBlurView"
-import {Image} from "expo-image"
+import { Image } from "expo-image"
+import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 
 type Props = {
     recipe: OnlineRecipe
@@ -52,7 +52,7 @@ export default function Recipe({ recipe, variant }: Props) {
 
             <Link.Preview style={{ width: 300, height: 220 }}>
                 <View style={styles.recipeCard}>
-                    <Image source={{ uri: recipe.image }} style={styles.recipeImage} resizeMode="cover" />
+                    <Image source={{ uri: recipe.image }} style={styles.recipeImage} contentFit="cover" />
                 </View>
             </Link.Preview>
         </Link>

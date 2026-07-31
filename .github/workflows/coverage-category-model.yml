@@ -2,8 +2,6 @@ name: Coverage Category Model µS
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "services/category-model/**"
       - "!services/category-model/README.md"

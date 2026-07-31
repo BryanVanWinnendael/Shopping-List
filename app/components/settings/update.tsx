@@ -1,5 +1,5 @@
-import {useState} from "react"
-import {Modal, ScrollView, StyleSheet, Text, View} from "react-native"
+import { useState } from "react"
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native"
 import Animated, {
     Easing,
     FadeIn,
@@ -10,10 +10,10 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated"
 import updates from "@/assets/updates.json"
-import {PressableScale} from "pressto"
+import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
-import {Sparkles, X} from "lucide-react-native"
+import { Sparkles, X } from "lucide-react-native"
 
 export default function Update() {
     const { vars, theme } = useThemes()
@@ -174,7 +174,6 @@ export default function Update() {
                                 paddingBottom: 10,
                                 gap: 24,
                             }}
-                            showsVerticalScrollIndicator={false}
                         >
                             {updates.map((update, index) => (
                                 <View key={index}>
@@ -187,21 +186,54 @@ export default function Update() {
                                     >
                                         <View
                                             style={{
-                                                backgroundColor: `${vars.accentColor}20`,
-                                                paddingHorizontal: 12,
-                                                paddingVertical: 6,
-                                                borderRadius: 999,
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                marginBottom: 12,
+                                                gap: 8,
+                                                flexWrap: "wrap",
                                             }}
                                         >
-                                            <Text
+                                            <View
                                                 style={{
-                                                    color: vars.accentColor,
-                                                    fontWeight: "700",
-                                                    fontSize: 13,
+                                                    backgroundColor: `${vars.accentColor}20`,
+                                                    paddingHorizontal: 12,
+                                                    paddingVertical: 6,
+                                                    borderRadius: 999,
                                                 }}
                                             >
-                                                {update.date}
-                                            </Text>
+                                                <Text
+                                                    style={{
+                                                        color: vars.accentColor,
+                                                        fontWeight: "700",
+                                                        fontSize: 13,
+                                                    }}
+                                                >
+                                                    {update.date}
+                                                </Text>
+                                            </View>
+
+                                            {update.version && (
+                                                <View
+                                                    style={{
+                                                        backgroundColor: vars.secondaryBackgroundColor,
+                                                        borderWidth: 1,
+                                                        borderColor: vars.secondaryBorderColor,
+                                                        paddingHorizontal: 10,
+                                                        paddingVertical: 6,
+                                                        borderRadius: 999,
+                                                    }}
+                                                >
+                                                    <Text
+                                                        style={{
+                                                            color: vars.textColor,
+                                                            fontWeight: "600",
+                                                            fontSize: 12,
+                                                        }}
+                                                    >
+                                                        v{update.version}
+                                                    </Text>
+                                                </View>
+                                            )}
                                         </View>
                                     </View>
 

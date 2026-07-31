@@ -6,18 +6,17 @@ import {
     setActiveRecipeFilter,
     setFavoriteRecipes as persistFavoriteRecipes,
 } from "@/lib/recipes"
-import { FilterStates, Recipe } from "@/types/recipes"
+import { FilterStates } from "@/types/recipes"
 import { getUser } from "@/lib/user"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 
 type RecipesState = {
     filter: boolean
     activeFilter: FilterStates
 
-    recipes: Recipe[]
-    userRecipes: Recipe[]
-    favoriteRecipes: string[]
-
-    onlineRecipes: number
+    recipes: RecipeSummary[]
+    userRecipes: RecipeSummary[]
+    favoriteRecipes: RecipeSummary[]
 
     loadRecipes: () => Promise<void>
 
@@ -25,19 +24,17 @@ type RecipesState = {
     setActiveFilter: (filter: FilterStates) => Promise<void>
     updateFilter: (filter: Partial<FilterStates>) => void
 
-    setRecipes: (recipes: Recipe[]) => void
-    setUserRecipes: (recipes: Recipe[]) => void
+    setRecipes: (recipes: RecipeSummary[] | ((prev: RecipeSummary[]) => RecipeSummary[])) => void
+    setUserRecipes: (recipes: RecipeSummary[]) => void
 
-    addRecipe: (recipe: Recipe) => void
-    updateRecipe: (recipe: Recipe) => void
+    addRecipe: (recipe: RecipeSummary) => void
+    updateRecipe: (recipe: RecipeSummary) => void
     deleteRecipe: (id: string) => void
 
-    setFavoriteRecipes: (recipes: string[]) => Promise<void>
-
-    setOnlineRecipes: (amount: number) => void
+    setFavoriteRecipes: (recipes: RecipeSummary[]) => Promise<void>
 }
 
-function sortByTitle(recipes: Recipe[]) {
+function sortByTitle(recipes: RecipeSummary[]) {
     return [...recipes].sort((a, b) =>
         a.title.localeCompare(b.title, undefined, {
             sensitivity: "base",
@@ -57,8 +54,6 @@ export const useRecipesStore = create<RecipesState>((set) => ({
     recipes: [],
     userRecipes: [],
     favoriteRecipes: [],
-
-    onlineRecipes: 0,
 
     loadRecipes: async () => {
         const storedFilter = await getActiveRecipeFilter()
@@ -92,10 +87,10 @@ export const useRecipesStore = create<RecipesState>((set) => ({
             activeFilter: { ...state.activeFilter, ...data },
         })),
 
-    setRecipes: (recipes) =>
-        set({
-            recipes: sortByTitle(recipes),
-        }),
+    setRecipes: (recipes: RecipeSummary[] | ((prev: RecipeSummary[]) => RecipeSummary[])) =>
+        set((state) => ({
+            recipes: typeof recipes === "function" ? recipes(state.recipes) : recipes,
+        })),
 
     setUserRecipes: (recipes) =>
         set({
@@ -120,12 +115,8 @@ export const useRecipesStore = create<RecipesState>((set) => ({
             userRecipes: state.userRecipes.filter((r) => r.id !== id),
         })),
 
-    setFavoriteRecipes: async (recipes) => {
+    setFavoriteRecipes: async (recipes: RecipeSummary[]) => {
         set({ favoriteRecipes: recipes })
         await persistFavoriteRecipes(recipes)
-    },
-
-    setOnlineRecipes: (amount) => {
-        set({ onlineRecipes: amount })
     },
 }))

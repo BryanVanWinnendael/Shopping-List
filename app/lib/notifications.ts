@@ -1,20 +1,20 @@
 import { httpRequest } from "./httpHelper"
 import { IS_DEV } from "./constants"
-import {
-    CreateNotificationRequest,
-    CreateNotificationResponse,
-    DeleteUserNotificationResponse,
-    GetUserNotificationsResponse,
-    NotificationSettings,
-    NotificationTypes,
-    PushUserNotificationByTypeRequest,
-    PushUserNotificationByTypeResponse,
-} from "@/types/notifications"
 import * as Notifications from "expo-notifications"
 import { Alert, Linking } from "react-native"
 import { User } from "@/types"
 import Toast from "react-native-toast-message"
 import { getUser } from "@/lib/user"
+import {
+    CreateNotificationRequest,
+    CreateNotificationResponse,
+    DeleteUserNotificationResponse,
+    GetUserNotificationsResponse,
+    PushUserNotificationByTypeRequest,
+    PushUserNotificationByTypeResponse,
+} from "@/types/generated/contracts/notifications"
+import { NotificationType } from "@/types/generated/models/notification_type"
+import { NotificationSettings } from "@/types/notifications"
 
 const NOTIFICATIONS_PATH = "notifications"
 
@@ -54,7 +54,7 @@ const deleteNotification = async (user: User, type: string): Promise<DeleteUserN
 }
 
 const pushNotification = async (
-    type: NotificationTypes,
+    type: NotificationType,
     user: User
 ): Promise<PushUserNotificationByTypeResponse | null> => {
     const request: PushUserNotificationByTypeRequest = {
@@ -158,7 +158,7 @@ export const getSubscribedNotifications = async (): Promise<NotificationSettings
 
         const notifications = userNotifications.reduce(
             (acc, notif) => {
-                const type = notif.type as NotificationTypes
+                const type = notif.type as NotificationType
 
                 if (type in acc) {
                     acc[type] = true

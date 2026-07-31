@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import { MealType } from "@/types/recipes"
 import BottomSheet from "@gorhom/bottom-sheet"
+import { MealType } from "@/types/generated/models/meal_type"
 
 export function useRecipesFilter() {
     const { activeFilter, updateFilter, setActiveFilter } = useRecipesStore()

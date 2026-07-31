@@ -1,9 +1,10 @@
 import { ADMIN_USERS, USERS } from "@env"
 import Constants from "expo-constants"
-import { Category } from "@/types/category-model"
-import { Country, MealType } from "@/types/recipes"
+import { Country } from "@/types/recipes"
 import { Theme, User } from "@/types"
-import { Action } from "@/types/logs"
+import { Category } from "@/types/generated/models/category"
+import { MealType } from "@/types/generated/models/meal_type"
+import { ViewStyle } from "react-native"
 
 export const CATEGORY_ORDER: Category[] = [
     "remaining",
@@ -36,7 +37,7 @@ export const MEALS: { [key in MealType]: string } = {
     Dessert: "🍰",
 }
 
-export const GRADIENT = ["#4E64D4", "#D0ACCA", "#F2B297"] as const
+export const GRADIENT = ["#1e55fc", "#1e55fc", "#fc559f", "#fda848"] as const
 
 export const COUNTRIES: Country[] = [
     { name: "Argentina", flag: "🇦🇷" },
@@ -94,13 +95,6 @@ export const ADMIN_USERS_ARRAY = JSON.parse(ADMIN_USERS) as User[]
 
 export const IS_DEV = Constants.appOwnership === "expo"
 
-export const ACTION_COLORS: Record<Action, string> = {
-    create: "#3B82F6",
-    delete: "#EF4444",
-    get: "#22C55E",
-    update: "#F59E0B",
-}
-
 export const THEMES: { key: Theme; label: string }[] = [
     { key: "light", label: "Light" },
     { key: "dark", label: "Dark" },
@@ -110,3 +104,28 @@ export const THEMES: { key: Theme; label: string }[] = [
 export const DEFAULT_FONT_SIZE = 35
 export const MIN_FONT_SIZE = 30
 export const MAX_FONT_SIZE = 80
+
+export const DEBOUNCE_TIME = 1000
+
+export const VERSION = Constants.expoConfig?.version ?? Constants.manifest2?.extra?.expoClient?.version ?? "Unknown"
+
+export const SHADOW_STYLE: ViewStyle = {
+    shadowColor: "#000",
+    shadowOffset: {
+        width: 0,
+        height: 8,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+}
+
+export const SHADOW_STYLE_LIGHT: ViewStyle = {
+    shadowColor: "#000",
+    shadowOffset: {
+        width: 0,
+        height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+}

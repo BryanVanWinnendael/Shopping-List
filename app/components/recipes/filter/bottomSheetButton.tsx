@@ -1,10 +1,8 @@
-import { useState } from "react"
 import { Text, View } from "react-native"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { ChevronDown, ListFilter } from "lucide-react-native"
 import { BlurView } from "expo-blur"
 import Animated, {
-    interpolate,
     useAnimatedProps,
     useAnimatedStyle,
     useSharedValue,
@@ -16,14 +14,19 @@ import GlassOrBlurView from "@/components/glassOrBlurView"
 import { useRecipesFilter } from "@/hooks/recipes/useRecipesFilter"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import useThemes from "@/hooks/themes/useThemes"
+import { useCallback, useEffect } from "react"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     onPress: () => void
+    onExpandedChange: (expanded: boolean) => void
+    expanded: boolean
+    setExpanded: (expanded: boolean) => void
 }
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
 
-export default function BottomSheetButton({ onPress }: Props) {
+export default function BottomSheetButton({ onPress, onExpandedChange, expanded, setExpanded }: Props) {
     const { vars, theme } = useThemes()
     const { newUI } = useSettingsStore()
     const { states } = useRecipesFilter()
@@ -32,39 +35,46 @@ export default function BottomSheetButton({ onPress }: Props) {
     const width = useSharedValue(48)
     const blurIntensity = useSharedValue(50)
 
-    const [expanded, setExpanded] = useState(false)
-
     const backgroundColorTint = theme === "light" ? "systemThickMaterialLight" : "systemThickMaterialDark"
 
     const animatedStyle = useAnimatedStyle(() => ({
         width: width.value,
-        borderRadius: interpolate(width.value, [48, 220], [24, 200]),
     }))
 
     const animatedBlurProps = useAnimatedProps(() => ({
         intensity: blurIntensity.value,
     }))
 
-    const toggle = () => {
-        setExpanded((prev) => !prev)
+    const toggle = useCallback(() => {
+        setExpanded(!expanded)
+        onExpandedChange(!expanded)
+    }, [setExpanded, onExpandedChange, expanded])
 
-        if (!expanded) {
-            width.value = withSequence(withTiming(220, { duration: 180 }), withTiming(200, { duration: 220 }))
+    useEffect(() => {
+        if (expanded) {
+            width.value = withSequence(withTiming(240, { duration: 180 }), withTiming(220, { duration: 220 }))
+
             blurIntensity.value = withSequence(withTiming(100, { duration: 180 }), withTiming(50, { duration: 300 }))
+
             setFilter(true)
         } else {
-            width.value = withSequence(withTiming(40, { duration: 150 }), withTiming(48, { duration: 150 }))
+            width.value = withSequence(withTiming(48, { duration: 150 }), withTiming(48, { duration: 150 }))
+
             blurIntensity.value = withSequence(withTiming(80, { duration: 100 }), withTiming(50, { duration: 150 }))
+
             setFilter(false)
         }
-    }
+    }, [expanded])
 
     const Content = (
-        <PressableScale onPress={toggle} style={{ flexDirection: "row", alignItems: "center" }}>
+        <PressableScale
+            onPress={toggle}
+            style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
+        >
             {expanded && (
-                <PressableScale onPress={onPress} style={{ paddingRight: 12 }}>
+                <PressableScale onPress={onPress} style={{ paddingRight: 10 }}>
                     <Text style={{ color: vars.textColor }}>Filtered by</Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", maxWidth: 100 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", maxWidth: 120 }}>
                         <Text style={{ color: vars.accentColor }} numberOfLines={1}>
                             {states.label}
                         </Text>
@@ -75,13 +85,15 @@ export default function BottomSheetButton({ onPress }: Props) {
 
             <View
                 style={{
+                    justifyContent: "center",
+                    alignItems: "center",
                     backgroundColor: expanded ? vars.accentColor : "transparent",
                     padding: expanded ? 8 : 0,
                     borderRadius: 20,
                     paddingHorizontal: expanded ? 20 : 0,
                 }}
             >
-                <ListFilter size={22} color={vars.textColor} />
+                <ListFilter size={22} color={vars.textColor} style={{ transform: [{ translateX: 1 }] }} />
             </View>
         </PressableScale>
     )
@@ -91,49 +103,54 @@ export default function BottomSheetButton({ onPress }: Props) {
             style={[
                 {
                     position: "absolute",
-                    bottom: 30,
+                    bottom: 26,
                     right: 80,
-                    overflow: "hidden",
-                    width: 48,
-                    borderRadius: 100,
-                    borderWidth: newUI ? 0 : 1,
-                    borderColor: vars.secondaryBorderColor,
-                    height: 48,
                     zIndex: 1,
                 },
                 animatedStyle,
+                SHADOW_STYLE,
             ]}
         >
-            {newUI ? (
-                <GlassOrBlurView
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        paddingHorizontal: expanded ? 6 : 12,
-                        height: 48,
-                    }}
-                    borderRadius={100}
-                    backgroundColor={vars.secondaryBackgroundColor}
-                    borderColor={`${vars.secondaryBorderColor}50`}
-                >
-                    {Content}
-                </GlassOrBlurView>
-            ) : (
-                <AnimatedBlurView
-                    animatedProps={animatedBlurProps}
-                    tint={backgroundColorTint}
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        paddingHorizontal: expanded ? 6 : 12,
-                        height: 48,
-                    }}
-                >
-                    {Content}
-                </AnimatedBlurView>
-            )}
+            <View
+                style={{
+                    borderRadius: 100,
+                    overflow: newUI ? "visible" : "hidden",
+                    borderWidth: newUI ? 0 : 1,
+                    borderColor: `${vars.secondaryBorderColor}50`,
+                }}
+            >
+                {newUI ? (
+                    <GlassOrBlurView
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                            paddingHorizontal: expanded ? 6 : 14,
+                            height: 48,
+                            borderRadius: 100,
+                        }}
+                        backgroundColor={vars.secondaryBackgroundColor}
+                        borderColor={`${vars.secondaryBorderColor}50`}
+                    >
+                        {Content}
+                    </GlassOrBlurView>
+                ) : (
+                    <AnimatedBlurView
+                        animatedProps={animatedBlurProps}
+                        tint={backgroundColorTint}
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                            paddingHorizontal: expanded ? 6 : 14,
+                            height: 48,
+                            borderRadius: 100,
+                        }}
+                    >
+                        {Content}
+                    </AnimatedBlurView>
+                )}
+            </View>
         </Animated.View>
     )
 }

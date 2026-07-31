@@ -1,26 +1,31 @@
-import { FlatList, StyleSheet, View } from "react-native"
-import { Log as LogType } from "@/types/logs"
+import { ActivityIndicator, FlatList, View } from "react-native"
 import Log from "@/components/logs/log"
+import { Trace } from "@/types/generated/models/trace"
 
 type Props = {
-    logs: LogType[]
+    traces: Trace[]
     headerHeight: number
+    loading: boolean
+    refreshing: boolean
+    onRefresh: () => void
+    onEndReached: () => void
 }
 
-export default function List({ logs, headerHeight }: Props) {
+export default function List({ traces, headerHeight, loading, onEndReached, refreshing, onRefresh }: Props) {
     return (
         <FlatList
-            contentContainerStyle={styles.flatListContent}
-            data={logs}
-            renderItem={({ item }) => <Log log={item} />}
-            keyExtractor={(_, index) => String(index)}
+            data={traces}
+            renderItem={({ item }) => <Log trace={item} />}
+            keyExtractor={(item, index) => item.traceId + index}
             ListHeaderComponent={<View style={{ height: headerHeight }} />}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={0.5}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            contentContainerStyle={{
+                paddingBottom: 90,
+            }}
+            ListFooterComponent={loading ? <ActivityIndicator style={{ marginTop: 10 }} /> : null}
         />
     )
 }
-
-const styles = StyleSheet.create({
-    flatListContent: {
-        marginHorizontal: 8,
-    },
-})

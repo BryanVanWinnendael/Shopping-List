@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import {AColorUse} from "@/types"
-import {DEFAULT_ACOLORUSE} from "@/lib/theme"
+import { AColorUse } from "@/types"
+import { DEFAULT_ACOLORUSE } from "@/lib/theme"
 
 const NEW_UI_KEY = "app_newUI"
 const FONT_SIZE_KEY = "app_fontSize"
@@ -21,6 +21,7 @@ export const setNewUI = async (bool: boolean) => {
 
 export const getNewUI = async () => {
     const storedNewUI = await AsyncStorage.getItem(NEW_UI_KEY)
+    if (!storedNewUI) return true
     return storedNewUI === "true"
 }
 

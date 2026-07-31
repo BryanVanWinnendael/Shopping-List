@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
 import { categoryClient } from "@/lib/category"
 import { cronClient } from "@/lib/cron"
-import { CronProduct } from "@/types/cron"
 import { useWeeklyStore } from "@/stores/useWeeklyStore"
 import { useSettingsStore } from "@/stores/useSettingsStore"
+import { CronProduct } from "@/types/generated/models/cron_product"
+import { CreateCronProductRequest } from "@/types/generated/contracts/cron"
 
 export function useWeeklyProducts() {
     const { user } = useSettingsStore()
@@ -39,7 +40,7 @@ export function useWeeklyProducts() {
             return
         }
 
-        const newCronProduct: CronProduct = {
+        const newCronProduct: CreateCronProductRequest = {
             product: trimmed,
             user,
             category: responseCategory.category,

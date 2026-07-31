@@ -12,6 +12,7 @@ import { Search, X } from "lucide-react-native"
 import useThemes from "@/hooks/themes/useThemes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import { PressableScale } from "pressto"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     value: string
@@ -21,7 +22,7 @@ type Props = {
 const AnimatedView = Animated.createAnimatedComponent(Animated.View)
 
 export function SearchBar({ value, updateQuery }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
 
     const scale = useSharedValue(1)
 
@@ -46,6 +47,7 @@ export function SearchBar({ value, updateQuery }: Props) {
                     zIndex: 1,
                 },
                 animatedStyle,
+                SHADOW_STYLE,
             ]}
         >
             <GlassOrBlurView
@@ -55,7 +57,7 @@ export function SearchBar({ value, updateQuery }: Props) {
                     flexDirection: "row",
                     alignItems: "center",
                     paddingHorizontal: 16,
-                    height: 52,
+                    height: 48,
                     borderRadius: 26,
                 }}
             >
@@ -74,6 +76,7 @@ export function SearchBar({ value, updateQuery }: Props) {
                         fontSize: 17,
                         color: vars.textColor,
                     }}
+                    keyboardAppearance={theme === "light" ? "light" : "dark"}
                 />
 
                 {value.length > 0 && (

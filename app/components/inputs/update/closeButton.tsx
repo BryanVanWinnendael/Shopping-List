@@ -2,6 +2,7 @@ import { PressableScale } from "pressto"
 import Svg, { Path } from "react-native-svg"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     close: () => void
@@ -13,12 +14,15 @@ export default function CloseButton({ close }: Props) {
     return (
         <PressableScale
             onPress={close}
-            style={{
-                justifyContent: "center",
-                alignItems: "center",
-                width: 40,
-                height: 40,
-            }}
+            style={[
+                {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: 48,
+                    height: 48,
+                },
+                SHADOW_STYLE,
+            ]}
         >
             <GlassOrBlurView
                 borderColor={`${vars.borderColor}50`}
@@ -29,8 +33,8 @@ export default function CloseButton({ close }: Props) {
                         justifyContent: "center",
                         alignItems: "center",
                         marginBottom: 8,
-                        width: 40,
-                        height: 40,
+                        width: 48,
+                        height: 48,
                     },
                 ]}
             >

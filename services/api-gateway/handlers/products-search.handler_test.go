@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"testing"
 
@@ -11,12 +13,13 @@ import (
 )
 
 type MockProductsSearchService struct {
-	SearchProductsFunc      func(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
-	FuzzySearchProductsFunc func(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error)
+	SearchProductsFunc      func(ctx context.Context, query string, categories []string, page string) (*contracts.ProductsSearchResponse, error)
+	FuzzySearchProductsFunc func(ctx context.Context, query string, category string, page string) (*contracts.ProductsSearchResponse, error)
+	GetBackupFunc           func(ctx context.Context) (*http.Response, error)
 }
 
 func TestSearchProducts(t *testing.T) {
-	t.Run("Given missing query param, When SearchProducts, Then returns 400", func(t *testing.T) {
+	t.Run("Given missing query param, When SearchProducts, Then returns 200", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/search/products", nil)
 
@@ -30,14 +33,14 @@ func TestSearchProducts(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if rec.Code != http.StatusBadRequest {
-			t.Fatalf("expected 400, got %d", rec.Code)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
 		}
 	})
 
 	t.Run("Given valid query, When SearchProducts, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?q=milk&category=dairy", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?query=milk&category=dairy", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
@@ -56,10 +59,10 @@ func TestSearchProducts(t *testing.T) {
 
 	t.Run("Given service error, When SearchProducts, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?q=milk", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search/products?query=milk", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			SearchProductsFunc: func(context.Context, string, []string, string, string) (*contracts.ProductsSearchResponse, error) {
+			SearchProductsFunc: func(context.Context, string, []string, string) (*contracts.ProductsSearchResponse, error) {
 				return nil, errors.New("search failed")
 			},
 		})
@@ -100,7 +103,7 @@ func TestFuzzySearchProducts(t *testing.T) {
 
 	t.Run("Given valid query, When FuzzySearchProducts, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?q=milk&category=dairy", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?query=milk&category=dairy", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{})
 
@@ -119,10 +122,10 @@ func TestFuzzySearchProducts(t *testing.T) {
 
 	t.Run("Given service error, When FuzzySearchProducts, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?q=milk", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/search/products/fuzzy?query=milk", nil)
 
 		handler := NewProductsSearchHandler(&MockProductsSearchService{
-			FuzzySearchProductsFunc: func(context.Context, string, string, string, string) (*contracts.ProductsSearchResponse, error) {
+			FuzzySearchProductsFunc: func(context.Context, string, string, string) (*contracts.ProductsSearchResponse, error) {
 				return nil, errors.New("fuzzy search failed")
 			},
 		})
@@ -141,16 +144,28 @@ func TestFuzzySearchProducts(t *testing.T) {
 	})
 }
 
-func (m *MockProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string, page string, pageSize string) (*contracts.ProductsSearchResponse, error) {
+func (m *MockProductsSearchService) SearchProducts(ctx context.Context, query string, categories []string, page string) (*contracts.ProductsSearchResponse, error) {
 	if m.SearchProductsFunc != nil {
-		return m.SearchProductsFunc(ctx, query, categories, page, pageSize)
+		return m.SearchProductsFunc(ctx, query, categories, page)
 	}
 	return &contracts.ProductsSearchResponse{}, nil
 }
 
-func (m *MockProductsSearchService) FuzzySearchProducts(ctx context.Context, query string, category string, page string, pageSize string) (*contracts.ProductsSearchResponse, error) {
+func (m *MockProductsSearchService) FuzzySearchProducts(ctx context.Context, query string, category string, page string) (*contracts.ProductsSearchResponse, error) {
 	if m.FuzzySearchProductsFunc != nil {
-		return m.FuzzySearchProductsFunc(ctx, query, category, page, pageSize)
+		return m.FuzzySearchProductsFunc(ctx, query, category, page)
 	}
 	return &contracts.ProductsSearchResponse{}, nil
+}
+
+func (m *MockProductsSearchService) GetBackup(ctx context.Context) (*http.Response, error) {
+	if m.GetBackupFunc != nil {
+		return m.GetBackupFunc(ctx)
+	}
+
+	return &http.Response{
+		StatusCode: 200,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("products-search-zip"))),
+	}, nil
 }

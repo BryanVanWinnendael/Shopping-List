@@ -2,8 +2,6 @@ name: Coverage Storage µS
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "services/storage/**"
       - "!services/storage/README.md"

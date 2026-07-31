@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"shopping-list/shared/contracts"
 	httphelper "shopping-list/shared/http"
@@ -20,7 +21,7 @@ func NewStorageService(client *httphelper.Client, baseURL string) *StorageServic
 	}
 }
 
-func (ss *StorageService) UploadRecipeImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error) {
+func (ss *StorageService) UploadRecipeImage(ctx context.Context, id string, fileHeader *multipart.FileHeader) (*contracts.UploadImageResponse, error) {
 	requestUrl := fmt.Sprintf("%s/recipes/images/%s", ss.baseURL, id)
 
 	var response contracts.UploadImageResponse
@@ -30,7 +31,7 @@ func (ss *StorageService) UploadRecipeImage(ctx context.Context, id string, requ
 		http.MethodPost,
 		requestUrl,
 		"image",
-		request.Image,
+		fileHeader,
 		nil,
 		&response,
 	)
@@ -84,7 +85,7 @@ func (ss *StorageService) DeleteRecipeStorage(ctx context.Context, id string) (*
 	return &response, nil
 }
 
-func (ss *StorageService) UploadListImage(ctx context.Context, id string, request *contracts.UploadImageRequest) (*contracts.UploadImageResponse, error) {
+func (ss *StorageService) UploadListImage(ctx context.Context, id string, fileHeader *multipart.FileHeader) (*contracts.UploadImageResponse, error) {
 	requestUrl := fmt.Sprintf("%s/list/images/%s", ss.baseURL, id)
 
 	var response contracts.UploadImageResponse
@@ -94,7 +95,7 @@ func (ss *StorageService) UploadListImage(ctx context.Context, id string, reques
 		http.MethodPost,
 		requestUrl,
 		"image",
-		request.Image,
+		fileHeader,
 		nil,
 		&response,
 	)
@@ -125,4 +126,16 @@ func (ss *StorageService) DeleteListImage(ctx context.Context, id string) (*cont
 	}
 
 	return &response, nil
+}
+
+func (ss *StorageService) GetBackup(ctx context.Context) (*http.Response, error) {
+	requestUrl := fmt.Sprintf("%s/recipes/backup", ss.baseURL)
+
+	response, err := ss.client.DoGetBackup(ctx, requestUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

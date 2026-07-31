@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { CronProduct } from "@/types/cron"
+import { CronProduct } from "@/types/generated/models/cron_product"
 
 type WeeklyState = {
     cronProducts: CronProduct[]

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -48,7 +49,7 @@ func (cms *CategoryHandler) CreateCategory(c echo.Context) error {
 	}
 
 	request.Product = strings.TrimSpace(request.Product)
-	request.Category = strings.TrimSpace(request.Category)
+	request.Category = models.Category(strings.TrimSpace(string(request.Category)))
 
 	if request.Product == "" || request.Category == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{

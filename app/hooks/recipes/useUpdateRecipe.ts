@@ -2,7 +2,7 @@ import { UpdateRecipeRequest } from "@/types/recipes"
 import { recipesClient } from "@/lib/recipes"
 import { useState } from "react"
 import { storageClient } from "@/lib/storage"
-import { DeleteImageRequest } from "@/types/storage"
+import { DeleteImageRequest } from "@/types/generated/contracts/storage"
 
 export function useUpdateRecipe() {
     const [loading, setLoading] = useState(false)
@@ -38,7 +38,10 @@ export function useUpdateRecipe() {
             bannerUrl = request.banner
         }
 
-        const mappedIngredients = await uploadIngredientsImages(request.id, request.ingredients)
+        let mappedIngredients
+        if (request.ingredients) {
+            mappedIngredients = await uploadIngredientsImages(request.id, request.ingredients)
+        }
 
         await deleteImages(imagesToDelete, request.id)
 

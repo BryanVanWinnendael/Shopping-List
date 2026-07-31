@@ -1,10 +1,9 @@
 import { View } from "react-native"
 import { DrawerContentComponentProps, DrawerItemList } from "@react-navigation/drawer"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { IS_DEV } from "@/lib/constants"
 import ThemesBottomSheetButton from "@/components/themes/bottomSheetButton"
 import UsersBottomSheetButton from "@/components/users/bottomSheetButton"
-import DevScreen from "@/components/devScreen"
+import InfoChip from "@/components/infoChip"
 import useThemes from "@/hooks/themes/useThemes"
 
 type Props = DrawerContentComponentProps & {
@@ -37,7 +36,7 @@ export default function CustomDrawerContent({ openThemes, openUsers, ...props }:
                 }}
             >
                 <ThemesBottomSheetButton open={openThemes} />
-                {IS_DEV && <DevScreen />}
+                <InfoChip />
             </View>
         </SafeAreaView>
     )

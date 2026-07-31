@@ -4,14 +4,14 @@ import {
     deleteProduct as deleteFirebaseProduct,
     getProducts as getFirebaseProducts,
 } from "@/lib/firebase"
-import {useSettingsStore} from "@/stores/useSettingsStore"
-import {Product} from "@/types/list"
+import { useSettingsStore } from "@/stores/useSettingsStore"
+import { Product } from "@/types/list"
 import * as ImagePicker from "expo-image-picker"
-import {storageClient} from "@/lib/storage"
-import {useEffect, useState} from "react"
-import {useProductsListStore} from "@/stores/useProductsListStore"
-import {useNotifications} from "@/hooks/notifications/useNotifications"
-import {Category} from "@/types/category-model"
+import { storageClient } from "@/lib/storage"
+import { useEffect, useState } from "react"
+import { useProductsListStore } from "@/stores/useProductsListStore"
+import { useNotifications } from "@/hooks/notifications/useNotifications"
+import { Category } from "@/types/generated/models/category"
 
 export function useProductsList() {
     const { actions } = useNotifications()
@@ -35,6 +35,7 @@ export function useProductsList() {
         } as Product
     }
 
+    // url is used for existing images
     const createImage = async (
         product?: string | null,
         url?: string | null,

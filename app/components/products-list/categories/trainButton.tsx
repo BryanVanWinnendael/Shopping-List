@@ -2,6 +2,7 @@ import { ActivityIndicator, Text } from "react-native"
 import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { SHADOW_STYLE } from "@/lib/constants"
 
 type Props = {
     training: boolean
@@ -15,17 +16,20 @@ export default function TrainButton({ training, trainModel }: Props) {
         <PressableScale
             enabled={!training}
             onPress={trainModel}
-            style={{
-                position: "absolute",
-                bottom: 30,
-                right: 15,
-                borderRadius: 8,
-                zIndex: 10,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                height: 40,
-            }}
+            style={[
+                {
+                    position: "absolute",
+                    bottom: 30,
+                    right: 15,
+                    borderRadius: 8,
+                    zIndex: 10,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: 48,
+                },
+                SHADOW_STYLE,
+            ]}
         >
             <GlassOrBlurView
                 backgroundColor={vars.secondaryBackgroundColor}
@@ -37,7 +41,7 @@ export default function TrainButton({ training, trainModel }: Props) {
                         justifyContent: "center",
                         alignItems: "center",
                         marginBottom: 8,
-                        height: 40,
+                        height: 48,
                         paddingHorizontal: 8,
                     },
                 ]}

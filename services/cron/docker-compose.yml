@@ -16,6 +16,8 @@ services:
       CRON_TIME: "0 0 * * 5"
       CRON_TIME_REMINDER: "0 0 * * 0"
       PORT: 3000
+      NOTIFICATIONS_API_URL: http://shopping-list-notifications:3000/api/notifications
+      LOGS_API_URL: http://shopping-list-logs:3000/api/logs
     env_file:
       - .env
     restart: unless-stopped

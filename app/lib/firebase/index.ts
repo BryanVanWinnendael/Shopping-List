@@ -1,7 +1,7 @@
 import { dev } from "./dev"
 import { CATEGORY_ORDER, IS_DEV } from "../constants"
-import { Category } from "@/types/category-model"
 import { Product, Products } from "@/types/list"
+import { Category } from "@/types/generated/models/category"
 
 // Loads only the ios native code when non dev env is loaded
 const getModule = async () => {

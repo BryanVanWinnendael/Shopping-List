@@ -4,7 +4,7 @@ import { useHeaderHeight } from "@react-navigation/elements"
 import { Product as ProductType } from "@/types/list"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import Product from "@/components/products-list/product"
-import { Category } from "@/types/category-model"
+import { Category } from "@/types/generated/models/category"
 
 type Props = {
     openSearchProductsBottomSheet: () => void

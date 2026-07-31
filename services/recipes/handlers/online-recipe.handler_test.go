@@ -124,7 +124,7 @@ func TestOnlineGetRecipeDetails(t *testing.T) {
 	})
 }
 
-func TestSearchRecipes(t *testing.T) {
+func TestSearchOnlineRecipes(t *testing.T) {
 	t.Run("Given missing query, When SearchRecipes, Then returns 400", func(t *testing.T) {
 		// given
 		c, rec := tests.SetupEcho(http.MethodGet, "/online-recipes/search", nil)
@@ -142,7 +142,7 @@ func TestSearchRecipes(t *testing.T) {
 
 	t.Run("Given invalid page, When SearchRecipes, Then defaults to page 1", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/online-recipes/search?q=chicken&page=abc", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/online-recipes/search?query=chicken&page=abc", nil)
 
 		handler := NewOnlineRecipeHandler(&MockOnlineRecipeService{
 			SearchRecipesFunc: func(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {
@@ -169,7 +169,7 @@ func TestSearchRecipes(t *testing.T) {
 
 	t.Run("Given service error, When SearchRecipes, Then returns 500", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/online-recipes/search?q=chicken", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/online-recipes/search?query=chicken", nil)
 
 		handler := NewOnlineRecipeHandler(&MockOnlineRecipeService{
 			SearchRecipesFunc: func(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {
@@ -188,7 +188,7 @@ func TestSearchRecipes(t *testing.T) {
 
 	t.Run("Given valid request, When SearchRecipes, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/online-recipes/search?q=chicken&page=2", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/online-recipes/search?query=chicken&page=2", nil)
 
 		handler := NewOnlineRecipeHandler(&MockOnlineRecipeService{})
 
@@ -215,9 +215,7 @@ func (m *MockOnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOn
 		return m.GetRecipeDetailsFunc(url)
 	}
 
-	return &contracts.GetOnlineRecipeDetailsResponse{
-		Title: "Recipe",
-	}, nil
+	return &contracts.GetOnlineRecipeDetailsResponse{}, nil
 }
 
 func (m *MockOnlineRecipeService) SearchRecipes(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {

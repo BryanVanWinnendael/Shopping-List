@@ -1,5 +1,5 @@
-import { Category } from "@/types/category-model"
 import { User } from "@/types/index"
+import { Category } from "@/types/generated/models/category"
 
 export interface Product {
     name: string

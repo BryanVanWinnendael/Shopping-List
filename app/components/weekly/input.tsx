@@ -4,6 +4,7 @@ import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
 
 type Props = {
     createCronProduct: () => void
@@ -17,7 +18,7 @@ export default function Input({ createCronProduct, setProduct, product, loading 
     const { aColorUse } = useSettingsStore()
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, SHADOW_STYLE_LIGHT]}>
             <GlassOrBlurView
                 style={[styles.innerContainer]}
                 backgroundColor={vars.secondaryBackgroundColor}

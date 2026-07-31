@@ -13,9 +13,10 @@ func SetupRoutes(e *echo.Group, cmh *CategoryModelHandler, lh *LogsHandler,
 
 	// Logs routes
 	logs := e.Group("/api/logs")
-	logs.GET("/app", lh.GetAppLogs)
-	logs.POST("/app", lh.CreateAppLog)
-	logs.DELETE("/app", lh.DeleteAppLogs)
+	logs.GET("", lh.GetLogs)
+	logs.GET("/search", lh.SearchLogs)
+	logs.POST("", lh.CreateLog)
+	logs.DELETE("", lh.DeleteLogs)
 
 	// Notifications routes
 	notifications := e.Group("/api/notifications")
@@ -40,7 +41,8 @@ func SetupRoutes(e *echo.Group, cmh *CategoryModelHandler, lh *LogsHandler,
 
 	// Recipes routes
 	recipes := e.Group("/api/recipes")
-	recipes.GET("", rh.GetAllRecipes)
+	recipes.GET("", rh.GetRecipes)
+	recipes.GET("/search", rh.SearchRecipes)
 	recipes.POST("", rh.CreateRecipe)
 	recipes.GET("/:id", rh.GetRecipe)
 	recipes.DELETE("/:id", rh.DeleteRecipe)

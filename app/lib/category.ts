@@ -1,6 +1,10 @@
 import { httpRequest } from "./httpHelper"
-import { CreateCategoryRequest, CreateCategoryResponse, GetCategoryResponse } from "@/types/category-model"
 import Toast from "react-native-toast-message"
+import {
+    CreateCategoryRequest,
+    CreateCategoryResponse,
+    GetCategoryResponse,
+} from "@/types/generated/contracts/category-model"
 
 const CATEGORY_PATH = "category-model/category"
 

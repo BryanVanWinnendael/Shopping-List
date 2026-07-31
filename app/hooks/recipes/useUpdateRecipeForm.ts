@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import BottomSheet from "@gorhom/bottom-sheet"
 import { useSettingsStore } from "@/stores/useSettingsStore"
-import { Country, Ingredient, MealType, Recipe, UpdateRecipeRequest } from "@/types/recipes"
 import * as ImagePicker from "expo-image-picker"
+import { Country, Ingredient, UpdateRecipeRequest } from "@/types/recipes"
+import { Recipe } from "@/types/generated/models/recipe"
+import { MealType } from "@/types/generated/models/meal_type"
 
 function convertToCountry(countryStr?: string | null): Country | null {
     if (!countryStr) return null

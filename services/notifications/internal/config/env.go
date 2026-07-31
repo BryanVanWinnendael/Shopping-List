@@ -8,10 +8,11 @@ import (
 )
 
 type Env struct {
-	DataDir string
-	Bucket  string
-	DB      string
-	Port    string
+	DataDir    string
+	Bucket     string
+	DB         string
+	Port       string
+	LogsAPIURL string
 }
 
 var Vars Env
@@ -24,10 +25,11 @@ func LoadEnv() {
 	}
 
 	Vars = Env{
-		DataDir: getEnv("DATA_DIR", "./data"),
-		Bucket:  getEnv("BUCKET", "notifications"),
-		DB:      getEnv("DB", "notifications.db"),
-		Port:    getEnv("PORT", "3000"),
+		DataDir:    getEnv("DATA_DIR", "./data"),
+		Bucket:     getEnv("BUCKET", "notifications"),
+		DB:         getEnv("DB", "notifications.db"),
+		Port:       getEnv("PORT", "3000"),
+		LogsAPIURL: getEnv("LOGS_API_URL", "http://shopping-list-logs:3000/api/logs"),
 	}
 }
 

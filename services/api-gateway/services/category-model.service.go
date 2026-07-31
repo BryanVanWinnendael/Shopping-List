@@ -88,3 +88,15 @@ func (cms *CategoryModelService) CreateCategory(
 
 	return &response, nil
 }
+
+func (cms *CategoryModelService) GetBackup(ctx context.Context) (*http.Response, error) {
+	requestUrl := fmt.Sprintf("%s/model/backup", cms.baseURL)
+
+	response, err := cms.client.DoGetBackup(ctx, requestUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}

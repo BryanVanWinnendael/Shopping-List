@@ -23,8 +23,12 @@ func NewProductsSearchService() *ProductsSearchService {
 	return &ProductsSearchService{}
 }
 
-func getCategoryPriority(category string) int {
-	if p, ok := categoryPriority[strings.ToLower(category)]; ok {
+const (
+	pageSize = 50
+)
+
+func getCategoryPriority(category sharedModels.Category) int {
+	if p, ok := categoryPriority[strings.ToLower(string(category))]; ok {
 		return p
 	}
 	return 999
@@ -32,16 +36,14 @@ func getCategoryPriority(category string) int {
 
 func (pss *ProductsSearchService) SearchProducts(
 	query string,
-	categories []string,
+	categories []sharedModels.Category,
 	page int,
-	pageSize int,
 ) (*contracts.ProductsSearchResponse, error) {
-
-	query = strings.ToLower(query)
+	query = strings.TrimSpace(strings.ToLower(query))
 
 	categorySet := make(map[string]struct{})
 	for _, c := range categories {
-		categorySet[strings.ToLower(c)] = struct{}{}
+		categorySet[strings.ToLower(string(c))] = struct{}{}
 	}
 
 	records, err := getRecords()
@@ -66,10 +68,13 @@ func (pss *ProductsSearchService) SearchProducts(
 		brandLower := strings.ToLower(brand)
 		categoryLower := strings.ToLower(category)
 
-		if !strings.Contains(nameLower, query) &&
-			!strings.Contains(brandLower, query) &&
-			!strings.Contains(categoryLower, query) {
-			continue
+		// Skip text filtering if query is empty.
+		if query != "" {
+			if !strings.Contains(nameLower, query) &&
+				!strings.Contains(brandLower, query) &&
+				!strings.Contains(categoryLower, query) {
+				continue
+			}
 		}
 
 		if len(categorySet) > 0 {
@@ -82,7 +87,7 @@ func (pss *ProductsSearchService) SearchProducts(
 			PID:      pid,
 			Name:     name,
 			Brand:    brand,
-			Category: category,
+			Category: sharedModels.Category(category),
 			Image:    image,
 		})
 	}
@@ -98,7 +103,12 @@ func (pss *ProductsSearchService) SearchProducts(
 	})
 
 	paginated, totalPages := paginate(matches, page, pageSize)
-	categoriesString := strings.Join(categories, ",")
+
+	categoryStrings := make([]string, len(categories))
+	for i, category := range categories {
+		categoryStrings[i] = string(category)
+	}
+	categoriesString := strings.Join(categoryStrings, ",")
 
 	return &contracts.ProductsSearchResponse{
 		Products:    paginated,
@@ -108,15 +118,14 @@ func (pss *ProductsSearchService) SearchProducts(
 		PageSize:    pageSize,
 		TotalPages:  totalPages,
 		Product:     query,
-		Category:    categoriesString,
+		Category:    sharedModels.Category(categoriesString),
 	}, nil
 }
 
 func (pss *ProductsSearchService) FuzzySearchProducts(
 	query string,
-	category string,
+	category sharedModels.Category,
 	page int,
-	pageSize int,
 ) (*contracts.ProductsSearchResponse, error) {
 
 	query = strings.ToLower(strings.TrimSpace(query))
@@ -134,7 +143,7 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 
 	categorySet := make(map[string]struct{})
 	if category != "" {
-		categorySet[strings.ToLower(category)] = struct{}{}
+		categorySet[strings.ToLower(string(category))] = struct{}{}
 	}
 
 	var results []models.ScoredProduct
@@ -192,7 +201,7 @@ func (pss *ProductsSearchService) FuzzySearchProducts(
 					PID:      row[0],
 					Name:     row[1],
 					Brand:    row[2],
-					Category: row[3],
+					Category: sharedModels.Category(row[3]),
 					Image:    row[4],
 				},
 				Score: score,

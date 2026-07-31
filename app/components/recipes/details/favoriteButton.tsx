@@ -1,9 +1,10 @@
 import { Star, StarOff } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import { Recipe } from "@/types/recipes"
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { Recipe } from "@/types/generated/models/recipe"
+import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
 
 type Props = {
     recipe: Recipe
@@ -12,25 +13,28 @@ type Props = {
 export default function FavoriteButton({ recipe }: Props) {
     const { vars } = useThemes()
     const { setFavoriteRecipes, favoriteRecipes } = useRecipesStore()
-    const isFavorite = favoriteRecipes.includes(recipe.id)
+    const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
 
     const handleAddToFavorites = async () => {
         if (isFavorite) {
-            await setFavoriteRecipes(favoriteRecipes.filter((r) => r !== recipe.id))
+            await setFavoriteRecipes(favoriteRecipes.filter((r) => r.id !== recipe.id))
         } else {
-            await setFavoriteRecipes([...favoriteRecipes, recipe.id])
+            await setFavoriteRecipes([...favoriteRecipes, recipe])
         }
     }
 
     return (
         <PressableScale
             onPress={handleAddToFavorites}
-            style={{
-                justifyContent: "center",
-                alignItems: "center",
-                width: 40,
-                height: 40,
-            }}
+            style={[
+                {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: 48,
+                    height: 48,
+                },
+                SHADOW_STYLE_LIGHT,
+            ]}
         >
             <GlassOrBlurView
                 borderColor={`${vars.secondaryBorderColor}50`}
@@ -40,9 +44,8 @@ export default function FavoriteButton({ recipe }: Props) {
                         overflow: "hidden",
                         justifyContent: "center",
                         alignItems: "center",
-                        marginBottom: 8,
-                        width: 40,
-                        height: 40,
+                        width: 48,
+                        height: 48,
                     },
                 ]}
             >

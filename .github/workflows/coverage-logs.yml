@@ -2,8 +2,6 @@ name: Coverage Logs µS
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "services/logs/**"
       - "!services/logs/README.md"

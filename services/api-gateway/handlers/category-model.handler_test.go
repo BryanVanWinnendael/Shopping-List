@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"testing"
 
@@ -15,6 +17,7 @@ type MockCategoryModelService struct {
 	TrainModelFunc     func(ctx context.Context) (*contracts.TrainModelResponse, error)
 	GetCategoryFunc    func(ctx context.Context, product string) (*contracts.GetCategoryResponse, error)
 	CreateCategoryFunc func(ctx context.Context, request *contracts.CreateCategoryRequest) (*contracts.CreateCategoryResponse, error)
+	GetBackupFunc      func(ctx context.Context) (*http.Response, error)
 }
 
 func TestTrainModel(t *testing.T) {
@@ -240,4 +243,16 @@ func (m *MockCategoryModelService) CreateCategory(ctx context.Context, request *
 	}
 
 	return &contracts.CreateCategoryResponse{}, nil
+}
+
+func (m *MockCategoryModelService) GetBackup(ctx context.Context) (*http.Response, error) {
+	if m.GetBackupFunc != nil {
+		return m.GetBackupFunc(ctx)
+	}
+
+	return &http.Response{
+		StatusCode: 200,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(bytes.NewBuffer([]byte("category-model-zip"))),
+	}, nil
 }

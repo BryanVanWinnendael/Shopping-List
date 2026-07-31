@@ -1,8 +1,8 @@
 import { PressableScale } from "pressto"
-import { CronProduct } from "@/types/cron"
 import ProductPreview from "@/components/products-list/productPreview"
 import { useMemo } from "react"
 import { Product } from "@/types/list"
+import { CronProduct } from "@/types/generated/models/cron_product"
 
 type Props = {
     cronProduct: CronProduct

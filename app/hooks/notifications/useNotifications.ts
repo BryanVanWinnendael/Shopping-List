@@ -1,8 +1,8 @@
-import {useState} from "react"
-import {useSettingsStore} from "@/stores/useSettingsStore"
-import {notificationsClient, registerForPush} from "@/lib/notifications"
-import {useNotificationsStore} from "@/stores/useNotificationsStore"
-import {NotificationTypes} from "@/types/notifications"
+import { useState } from "react"
+import { useSettingsStore } from "@/stores/useSettingsStore"
+import { notificationsClient, registerForPush } from "@/lib/notifications"
+import { useNotificationsStore } from "@/stores/useNotificationsStore"
+import { NotificationType } from "@/types/generated/models/notification_type"
 
 export function useNotifications() {
     const { setNotificationPushed, notificationPushed, setSubscribedNotifications, subscribedNotifications } =
@@ -30,7 +30,7 @@ export function useNotifications() {
             return
         }
 
-        const keys: NotificationTypes[] = ["added", "timed", "removed"]
+        const keys: NotificationType[] = ["added", "timed", "removed"]
 
         await Promise.all(
             keys.map((k) => {
@@ -50,7 +50,7 @@ export function useNotifications() {
         })
     }
 
-    const toggle = async (key: NotificationTypes) => {
+    const toggle = async (key: NotificationType) => {
         const newValue = !subscribedNotifications[key]
         updateNotifications({ [key]: newValue })
 
@@ -74,7 +74,7 @@ export function useNotifications() {
         }
     }
 
-    const pushNotification = async (type: NotificationTypes) => {
+    const pushNotification = async (type: NotificationType) => {
         if (!user || notificationPushed) return
         const response = await notificationsClient.pushNotification(type, user)
         if (response) {

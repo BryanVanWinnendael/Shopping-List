@@ -5,13 +5,14 @@ import (
 	"os"
 	"shopping-list/category-model/internal/config"
 	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"shopping-list/shared/tests"
 	"testing"
 )
 
 type MockModelService struct {
 	LoadModelFunc func() error
-	PredictFunc   func(product string) (string, error)
+	PredictFunc   func(product string) (models.Category, error)
 }
 
 func TestNewCategoryService(t *testing.T) {
@@ -75,7 +76,7 @@ func TestGetCategory(t *testing.T) {
 	t.Run("Given CategoryService with failing Predict, When GetCategory, Then return predict error", func(t *testing.T) {
 		// given
 		mock := &MockModelService{
-			PredictFunc: func(product string) (string, error) {
+			PredictFunc: func(product string) (models.Category, error) {
 				return "", errors.New("predict fail")
 			},
 		}
@@ -130,7 +131,7 @@ func (m *MockModelService) LoadModel() error {
 	return nil
 }
 
-func (m *MockModelService) Predict(product string) (string, error) {
+func (m *MockModelService) Predict(product string) (models.Category, error) {
 	if m.PredictFunc != nil {
 		return m.PredictFunc(product)
 	}

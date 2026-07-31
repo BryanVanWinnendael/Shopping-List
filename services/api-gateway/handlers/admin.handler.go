@@ -13,41 +13,96 @@ import (
 type AdminService interface {
 }
 
-func NewAdminHandler(cs CronService, ns NotificationsService, rs RecipesService) *AdminHandler {
-	return &AdminHandler{CronService: cs, NotificationsService: ns, RecipesService: rs}
+func NewAdminHandler(cms CategoryModelService, cs CronService, ls LogsService, ns NotificationsService,
+	pss ProductsSearchService, rs RecipesService, ss StorageService) *AdminHandler {
+	return &AdminHandler{
+		CategoryModelService:  cms,
+		CronService:           cs,
+		LogsService:           ls,
+		NotificationsService:  ns,
+		ProductsSearchService: pss,
+		RecipesService:        rs,
+		StorageService:        ss,
+	}
 }
 
 type AdminHandler struct {
-	CronService          CronService
-	NotificationsService NotificationsService
-	RecipesService       RecipesService
+	CategoryModelService  CategoryModelService
+	CronService           CronService
+	LogsService           LogsService
+	NotificationsService  NotificationsService
+	ProductsSearchService ProductsSearchService
+	RecipesService        RecipesService
+	StorageService        StorageService
 }
 
 func (ah *AdminHandler) GetBackups(c echo.Context) error {
 	ctx := c.Request().Context()
 
+	categoryModelResp, err := ah.CategoryModelService.GetBackup(ctx)
+	if err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
 	cronResp, err := ah.CronService.GetBackup(ctx)
 	if err != nil {
+		_ = categoryModelResp.Body.Close()
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	logsResp, err := ah.LogsService.GetBackup(ctx)
+	if err != nil {
+		_ = categoryModelResp.Body.Close()
+		_ = cronResp.Body.Close()
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
 	notifResp, err := ah.NotificationsService.GetBackup(ctx)
 	if err != nil {
+		_ = categoryModelResp.Body.Close()
 		_ = cronResp.Body.Close()
+		_ = logsResp.Body.Close()
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	productSearchResp, err := ah.ProductsSearchService.GetBackup(ctx)
+	if err != nil {
+		_ = categoryModelResp.Body.Close()
+		_ = cronResp.Body.Close()
+		_ = logsResp.Body.Close()
+		_ = notifResp.Body.Close()
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
 	recipeResp, err := ah.RecipesService.GetBackup(ctx)
 	if err != nil {
+		_ = categoryModelResp.Body.Close()
 		_ = cronResp.Body.Close()
+		_ = logsResp.Body.Close()
 		_ = notifResp.Body.Close()
+		_ = productSearchResp.Body.Close()
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	storageResp, err := ah.StorageService.GetBackup(ctx)
+	if err != nil {
+		_ = categoryModelResp.Body.Close()
+		_ = cronResp.Body.Close()
+		_ = logsResp.Body.Close()
+		_ = notifResp.Body.Close()
+		_ = productSearchResp.Body.Close()
+		_ = recipeResp.Body.Close()
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
 	defer func() {
+		_ = categoryModelResp.Body.Close()
 		_ = cronResp.Body.Close()
+		_ = logsResp.Body.Close()
 		_ = notifResp.Body.Close()
+		_ = productSearchResp.Body.Close()
 		_ = recipeResp.Body.Close()
+		_ = storageResp.Body.Close()
 	}()
 
 	filename := "shopping-list-backup-" + time.Now().Format("2006-01-02") + ".zip"
@@ -69,9 +124,13 @@ func (ah *AdminHandler) GetBackups(c echo.Context) error {
 		name string
 		body io.ReadCloser
 	}{
-		{"cron.db", cronResp.Body},
-		{"notifications.db", notifResp.Body},
-		{"recipes.db", recipeResp.Body},
+		{"category-model.zip", categoryModelResp.Body},
+		{"cron.zip", cronResp.Body},
+		{"logs.zip", logsResp.Body},
+		{"notifications.zip", notifResp.Body},
+		{"products-search.zip", productSearchResp.Body},
+		{"recipes.zip", recipeResp.Body},
+		{"storage.zip", storageResp.Body},
 	}
 
 	for _, f := range files {
@@ -80,8 +139,7 @@ func (ah *AdminHandler) GetBackups(c echo.Context) error {
 			return response.Error(c, http.StatusInternalServerError, err.Error())
 		}
 
-		_, err = io.Copy(w, f.body)
-		if err != nil {
+		if _, err := io.Copy(w, f.body); err != nil {
 			return response.Error(c, http.StatusInternalServerError, err.Error())
 		}
 	}

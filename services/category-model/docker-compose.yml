@@ -12,6 +12,7 @@ services:
       CATEGORIES_FILE: categories.csv
       MODEL_FILE: model.pkl
       PORT: 3000
+      LOGS_API_URL: http://shopping-list-logs:3000/api/logs
     env_file:
       - .env
     restart: unless-stopped

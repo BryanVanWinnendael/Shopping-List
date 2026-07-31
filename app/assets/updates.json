@@ -1,5 +1,17 @@
 [
     {
+        "version": "2.5.0",
+        "date": "25/07/2026",
+        "text": [
+            "Various UI improvements and polish across the app",
+            "Made Liquid Glass Style default",
+            "Added search functionality for recipes",
+            "Improved the admin logs page with tracing and navigation",
+            "Products Search now displays the first page of products by default when no search is active"
+        ]
+    },
+    {
+        "version": "2.4.0",
         "date": "31/05/2026",
         "text": [
             "Improved UI across multiple screens",
@@ -13,6 +25,7 @@
         ]
     },
     {
+        "version": "2.2.0",
         "date": "05/04/2026",
         "text": [
             "Improved buttons to add text/image from products search page",
@@ -20,10 +33,12 @@
         ]
     },
     {
+        "version": "2.1.5",
         "date": "21/03/2026",
         "text": ["Improved products search", "Add to list from the products search page"]
     },
     {
+        "version": "2.1.0",
         "date": "24/01/2026",
         "text": [
             "Option to use the new UI (liquid glass design)",
