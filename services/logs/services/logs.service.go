@@ -31,7 +31,7 @@ var mu sync.Mutex
 
 const (
 	pageSize      = 50
-	maxLogEntries = 100 // max logs/traces in total that can be saved
+	maxLogEntries = 300 // max logs/traces in total that can be saved
 )
 
 func (ls *LogsService) GetLogs(page int) (*contracts.GetLogsResponse, error) {
