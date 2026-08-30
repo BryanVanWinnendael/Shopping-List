@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"shopping-list/shared/models"
 	"testing"
 
 	"shopping-list/shared/contracts"
@@ -17,8 +18,8 @@ type MockRecipesService struct {
 	CreateRecipeFunc           func(ctx context.Context, req *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipeFunc              func(ctx context.Context, id string) (*contracts.GetRecipeResponse, error)
 	DeleteRecipeFunc           func(ctx context.Context, id string) (*contracts.DeleteRecipeResponse, error)
-	GetRecipesFunc             func(ctx context.Context, user string, page, pageSize string) (*contracts.GetRecipesResponse, error)
-	SearchRecipesFunc          func(ctx context.Context, user string, query string, page string, pageSize string) (*contracts.SearchRecipesResponse, error)
+	GetRecipesFunc             func(ctx context.Context, filters models.RecipeFilter, user, page string) (*contracts.GetRecipesResponse, error)
+	SearchRecipesFunc          func(ctx context.Context, filters models.RecipeFilter, user, page string) (*contracts.SearchRecipesResponse, error)
 	UpdateRecipeFunc           func(ctx context.Context, id string, req *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUserFunc       func(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountriesFunc   func(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
@@ -193,7 +194,7 @@ func TestGetRecipes(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{
-			GetRecipesFunc: func(context.Context, string, string, string) (*contracts.GetRecipesResponse, error) {
+			GetRecipesFunc: func(context.Context, models.RecipeFilter, string, string) (*contracts.GetRecipesResponse, error) {
 				return nil, errors.New("failed")
 			},
 		})
@@ -670,7 +671,7 @@ func TestSearchRecipes(t *testing.T) {
 
 	t.Run("Given valid query, When SearchRecipes, Then returns 200", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=pasta&page=1&pageSize=10", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=pasta&page=1", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{})
 
@@ -687,32 +688,62 @@ func TestSearchRecipes(t *testing.T) {
 		}
 	})
 
-	t.Run("Given user and pagination, When SearchRecipes, Then passes params", func(t *testing.T) {
+	t.Run("Given user and filters, When SearchRecipes, Then passes params", func(t *testing.T) {
 		// given
-		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?user=Bryan&query=pasta&page=2&pageSize=20", nil)
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?user=Bryan&query=pasta&page=2&time=1&country=country&mealType=mealType&public=true&isSaved=true", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{
 			SearchRecipesFunc: func(
 				_ context.Context,
+				filters models.RecipeFilter,
 				user string,
-				query string,
 				page string,
-				pageSize string,
 			) (*contracts.SearchRecipesResponse, error) {
 				if user != "Bryan" {
 					t.Fatalf("expected user Bryan, got %s", user)
 				}
 
-				if query != "pasta" {
-					t.Fatalf("expected query pasta, got %s", query)
+				if filters.Query != "pasta" {
+					t.Fatalf("expected query pasta, got %s", filters.Query)
+				}
+
+				if filters.Time == nil {
+					t.Fatal("expected time to be set")
+				}
+				if *filters.Time != 1 {
+					t.Fatalf("expected time 1, got %d", *filters.Time)
+				}
+
+				if filters.Country == nil {
+					t.Fatal("expected country to be set")
+				}
+				if *filters.Country != "country" {
+					t.Fatalf("expected country country, got %s", *filters.Country)
+				}
+
+				if filters.MealType == nil {
+					t.Fatal("expected mealType to be set")
+				}
+				if *filters.MealType != "mealType" {
+					t.Fatalf("expected mealType mealType, got %s", *filters.MealType)
+				}
+
+				if filters.Public == nil {
+					t.Fatal("expected public to be set")
+				}
+				if *filters.Public != true {
+					t.Fatalf("expected public true, got %t", *filters.Public)
+				}
+
+				if filters.IsSaved == nil {
+					t.Fatal("expected isSaved to be set")
+				}
+				if *filters.IsSaved != true {
+					t.Fatalf("expected isSaved true, got %t", *filters.IsSaved)
 				}
 
 				if page != "2" {
 					t.Fatalf("expected page 2, got %s", page)
-				}
-
-				if pageSize != "20" {
-					t.Fatalf("expected pageSize 20, got %s", pageSize)
 				}
 
 				return &contracts.SearchRecipesResponse{}, nil
@@ -739,8 +770,7 @@ func TestSearchRecipes(t *testing.T) {
 		handler := NewRecipesHandler(&MockRecipesService{
 			SearchRecipesFunc: func(
 				context.Context,
-				string,
-				string,
+				models.RecipeFilter,
 				string,
 				string,
 			) (*contracts.SearchRecipesResponse, error) {
@@ -783,9 +813,9 @@ func (m *MockRecipesService) DeleteRecipe(ctx context.Context, id string) (*cont
 	return &contracts.DeleteRecipeResponse{}, nil
 }
 
-func (m *MockRecipesService) GetRecipes(ctx context.Context, user string, page, pageSize string) (*contracts.GetRecipesResponse, error) {
+func (m *MockRecipesService) GetRecipes(ctx context.Context, filters models.RecipeFilter, user, page string) (*contracts.GetRecipesResponse, error) {
 	if m.GetRecipesFunc != nil {
-		return m.GetRecipesFunc(ctx, user, page, pageSize)
+		return m.GetRecipesFunc(ctx, filters, user, page)
 	}
 	return &contracts.GetRecipesResponse{}, nil
 }
@@ -844,9 +874,9 @@ func (m *MockRecipesService) GetBackup(ctx context.Context) (*http.Response, err
 	}, nil
 }
 
-func (m *MockRecipesService) SearchRecipes(ctx context.Context, user string, query string, page string, pageSize string) (*contracts.SearchRecipesResponse, error) {
+func (m *MockRecipesService) SearchRecipes(ctx context.Context, filters models.RecipeFilter, user, page string) (*contracts.SearchRecipesResponse, error) {
 	if m.SearchRecipesFunc != nil {
-		return m.SearchRecipesFunc(ctx, user, query, page, pageSize)
+		return m.SearchRecipesFunc(ctx, filters, user, page)
 	}
 	return &contracts.SearchRecipesResponse{}, nil
 }

@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"shopping-list/shared/contracts"
 	httphelper "shopping-list/shared/http"
+	"shopping-list/shared/models"
+	"strconv"
 )
 
 type RecipesService struct {
@@ -83,20 +86,29 @@ func (rs *RecipesService) DeleteRecipe(ctx context.Context, id string) (*contrac
 	return &response, nil
 }
 
-func (rs *RecipesService) GetRecipes(ctx context.Context, user string, page string, pageSize string) (*contracts.GetRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/recipes?user=%s&page=%s&pageSize=%s", rs.baseURL, user, page, pageSize)
+func (rs *RecipesService) GetRecipes(ctx context.Context, filter models.RecipeFilter, user string, page string) (*contracts.GetRecipesResponse, error) {
+	params := recipeFilterValues(filter)
+
+	if user != "" {
+		params.Set("user", user)
+	}
+
+	if page != "" {
+		params.Set("page", page)
+	}
+
+	requestURL := fmt.Sprintf("%s/recipes?%s", rs.baseURL, params.Encode())
 
 	var response contracts.GetRecipesResponse
 
 	_, err := rs.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		requestUrl,
+		requestURL,
 		nil,
 		nil,
 		&response,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +180,13 @@ func (rs *RecipesService) GetDistinctCountries(ctx context.Context) (*contracts.
 }
 
 func (rs *RecipesService) GetOnlineRecipes(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/online-recipes?page=%s", rs.baseURL, page)
+	params := url.Values{}
+
+	if page != "" {
+		params.Set("page", page)
+	}
+
+	requestUrl := fmt.Sprintf("%s/online-recipes?%s", rs.baseURL, params.Encode())
 
 	var response contracts.GetOnlineRecipesResponse
 
@@ -188,8 +206,14 @@ func (rs *RecipesService) GetOnlineRecipes(ctx context.Context, page string) (*c
 	return &response, nil
 }
 
-func (rs *RecipesService) GetOnlineRecipeDetails(ctx context.Context, url string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
-	requestUrl := fmt.Sprintf("%s/online-recipes/details?url=%s", rs.baseURL, url)
+func (rs *RecipesService) GetOnlineRecipeDetails(ctx context.Context, recipeUrl string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
+	params := url.Values{}
+
+	if recipeUrl != "" {
+		params.Set("url", recipeUrl)
+	}
+
+	requestUrl := fmt.Sprintf("%s/online-recipes/details?%s", rs.baseURL, params.Encode())
 
 	var response contracts.GetOnlineRecipeDetailsResponse
 
@@ -242,23 +266,62 @@ func (rs *RecipesService) GetBackup(ctx context.Context) (*http.Response, error)
 	return response, nil
 }
 
-func (rs *RecipesService) SearchRecipes(ctx context.Context, user string, query string, page string, pageSize string) (*contracts.SearchRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/recipes/search?user=%s&query=%s&page=%s&pageSize=%s", rs.baseURL, user, query, page, pageSize)
+func (rs *RecipesService) SearchRecipes(ctx context.Context, filter models.RecipeFilter, user, page string) (*contracts.SearchRecipesResponse, error) {
+	params := recipeFilterValues(filter)
+
+	if user != "" {
+		params.Set("user", user)
+	}
+
+	if page != "" {
+		params.Set("page", page)
+	}
+
+	requestURL := fmt.Sprintf("%s/recipes/search?%s", rs.baseURL, params.Encode())
 
 	var response contracts.SearchRecipesResponse
 
 	_, err := rs.client.DoRequest(
 		ctx,
 		http.MethodGet,
-		requestUrl,
+		requestURL,
 		nil,
 		nil,
 		&response,
 	)
-
 	if err != nil {
 		return nil, err
 	}
 
 	return &response, nil
+}
+
+func recipeFilterValues(filter models.RecipeFilter) url.Values {
+	params := url.Values{}
+
+	if filter.Query != "" {
+		params.Set("query", filter.Query)
+	}
+
+	if filter.Country != nil {
+		params.Set("country", *filter.Country)
+	}
+
+	if filter.MealType != nil {
+		params.Set("mealType", string(*filter.MealType))
+	}
+
+	if filter.Public != nil {
+		params.Set("public", strconv.FormatBool(*filter.Public))
+	}
+
+	if filter.Time != nil {
+		params.Set("time", strconv.Itoa(*filter.Time))
+	}
+
+	if filter.IsSaved != nil {
+		params.Set("isSaved", strconv.FormatBool(*filter.IsSaved))
+	}
+
+	return params
 }

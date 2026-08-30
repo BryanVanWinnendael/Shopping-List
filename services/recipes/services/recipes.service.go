@@ -85,32 +85,26 @@ func (rs *RecipeService) GetRecipe(id string) (*contracts.GetRecipeResponse, err
 	return &result, nil
 }
 
-func (rs *RecipeService) GetRecipes(user string, page int) (*contracts.GetRecipesResponse, error) {
+func (rs *RecipeService) GetRecipes(user string, filter models.RecipeFilter, page int) (*contracts.GetRecipesResponse, error) {
 	recipes, err := rs.getVisibleRecipes(user)
 	if err != nil {
 		return nil, err
 	}
+
+	recipes = filterRecipes(recipes, filter)
 
 	return (*contracts.GetRecipesResponse)(paginateRecipes(recipes, page, pageSize)), nil
 }
 
-func (rs *RecipeService) SearchRecipes(user string, query string, page int) (*contracts.SearchRecipesResponse, error) {
+func (rs *RecipeService) SearchRecipes(user string, filter models.RecipeFilter, page int) (*contracts.SearchRecipesResponse, error) {
 	recipes, err := rs.getVisibleRecipes(user)
 	if err != nil {
 		return nil, err
 	}
 
-	query = strings.ToLower(strings.TrimSpace(query))
+	recipes = filterRecipes(recipes, filter)
 
-	filtered := make([]models.RecipeSummary, 0)
-
-	for _, recipe := range recipes {
-		if query == "" || strings.Contains(strings.ToLower(recipe.Title), query) {
-			filtered = append(filtered, recipe)
-		}
-	}
-
-	return (*contracts.SearchRecipesResponse)(paginateRecipes(filtered, page, pageSize)), nil
+	return (*contracts.SearchRecipesResponse)(paginateRecipes(recipes, page, pageSize)), nil
 }
 
 func (rs *RecipeService) getVisibleRecipes(user string) ([]models.RecipeSummary, error) {
@@ -153,6 +147,53 @@ func (rs *RecipeService) getVisibleRecipes(user string) ([]models.RecipeSummary,
 	return recipes, nil
 }
 
+func filterRecipes(recipes []models.RecipeSummary, filter models.RecipeFilter) []models.RecipeSummary {
+	query := strings.ToLower(strings.TrimSpace(filter.Query))
+
+	filtered := make([]models.RecipeSummary, 0, len(recipes))
+
+	for _, recipe := range recipes {
+		if query != "" && !strings.Contains(strings.ToLower(recipe.Title), query) {
+			continue
+		}
+
+		if filter.Country != nil {
+			if recipe.Country == nil ||
+				!strings.EqualFold(strings.TrimSpace(*recipe.Country), strings.TrimSpace(*filter.Country)) {
+				continue
+			}
+		}
+
+		if filter.MealType != nil {
+			if recipe.MealType == nil || *recipe.MealType != *filter.MealType {
+				continue
+			}
+		}
+
+		if filter.Public != nil {
+			if recipe.Public == nil || *recipe.Public != *filter.Public {
+				continue
+			}
+		}
+
+		if filter.Time != nil {
+			if recipe.Time == nil || *recipe.Time > *filter.Time {
+				continue
+			}
+		}
+
+		if filter.IsSaved != nil {
+			if recipe.IsSaved == nil || *recipe.IsSaved != *filter.IsSaved {
+				continue
+			}
+		}
+
+		filtered = append(filtered, recipe)
+	}
+
+	return filtered
+}
+
 func paginateRecipes(recipes []models.RecipeSummary, page int, pageSize int) *contracts.RecipesResponse {
 	if page < 1 {
 		page = 1
@@ -192,7 +233,7 @@ func paginateRecipes(recipes []models.RecipeSummary, page int, pageSize int) *co
 	}
 }
 
-// Should always return everything
+// GetRecipesByUser Should always return everything
 // Used by FE to add product to recipe
 func (rs *RecipeService) GetRecipesByUser(user string) (*contracts.GetRecipesByUserResponse, error) {
 	var result contracts.GetRecipesByUserResponse

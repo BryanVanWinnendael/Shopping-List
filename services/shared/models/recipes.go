@@ -19,6 +19,7 @@ type Recipe struct {
 	MealType     *MealType    `json:"mealType,omitempty"`
 	Country      *string      `json:"country,omitempty"`
 	Persons      *int         `json:"persons,omitempty"`
+	IsSaved      *bool        `json:"isSaved,omitempty"`
 }
 
 type RecipeSummary struct {
@@ -31,6 +32,7 @@ type RecipeSummary struct {
 	MealType *MealType `json:"mealType,omitempty"`
 	Country  *string   `json:"country,omitempty"`
 	Persons  *int      `json:"persons,omitempty"`
+	IsSaved  *bool     `json:"isSaved,omitempty"`
 }
 
 type MealType string
@@ -68,4 +70,13 @@ type Nutrition struct {
 	SaturatedFat  string `json:"saturatedFat,omitempty"`
 	Protein       string `json:"protein,omitempty"`
 	Fiber         string `json:"fiber,omitempty"`
+}
+
+type RecipeFilter struct {
+	Query    string
+	Country  *string
+	MealType *MealType
+	Public   *bool
+	Time     *int
+	IsSaved  *bool
 }

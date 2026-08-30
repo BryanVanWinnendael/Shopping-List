@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"shopping-list/api-gateway/response"
 	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"strconv"
 	"strings"
 
@@ -15,8 +17,8 @@ type RecipesService interface {
 	CreateRecipe(ctx context.Context, request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipe(ctx context.Context, id string) (*contracts.GetRecipeResponse, error)
 	DeleteRecipe(ctx context.Context, id string) (*contracts.DeleteRecipeResponse, error)
-	GetRecipes(ctx context.Context, user string, page string, pageSize string) (*contracts.GetRecipesResponse, error)
-	SearchRecipes(ctx context.Context, user string, query string, page string, pageSize string) (*contracts.SearchRecipesResponse, error)
+	GetRecipes(ctx context.Context, filters models.RecipeFilter, user string, page string) (*contracts.GetRecipesResponse, error)
+	SearchRecipes(ctx context.Context, filters models.RecipeFilter, user, page string) (*contracts.SearchRecipesResponse, error)
 	UpdateRecipe(ctx context.Context, id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUser(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountries(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
@@ -88,9 +90,13 @@ func (rh *RecipesHandler) DeleteRecipe(c echo.Context) error {
 func (rh *RecipesHandler) GetRecipes(c echo.Context) error {
 	user := strings.TrimSpace(c.QueryParam("user"))
 	page := strings.TrimSpace(c.QueryParam("page"))
-	pageSize := strings.TrimSpace(c.QueryParam("pageSize"))
 
-	result, err := rh.RecipesService.GetRecipes(c.Request().Context(), user, page, pageSize)
+	filters, err := buildRecipeFilters(c)
+	if err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	result, err := rh.RecipesService.GetRecipes(c.Request().Context(), filters, user, page)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -208,21 +214,23 @@ func (rh *RecipesHandler) SearchOnlineRecipes(c echo.Context) error {
 
 func (rh *RecipesHandler) SearchRecipes(c echo.Context) error {
 	user := strings.TrimSpace(c.QueryParam("user"))
-	query := strings.TrimSpace(c.QueryParam("query"))
 	page := strings.TrimSpace(c.QueryParam("page"))
-	pageSize := strings.TrimSpace(c.QueryParam("pageSize"))
 
 	missingQueryParams := response.GetMissingQueryParams(c, "query")
 	if len(missingQueryParams) > 0 {
 		return response.Missing(c, response.SourceQuery, missingQueryParams...)
 	}
 
+	filters, err := buildRecipeFilters(c)
+	if err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
 	result, err := rh.RecipesService.SearchRecipes(
 		c.Request().Context(),
+		filters,
 		user,
-		query,
 		page,
-		pageSize,
 	)
 
 	if err != nil {
@@ -230,4 +238,48 @@ func (rh *RecipesHandler) SearchRecipes(c echo.Context) error {
 	}
 
 	return response.Success(c, http.StatusOK, result)
+}
+
+func buildRecipeFilters(c echo.Context) (models.RecipeFilter, error) {
+	filter := models.RecipeFilter{
+		Query: strings.TrimSpace(c.QueryParam("query")),
+	}
+
+	if country := strings.TrimSpace(c.QueryParam("country")); country != "" {
+		filter.Country = &country
+	}
+
+	if mealType := strings.TrimSpace(c.QueryParam("mealType")); mealType != "" {
+		value := models.MealType(mealType)
+		filter.MealType = &value
+	}
+
+	if public := strings.TrimSpace(c.QueryParam("public")); public != "" {
+		value, err := strconv.ParseBool(public)
+		if err != nil {
+			return filter, errors.New("invalid public query parameter")
+		}
+
+		filter.Public = &value
+	}
+
+	if timeValue := strings.TrimSpace(c.QueryParam("time")); timeValue != "" {
+		value, err := strconv.Atoi(timeValue)
+		if err != nil {
+			return filter, errors.New("invalid time query parameter")
+		}
+
+		filter.Time = &value
+	}
+
+	if isSaved := strings.TrimSpace(c.QueryParam("isSaved")); isSaved != "" {
+		value, err := strconv.ParseBool(isSaved)
+		if err != nil {
+			return filter, errors.New("invalid isSaved query parameter")
+		}
+
+		filter.IsSaved = &value
+	}
+
+	return filter, nil
 }

@@ -99,8 +99,10 @@ func TestGetRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe1)
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
+		filters := models.RecipeFilter{}
+
 		// when
-		res, err := service.GetRecipes("", 1)
+		res, err := service.GetRecipes("", filters, 1)
 
 		// then
 		if err != nil {
@@ -154,8 +156,10 @@ func TestGetRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 		tests.Put(t, db, config.Vars.Bucket, []byte("3"), recipe3)
 
+		filters := models.RecipeFilter{}
+
 		// when
-		res, err := service.GetRecipes("user1", 1)
+		res, err := service.GetRecipes("user1", filters, 1)
 
 		// then
 		if err != nil {
@@ -185,8 +189,10 @@ func TestGetRecipes(t *testing.T) {
 			[]byte("invalid"),
 		)
 
+		filters := models.RecipeFilter{}
+
 		// when
-		_, err := service.GetRecipes("", 1)
+		_, err := service.GetRecipes("", filters, 1)
 
 		// then
 		if err == nil {
@@ -359,8 +365,10 @@ func TestSearchRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe1)
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
+		filters := models.RecipeFilter{Query: "pizza"}
+
 		// when
-		result, err := service.SearchRecipes("", "pizza", 1)
+		result, err := service.SearchRecipes("", filters, 1)
 
 		// then
 		if err != nil {
@@ -405,8 +413,10 @@ func TestSearchRecipes(t *testing.T) {
 		tests.Put(t, db, config.Vars.Bucket, []byte("1"), recipe1)
 		tests.Put(t, db, config.Vars.Bucket, []byte("2"), recipe2)
 
+		filters := models.RecipeFilter{Query: "pizza"}
+
 		// when
-		result, err := service.SearchRecipes("", "pizza", 1)
+		result, err := service.SearchRecipes("", filters, 1)
 
 		// then
 		if err != nil {
@@ -448,8 +458,10 @@ func TestSearchRecipes(t *testing.T) {
 			)
 		}
 
+		filters := models.RecipeFilter{Query: "pizza"}
+
 		// when
-		result, err := service.SearchRecipes("", "pizza", 0)
+		result, err := service.SearchRecipes("", filters, 0)
 
 		// then
 		if err != nil {
@@ -483,12 +495,149 @@ func TestSearchRecipes(t *testing.T) {
 			[]byte("invalid"),
 		)
 
+		filters := models.RecipeFilter{Query: "pizza"}
+
 		// when
-		_, err := service.SearchRecipes("", "pizza", 1)
+		_, err := service.SearchRecipes("", filters, 1)
 
 		// then
 		if err == nil {
 			t.Fatalf("expected error")
+		}
+	})
+}
+
+func TestFilterRecipes(t *testing.T) {
+	t.Run("filters by country", func(t *testing.T) {
+		countryBE := "BE"
+		countryNL := "NL"
+
+		recipes := []models.RecipeSummary{
+			{Id: "1", Title: "Pizza", Country: &countryBE},
+			{Id: "2", Title: "Pasta", Country: &countryNL},
+			{Id: "3", Title: "Soup"},
+		}
+
+		result := filterRecipes(recipes, models.RecipeFilter{
+			Country: &countryBE,
+		})
+
+		if len(result) != 1 || result[0].Id != "1" {
+			t.Fatalf("expected recipe 1, got %+v", result)
+		}
+	})
+
+	t.Run("filters by meal type", func(t *testing.T) {
+		mealType := models.MealType("dinner")
+		otherMealType := models.MealType("lunch")
+
+		recipes := []models.RecipeSummary{
+			{Id: "1", Title: "Pizza", MealType: &mealType},
+			{Id: "2", Title: "Salad", MealType: &otherMealType},
+			{Id: "3", Title: "Soup"},
+		}
+
+		result := filterRecipes(recipes, models.RecipeFilter{
+			MealType: &mealType,
+		})
+
+		if len(result) != 1 || result[0].Id != "1" {
+			t.Fatalf("expected recipe 1, got %+v", result)
+		}
+	})
+
+	t.Run("filters by public", func(t *testing.T) {
+		public := true
+		private := false
+
+		recipes := []models.RecipeSummary{
+			{Id: "1", Title: "Public", Public: &public},
+			{Id: "2", Title: "Private", Public: &private},
+			{Id: "3", Title: "Unknown"},
+		}
+
+		result := filterRecipes(recipes, models.RecipeFilter{
+			Public: &public,
+		})
+
+		if len(result) != 1 || result[0].Id != "1" {
+			t.Fatalf("expected public recipe, got %+v", result)
+		}
+	})
+
+	t.Run("filters by time", func(t *testing.T) {
+		time := 30
+		time15 := 15
+		time60 := 60
+
+		recipes := []models.RecipeSummary{
+			{Id: "1", Title: "Quick", Time: &time15},
+			{Id: "2", Title: "Normal", Time: &time},
+			{Id: "3", Title: "Slow", Time: &time60},
+			{Id: "4", Title: "Unknown"},
+		}
+
+		result := filterRecipes(recipes, models.RecipeFilter{
+			Time: &time,
+		})
+
+		if len(result) != 2 {
+			t.Fatalf("expected 2 recipes, got %d", len(result))
+		}
+
+		if result[0].Id != "1" || result[1].Id != "2" {
+			t.Fatalf("unexpected recipes: %+v", result)
+		}
+	})
+
+	t.Run("filters by saved", func(t *testing.T) {
+		saved := true
+		notSaved := false
+
+		recipes := []models.RecipeSummary{
+			{Id: "1", Title: "Saved", IsSaved: &saved},
+			{Id: "2", Title: "Not saved", IsSaved: &notSaved},
+			{Id: "3", Title: "Unknown"},
+		}
+
+		result := filterRecipes(recipes, models.RecipeFilter{
+			IsSaved: &saved,
+		})
+
+		if len(result) != 1 || result[0].Id != "1" {
+			t.Fatalf("expected saved recipe, got %+v", result)
+		}
+	})
+
+	t.Run("query is case insensitive and trims spaces", func(t *testing.T) {
+		recipes := []models.RecipeSummary{
+			{Id: "1", Title: "Pizza Margherita"},
+			{Id: "2", Title: "Pasta Carbonara"},
+		}
+
+		result := filterRecipes(recipes, models.RecipeFilter{
+			Query: "  PIZZA  ",
+		})
+
+		if len(result) != 1 || result[0].Id != "1" {
+			t.Fatalf("expected pizza recipe, got %+v", result)
+		}
+	})
+
+	t.Run("country comparison is case insensitive and trims spaces", func(t *testing.T) {
+		country := " BE "
+		countryPtr := "be"
+
+		recipes := []models.RecipeSummary{
+			{Id: "1", Country: &countryPtr},
+		}
+
+		result := filterRecipes(recipes, models.RecipeFilter{
+			Country: &country,
+		})
+
+		if len(result) != 1 {
+			t.Fatalf("expected 1 recipe, got %d", len(result))
 		}
 	})
 }
