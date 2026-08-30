@@ -3,7 +3,7 @@ services:
     container_name: shopping-list-storage
     image: ghcr.io/bryanvanwinnendael/shopping-list-storage:${IMAGE_TAG:-latest}
     ports:
-      - "8010:3000"
+      - "127.0.0.1:8010:3000"
     volumes:
       - ./storage:/app/storage
     environment:

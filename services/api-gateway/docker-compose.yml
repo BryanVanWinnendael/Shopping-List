@@ -3,7 +3,7 @@ services:
     container_name: shopping-list-api-gateway
     image: ghcr.io/bryanvanwinnendael/shopping-list-api-gateway:${IMAGE_TAG:-latest}
     ports:
-      - "8000:3000"
+      - "127.0.0.1:8000:3000"
     environment:
       ENV: production
       CATEGORY_MODEL_API_URL: http://shopping-list-category-model:3000/api
