@@ -53,6 +53,7 @@ func (rs *RecipeService) CreateRecipe(request *contracts.CreateRecipeRequest) (*
 		MealType:     (*models.MealType)(stringPtrTrimOrNil((*string)(request.MealType))),
 		Country:      stringPtrTrimOrNil(request.Country),
 		Persons:      request.Persons,
+		IsSaved:      request.IsSaved,
 	}
 
 	recipeJSON, _ := json.MarshalIndent(recipe, "", "  ")
@@ -183,7 +184,9 @@ func filterRecipes(recipes []models.RecipeSummary, filter models.RecipeFilter) [
 		}
 
 		if filter.IsSaved != nil {
-			if recipe.IsSaved == nil || *recipe.IsSaved != *filter.IsSaved {
+			recipeIsSaved := recipe.IsSaved != nil && *recipe.IsSaved
+
+			if recipeIsSaved != *filter.IsSaved {
 				continue
 			}
 		}
