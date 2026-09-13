@@ -13,7 +13,7 @@ func SetupRoutes(e *echo.Echo, rh *RecipeHandler, orh *OnlineRecipeHandler) {
 	recipes.GET("", rh.GetRecipes)
 	recipes.GET("/search", rh.SearchRecipes)
 	recipes.GET("/countries", rh.GetDistinctCountries)
-	recipes.GET("/users/:username", rh.GetRecipesByUser)
+	recipes.GET("/users/:user", rh.GetRecipesByUser)
 	recipes.GET("/:id", rh.GetRecipe)
 	recipes.PUT("/:id", rh.UpdateRecipe)
 	recipes.DELETE("/:id", rh.DeleteRecipe)
