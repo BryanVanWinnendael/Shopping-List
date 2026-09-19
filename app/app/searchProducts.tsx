@@ -29,7 +29,7 @@ export default function SearchProducts() {
                 style={{
                     backgroundColor: vars.backgroundColor,
                     flex: 1,
-                    paddingHorizontal: 16,
+                    paddingHorizontal: 12,
                 }}
             >
                 <SearchBar value={states.query} updateQuery={actions.updateQuery} />

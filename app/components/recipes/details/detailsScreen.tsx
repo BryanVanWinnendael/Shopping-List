@@ -7,8 +7,8 @@ import { useUpdateRecipeForm } from "@/hooks/recipes/useUpdateRecipeForm"
 import useDeleteRecipe from "@/hooks/recipes/useDeleteRecipe"
 import useThemes from "@/hooks/themes/useThemes"
 import { Recipe } from "@/types/generated/models/recipe"
-import Buttons from "@/components/recipes/details/buttons"
 import Background from "@/components/recipes/details/background"
+import Buttons from "@/components/recipes/details/buttons"
 
 type Props = {
     recipe: Recipe
@@ -39,28 +39,28 @@ export default function DetailsScreen({ recipe, setRecipe, open }: Props) {
                 backgroundColor: vars.backgroundColor,
             }}
         >
-            <Buttons recipe={recipe} open={editRecipeFormActions.open} />
-
-            {recipe.title ? (
-                <>
+            <>
+                {recipe.title ? (
                     <View style={{ flex: 1 }}>
                         <Background recipe={recipe} scrollY={scrollY} />
 
                         <RecipeContent recipe={recipe} open={open} scrollY={scrollY} />
                     </View>
+                ) : (
+                    <ActivityIndicator style={{ marginTop: 50 }} color={vars.textColor} />
+                )}
 
-                    <BottomSheet
-                        recipe={recipe}
-                        bottomSheetRef={editRecipeFormRefs.bottomSheetRef}
-                        close={editRecipeFormActions.close}
-                        deleteRecipe={deleteRecipe}
-                        updateRecipeDetails={setRecipe}
-                        deleteLoading={deleteRecipeStates.loading}
-                    />
-                </>
-            ) : (
-                <ActivityIndicator style={{ marginTop: 50 }} color={vars.textColor} />
-            )}
+                <BottomSheet
+                    recipe={recipe}
+                    bottomSheetRef={editRecipeFormRefs.bottomSheetRef}
+                    close={editRecipeFormActions.close}
+                    deleteRecipe={deleteRecipe}
+                    updateRecipeDetails={setRecipe}
+                    deleteLoading={deleteRecipeStates.loading}
+                />
+
+                <Buttons recipe={recipe} open={editRecipeFormActions.open} />
+            </>
         </View>
     )
 }

@@ -71,6 +71,7 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{
                     paddingBottom: HEADER_HEIGHT + 85,
+                    paddingHorizontal: 12,
                 }}
                 data={cronProducts}
                 renderItem={({ item }) => renderItem(item)}
@@ -109,8 +110,8 @@ const styles = StyleSheet.create({
     renderItem: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 12,
-        paddingVertical: 14,
+        gap: 8,
+        paddingVertical: 12,
         paddingHorizontal: 12,
         borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,

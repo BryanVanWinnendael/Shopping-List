@@ -23,8 +23,6 @@ export default function DetailsScreen({ recipe, open }: Props) {
                 backgroundColor: vars.backgroundColor,
             }}
         >
-            <Buttons recipe={recipe} />
-
             {recipe ? (
                 <View style={{ flex: 1 }}>
                     <Background recipe={recipe} scrollY={scrollY} />
@@ -34,6 +32,8 @@ export default function DetailsScreen({ recipe, open }: Props) {
             ) : (
                 <ActivityIndicator style={{ marginTop: 50 }} color={vars.textColor} />
             )}
+
+            <Buttons recipe={recipe} />
         </View>
     )
 }

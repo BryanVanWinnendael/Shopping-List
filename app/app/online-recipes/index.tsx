@@ -17,7 +17,7 @@ export default function OnlineRecipes() {
             style={{
                 backgroundColor: vars.backgroundColor,
                 flex: 1,
-                paddingHorizontal: 16,
+                paddingHorizontal: 12,
             }}
         >
             <List

@@ -256,7 +256,10 @@ export default function Product({
 }
 
 const styles = StyleSheet.create({
-    wrapper: { width: "100%", marginVertical: 4 },
+    wrapper: {
+        width: "100%",
+        marginVertical: 4,
+    },
     container: {
         flexDirection: "row",
         paddingVertical: 12,
@@ -265,7 +268,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderRadius: BORDER_RADIUS_L,
     },
-    iconContainer: { width: 48, alignItems: "center", justifyContent: "center" },
+    iconContainer: {
+        width: 48,
+        alignItems: "center",
+        justifyContent: "center",
+    },
     textContainer: {
         flex: 1,
         borderBottomWidth: 1,
