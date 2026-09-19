@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useLocalSearchParams } from "expo-router"
 import { recipesClient } from "@/lib/recipes"
-import GorhomBottomSheet from "@gorhom/bottom-sheet"
 import { Recipe } from "@/types/generated/models/recipe"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 export function useRecipeDetails() {
     const { id } = useLocalSearchParams()
 
-    const sheetRef = useRef<GorhomBottomSheet>(null)
+    const sheetRef = useRef<BottomSheetRef>(null)
 
     const [recipe, setRecipe] = useState<Recipe>({
         banner: undefined,

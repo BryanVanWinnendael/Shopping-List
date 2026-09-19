@@ -8,7 +8,6 @@ export default function OnlineRecipesLayout() {
             }}
         >
             <Stack.Screen name="index" />
-
             <Stack.Screen name="details" />
         </Stack>
     )

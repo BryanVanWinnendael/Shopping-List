@@ -12,6 +12,7 @@ import { Product } from "@/types/generated/models/product"
 import { recipesClient } from "@/lib/recipes"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 import { UpdateRecipeRequest } from "@/types/recipes"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     product: Product
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         paddingHorizontal: 10,
         paddingVertical: 8,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",

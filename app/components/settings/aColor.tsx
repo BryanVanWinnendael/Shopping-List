@@ -12,11 +12,12 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated"
 import * as Haptics from "expo-haptics"
+import { BlurView } from "expo-blur"
+import { GlassView } from "expo-glass-effect"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import CustomSwitch from "@/components/customSwitch"
-import { DEFAULT_ACOLOR } from "@/lib/theme"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M, DEFAULT_ACOLOR } from "@/lib/theme"
 import useThemes from "@/hooks/themes/useThemes"
 
 export default function AColor() {
@@ -30,15 +31,20 @@ export default function AColor() {
     const [modalVisible, setModalVisible] = useState(false)
     const [pickedColor, setPickedColor] = useState(aColor)
 
+    const colorScheme = theme === "light" ? "light" : "dark"
+
     const onColorChange = (color: ColorFormatsObject) => {
         "worklet"
+
         currentColor.value = color.hex
+
         scale.value = withSpring(1.05)
     }
 
     const onColorPick = (color: ColorFormatsObject) => {
         setPickedColor(color.hex)
         setAColor(color.hex)
+
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     }
 
@@ -84,30 +90,36 @@ export default function AColor() {
     }
 
     return (
-        <View
-            style={[
-                styles.container,
-                {
-                    backgroundColor: vars.secondaryBackgroundColor,
-                    borderColor: vars.secondaryBorderColor,
-                },
-            ]}
+        <GlassView
+            glassEffectStyle="regular"
+            colorScheme={colorScheme}
+            tintColor={vars.secondaryBackgroundColor}
+            style={styles.container}
         >
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
-                    <View
-                        style={[
-                            styles.iconWrapper,
-                            {
-                                backgroundColor: `${vars.accentColor}20`,
-                            },
-                        ]}
+                    <GlassView
+                        glassEffectStyle="regular"
+                        isInteractive={false}
+                        colorScheme={colorScheme}
+                        style={styles.iconGlass}
                     >
-                        <Palette size={18} color={vars.accentColor} />
-                    </View>
+                        <View style={styles.iconWrapper}>
+                            <Palette size={18} strokeWidth={2} color={vars.accentColor} />
+                        </View>
+                    </GlassView>
 
                     <View style={{ flex: 1 }}>
-                        <Text style={[styles.title, { color: vars.textColor }]}>Accent Color</Text>
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    color: vars.textColor,
+                                },
+                            ]}
+                        >
+                            Accent Color
+                        </Text>
 
                         <Text
                             style={[
@@ -122,31 +134,43 @@ export default function AColor() {
                     </View>
                 </View>
 
-                <PressableScale
-                    style={[
-                        styles.editButton,
-                        {
-                            borderColor: vars.borderColor,
-                            backgroundColor: vars.backgroundColor,
-                        },
-                    ]}
-                    onPress={openModal}
-                >
-                    <View style={[styles.colorDot, { backgroundColor: aColor }]} />
-                    <Text
-                        style={{
-                            color: vars.textColor,
-                            fontSize: 14,
-                        }}
-                    >
-                        Edit
-                    </Text>
-                </PressableScale>
+                <GlassView glassEffectStyle="regular" isInteractive colorScheme={colorScheme} style={styles.editGlass}>
+                    <PressableScale onPress={openModal} style={styles.editButton}>
+                        <View
+                            style={[
+                                styles.colorDot,
+                                {
+                                    backgroundColor: aColor,
+                                },
+                            ]}
+                        />
+
+                        <Text
+                            style={{
+                                color: vars.textColor,
+                                fontSize: 14,
+                                fontWeight: "600",
+                            }}
+                        >
+                            Edit
+                        </Text>
+                    </PressableScale>
+                </GlassView>
             </View>
 
             <View style={styles.row}>
                 <View style={styles.textBlock}>
-                    <Text style={[styles.rowTitle, { color: vars.textColor }]}>Use Accent Color for Image Picker</Text>
+                    <Text
+                        style={[
+                            styles.rowTitle,
+                            {
+                                color: vars.textColor,
+                            },
+                        ]}
+                    >
+                        Use Accent Color for Image Picker
+                    </Text>
+
                     <Text
                         style={[
                             styles.description,
@@ -172,7 +196,17 @@ export default function AColor() {
 
             <View style={styles.row}>
                 <View style={styles.textBlock}>
-                    <Text style={[styles.rowTitle, { color: vars.textColor }]}>Use Accent Color for Send Button</Text>
+                    <Text
+                        style={[
+                            styles.rowTitle,
+                            {
+                                color: vars.textColor,
+                            },
+                        ]}
+                    >
+                        Use Accent Color for Send Button
+                    </Text>
+
                     <Text
                         style={[
                             styles.description,
@@ -198,7 +232,17 @@ export default function AColor() {
 
             <View style={styles.row}>
                 <View style={styles.textBlock}>
-                    <Text style={[styles.rowTitle, { color: vars.textColor }]}>Use Accent Color for Header</Text>
+                    <Text
+                        style={[
+                            styles.rowTitle,
+                            {
+                                color: vars.textColor,
+                            },
+                        ]}
+                    >
+                        Use Accent Color for Header
+                    </Text>
+
                     <Text
                         style={[
                             styles.description,
@@ -223,144 +267,123 @@ export default function AColor() {
             </View>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
-                <GlassOrBlurView style={styles.modalOverlay}>
+                <BlurView intensity={24} tint={theme === "light" ? "light" : "dark"} style={styles.modalOverlay}>
                     <Animated.View
                         entering={FadeIn.duration(180)}
                         exiting={FadeOut.duration(120)}
-                        style={[
-                            styles.modalContent,
-                            animatedStyle,
-                            {
-                                backgroundColor: vars.backgroundColor,
-                                borderColor: vars.borderColor,
-                            },
-                        ]}
+                        style={[styles.animatedModal, animatedStyle]}
                     >
-                        <View style={styles.modalHeader}>
-                            <View>
-                                <Text
-                                    style={{
-                                        color: vars.textColor,
-                                        fontSize: 24,
-                                        fontWeight: "700",
-                                    }}
-                                >
-                                    Accent Color
-                                </Text>
+                        <GlassView
+                            glassEffectStyle="regular"
+                            colorScheme={colorScheme}
+                            tintColor={vars.backgroundColor}
+                            style={styles.modalContent}
+                        >
+                            <View style={styles.modalHeader}>
+                                <View>
+                                    <Text
+                                        style={{
+                                            color: vars.textColor,
+                                            fontSize: 24,
+                                            fontWeight: "700",
+                                        }}
+                                    >
+                                        Accent Color
+                                    </Text>
 
-                                <Text
-                                    style={{
-                                        color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                        marginTop: 4,
-                                        fontSize: 14,
-                                    }}
+                                    <Text
+                                        style={{
+                                            color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                            marginTop: 4,
+                                            fontSize: 14,
+                                        }}
+                                    >
+                                        Customize app accent styling
+                                    </Text>
+                                </View>
+
+                                <GlassView
+                                    glassEffectStyle="regular"
+                                    isInteractive
+                                    colorScheme={colorScheme}
+                                    style={styles.closeGlass}
                                 >
-                                    Customize app accent styling
-                                </Text>
+                                    <PressableScale onPress={closeModal} style={styles.closeButton}>
+                                        <X size={18} strokeWidth={2} color={vars.textColor} />
+                                    </PressableScale>
+                                </GlassView>
                             </View>
 
-                            <PressableScale
-                                onPress={closeModal}
-                                style={[
-                                    styles.closeButton,
-                                    {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                        borderColor: vars.secondaryBorderColor,
-                                    },
-                                ]}
-                            >
-                                <X size={18} color={vars.textColor} />
-                            </PressableScale>
-                        </View>
-
-                        <View style={{ marginTop: 24 }}>
-                            <ColorPicker
-                                value={pickedColor}
-                                sliderThickness={20}
-                                thumbSize={24}
-                                onChange={onColorChange}
-                                onCompleteJS={onColorPick}
-                                boundedThumb
-                            >
-                                <HueCircular
-                                    thumbShape="circle"
-                                    containerStyle={{
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }}
+                            <View style={styles.colorPickerContainer}>
+                                <ColorPicker
+                                    value={pickedColor}
+                                    sliderThickness={20}
+                                    thumbSize={24}
+                                    onChange={onColorChange}
+                                    onCompleteJS={onColorPick}
+                                    boundedThumb
+                                    style={styles.colorPicker}
                                 >
-                                    <Panel1
-                                        style={{
-                                            borderRadius: 24,
-                                            width: "70%",
-                                            height: "70%",
-                                            alignSelf: "center",
-                                        }}
-                                    />
-                                </HueCircular>
-                            </ColorPicker>
-                        </View>
+                                    <HueCircular thumbShape="circle" containerStyle={styles.hueContainer}>
+                                        <Panel1 style={styles.panel} />
+                                    </HueCircular>
+                                </ColorPicker>
+                            </View>
 
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                gap: 12,
-                                marginTop: 24,
-                            }}
-                        >
-                            <PressableScale
-                                onPress={resetToDefault}
-                                style={[
-                                    styles.secondaryButton,
-                                    {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                    },
-                                ]}
-                            >
-                                <Text
-                                    style={{
-                                        color: vars.textColor,
-                                        fontWeight: "600",
-                                    }}
+                            <View style={styles.actions}>
+                                <GlassView
+                                    glassEffectStyle="regular"
+                                    isInteractive
+                                    colorScheme={colorScheme}
+                                    style={styles.secondaryGlass}
                                 >
-                                    Reset
-                                </Text>
-                            </PressableScale>
+                                    <PressableScale onPress={resetToDefault} style={styles.secondaryButton}>
+                                        <Text
+                                            style={{
+                                                color: vars.textColor,
+                                                fontWeight: "600",
+                                            }}
+                                        >
+                                            Reset
+                                        </Text>
+                                    </PressableScale>
+                                </GlassView>
 
-                            <PressableScale
-                                onPress={closeModal}
-                                style={[
-                                    styles.primaryButton,
-                                    {
-                                        backgroundColor: aColor,
-                                    },
-                                ]}
-                            >
-                                <Text
-                                    style={{
-                                        color: "#fff",
-                                        fontWeight: "700",
-                                        fontSize: 16,
-                                    }}
+                                <GlassView
+                                    glassEffectStyle="regular"
+                                    isInteractive
+                                    colorScheme={colorScheme}
+                                    tintColor={aColor}
+                                    style={styles.primaryGlass}
                                 >
-                                    Done
-                                </Text>
-                            </PressableScale>
-                        </View>
+                                    <PressableScale
+                                        onPress={closeModal}
+                                        style={[
+                                            styles.primaryButton,
+                                            {
+                                                backgroundColor: `${aColor}E6`,
+                                            },
+                                        ]}
+                                    >
+                                        <Text style={styles.primaryText}>Done</Text>
+                                    </PressableScale>
+                                </GlassView>
+                            </View>
+                        </GlassView>
                     </Animated.View>
-                </GlassOrBlurView>
+                </BlurView>
             </Modal>
-        </View>
+        </GlassView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
         marginHorizontal: 8,
         paddingHorizontal: 18,
         paddingTop: 18,
-        borderWidth: 1,
+        overflow: "hidden",
     },
     header: {
         flexDirection: "row",
@@ -375,10 +398,16 @@ const styles = StyleSheet.create({
         flex: 1,
         gap: 12,
     },
+    iconGlass: {
+        width: 42,
+        height: 42,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
     iconWrapper: {
         width: 42,
         height: 42,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         justifyContent: "center",
         alignItems: "center",
     },
@@ -390,19 +419,25 @@ const styles = StyleSheet.create({
         fontSize: 13,
         marginTop: 2,
     },
+    editGlass: {
+        height: 40,
+        minWidth: 76,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
     editButton: {
+        height: 40,
+        minWidth: 76,
         flexDirection: "row",
         alignItems: "center",
-        borderWidth: 1,
-        borderRadius: 999,
-        paddingVertical: 8,
+        justifyContent: "center",
         paddingHorizontal: 12,
     },
     colorDot: {
         width: 18,
         height: 18,
         marginRight: 8,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
     },
     row: {
         flexDirection: "row",
@@ -427,65 +462,86 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingHorizontal: 16,
+        paddingHorizontal: 12,
     },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: "600",
-        textAlign: "center",
-        marginBottom: 12,
-    },
-    actions: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 24,
-    },
-    resetButton: {
-        borderRadius: 999,
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-    },
-    doneButton: {
-        borderRadius: 999,
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-    },
-    resetText: {
-        fontSize: 14,
-    },
-    doneText: {
-        fontSize: 14,
+    animatedModal: {
+        width: "100%",
+        maxWidth: 420,
     },
     modalContent: {
         width: "100%",
-        maxWidth: 420,
-        borderRadius: 28,
-        borderWidth: 1,
+        borderRadius: BORDER_RADIUS_L,
         padding: 22,
+        overflow: "hidden",
     },
     modalHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
     },
+    closeGlass: {
+        width: 40,
+        height: 40,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
     closeButton: {
         width: 40,
         height: 40,
-        borderRadius: 999,
         justifyContent: "center",
         alignItems: "center",
-        borderWidth: 1,
+    },
+    colorPickerContainer: {
+        marginTop: 24,
+        alignItems: "center",
+    },
+    colorPicker: {
+        width: 280,
+        height: 280,
+    },
+    hueContainer: {
+        width: 280,
+        height: 280,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    panel: {
+        width: "72%",
+        height: "72%",
+        borderRadius: BORDER_RADIUS_L,
+        alignSelf: "center",
+    },
+    actions: {
+        flexDirection: "row",
+        gap: 12,
+        marginTop: 24,
+    },
+    secondaryGlass: {
+        flex: 1,
+        minHeight: 48,
+        borderRadius: BORDER_RADIUS_M,
+        overflow: "hidden",
     },
     secondaryButton: {
         flex: 1,
-        borderRadius: 18,
-        paddingVertical: 14,
         alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 16,
+    },
+    primaryGlass: {
+        flex: 1,
+        minHeight: 48,
+        borderRadius: BORDER_RADIUS_M,
+        overflow: "hidden",
     },
     primaryButton: {
         flex: 1,
-        borderRadius: 18,
-        paddingVertical: 14,
         alignItems: "center",
+        justifyContent: "center",
+    },
+    primaryText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 16,
     },
 })

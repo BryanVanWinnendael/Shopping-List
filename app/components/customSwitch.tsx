@@ -24,7 +24,7 @@ export default function CustomSwitch({ value, onChange, disabled = false }: Prop
                     true: vars.accentColor,
                 }}
                 thumbColor={value ? (newUI ? "#ffffff" : "#ffffff") : "#f4f3f4"}
-                ios_backgroundColor="#767577"
+                ios_backgroundColor={vars.backgroundColor}
             />
         </View>
     )

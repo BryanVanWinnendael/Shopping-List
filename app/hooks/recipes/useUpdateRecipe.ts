@@ -3,8 +3,12 @@ import { recipesClient } from "@/lib/recipes"
 import { useState } from "react"
 import { storageClient } from "@/lib/storage"
 import { DeleteImageRequest } from "@/types/generated/contracts/storage"
+import { useRecipesStore } from "@/stores/useRecipesStore"
+import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 
 export function useUpdateRecipe() {
+    const { updateRecipe: updateRecipeStore } = useRecipesStore()
+
     const [loading, setLoading] = useState(false)
 
     const uploadIngredientsImages = async (id: string, ingredients: any[]) => {
@@ -51,7 +55,25 @@ export function useUpdateRecipe() {
             ingredients: mappedIngredients,
         }
 
-        return await recipesClient.updateRecipe(finalRequest.id, finalRequest)
+        const response = await recipesClient.updateRecipe(finalRequest.id, finalRequest)
+        if (response) {
+            const updatedRecipeSummary: RecipeSummary = {
+                id: response.id,
+                user: response.user,
+                title: response.title,
+                public: response.public,
+                time: response.time,
+                isSaved: response.isSaved,
+                banner: response.banner,
+                country: response.country,
+                mealType: response.mealType,
+                persons: response.persons,
+            }
+            console.log(updatedRecipeSummary)
+            updateRecipeStore(updatedRecipeSummary)
+        }
+
+        return response
     }
 
     return {

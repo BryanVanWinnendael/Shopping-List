@@ -2,6 +2,7 @@ import { StyleSheet, Text } from "react-native"
 import { PressableScale } from "pressto"
 import useThemes from "@/hooks/themes/useThemes"
 import { useSettingsStore } from "@/stores/useSettingsStore"
+import { BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     open: () => void
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
     button: {
         paddingVertical: 8,
         paddingHorizontal: 12,
-        borderRadius: 14,
+        borderRadius: BORDER_RADIUS_M,
         margin: 16,
     },
     sheetContainer: {

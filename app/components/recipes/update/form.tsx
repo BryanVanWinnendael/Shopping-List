@@ -1,21 +1,30 @@
-import { ActivityIndicator, Image, ScrollView, Text, TextInput, View } from "react-native"
+import {
+    ActivityIndicator,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
+} from "react-native"
 import { PressableScale } from "pressto"
+import { X } from "lucide-react-native"
+import { GlassView } from "expo-glass-effect"
+
 import { useUpdateRecipeForm } from "@/hooks/recipes/useUpdateRecipeForm"
 import { useUpdateRecipe } from "@/hooks/recipes/useUpdateRecipe"
 import Ingredient from "@/components/recipes/update/ingredient"
-import { X } from "lucide-react-native"
+import Instruction from "@/components/recipes/update/instruction"
 import CustomSwitch from "@/components/customSwitch"
-import { useRecipesStore } from "@/stores/useRecipesStore"
 import ImageInput from "@/components/inputs/imageInput"
 import MealTypeSegment from "@/components/recipes/mealTypeSegment"
 import CountryInput from "@/components/recipes/countryInput"
 import useThemes from "@/hooks/themes/useThemes"
 import Toast from "react-native-toast-message"
-import Instruction from "@/components/recipes/update/instruction"
 import { delay } from "@/lib/utils"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import { Recipe } from "@/types/generated/models/recipe"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     recipe: Recipe
@@ -25,12 +34,14 @@ type Props = {
 
 export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: Props) {
     const { vars, theme } = useThemes()
-    const { updateRecipe: updateRecipeStore } = useRecipesStore()
     const { states: formStates, actions: formActions } = useUpdateRecipeForm(recipe)
     const { states: editStates, actions: editActions } = useUpdateRecipe()
 
+    const colorScheme = theme === "light" ? "light" : "dark"
+
     const updateRecipe = async () => {
         const mappedRequest = formActions.getUpdateRecipeRequest()
+
         if (!mappedRequest) {
             Toast.show({
                 type: "error",
@@ -44,6 +55,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
             text1: "Updating Recipe...",
             autoHide: false,
         })
+
         editActions.setLoading(true)
 
         const response = await editActions.updateRecipe(mappedRequest, formStates.imagesToDelete)
@@ -57,7 +69,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                 type: "success",
                 text1: "Recipe updated successfully",
             })
-            updateRecipeStore(response)
+
             updateRecipeDetails(response)
         } else {
             Toast.show({
@@ -69,27 +81,73 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
         close()
     }
 
+    const inputStyle = {
+        color: vars.textColor,
+        backgroundColor: vars.secondaryBackgroundColor,
+        borderWidth: 1,
+        borderColor: vars.secondaryBorderColor,
+        borderRadius: BORDER_RADIUS_M,
+        paddingHorizontal: 14,
+        paddingVertical: 11,
+        fontSize: 16,
+    }
+
+    const labelStyle = {
+        color: vars.textColor,
+        fontWeight: "600" as const,
+        fontSize: 15,
+        marginBottom: 9,
+    }
+
     return (
-        <>
-            <ScrollView style={{ height: 560 }} showsVerticalScrollIndicator={false}>
-                <View style={{ paddingBottom: 20 }}>
-                    <FieldLabel label="Title" required textColor={vars.textColor} />
-                    <StyledInput
+        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                automaticallyAdjustKeyboardInsets
+            >
+                <View style={styles.titleSection}>
+                    <Text style={labelStyle}>
+                        Title <Text style={{ color: "#AA4A44" }}>*</Text>
+                    </Text>
+
+                    <TextInput
                         value={formStates.title}
                         onChangeText={formActions.setTitle}
+                        style={inputStyle}
                         placeholder="Recipe title"
-                        borderColor={vars.secondaryBorderColor}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        textColor={vars.textColor}
-                        theme={theme}
+                        placeholderTextColor="gray"
+                        keyboardAppearance={theme === "light" ? "light" : "dark"}
                     />
+                </View>
 
-                    <FieldLabel label="Public" textColor={vars.textColor} />
+                {/* Public */}
+                <View style={styles.rowSection}>
+                    <View style={styles.labelBlock}>
+                        <Text style={labelStyle}>Public</Text>
+
+                        <Text
+                            style={{
+                                color: theme === "light" ? "#6b7280" : "#8b9199",
+                                fontSize: 13,
+                                marginTop: -5,
+                            }}
+                        >
+                            Make this recipe visible to others
+                        </Text>
+                    </View>
+
                     <CustomSwitch value={formStates.publicRecipe} onChange={formActions.setPublicRecipe} />
+                </View>
 
-                    <FieldLabel label="Banner" textColor={vars.textColor} />
+                {/* Banner */}
+                <View style={styles.section}>
+                    <Text style={labelStyle}>Banner</Text>
+
                     {formStates.banner ? (
-                        <View style={{ position: "relative", width: 120, height: 120 }}>
+                        <View style={styles.bannerContainer}>
                             <Image
                                 source={{
                                     uri:
@@ -97,187 +155,297 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                                             ? formStates.banner
                                             : formStates.banner.uri,
                                 }}
-                                style={{ width: 120, height: 120, borderRadius: 12 }}
+                                style={styles.banner}
                             />
-                            <View
-                                style={[
-                                    {
-                                        position: "absolute",
-                                        top: -8,
-                                        right: -8,
-                                        borderRadius: 100,
-                                    },
-                                    SHADOW_STYLE,
-                                ]}
-                            >
-                                <GlassOrBlurView
-                                    style={{
-                                        width: 24,
-                                        height: 24,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        overflow: "hidden",
-                                    }}
+
+                            <View style={styles.bannerClose}>
+                                <GlassView
+                                    glassEffectStyle="regular"
+                                    isInteractive
+                                    colorScheme={colorScheme}
+                                    style={styles.closeGlass}
                                 >
-                                    <PressableScale onPress={() => formActions.setBannerImage(null, null)}>
-                                        <X size={16} color={vars.textColor} />
+                                    <PressableScale
+                                        onPress={() => formActions.setBannerImage(null, null)}
+                                        style={styles.closeButton}
+                                    >
+                                        <X size={17} strokeWidth={2} color={vars.textColor} />
                                     </PressableScale>
-                                </GlassOrBlurView>
+                                </GlassView>
                             </View>
                         </View>
                     ) : (
                         <ImageInput type="recipe" onPick={formActions.setBannerImage} />
                     )}
+                </View>
 
-                    <FieldLabel label="Source URL" textColor={vars.textColor} />
-                    <StyledInput
-                        theme={theme}
+                {/* Source */}
+                <View style={styles.section}>
+                    <Text style={labelStyle}>Source URL</Text>
+
+                    <TextInput
                         value={formStates.source}
                         onChangeText={formActions.setSource}
+                        style={inputStyle}
                         placeholder="https://..."
-                        borderColor={vars.secondaryBorderColor}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        textColor={vars.textColor}
+                        placeholderTextColor="gray"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        keyboardAppearance={theme === "light" ? "light" : "dark"}
                     />
+                </View>
 
-                    <FieldLabel label="Meal Type" textColor={vars.textColor} />
+                {/* Meal Type */}
+                <View style={styles.section}>
+                    <Text style={labelStyle}>Meal Type</Text>
+
                     <MealTypeSegment value={formStates.mealType} onChange={formActions.setMealType} />
+                </View>
 
-                    <FieldLabel label="Country" textColor={vars.textColor} />
+                {/* Country */}
+                <View style={styles.section}>
+                    <Text style={labelStyle}>Country</Text>
+
                     <CountryInput value={formStates.countryObject} onChange={formActions.setCountryObject} />
+                </View>
 
-                    <FieldLabel label="Time (minutes)" textColor={vars.textColor} />
-                    <StyledInput
-                        theme={theme}
+                {/* Time */}
+                <View style={styles.section}>
+                    <Text style={labelStyle}>Time</Text>
+
+                    <TextInput
                         value={String(formStates.time)}
-                        onChangeText={(v: string) => formActions.setTime(Number(v))}
-                        placeholder="e.g. 45"
+                        onChangeText={(value) => formActions.setTime(Number(value))}
                         keyboardType="numeric"
-                        borderColor={vars.secondaryBorderColor}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        textColor={vars.textColor}
                         returnKeyType="done"
+                        style={inputStyle}
+                        placeholder="e.g. 45 minutes"
+                        placeholderTextColor="gray"
+                        keyboardAppearance={theme === "light" ? "light" : "dark"}
                     />
+                </View>
 
-                    <FieldLabel label="Persons" textColor={vars.textColor} />
-                    <StyledInput
-                        theme={theme}
+                {/* Persons */}
+                <View style={styles.section}>
+                    <Text style={labelStyle}>Persons</Text>
+
+                    <TextInput
                         value={String(formStates.persons)}
-                        onChangeText={(v: string) => formActions.setPersons(Number(v))}
-                        placeholder="e.g. 4"
+                        onChangeText={(value) => formActions.setPersons(Number(value))}
                         keyboardType="numeric"
-                        borderColor={vars.secondaryBorderColor}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        textColor={vars.textColor}
                         returnKeyType="done"
+                        style={inputStyle}
+                        placeholder="e.g. 4"
+                        placeholderTextColor="gray"
+                        keyboardAppearance={theme === "light" ? "light" : "dark"}
                     />
+                </View>
 
-                    <FieldLabel label="Ingredients" textColor={vars.textColor} />
-                    {formStates.ingredients.map((ingredient, index) => (
-                        <Ingredient
-                            key={index}
-                            ingredient={ingredient}
-                            index={index}
-                            onUpdate={(i, field, value) => formActions.updateIngredient(i, { [field]: value })}
-                            onRemove={formActions.deleteIngredient}
-                            onRemoveImage={formActions.deleteIngredientImage}
-                        />
-                    ))}
+                {/* Ingredients */}
+                <View style={styles.section}>
+                    <Text style={labelStyle}>Ingredients</Text>
+
+                    <View style={{ gap: 10 }}>
+                        {formStates.ingredients.map((ingredient, i) => (
+                            <Ingredient
+                                key={i}
+                                ingredient={ingredient}
+                                index={i}
+                                onUpdate={(index, field, value) =>
+                                    formActions.updateIngredient(index, {
+                                        [field]: value,
+                                    })
+                                }
+                                onRemove={formActions.deleteIngredient}
+                                onRemoveImage={formActions.deleteIngredientImage}
+                            />
+                        ))}
+                    </View>
 
                     <PressableScale
                         onPress={formActions.createIngredient}
-                        style={{
-                            backgroundColor: vars.backgroundColor,
-                            padding: 10,
-                            borderWidth: 1,
-                            borderColor: vars.borderColor,
-                            borderRadius: 24,
-                            marginTop: 8,
-                            alignItems: "center",
-                        }}
+                        style={[
+                            styles.addButton,
+                            {
+                                backgroundColor: vars.secondaryBackgroundColor,
+                                borderColor: vars.secondaryBorderColor,
+                            },
+                        ]}
                     >
-                        <Text style={{ color: vars.textColor, fontWeight: "600" }}>+ Add Ingredient</Text>
+                        <Text
+                            style={{
+                                color: vars.textColor,
+                                fontWeight: "600",
+                            }}
+                        >
+                            + Add Ingredient
+                        </Text>
                     </PressableScale>
+                </View>
 
-                    <FieldLabel label="Instructions" textColor={vars.textColor} />
-                    {formStates.instructions.map((instruction, index) => (
-                        <Instruction
-                            key={index}
-                            instruction={instruction}
-                            index={index}
-                            onUpdate={(i, value) => formActions.updateInstruction(i, value)}
-                            onRemove={formActions.deleteInstruction}
-                        />
-                    ))}
+                <View style={styles.section}>
+                    <Text style={labelStyle}>Instructions</Text>
+
+                    <View style={{ gap: 10 }}>
+                        {formStates.instructions.map((instruction, i) => (
+                            <Instruction
+                                key={i}
+                                instruction={instruction}
+                                index={i}
+                                onUpdate={(index, value) => formActions.updateInstruction(index, value)}
+                                onRemove={formActions.deleteInstruction}
+                            />
+                        ))}
+                    </View>
+
                     <PressableScale
                         onPress={formActions.createInstruction}
-                        style={{
-                            backgroundColor: vars.backgroundColor,
-                            padding: 10,
-                            borderWidth: 1,
-                            borderColor: vars.borderColor,
-                            borderRadius: 24,
-                            marginTop: 8,
-                            alignItems: "center",
-                        }}
+                        style={[
+                            styles.addButton,
+                            {
+                                backgroundColor: vars.secondaryBackgroundColor,
+                                borderColor: vars.secondaryBorderColor,
+                            },
+                        ]}
                     >
-                        <Text style={{ color: vars.textColor, fontWeight: "600" }}>+ Add Instruction</Text>
+                        <Text
+                            style={{
+                                color: vars.textColor,
+                                fontWeight: "600",
+                            }}
+                        >
+                            + Add Instruction
+                        </Text>
                     </PressableScale>
                 </View>
             </ScrollView>
 
-            <PressableScale
-                enabled={!editStates.loading}
-                onPress={updateRecipe}
-                style={{
-                    backgroundColor: vars.accentColor,
-                    padding: 14,
-                    borderRadius: 24,
-                    alignItems: "center",
-                    marginTop: 16,
-                }}
-            >
-                {editStates.loading ? (
-                    <ActivityIndicator color="#fff" />
-                ) : (
-                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>Update Recipe</Text>
-                )}
-            </PressableScale>
-        </>
+            <View style={styles.updateButtonContainer}>
+                <GlassView
+                    glassEffectStyle="regular"
+                    isInteractive={!editStates.loading}
+                    colorScheme={colorScheme}
+                    tintColor={vars.accentColor}
+                    style={styles.updateGlass}
+                >
+                    <PressableScale
+                        enabled={!editStates.loading}
+                        onPress={updateRecipe}
+                        style={[
+                            styles.updateButton,
+                            {
+                                backgroundColor: `${vars.accentColor}E6`,
+                            },
+                        ]}
+                    >
+                        {editStates.loading ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <Text style={styles.updateButtonText}>Update Recipe</Text>
+                        )}
+                    </PressableScale>
+                </GlassView>
+            </View>
+        </KeyboardAvoidingView>
     )
 }
 
-function FieldLabel({ textColor, label, required = false }: any) {
-    return (
-        <Text
-            style={{
-                color: textColor,
-                fontWeight: "600",
-                marginTop: 12,
-                marginBottom: 6,
-            }}
-        >
-            {label} {required && <Text style={{ color: "#AA4A44" }}>*</Text>}
-        </Text>
-    )
-}
+const styles = {
+    container: {
+        flex: 1,
+    },
 
-function StyledInput({ textColor, backgroundColor, borderColor, theme, ...props }: any) {
-    return (
-        <TextInput
-            keyboardAppearance={theme === "light" ? "light" : "dark"}
-            {...props}
-            style={{
-                color: textColor,
-                backgroundColor: backgroundColor,
-                borderWidth: 1,
-                borderColor: borderColor,
-                borderRadius: 14,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                marginBottom: 8,
-            }}
-            placeholderTextColor="gray"
-        />
-    )
+    scrollView: {
+        flex: 1,
+    },
+
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 64,
+        paddingBottom: 80,
+    },
+
+    titleSection: {
+        marginBottom: 22,
+    },
+
+    section: {
+        marginBottom: 24,
+    },
+
+    rowSection: {
+        minHeight: 52,
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        justifyContent: "space-between" as const,
+        marginBottom: 24,
+    },
+
+    labelBlock: {
+        flex: 1,
+        marginRight: 16,
+    },
+
+    bannerContainer: {
+        position: "relative" as const,
+        width: 140,
+        height: 140,
+    },
+    banner: {
+        width: 140,
+        height: 140,
+        borderRadius: BORDER_RADIUS_M,
+    },
+    bannerClose: {
+        position: "absolute" as const,
+        top: -8,
+        right: -8,
+        zIndex: 1,
+    },
+    closeGlass: {
+        width: 28,
+        height: 28,
+        borderRadius: BORDER_RADIUS_FULL,
+        justifyContent: "center" as const,
+        alignItems: "center" as const,
+        overflow: "hidden" as const,
+    },
+    closeButton: {
+        width: 28,
+        height: 28,
+        justifyContent: "center" as const,
+        alignItems: "center" as const,
+    },
+    addButton: {
+        marginTop: 12,
+        paddingVertical: 12,
+        borderWidth: 1,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center" as const,
+    },
+    updateButtonContainer: {
+        position: "absolute" as const,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
+        backgroundColor: "transparent",
+    },
+    updateGlass: {
+        minHeight: 54,
+        borderRadius: BORDER_RADIUS_L,
+        overflow: "hidden" as const,
+    },
+    updateButton: {
+        minHeight: 54,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+    },
+    updateButtonText: {
+        color: "#fff",
+        fontWeight: "700" as const,
+        fontSize: 16,
+    },
 }

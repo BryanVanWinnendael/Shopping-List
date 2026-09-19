@@ -12,6 +12,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import { Pencil, Trash } from "lucide-react-native"
 import CustomImage from "@/components/customImage"
 import { Category } from "@/types/generated/models/category"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 const SWIPE_DISTANCE = -140
 const SWIPE_THRESHOLD = -20
@@ -105,7 +106,7 @@ export default function Product({
         return {
             width: baseWidth + extraWidth,
             opacity: isVisible ? 1 : 0,
-            borderRadius: 24,
+            borderRadius: BORDER_RADIUS_L,
             justifyContent: "center",
             alignItems: passedDeletePoint ? "flex-start" : "center",
             paddingLeft: passedDeletePoint ? 16 : 0,
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         gap: 8,
         alignItems: "center",
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
     },
     iconContainer: { width: 48, alignItems: "center", justifyContent: "center" },
     textContainer: {
@@ -273,7 +274,7 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
     deleteBackground: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         justifyContent: "flex-end",
         alignItems: "center",
         paddingRight: 20,

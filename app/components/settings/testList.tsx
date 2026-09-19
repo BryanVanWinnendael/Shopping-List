@@ -6,11 +6,15 @@ import { createTestProduct, deleteProduct } from "@/lib/firebase"
 import uuid from "react-native-uuid"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import useThemes from "@/hooks/themes/useThemes"
+import { GlassView } from "expo-glass-effect"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function TestList() {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
     const { user } = useSettingsStore()
     const { products } = useProductsListStore()
+
+    const colorScheme = theme === "light" ? "light" : "dark"
 
     const handleAddTestList = async () => {
         if (!user) return
@@ -39,62 +43,96 @@ export default function TestList() {
 
     return (
         <>
-            <View
-                style={[
-                    styles.container,
-                    {
-                        backgroundColor: vars.secondaryBackgroundColor,
-                        borderColor: vars.secondaryBorderColor,
-                        borderWidth: 1,
-                    },
-                ]}
+            <GlassView
+                glassEffectStyle="regular"
+                colorScheme={colorScheme}
+                tintColor={vars.secondaryBackgroundColor}
+                style={styles.container}
             >
                 <View style={styles.row}>
-                    <Text style={[styles.title, { color: vars.textColor }]}>Test Add List</Text>
-                    <PressableScale
+                    <Text
                         style={[
-                            styles.button,
-                            { borderColor: vars.borderColor, backgroundColor: vars.backgroundColor },
+                            styles.title,
+                            {
+                                color: vars.textColor,
+                            },
                         ]}
-                        onPress={handleAddTestList}
                     >
-                        <Text style={[styles.buttonText, { color: vars.textColor }]}>Add Test Items</Text>
-                    </PressableScale>
+                        Test Add List
+                    </Text>
+
+                    <GlassView
+                        glassEffectStyle="regular"
+                        isInteractive
+                        colorScheme={colorScheme}
+                        style={styles.buttonGlass}
+                    >
+                        <PressableScale onPress={handleAddTestList} style={styles.button}>
+                            <Text
+                                style={[
+                                    styles.buttonText,
+                                    {
+                                        color: vars.textColor,
+                                    },
+                                ]}
+                            >
+                                Add Test Items
+                            </Text>
+                        </PressableScale>
+                    </GlassView>
                 </View>
-            </View>
-            <View
-                style={[
-                    styles.container,
-                    {
-                        backgroundColor: vars.secondaryBackgroundColor,
-                        borderColor: vars.secondaryBorderColor,
-                        borderWidth: 0.2,
-                    },
-                ]}
+            </GlassView>
+
+            <GlassView
+                glassEffectStyle="regular"
+                colorScheme={colorScheme}
+                tintColor={vars.secondaryBackgroundColor}
+                style={styles.container}
             >
                 <View style={styles.row}>
-                    <Text style={[styles.title, { color: vars.textColor }]}>Test Remove List</Text>
-                    <PressableScale
+                    <Text
                         style={[
-                            styles.button,
-                            { borderColor: vars.borderColor, backgroundColor: vars.backgroundColor },
+                            styles.title,
+                            {
+                                color: vars.textColor,
+                            },
                         ]}
-                        onPress={handleRemoveTestList}
                     >
-                        <Text style={[styles.buttonText, { color: vars.textColor }]}>Remove All Items</Text>
-                    </PressableScale>
+                        Test Remove List
+                    </Text>
+
+                    <GlassView
+                        glassEffectStyle="regular"
+                        isInteractive
+                        colorScheme={colorScheme}
+                        style={styles.buttonGlass}
+                    >
+                        <PressableScale onPress={handleRemoveTestList} style={styles.button}>
+                            <Text
+                                style={[
+                                    styles.buttonText,
+                                    {
+                                        color: vars.textColor,
+                                    },
+                                ]}
+                            >
+                                Remove All Items
+                            </Text>
+                        </PressableScale>
+                    </GlassView>
                 </View>
-            </View>
+            </GlassView>
         </>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
         paddingHorizontal: 16,
         marginHorizontal: 8,
         paddingBottom: 16,
+        overflow: "hidden",
     },
     row: {
         flexDirection: "row",
@@ -106,19 +144,21 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 16,
     },
+    buttonGlass: {
+        minWidth: 58,
+        height: 36,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
     button: {
-        flexDirection: "row",
+        minWidth: 58,
+        height: 36,
         alignItems: "center",
-        borderWidth: 1,
-        borderRadius: 24,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        justifyContent: "center",
+        paddingHorizontal: 14,
     },
     buttonText: {
-        fontSize: 15,
-    },
-    containerTest: {
-        flexDirection: "row",
-        gap: 15,
+        fontSize: 13,
+        fontWeight: "600",
     },
 })

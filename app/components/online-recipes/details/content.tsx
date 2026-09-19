@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react-native"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 import IngredientsList from "@/components/online-recipes/details/ingredientsList"
 import Instructions from "@/components/online-recipes/details/instructions"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     recipe: OnlineRecipeDetails
@@ -35,6 +36,14 @@ export default function RecipeContent({ recipe, open, scrollY }: Props) {
                 >
                     {recipe.title}
                 </Text>
+
+                <View style={styles.info}>
+                    {recipe.time && recipe.time != 0 ? (
+                        <Meta text={`⏱ ${recipe.time} min`} accent={vars.accentColor} />
+                    ) : null}
+
+                    {recipe.persons ? <Meta text={`👥 ${recipe.persons}`} accent={vars.accentColor} /> : null}
+                </View>
 
                 <View>
                     {recipe.ingredients && recipe.ingredients.length > 0 && <IngredientsList recipe={recipe} />}
@@ -111,7 +120,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 11,
         paddingVertical: 6,
-        borderRadius: 14,
+        borderRadius: BORDER_RADIUS_L,
     },
     metaText: {
         fontSize: 13,

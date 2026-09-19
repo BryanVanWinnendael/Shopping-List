@@ -9,11 +9,12 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
-import { Ionicons } from "@expo/vector-icons"
+import { GlassView } from "expo-glass-effect"
+import { Grid2X2, List } from "lucide-react-native"
 
 import useThemes from "@/hooks/themes/useThemes"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { useSettingsStore } from "@/stores/useSettingsStore"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     value: "grid" | "list"
@@ -29,6 +30,7 @@ const SEGMENT_WIDTH = EXPANDED_WIDTH / OPTIONS.length
 
 export default function StyleButton({ value, setStyle, collapsed }: Props) {
     const { vars } = useThemes()
+    const { theme } = useSettingsStore()
 
     const translateX = useSharedValue(0)
     const scale = useSharedValue(1)
@@ -50,26 +52,37 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
     useEffect(() => {
         if (prevValue.current !== value) {
             scale.value = withSequence(withTiming(1.03, { duration: 100 }), withTiming(1, { duration: 150 }))
+
             prevValue.current = value
         }
     }, [value])
 
     const indicatorStyle = useAnimatedStyle(() => ({
-        transform: [{ translateX: translateX.value }],
+        transform: [
+            {
+                translateX: translateX.value,
+            },
+        ],
     }))
 
     const containerStyle = useAnimatedStyle(() => ({
         width: withTiming(collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH, { duration: 250 }),
-        transform: [{ scale: scale.value }],
+        transform: [
+            {
+                scale: scale.value,
+            },
+        ],
     }))
 
     return (
         <View style={styles.wrapper}>
-            <Animated.View style={[containerStyle, SHADOW_STYLE]}>
-                <GlassOrBlurView
+            <Animated.View style={containerStyle}>
+                <GlassView
+                    glassEffectStyle="regular"
+                    isInteractive
+                    colorScheme={theme === "light" ? "light" : "dark"}
+                    tintColor={vars.secondaryBackgroundColor}
                     style={styles.container}
-                    backgroundColor={vars.secondaryBackgroundColor}
-                    borderColor={`${vars.secondaryBorderColor}50`}
                 >
                     {collapsed ? (
                         <Animated.View
@@ -77,7 +90,11 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
                             exiting={FadeOut.duration(150)}
                             style={styles.activeIconContainer}
                         >
-                            <Ionicons name={value} size={22} color={vars.textColor} />
+                            {value === "grid" ? (
+                                <Grid2X2 size={22} color={vars.textColor} />
+                            ) : (
+                                <List size={22} color={vars.textColor} />
+                            )}
                         </Animated.View>
                     ) : (
                         <Animated.View
@@ -97,19 +114,20 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
                             />
 
                             <PressableScale onPress={() => setStyle("grid")} style={styles.button}>
-                                <Ionicons name="grid" size={22} color={value === "grid" ? vars.textColor : "gray"} />
+                                <Grid2X2 size={22} color={value === "grid" ? vars.textColor : "gray"} />
                             </PressableScale>
 
                             <PressableScale onPress={() => setStyle("list")} style={styles.button}>
-                                <Ionicons name="list" size={22} color={value === "list" ? vars.textColor : "gray"} />
+                                <List size={22} color={value === "list" ? vars.textColor : "gray"} />
                             </PressableScale>
                         </Animated.View>
                     )}
-                </GlassOrBlurView>
+                </GlassView>
             </Animated.View>
         </View>
     )
 }
+
 const styles = StyleSheet.create({
     wrapper: {
         position: "absolute",
@@ -120,19 +138,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: 26,
+        borderRadius: BORDER_RADIUS_L,
         height: 48,
         overflow: "hidden",
-        borderWidth: 1,
-
-        shadowColor: "#000",
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        elevation: 6,
     },
     expandedContent: {
         flex: 1,
@@ -144,7 +152,7 @@ const styles = StyleSheet.create({
         left: 0,
         top: 0,
         bottom: 0,
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
     },
     button: {
         flex: 1,

@@ -1,9 +1,9 @@
 import { ActivityIndicator, Text, View } from "react-native"
-import { useNavigationState } from "@react-navigation/native"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import ListHeader from "@/components/listHeader"
 import useThemes from "@/hooks/themes/useThemes"
 import { useHeaderStore } from "@/stores/useHeaderStore"
+import { usePathname } from "expo-router"
 
 const ROUTE_TITLES: Record<string, string> = {
     weeklyCategories: "Weekly Categories",
@@ -14,13 +14,11 @@ export default function Header() {
     const { vars } = useThemes()
     const { products } = useProductsListStore()
     const { headers } = useHeaderStore()
+    const pathname = usePathname()
 
     const totalProducts = products ? Object.keys(products).length : 0
 
-    const currentRouteName = useNavigationState((state) => {
-        const route = state.routes[state.index]
-        return route.name
-    })
+    const currentRouteName = pathname === "/" ? "index" : (pathname.split("/").filter(Boolean).pop() ?? "index")
 
     const headerTitle =
         ROUTE_TITLES[currentRouteName] ?? currentRouteName.charAt(0).toUpperCase() + currentRouteName.slice(1)

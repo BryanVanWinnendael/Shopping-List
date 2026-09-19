@@ -93,15 +93,9 @@ export default function RootLayout() {
                                 lazy: true,
                                 detachInactiveScreens: true,
                                 drawerType: "slide",
-                                sceneContainerStyle: {
-                                    borderRadius: 120,
-                                    overflow: "hidden",
-                                    backgroundColor: vars.backgroundColor,
-                                },
                                 drawerActiveTintColor: vars.textColor,
                                 drawerInactiveTintColor: vars.textColor,
                                 drawerActiveBackgroundColor: "transparent",
-                                drawerItemStyle: { borderRadius: 8 },
                                 drawerLabelStyle: {
                                     fontSize: 15,
                                     fontWeight: "500",
@@ -186,7 +180,6 @@ export default function RootLayout() {
                                     headerTransparent: true,
                                     drawerItemStyle: {
                                         display: ADMIN_USERS_ARRAY.includes(user ?? "") ? "flex" : "none",
-                                        borderRadius: 8,
                                     },
                                     drawerIcon: ({ color }) => (
                                         <BookOpen color={color} size={ICON_SIZE} strokeWidth={2} />
@@ -202,7 +195,6 @@ export default function RootLayout() {
                                     headerTransparent: true,
                                     drawerItemStyle: {
                                         display: ADMIN_USERS_ARRAY.includes(user ?? "") ? "flex" : "none",
-                                        borderRadius: 8,
                                     },
                                     drawerIcon: ({ color }) => (
                                         <TagIcon color={color} size={ICON_SIZE} strokeWidth={2} />
@@ -218,7 +210,6 @@ export default function RootLayout() {
                                     headerTransparent: true,
                                     drawerItemStyle: {
                                         display: ADMIN_USERS_ARRAY.includes(user ?? "") ? "flex" : "none",
-                                        borderRadius: 8,
                                     },
                                     drawerIcon: ({ color }) => (
                                         <CalendarCog color={color} size={ICON_SIZE} strokeWidth={2} />

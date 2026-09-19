@@ -6,6 +6,8 @@ import { PressableScale } from "pressto"
 import { SaveFormat, useImageManipulator } from "expo-image-manipulator"
 import { useEffect, useState } from "react"
 import useThemes from "@/hooks/themes/useThemes"
+import { ImagePlus } from "lucide-react-native"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     onPick: (uri: string, image: ImagePicker.ImagePickerAsset) => void
@@ -95,13 +97,13 @@ export default function ImageInput({ onPick, type }: Props) {
         <PressableScale
             onPress={showActionSheet}
             style={{
-                backgroundColor: aColorUse.input ? vars.accentColor : vars.secondaryBorderColor,
-                borderColor: aColorUse.input ? `${vars.accentColor}50` : `${vars.secondaryBackgroundColor}50`,
+                backgroundColor: aColorUse.image ? vars.accentColor : vars.secondaryBorderColor,
+                borderColor: aColorUse.image ? `${vars.accentColor}50` : `${vars.secondaryBackgroundColor}50`,
                 justifyContent: "center",
                 alignItems: "center",
                 width: 40,
                 height: 40,
-                borderRadius: 50,
+                borderRadius: BORDER_RADIUS_FULL,
                 marginBottom: 8,
             }}
         >
@@ -117,23 +119,31 @@ export default function ImageInput({ onPick, type }: Props) {
         </PressableScale>
     ) : (
         <PressableScale
-            style={{
-                backgroundColor: vars.backgroundColor,
-                padding: 10,
-                borderWidth: 1,
-                borderColor: vars.borderColor,
-                borderRadius: 24,
-                marginTop: 8,
-                alignItems: "center",
-            }}
             onPress={showActionSheet}
+            style={{
+                marginTop: 12,
+                paddingVertical: 12,
+                paddingHorizontal: 12,
+                borderRadius: BORDER_RADIUS_L,
+                backgroundColor: vars.secondaryBackgroundColor,
+                borderWidth: 1,
+                borderColor: vars.secondaryBorderColor,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+            }}
         >
+            <ImagePlus size={15} color={vars.textColor} strokeWidth={2} />
+
             <Text
                 style={{
                     color: vars.textColor,
+                    fontSize: 13,
+                    fontWeight: "600",
                 }}
             >
-                + Add Image
+                Add Image
             </Text>
         </PressableScale>
     )

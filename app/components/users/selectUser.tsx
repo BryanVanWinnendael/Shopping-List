@@ -2,6 +2,7 @@ import { PressableScale } from "pressto"
 import { Modal, Text, View } from "react-native"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { USERS_ARRAY } from "@/lib/constants"
+import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 export default function SelectUser() {
     const { user, setUser } = useSettingsStore()
@@ -23,7 +24,7 @@ export default function SelectUser() {
                         padding: 24,
                         width: "100%",
                         maxWidth: 400,
-                        borderRadius: 20,
+                        borderRadius: BORDER_RADIUS_M,
                     }}
                 >
                     <Text
@@ -45,7 +46,7 @@ export default function SelectUser() {
                                 backgroundColor: "#f3f4f6",
                                 paddingVertical: 12,
                                 paddingHorizontal: 16,
-                                borderRadius: 24,
+                                borderRadius: BORDER_RADIUS_L,
                                 marginBottom: 8,
                                 alignItems: "center",
                             }}

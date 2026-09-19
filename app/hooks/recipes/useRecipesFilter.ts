@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import BottomSheet from "@gorhom/bottom-sheet"
 import { MealType } from "@/types/generated/models/meal_type"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 export function useRecipesFilter() {
     const { activeFilter, updateFilter, setActiveFilter } = useRecipesStore()
 
-    const bottomSheetRef = useRef<BottomSheet>(null)
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
 
     const [mealType, setMealType] = useState<MealType>("Any")
     const [isPublic, setIsPublic] = useState(true)
-    const [country, setCountry] = useState<string>("Any")
-    const [time, setTime] = useState<number | null>(null)
+    const [country, setCountry] = useState<string | undefined>("Any")
+    const [time, setTime] = useState<number | null | undefined>(null)
 
     const open = useCallback(() => {
         bottomSheetRef.current?.expand()
@@ -56,7 +56,7 @@ export function useRecipesFilter() {
         }
 
         if (!activeFilter.public) {
-            parts.push("My Recipes")
+            parts.push("Private")
         }
 
         if (activeFilter.country && activeFilter.country !== "Any") {
@@ -65,6 +65,10 @@ export function useRecipesFilter() {
 
         if (activeFilter.time) {
             parts.push(`≤ ${activeFilter.time} min`)
+        }
+
+        if (activeFilter.isSaved) {
+            parts.push("Online Recipes")
         }
 
         return parts.length ? parts.join(", ") : "All"

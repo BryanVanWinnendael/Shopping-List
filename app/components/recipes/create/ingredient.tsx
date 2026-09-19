@@ -1,11 +1,11 @@
-import { Image, TextInput, View } from "react-native"
-import { PressableScale } from "pressto"
-import ImageInput from "@/components/inputs/imageInput"
+import { Image, Text, TextInput, View } from "react-native"
 import { Ingredient as IngredientType } from "@/types/recipes"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import { X } from "lucide-react-native"
+import { GlassView } from "expo-glass-effect"
 import useThemes from "@/hooks/themes/useThemes"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { PressableScale } from "pressto"
+import { ImagePlus, X } from "lucide-react-native"
+import ImageInput from "@/components/inputs/imageInput"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     ingredient: IngredientType
@@ -17,91 +17,118 @@ type Props = {
 export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Props) {
     const { vars, theme } = useThemes()
 
+    const colorScheme = theme === "light" ? "light" : "dark"
+
     return (
-        <View
+        <GlassView
+            glassEffectStyle="regular"
+            colorScheme={colorScheme}
+            tintColor={vars.secondaryBackgroundColor}
             style={{
-                borderWidth: 1,
-                borderColor: vars.secondaryBorderColor,
-                borderRadius: 20,
+                position: "relative",
+                borderRadius: BORDER_RADIUS_L,
                 padding: 12,
                 marginBottom: 12,
-                backgroundColor: vars.secondaryBackgroundColor,
+                overflow: "hidden",
             }}
         >
             <View
-                style={[
-                    {
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        borderRadius: 100,
-                        zIndex: 100,
-                    },
-                    SHADOW_STYLE,
-                ]}
+                style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    zIndex: 10,
+                }}
             >
-                <GlassOrBlurView
-                    borderColor={vars.secondaryBorderColor}
+                <GlassView
+                    glassEffectStyle="regular"
+                    isInteractive
+                    colorScheme={colorScheme}
                     style={{
-                        width: 24,
-                        height: 24,
+                        width: 30,
+                        height: 30,
+                        borderRadius: BORDER_RADIUS_FULL,
                         justifyContent: "center",
                         alignItems: "center",
+                        overflow: "hidden",
                     }}
                 >
-                    <PressableScale onPress={() => onRemove(index)}>
-                        <X size={16} color={vars.textColor} />
+                    <PressableScale
+                        onPress={() => onRemove(index)}
+                        style={{
+                            width: 30,
+                            height: 30,
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        <X size={15} strokeWidth={2} color={vars.textColor} />
                     </PressableScale>
-                </GlassOrBlurView>
+                </GlassView>
             </View>
 
             <TextInput
                 value={ingredient.product ?? ""}
-                onChangeText={(val) => onUpdate(index, "product", val)}
+                onChangeText={(value) => onUpdate(index, "product", value)}
+                placeholder="Ingredient"
+                placeholderTextColor="gray"
+                returnKeyType="done"
+                keyboardAppearance={theme === "light" ? "light" : "dark"}
                 style={{
-                    color: vars.textColor,
-                    backgroundColor: vars.secondaryBackgroundColor,
+                    height: 46,
+                    paddingHorizontal: 14,
+                    paddingRight: 44,
+                    marginBottom: 10,
+                    borderRadius: BORDER_RADIUS_M,
+                    backgroundColor: vars.backgroundColor,
                     borderWidth: 1,
                     borderColor: vars.secondaryBorderColor,
-                    borderRadius: 14,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
+                    color: vars.textColor,
+                    fontSize: 16,
                 }}
-                placeholder="Type here..."
-                keyboardAppearance={theme === "light" ? "light" : "dark"}
-                placeholderTextColor="gray"
             />
 
             {ingredient.image ? (
                 <View
                     style={{
+                        width: "100%",
+                        maxHeight: 300,
+                        borderRadius: BORDER_RADIUS_M,
+                        overflow: "hidden",
                         position: "relative",
-                        width: 100,
-                        height: 100,
-                        marginTop: 4,
+                        backgroundColor: vars.backgroundColor,
                     }}
                 >
                     <Image
-                        source={{ uri: ingredient.image.uri }}
-                        style={{ width: 100, height: 100, borderRadius: 12 }}
+                        source={{
+                            uri: ingredient.image.uri,
+                        }}
+                        style={{
+                            width: "100%",
+                            height: 220,
+                        }}
+                        resizeMode="contain"
                     />
+
                     <View
-                        style={[
-                            {
-                                position: "absolute",
-                                top: -8,
-                                right: -8,
-                                borderRadius: 100,
-                            },
-                            SHADOW_STYLE,
-                        ]}
+                        style={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            zIndex: 5,
+                        }}
                     >
-                        <GlassOrBlurView
+                        <GlassView
+                            glassEffectStyle="regular"
+                            isInteractive
+                            colorScheme={colorScheme}
                             style={{
-                                width: 24,
-                                height: 24,
+                                width: 30,
+                                height: 30,
+                                borderRadius: BORDER_RADIUS_FULL,
                                 justifyContent: "center",
                                 alignItems: "center",
+                                overflow: "hidden",
                             }}
                         >
                             <PressableScale
@@ -109,21 +136,81 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Pr
                                     onUpdate(index, "image", undefined)
                                     onUpdate(index, "type", "text")
                                 }}
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
                             >
-                                <X size={16} color={vars.textColor} />
+                                <X size={15} strokeWidth={2} color={vars.textColor} />
                             </PressableScale>
-                        </GlassOrBlurView>
+                        </GlassView>
                     </View>
                 </View>
             ) : (
-                <ImageInput
-                    type="recipe"
-                    onPick={(_, asset) => {
-                        onUpdate(index, "image", asset)
-                        onUpdate(index, "type", "image")
+                <View
+                    style={{
+                        height: 72,
+                        borderRadius: BORDER_RADIUS_M,
+                        borderWidth: 1,
+                        borderColor: vars.secondaryBorderColor,
+                        backgroundColor: vars.backgroundColor,
+                        overflow: "hidden",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 14,
                     }}
-                />
+                >
+                    <View
+                        style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: BORDER_RADIUS_M,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            backgroundColor: vars.secondaryBackgroundColor,
+                            marginRight: 11,
+                        }}
+                    >
+                        <ImagePlus size={18} color={vars.textColor} strokeWidth={1.8} />
+                    </View>
+
+                    <View
+                        style={{
+                            flex: 1,
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: vars.textColor,
+                                fontSize: 15,
+                                fontWeight: "500",
+                            }}
+                        >
+                            Add Image
+                        </Text>
+
+                        <Text
+                            style={{
+                                color: "gray",
+                                fontSize: 12,
+                                marginTop: 2,
+                            }}
+                        >
+                            Optional
+                        </Text>
+                    </View>
+
+                    <ImageInput
+                        type="recipe"
+                        onPick={(_, asset) => {
+                            onUpdate(index, "image", asset)
+                            onUpdate(index, "type", "image")
+                        }}
+                    />
+                </View>
             )}
-        </View>
+        </GlassView>
     )
 }

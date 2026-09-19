@@ -5,12 +5,11 @@ import { BookmarkPlus } from "lucide-react-native"
 import useOnlineRecipeDetails from "@/hooks/recipes/useOnlineRecipeDetails"
 import { useCallback } from "react"
 import { ActivityIndicator, Alert } from "react-native"
-import { useNavigation } from "@react-navigation/native"
+import { router } from "expo-router"
 import Toast from "react-native-toast-message"
 import { delay } from "@/lib/utils"
-import { router } from "expo-router"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
-import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     recipe: OnlineRecipeDetails
@@ -19,7 +18,6 @@ type Props = {
 export default function AddToRecipesButton({ recipe }: Props) {
     const { vars } = useThemes()
     const { actions, states } = useOnlineRecipeDetails()
-    const navigation = useNavigation()
 
     const addToRecipe = useCallback(() => {
         Alert.alert("Save Recipe", `"${recipe.title}" will be added to your recipes.`, [
@@ -48,8 +46,7 @@ export default function AddToRecipesButton({ recipe }: Props) {
                             type: "success",
                             text1: "Recipe saved successfully",
                         })
-                        navigation.goBack()
-                        router.push("/recipes")
+                        router.replace("/recipes")
                     } else {
                         Toast.show({
                             type: "error",
@@ -72,14 +69,13 @@ export default function AddToRecipesButton({ recipe }: Props) {
                     width: 48,
                     height: 48,
                 },
-                SHADOW_STYLE_LIGHT,
             ]}
         >
             <GlassOrBlurView
                 borderColor={`${vars.secondaryBorderColor}50`}
                 style={[
                     {
-                        borderRadius: 50,
+                        borderRadius: BORDER_RADIUS_FULL,
                         overflow: "hidden",
                         justifyContent: "center",
                         alignItems: "center",

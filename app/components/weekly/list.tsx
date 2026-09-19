@@ -1,11 +1,12 @@
 import { useState } from "react"
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native"
-import { useHeaderHeight } from "@react-navigation/elements"
 import { Info, Trash } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import CategoryIcon from "@/components/categoryIcon"
 import useThemes from "@/hooks/themes/useThemes"
 import { CronProduct } from "@/types/generated/models/cron_product"
+import { HEADER_HEIGHT } from "@/lib/constants"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     deleteCronProduct: (id: string | null | undefined) => void
@@ -15,7 +16,6 @@ type Props = {
 
 export default function List({ deleteCronProduct, cronProducts, getCronProducts }: Props) {
     const { vars } = useThemes()
-    const headerHeight = useHeaderHeight()
 
     const [refreshing, setRefreshing] = useState(false)
 
@@ -46,11 +46,11 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
     return (
         <View style={styles.container}>
             <View style={{ width: "100%" }}>
-                <View style={{ height: headerHeight }} />
+                <View style={{ height: HEADER_HEIGHT }} />
                 <View
                     style={{
                         backgroundColor: `${vars.accentColor}33`,
-                        borderRadius: 20,
+                        borderRadius: BORDER_RADIUS_L,
                         padding: 12,
                         marginHorizontal: 8,
                         marginBottom: 16,
@@ -69,7 +69,9 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
 
             <FlatList
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.flatListContent}
+                contentContainerStyle={{
+                    paddingBottom: HEADER_HEIGHT + 85,
+                }}
                 data={cronProducts}
                 renderItem={({ item }) => renderItem(item)}
                 keyExtractor={(_, index) => String(index)}
@@ -98,10 +100,6 @@ const styles = StyleSheet.create({
         flex: 1,
         width: "100%",
     },
-    flatListContent: {
-        paddingHorizontal: 8,
-        paddingBottom: 16,
-    },
     emptyContainer: {
         flex: 1,
         justifyContent: "center",
@@ -114,7 +112,7 @@ const styles = StyleSheet.create({
         gap: 12,
         paddingVertical: 14,
         paddingHorizontal: 12,
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,
         marginVertical: 6,
     },

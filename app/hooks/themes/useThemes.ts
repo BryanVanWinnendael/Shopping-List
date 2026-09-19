@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useRef } from "react"
-import BottomSheet from "@gorhom/bottom-sheet"
+
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { User } from "@/types"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 function capitalize(str: string) {
     if (!str) return str
@@ -10,15 +11,16 @@ function capitalize(str: string) {
 
 export default function useThemes() {
     const { theme, aColor, userColors, fontSize, user } = useSettingsStore()
-    const bottomSheetRef = useRef<BottomSheet>(null)
 
-    const open = () => {
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
+
+    const open = useCallback(() => {
         bottomSheetRef.current?.expand()
-    }
+    }, [])
 
-    const close = () => {
+    const close = useCallback(() => {
         bottomSheetRef.current?.close()
-    }
+    }, [])
 
     const backgroundColor = useMemo(() => {
         switch (theme) {
@@ -75,17 +77,16 @@ export default function useThemes() {
     const getLabelColor = useCallback(
         (givenUser?: User) => {
             const defaultColor = theme === "light" ? "#9ca3af" : "#50555C"
+
             if (!userColors.enabled) return defaultColor
             if (!user) return defaultColor
-            if (!givenUser) {
-                const userKey = capitalize(user) as keyof typeof userColors
-                return userColors.colors[userKey] ?? defaultColor
-            } else {
-                const userKey = capitalize(givenUser) as keyof typeof userColors
-                return userColors.colors[userKey] ?? defaultColor
-            }
+
+            const selectedUser = givenUser ?? user
+            const userKey = capitalize(selectedUser) as keyof typeof userColors
+
+            return userColors.colors[userKey] ?? defaultColor
         },
-        [userColors]
+        [theme, user, userColors]
     )
 
     return {
@@ -94,9 +95,11 @@ export default function useThemes() {
             close,
             getLabelColor,
         },
+
         refs: {
             bottomSheetRef,
         },
+
         vars: {
             backgroundColor,
             secondaryBackgroundColor,
@@ -107,6 +110,7 @@ export default function useThemes() {
             textSize,
             labelSize,
         },
+
         theme,
     }
 }

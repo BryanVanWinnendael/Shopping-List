@@ -1,4 +1,3 @@
-import { useHeaderHeight } from "@react-navigation/elements"
 import { StyleSheet, View } from "react-native"
 import List from "@/components/logs/list"
 import ClearButton from "@/components/logs/clearButton"
@@ -9,7 +8,6 @@ import { SearchBar } from "@/components/logs/searchBar"
 
 export default function Logs() {
     const { vars } = useThemes()
-    const headerHeight = useHeaderHeight()
 
     const { actions, states } = useLogs()
 
@@ -21,7 +19,6 @@ export default function Logs() {
 
             <List
                 traces={states.traces}
-                headerHeight={headerHeight}
                 loading={states.loading}
                 refreshing={states.refreshing}
                 onRefresh={actions.refresh}

@@ -1,6 +1,10 @@
 import { httpRequest } from "./httpHelper"
 import Toast from "react-native-toast-message"
-import { GetOnlineRecipeDetailsResponse, GetOnlineRecipesResponse } from "@/types/generated/contracts/recipes"
+import {
+    GetOnlineRecipeDetailsResponse,
+    GetOnlineRecipesResponse,
+    SearchOnlineRecipesResponse,
+} from "@/types/generated/contracts/recipes"
 
 const ONLINE_RECIPES_PATH = "/recipes/online"
 
@@ -42,11 +46,11 @@ const getOnlineRecipeDetails = async (url: string): Promise<GetOnlineRecipeDetai
     }
 }
 
-const searchOnlineRecipes = async (query: string, page: number): Promise<GetOnlineRecipesResponse | null> => {
+const searchOnlineRecipes = async (query: string, page: number): Promise<SearchOnlineRecipesResponse | null> => {
     try {
         const params: Record<string, any> = { query, page }
 
-        const response = await httpRequest<GetOnlineRecipesResponse>({
+        const response = await httpRequest<SearchOnlineRecipesResponse>({
             url: `${ONLINE_RECIPES_PATH}/search`,
             params,
         })

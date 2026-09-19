@@ -14,6 +14,7 @@ import { X } from "lucide-react-native"
 
 import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     body: string | null
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 500,
         maxHeight: "85%",
-        borderRadius: 28,
+        borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,
         padding: 22,
     },
@@ -192,13 +193,13 @@ const styles = StyleSheet.create({
     closeButton: {
         width: 40,
         height: 40,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 1,
     },
     codeContainer: {
-        borderRadius: 18,
+        borderRadius: BORDER_RADIUS_M,
         borderWidth: 1,
         padding: 16,
     },
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     },
     doneButton: {
         marginTop: 24,
-        borderRadius: 18,
+        borderRadius: BORDER_RADIUS_L,
         paddingVertical: 14,
         alignItems: "center",
     },

@@ -3,9 +3,8 @@ import useThemes from "@/hooks/themes/useThemes"
 import { ListFilter } from "lucide-react-native"
 import { View } from "react-native"
 import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated"
-
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { GlassView } from "expo-glass-effect"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     open: () => void
@@ -13,7 +12,7 @@ type Props = {
 }
 
 export default function FilterButton({ open, shifted }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [
@@ -38,21 +37,22 @@ export default function FilterButton({ open, shifted }: Props) {
                 zIndex: 1,
             }}
         >
-            <Animated.View style={[animatedStyle, SHADOW_STYLE]}>
-                <GlassOrBlurView
+            <Animated.View style={animatedStyle}>
+                <GlassView
+                    glassEffectStyle="regular"
+                    isInteractive
+                    colorScheme={theme === "light" ? "light" : "dark"}
+                    tintColor={vars.secondaryBackgroundColor}
                     style={{
                         flexDirection: "row",
-                        borderRadius: 26,
+                        borderRadius: BORDER_RADIUS_L,
                         overflow: "hidden",
-                        borderWidth: 1,
+                        width: 48,
+                        height: 48,
                     }}
-                    backgroundColor={vars.secondaryBackgroundColor}
-                    borderColor={`${vars.secondaryBorderColor}50`}
                 >
                     <PressableScale
-                        onPress={() => {
-                            open()
-                        }}
+                        onPress={open}
                         style={{
                             height: 48,
                             width: 48,
@@ -62,7 +62,7 @@ export default function FilterButton({ open, shifted }: Props) {
                     >
                         <ListFilter size={20} color={vars.textColor} />
                     </PressableScale>
-                </GlassOrBlurView>
+                </GlassView>
             </Animated.View>
         </View>
     )

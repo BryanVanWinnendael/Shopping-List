@@ -1,72 +1,90 @@
-import { RefObject, useCallback, useMemo } from "react"
+import { RefObject, useCallback } from "react"
 import { StyleSheet, Text, View } from "react-native"
-import GorhomBottomSheet from "@gorhom/bottom-sheet"
+import ExpoBottomSheet from "@expo/ui/community/bottom-sheet"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { Check } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import { USERS_ARRAY } from "@/lib/constants"
 import { User } from "@/types"
-import CustomBottomSheet from "@/components/customBottomSheet"
 import useThemes from "@/hooks/themes/useThemes"
+import AppBottomSheet from "@/components/native/appBottomSheet"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     close: () => void
-    sheetRef: RefObject<GorhomBottomSheet | null>
+    sheetRef: RefObject<ExpoBottomSheet | null>
 }
 
 export default function BottomSheet({ close, sheetRef }: Props) {
     const { vars, theme } = useThemes()
     const { user, setUser } = useSettingsStore()
-    const snapPoints = useMemo(() => ["30%"], [])
 
-    const handleUserChange = useCallback(async (newUser: User) => {
-        await setUser(newUser)
-        close()
-    }, [])
+    const handleUserChange = useCallback(
+        async (newUser: User) => {
+            await setUser(newUser)
+            close()
+        },
+        [setUser, close]
+    )
 
     return (
-        <CustomBottomSheet sheetRef={sheetRef} onClose={close} snapPoints={snapPoints} backgroundMode={"half"}>
-            <Text style={[styles.sheetTitle, { color: theme === "light" ? "gray" : "#50555C" }]}>Select User</Text>
+        <AppBottomSheet ref={sheetRef} index={-1} snapPoints={["30%"]} enablePanDownToClose onClose={close}>
+            <View style={styles.sheetContainer}>
+                <Text
+                    style={[
+                        styles.sheetTitle,
+                        {
+                            color: theme === "light" ? "#6b7280" : "#9ca3af",
+                        },
+                    ]}
+                >
+                    Select User
+                </Text>
 
-            {USERS_ARRAY.map((u) => {
-                const isSelected = user === u
-                return (
-                    <PressableScale key={u} onPress={() => handleUserChange(u)} style={styles.userOptionContainer}>
-                        <Text
-                            style={{
-                                color: vars.textColor,
-                                fontSize: 16,
-                            }}
-                        >
-                            {u}
-                        </Text>
+                {USERS_ARRAY.map((u) => {
+                    const isSelected = user === u
 
-                        <View
-                            style={{
-                                width: 20,
-                                height: 20,
-                                borderRadius: 999,
-                                borderWidth: 2,
-                                borderColor: isSelected ? vars.accentColor : "gray",
-                                backgroundColor: isSelected ? vars.accentColor : "transparent",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            {isSelected && <Check size={14} color="white" strokeWidth={3} />}
-                        </View>
-                    </PressableScale>
-                )
-            })}
-        </CustomBottomSheet>
+                    return (
+                        <PressableScale key={u} onPress={() => handleUserChange(u)} style={styles.userOptionContainer}>
+                            <Text
+                                style={[
+                                    styles.userText,
+                                    {
+                                        color: vars.textColor,
+                                    },
+                                ]}
+                            >
+                                {u}
+                            </Text>
+
+                            <View
+                                style={[
+                                    styles.checkCircle,
+                                    {
+                                        borderColor: isSelected
+                                            ? vars.accentColor
+                                            : theme === "light"
+                                              ? "#9ca3af"
+                                              : "#50555C",
+                                        backgroundColor: isSelected ? vars.accentColor : "transparent",
+                                    },
+                                ]}
+                            >
+                                {isSelected && <Check size={14} color="#fff" strokeWidth={3} />}
+                            </View>
+                        </PressableScale>
+                    )
+                })}
+            </View>
+        </AppBottomSheet>
     )
 }
 
 const styles = StyleSheet.create({
     sheetContainer: {
-        flex: 1,
-        paddingHorizontal: 10,
-        paddingVertical: 12,
+        paddingHorizontal: 20,
+        paddingTop: 16,
+        paddingBottom: 24,
     },
     sheetTitle: {
         fontSize: 18,
@@ -78,5 +96,16 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         paddingVertical: 12,
+    },
+    userText: {
+        fontSize: 16,
+    },
+    checkCircle: {
+        width: 20,
+        height: 20,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 2,
+        alignItems: "center",
+        justifyContent: "center",
     },
 })

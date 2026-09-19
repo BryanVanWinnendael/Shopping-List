@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef } from "react"
-import BottomSheet from "@gorhom/bottom-sheet"
 import { FlatList } from "react-native"
 import { useProductsSearchStore } from "@/stores/useProductsSearchStore"
 import { productsSearchClient } from "@/lib/product-search"
 import { Category } from "@/types/generated/models/category"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 export function useProductsSearchList() {
     const { products: response, setProducts, setQuery } = useProductsSearchStore()
 
-    const bottomSheetRef = useRef<BottomSheet>(null)
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
     const flatListRef = useRef<FlatList>(null)
     const isFetching = useRef(false)
 

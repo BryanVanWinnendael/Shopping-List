@@ -1,41 +1,52 @@
 import { StyleSheet, Text, View } from "react-native"
 import { Users } from "lucide-react-native"
+import { GlassView } from "expo-glass-effect"
+
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { USERS_ARRAY } from "@/lib/constants"
 import Accordion from "@/components/accordion"
 import UserColor from "@/components/settings/userColor"
 import CustomSwitch from "@/components/customSwitch"
 import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function UserColors() {
     const { vars, theme } = useThemes()
     const { setUserColors, userColors } = useSettingsStore()
 
+    const colorScheme = theme === "light" ? "light" : "dark"
+
     return (
-        <View
-            style={[
-                styles.container,
-                {
-                    backgroundColor: vars.secondaryBackgroundColor,
-                    borderColor: vars.secondaryBorderColor,
-                },
-            ]}
+        <GlassView
+            glassEffectStyle="regular"
+            colorScheme={colorScheme}
+            tintColor={vars.secondaryBackgroundColor}
+            style={styles.container}
         >
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
-                    <View
-                        style={[
-                            styles.iconWrapper,
-                            {
-                                backgroundColor: `${vars.accentColor}20`,
-                            },
-                        ]}
+                    <GlassView
+                        glassEffectStyle="regular"
+                        colorScheme={colorScheme}
+                        isInteractive={false}
+                        style={styles.iconGlass}
                     >
-                        <Users size={18} color={vars.accentColor} />
-                    </View>
+                        <View style={styles.iconWrapper}>
+                            <Users size={18} strokeWidth={2} color={vars.accentColor} />
+                        </View>
+                    </GlassView>
 
-                    <View style={{ flex: 1 }}>
-                        <Text style={[styles.title, { color: vars.textColor }]}>User Colors</Text>
+                    <View style={styles.textContainer}>
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    color: vars.textColor,
+                                },
+                            ]}
+                        >
+                            User Colors
+                        </Text>
 
                         <Text
                             style={[
@@ -61,24 +72,24 @@ export default function UserColors() {
                 />
             </View>
 
-            <Accordion expanded={userColors.enabled} style={{ marginTop: 20 }}>
-                <View style={{ gap: 12 }}>
+            <Accordion expanded={userColors.enabled} style={styles.accordion}>
+                <View style={styles.userList}>
                     {USERS_ARRAY.map((user, index) => (
                         <UserColor user={user} key={index} />
                     ))}
                 </View>
             </Accordion>
-        </View>
+        </GlassView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
         marginHorizontal: 8,
         paddingHorizontal: 18,
         paddingTop: 18,
-        borderWidth: 1,
+        overflow: "hidden",
     },
     header: {
         flexDirection: "row",
@@ -92,10 +103,19 @@ const styles = StyleSheet.create({
         flex: 1,
         gap: 12,
     },
+    textContainer: {
+        flex: 1,
+    },
+    iconGlass: {
+        width: 42,
+        height: 42,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
     iconWrapper: {
         width: 42,
         height: 42,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         justifyContent: "center",
         alignItems: "center",
     },
@@ -106,5 +126,11 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 13,
         marginTop: 2,
+    },
+    accordion: {
+        marginTop: 20,
+    },
+    userList: {
+        gap: 12,
     },
 })

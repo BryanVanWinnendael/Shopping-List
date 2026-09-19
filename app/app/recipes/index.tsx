@@ -36,7 +36,6 @@ export default function Recipes() {
             />
 
             <List
-                favoriteRecipes={recipesListStates.favoriteRecipes}
                 toggleFavorite={recipesListActions.toggleFavorite}
                 loading={recipesListStates.loading}
                 refreshing={recipesListStates.refreshing}

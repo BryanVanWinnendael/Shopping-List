@@ -6,10 +6,12 @@ import {
     TouchableWithoutFeedback,
     View,
 } from "react-native"
-import GlassOrBlurView from "@/components/glassOrBlurView"
+import { BlurView } from "expo-blur"
+
 import ProductPreview from "@/components/products-list/productPreview"
 import CloseButton from "@/components/inputs/update/closeButton"
 import ProductInput from "@/components/inputs/update/productInput"
+import useThemes from "@/hooks/themes/useThemes"
 import { Product } from "@/types/list"
 
 type Props = {
@@ -22,23 +24,20 @@ type Props = {
 }
 
 export function Modal({ isOpen, closeUpdateModal, product, name, updateName, updateProduct }: Props) {
+    const { theme } = useThemes()
+
     return (
         <NativeModal transparent animationType="fade" visible={isOpen} onRequestClose={closeUpdateModal}>
             <TouchableWithoutFeedback onPress={closeUpdateModal}>
-                <GlassOrBlurView forceBlur blur={20} style={{ flex: 1 }}>
+                <BlurView intensity={24} tint={theme === "light" ? "light" : "dark"} style={styles.backdrop}>
                     <KeyboardAvoidingView
                         behavior={Platform.OS === "ios" ? "padding" : "height"}
-                        style={{ flex: 1, width: "100%" }}
+                        style={styles.keyboardView}
                     >
                         <View style={styles.modalContent}>
                             <CloseButton close={closeUpdateModal} />
-                            <View
-                                style={{
-                                    flex: 1,
-                                    justifyContent: "space-between",
-                                    marginBottom: 10,
-                                }}
-                            >
+
+                            <View style={styles.content}>
                                 {product && <ProductPreview product={product} />}
 
                                 <ProductInput
@@ -50,18 +49,34 @@ export function Modal({ isOpen, closeUpdateModal, product, name, updateName, upd
                             </View>
                         </View>
                     </KeyboardAvoidingView>
-                </GlassOrBlurView>
+                </BlurView>
             </TouchableWithoutFeedback>
         </NativeModal>
     )
 }
 
 const styles = StyleSheet.create({
-    modalContent: {
-        height: "100%",
-        width: "100%",
+    backdrop: {
         flex: 1,
+        width: "100%",
+    },
+
+    keyboardView: {
+        flex: 1,
+        width: "100%",
+    },
+
+    modalContent: {
+        flex: 1,
+        width: "100%",
+        height: "100%",
         paddingHorizontal: 12,
         paddingTop: 60,
+    },
+
+    content: {
+        flex: 1,
+        justifyContent: "space-between",
+        marginBottom: 10,
     },
 })

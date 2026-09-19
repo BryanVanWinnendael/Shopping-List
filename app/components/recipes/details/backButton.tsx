@@ -1,42 +1,40 @@
-import { useNavigation } from "@react-navigation/native"
 import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import useThemes from "@/hooks/themes/useThemes"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { GlassView } from "expo-glass-effect"
 import { ChevronLeft } from "lucide-react-native"
+import { router } from "expo-router"
+
+import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 export default function BackButton() {
-    const { vars } = useThemes()
-    const navigation = useNavigation()
+    const { vars, theme } = useThemes()
 
     return (
         <PressableScale
-            onPress={() => navigation.goBack()}
-            style={[
-                {
+            onPress={() => router.back()}
+            style={{
+                justifyContent: "center",
+                alignItems: "center",
+                width: 48,
+                height: 48,
+            }}
+        >
+            <GlassView
+                glassEffectStyle="regular"
+                isInteractive
+                colorScheme={theme === "light" ? "light" : "dark"}
+                tintColor={vars.secondaryBackgroundColor}
+                style={{
+                    borderRadius: BORDER_RADIUS_FULL,
+                    overflow: "hidden",
                     justifyContent: "center",
                     alignItems: "center",
                     width: 48,
                     height: 48,
-                },
-                SHADOW_STYLE,
-            ]}
-        >
-            <GlassOrBlurView
-                borderColor={`${vars.borderColor}50`}
-                style={[
-                    {
-                        borderRadius: 100,
-                        overflow: "hidden",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        width: 48,
-                        height: 48,
-                    },
-                ]}
+                }}
             >
                 <ChevronLeft size={28} color={vars.textColor} style={{ marginRight: 2 }} />
-            </GlassOrBlurView>
+            </GlassView>
         </PressableScale>
     )
 }

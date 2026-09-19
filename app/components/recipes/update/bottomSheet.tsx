@@ -1,18 +1,19 @@
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Text, View } from "react-native"
-import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import { Trash } from "lucide-react-native"
-import EditRecipeForm from "@/components/recipes/update/form"
-import CustomBottomSheet from "@/components/customBottomSheet"
-import { BottomSheetMethods } from "@gorhom/bottom-sheet/lib/typescript/types"
 import { RefObject } from "react"
+import { BlurView } from "expo-blur"
+import { PressableScale } from "pressto"
+import { Trash } from "lucide-react-native"
+
+import EditRecipeForm from "@/components/recipes/update/form"
 import useThemes from "@/hooks/themes/useThemes"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
 import { Recipe } from "@/types/generated/models/recipe"
-import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
+import { GlassView } from "expo-glass-effect"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     recipe: Recipe
-    bottomSheetRef: RefObject<BottomSheetMethods | null>
+    bottomSheetRef: RefObject<BottomSheetRef | null>
     close: () => void
     deleteRecipe: () => void
     updateRecipeDetails: (recipe: Recipe) => void
@@ -27,7 +28,11 @@ export default function BottomSheet({
     updateRecipeDetails,
     deleteLoading,
 }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
+
+    const backgroundColor = theme === "dark" ? "#080808" : theme === "true dark" ? "#000000" : "#FFFFFF"
+
+    const isDark = theme !== "light"
 
     const confirmDelete = () => {
         Alert.alert("Delete recipe?", "This action cannot be undone.", [
@@ -38,74 +43,96 @@ export default function BottomSheet({
             {
                 text: "Delete",
                 style: "destructive",
-                onPress: () => {
-                    deleteRecipe()
-                },
+                onPress: deleteRecipe,
             },
         ])
     }
 
     return (
-        <CustomBottomSheet sheetRef={bottomSheetRef} onClose={close}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Text
+        <AppBottomSheet
+            ref={bottomSheetRef}
+            index={-1}
+            snapPoints={["55%", "85%"]}
+            enablePanDownToClose
+            onClose={close}
+            backgroundMode="adaptive"
+            backgroundColor={backgroundColor}
+        >
+            <View style={{ flex: 1 }}>
+                <View
                     style={{
-                        fontSize: 18,
-                        fontWeight: "600",
-                        color: vars.textColor,
-                        marginBottom: 12,
+                        position: "absolute",
+                        top: -40,
+                        left: 0,
+                        right: 0,
+                        height: 88,
+                        zIndex: 10,
+                        overflow: "hidden",
                     }}
                 >
-                    Edit recipe
-                </Text>
-
-                <PressableScale
-                    enabled={!deleteLoading}
-                    onPress={confirmDelete}
-                    style={[
-                        {
-                            justifyContent: "center",
-                            alignItems: "center",
-                            width: 40,
-                            height: 40,
-                        },
-                        SHADOW_STYLE_LIGHT,
-                    ]}
-                >
-                    <GlassOrBlurView
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        glassBackgroundColor={vars.secondaryBackgroundColor}
-                        borderColor={`${vars.secondaryBorderColor}50`}
-                        style={[
-                            {
-                                borderRadius: 50,
-                                overflow: "hidden",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                marginBottom: 8,
-                                width: 40,
-                                height: 40,
-                            },
-                        ]}
+                    <BlurView
+                        intensity={10}
+                        tint={isDark ? "dark" : "light"}
+                        style={{
+                            flex: 1,
+                            paddingHorizontal: 20,
+                            paddingTop: 48,
+                            paddingBottom: 10,
+                            flexDirection: "row",
+                            alignItems: "flex-start",
+                            justifyContent: "space-between",
+                        }}
                     >
-                        {deleteLoading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Trash size={16} color={vars.textColor} />
-                        )}
-                    </GlassOrBlurView>
-                </PressableScale>
-            </View>
+                        <Text
+                            style={{
+                                fontSize: 22,
+                                fontWeight: "700",
+                                color: vars.textColor,
+                            }}
+                        >
+                            Edit recipe
+                        </Text>
 
-            {recipe.id && (
+                        <PressableScale
+                            enabled={!deleteLoading}
+                            onPress={confirmDelete}
+                            style={{
+                                width: 44,
+                                height: 44,
+                                marginTop: -10,
+                            }}
+                        >
+                            <GlassView
+                                glassEffectStyle="regular"
+                                isInteractive
+                                colorScheme={theme === "light" ? "light" : "dark"}
+                                tintColor={vars.secondaryBackgroundColor}
+                                style={{
+                                    width: 44,
+                                    height: 44,
+                                    borderRadius: BORDER_RADIUS_FULL,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                            >
+                                {deleteLoading ? (
+                                    <ActivityIndicator size="small" color="#FF453A" />
+                                ) : (
+                                    <Trash size={17} strokeWidth={2.2} color="#FF453A" />
+                                )}
+                            </GlassView>
+                        </PressableScale>
+                    </BlurView>
+                </View>
+
                 <KeyboardAvoidingView
-                    style={{ flex: 1, height: "100%" }}
+                    style={{ flex: 1 }}
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
                     keyboardVerticalOffset={0}
                 >
                     <EditRecipeForm recipe={recipe} close={close} updateRecipeDetails={updateRecipeDetails} />
                 </KeyboardAvoidingView>
-            )}
-        </CustomBottomSheet>
+            </View>
+        </AppBottomSheet>
     )
 }

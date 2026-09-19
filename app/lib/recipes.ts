@@ -15,19 +15,18 @@ import {
     UpdateRecipeResponse,
 } from "@/types/generated/contracts/recipes"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
+import { FilterStates } from "@/types/recipes"
 
 const RECIPES_PATH = "/recipes"
 const FAVORITE_RECIPES_KEY = "app_favoriteRecipes"
 const ACTIVE_RECIPE_FILTER_KEY = "app_recipeFilter"
 
-const getRecipes = async (user: User, page: number): Promise<GetRecipesResponse | null> => {
-    const params: Record<string, any> = { user, page }
-
+const getRecipes = async (user: User, page: number, filters: FilterStates): Promise<GetRecipesResponse | null> => {
     try {
         const response = await httpRequest<GetRecipesResponse>({
             url: RECIPES_PATH,
             method: "GET",
-            params,
+            params: buildRecipeParams(user, page, filters),
         })
 
         return response.data
@@ -144,14 +143,17 @@ const getRecipesCountries = async (): Promise<GetDistinctCountriesResponse | nul
     }
 }
 
-const searchRecipes = async (user: User, page: number, query: string): Promise<SearchRecipesResponse | null> => {
-    const params: Record<string, any> = { user, page, query }
-
+const searchRecipes = async (
+    user: User,
+    page: number,
+    query: string,
+    filters: FilterStates
+): Promise<SearchRecipesResponse | null> => {
     try {
         const response = await httpRequest<SearchRecipesResponse>({
             url: `${RECIPES_PATH}/search`,
             method: "GET",
-            params,
+            params: buildRecipeParams(user, page, filters, query),
         })
 
         return response.data
@@ -162,6 +164,38 @@ const searchRecipes = async (user: User, page: number, query: string): Promise<S
         })
         return null
     }
+}
+
+const buildRecipeParams = (user: User, page: number, filters: FilterStates, query?: string) => {
+    const params: Record<string, string | number | boolean | User> = {
+        user,
+        page,
+        public: filters.public,
+    }
+
+    const trimmedQuery = query?.trim()
+    if (trimmedQuery) {
+        params.query = trimmedQuery
+    }
+
+    const country = filters.country?.trim()
+    if (country && country !== "Any") {
+        params.country = country
+    }
+
+    if (filters.mealType !== "Any") {
+        params.mealType = filters.mealType
+    }
+
+    if (filters.time != null && filters.time > 0) {
+        params.time = filters.time
+    }
+
+    if (filters.isSaved !== undefined) {
+        params.isSaved = filters.isSaved
+    }
+
+    return params
 }
 
 export const getFavoriteRecipes = async () => {

@@ -17,3 +17,11 @@ export const getTheme = async () => {
 export const setTheme = async (theme: Theme) => {
     await AsyncStorage.setItem(THEME_KEY, theme)
 }
+
+export const BORDER_RADIUS_S = 12
+
+export const BORDER_RADIUS_M = 16
+
+export const BORDER_RADIUS_L = 24
+
+export const BORDER_RADIUS_FULL = 999

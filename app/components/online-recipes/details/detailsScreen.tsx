@@ -1,6 +1,5 @@
 import { ActivityIndicator, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
-import { useHeaderHeight } from "@react-navigation/elements"
 import Background from "@/components/online-recipes/details/background"
 import RecipeContent from "@/components/online-recipes/details/content"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
@@ -14,7 +13,6 @@ type Props = {
 
 export default function DetailsScreen({ recipe, open }: Props) {
     const { vars } = useThemes()
-    const headerHeight = useHeaderHeight()
 
     const scrollY = useSharedValue(0)
 

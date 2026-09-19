@@ -1,5 +1,7 @@
-import { TextInput } from "react-native"
+import { useEffect } from "react"
+import { TextInput, useWindowDimensions } from "react-native"
 import { Search, X } from "lucide-react-native"
+import { GlassView } from "expo-glass-effect"
 import Animated, {
     FadeIn,
     FadeOut,
@@ -8,12 +10,10 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
+import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import { PressableScale } from "pressto"
-import { useEffect } from "react"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     value: string
@@ -23,12 +23,15 @@ type Props = {
 }
 
 const AnimatedView = Animated.createAnimatedComponent(Animated.View)
+const AnimatedGlassView = Animated.createAnimatedComponent(GlassView)
 
 export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }: Props) {
     const { vars, theme } = useThemes()
+    const { width } = useWindowDimensions()
 
     const right = useSharedValue(140)
     const scale = useSharedValue(1)
+    const borderRadius = useSharedValue(BORDER_RADIUS_L)
 
     const handleFocus = () => {
         scale.value = withSequence(withTiming(1.03, { duration: 120 }), withTiming(1, { duration: 180 }))
@@ -42,11 +45,15 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
         right: right.value,
     }))
 
+    const glassStyle = useAnimatedStyle(() => ({
+        borderRadius: borderRadius.value,
+    }))
+
     useEffect(() => {
-        right.value = withTiming(filterExpanded ? 310 : 140, {
-            duration: 250,
-        })
-    }, [filterExpanded])
+        right.value = withTiming(filterExpanded ? width - 72 : 140, { duration: 250 })
+
+        borderRadius.value = withTiming(filterExpanded ? 24 : BORDER_RADIUS_L, { duration: 250 })
+    }, [filterExpanded, width])
 
     return (
         <AnimatedView
@@ -60,62 +67,81 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                 },
                 containerStyle,
                 animatedStyle,
-                SHADOW_STYLE,
             ]}
         >
-            <GlassOrBlurView
-                backgroundColor={vars.secondaryBackgroundColor}
-                borderColor={`${vars.secondaryBorderColor}50`}
-                style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 16,
-                    height: 48,
-                    borderRadius: 26,
-                }}
+            <AnimatedGlassView
+                glassEffectStyle="regular"
+                isInteractive
+                colorScheme={theme === "light" ? "light" : "dark"}
+                tintColor={vars.secondaryBackgroundColor}
+                style={[
+                    {
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: filterExpanded ? "center" : undefined,
+                        paddingHorizontal: filterExpanded ? 0 : 16,
+                        height: 48,
+                        overflow: "hidden",
+                    },
+                    glassStyle,
+                ]}
             >
                 <PressableScale
                     onPress={() => {
                         if (filterExpanded) {
-                            onSearchPress?.()
+                            onSearchPress()
                         }
                     }}
                     hitSlop={10}
+                    style={
+                        filterExpanded
+                            ? {
+                                  width: 48,
+                                  height: 48,
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                              }
+                            : undefined
+                    }
                 >
-                    <Search size={20} color={vars.textColor} />
+                    <Search size={20} strokeWidth={2} color={vars.textColor} />
                 </PressableScale>
 
-                <TextInput
-                    value={value}
-                    onChangeText={updateQuery}
-                    onFocus={handleFocus}
-                    placeholder="Search recipes..."
-                    placeholderTextColor="gray"
-                    returnKeyType="search"
-                    style={{
-                        flex: 1,
-                        marginLeft: 10,
-                        fontSize: 17,
-                        color: vars.textColor,
-                    }}
-                    keyboardAppearance={theme === "light" ? "light" : "dark"}
-                />
-
-                {value.length > 0 && (
-                    <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(120)}>
-                        <PressableScale
-                            onPress={() => updateQuery("")}
-                            hitSlop={10}
+                {!filterExpanded && (
+                    <>
+                        <TextInput
+                            value={value}
+                            onChangeText={updateQuery}
+                            onFocus={handleFocus}
+                            placeholder="Search recipes..."
+                            placeholderTextColor="gray"
+                            returnKeyType="search"
                             style={{
-                                padding: 4,
-                                marginLeft: 6,
+                                flex: 1,
+                                marginLeft: 10,
+                                fontSize: 17,
+                                color: vars.textColor,
                             }}
-                        >
-                            <X size={18} color={vars.textColor} />
-                        </PressableScale>
-                    </Animated.View>
+                            keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        />
+
+                        {value.length > 0 && (
+                            <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(120)}>
+                                <PressableScale
+                                    onPress={() => updateQuery("")}
+                                    hitSlop={10}
+                                    style={{
+                                        padding: 4,
+                                        marginLeft: 6,
+                                    }}
+                                >
+                                    <X size={18} strokeWidth={2} color={vars.textColor} />
+                                </PressableScale>
+                            </Animated.View>
+                        )}
+                    </>
                 )}
-            </GlassOrBlurView>
+            </AnimatedGlassView>
         </AnimatedView>
     )
 }

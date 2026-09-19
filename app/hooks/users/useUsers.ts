@@ -1,8 +1,8 @@
 import { useCallback, useRef } from "react"
-import BottomSheet from "@gorhom/bottom-sheet"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 export default function useUsers() {
-    const bottomSheetRef = useRef<BottomSheet>(null)
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
 
     const open = useCallback(() => {
         bottomSheetRef.current?.expand()

@@ -8,6 +8,7 @@ import { Trace } from "@/types/generated/models/trace"
 import { SpanNode } from "@/types/generated/models/span_node"
 import { Log as LogType } from "@/types/generated/models/log"
 import { PressableScale } from "pressto"
+import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     trace: Trace
@@ -247,13 +248,13 @@ export default function Log({ trace }: Props) {
 const styles = StyleSheet.create({
     card: {
         borderWidth: 1,
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
         padding: 16,
         marginVertical: 6,
     },
     event: {
         borderWidth: 1,
-        borderRadius: 12,
+        borderRadius: BORDER_RADIUS_M,
         padding: 12,
         marginBottom: 10,
     },

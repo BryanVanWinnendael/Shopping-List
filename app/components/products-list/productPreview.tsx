@@ -1,9 +1,11 @@
 import { StyleSheet, Text, View } from "react-native"
+import { GlassView } from "expo-glass-effect"
+
 import { Product } from "@/types/list"
 import CategoryIcon from "@/components/categoryIcon"
 import useThemes from "@/hooks/themes/useThemes"
 import CustomImage from "@/components/customImage"
-import GlassOrBlurView from "@/components/glassOrBlurView"
+import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     product: Product
@@ -13,11 +15,7 @@ export default function ProductPreview({ product }: Props) {
     const { vars, actions } = useThemes()
 
     return (
-        <GlassOrBlurView
-            borderColor={vars.secondaryBorderColor}
-            backgroundColor={vars.secondaryBackgroundColor}
-            style={[styles.container]}
-        >
+        <GlassView glassEffectStyle="regular" style={styles.container} tintColor={vars.secondaryBackgroundColor}>
             {product.url && <CustomImage url={product.url} style={styles.image} />}
 
             {!product.url && (
@@ -26,7 +24,7 @@ export default function ProductPreview({ product }: Props) {
                 </View>
             )}
 
-            <View style={[styles.textContainer, { borderColor: vars.secondaryBorderColor }]}>
+            <View style={styles.textContainer}>
                 <Text
                     style={{
                         fontSize: vars.textSize,
@@ -37,6 +35,7 @@ export default function ProductPreview({ product }: Props) {
                 >
                     {product.name}
                 </Text>
+
                 <Text
                     style={{
                         fontSize: vars.labelSize,
@@ -49,7 +48,7 @@ export default function ProductPreview({ product }: Props) {
                     added by {product.user}
                 </Text>
             </View>
-        </GlassOrBlurView>
+        </GlassView>
     )
 }
 
@@ -61,10 +60,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         gap: 8,
         alignItems: "center",
-        borderWidth: 1,
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
+        overflow: "hidden",
     },
-    iconContainer: { width: 48, alignItems: "center", justifyContent: "center" },
-    textContainer: { flex: 1, borderBottomWidth: 1 },
-    image: { width: 90, height: 100, borderRadius: 12 },
+    iconContainer: {
+        width: 48,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    textContainer: {
+        flex: 1,
+    },
+    image: {
+        width: 90,
+        height: 100,
+        borderRadius: BORDER_RADIUS_M,
+    },
 })

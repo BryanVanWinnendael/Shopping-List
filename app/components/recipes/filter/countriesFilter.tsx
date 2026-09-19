@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { FlatList, StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
 import { ChevronDown } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import useThemes from "@/hooks/themes/useThemes"
 import useRecipesCountries from "@/hooks/recipes/useRecipesCountries"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function CountriesFilter() {
     const { vars } = useThemes()
@@ -71,26 +72,20 @@ export default function CountriesFilter() {
                 <View
                     style={{
                         flex: 1,
-                        borderRadius: 24,
+                        borderRadius: BORDER_RADIUS_L,
                     }}
                 >
-                    <FlatList
-                        data={states.countries}
-                        keyExtractor={(item) => item}
-                        renderItem={({ item }) => (
+                    <View>
+                        {states.countries.map((country) => (
                             <PressableScale
-                                onPress={() => handleSelect(item)}
-                                style={[
-                                    styles.option,
-                                    {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                    },
-                                ]}
+                                key={country}
+                                onPress={() => handleSelect(country)}
+                                style={[styles.option, { backgroundColor: vars.secondaryBackgroundColor }]}
                             >
-                                <Text style={{ color: vars.textColor }}>{item}</Text>
+                                <Text style={{ color: vars.textColor }}>{country}</Text>
                             </PressableScale>
-                        )}
-                    />
+                        ))}
+                    </View>
                 </View>
             </Animated.View>
         </View>
@@ -109,11 +104,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         height: 44,
         borderWidth: 1,
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
     },
     dropdown: {
         overflow: "hidden",
-        borderRadius: 8,
+        borderRadius: BORDER_RADIUS_L,
         marginTop: 4,
     },
     option: {

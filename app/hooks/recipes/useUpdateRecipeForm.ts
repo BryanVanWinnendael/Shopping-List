@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import BottomSheet from "@gorhom/bottom-sheet"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import * as ImagePicker from "expo-image-picker"
 import { Country, Ingredient, UpdateRecipeRequest } from "@/types/recipes"
 import { Recipe } from "@/types/generated/models/recipe"
 import { MealType } from "@/types/generated/models/meal_type"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 function convertToCountry(countryStr?: string | null): Country | null {
     if (!countryStr) return null
@@ -15,7 +15,7 @@ function convertToCountry(countryStr?: string | null): Country | null {
 export function useUpdateRecipeForm(recipe: Recipe) {
     const { user } = useSettingsStore()
 
-    const bottomSheetRef = useRef<BottomSheet>(null)
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
 
     const [title, setTitle] = useState<string>(recipe.title)
     const [publicRecipe, setPublicRecipe] = useState<boolean>(recipe.public ?? true)

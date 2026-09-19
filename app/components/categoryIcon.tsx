@@ -2,9 +2,10 @@ import { CategoriesColors, Theme } from "@/types"
 import Svg, { Circle, Defs, G, Line, Path, Polyline, Rect } from "react-native-svg"
 import { View } from "react-native"
 import { ReactNode } from "react"
-import GlassOrBlurView from "@/components/glassOrBlurView"
+import { GlassView } from "expo-glass-effect"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
+import { BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     category: Category
@@ -72,25 +73,24 @@ const Wrapper = ({
             style={{
                 width: size,
                 height: size,
-                backgroundColor,
-                borderRadius: 14,
+                borderRadius: BORDER_RADIUS_M,
                 justifyContent: "center",
                 alignItems: "center",
             }}
         >
-            <GlassOrBlurView
-                glassBackgroundColor={backgroundColor}
+            <GlassView
+                tintColor={backgroundColor}
+                glassEffectStyle="regular"
                 style={{
                     width: size,
                     height: size,
                     justifyContent: "center",
                     alignItems: "center",
-                    borderRadius: 14,
-                    borderWidth: 0.3,
+                    borderRadius: BORDER_RADIUS_M,
                 }}
             >
                 {children}
-            </GlassOrBlurView>
+            </GlassView>
         </View>
     )
 }

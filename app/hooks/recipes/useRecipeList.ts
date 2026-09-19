@@ -5,14 +5,15 @@ import { useSettingsStore } from "@/stores/useSettingsStore"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 import { DEBOUNCE_TIME } from "@/lib/constants"
 import { useHeaderStore } from "@/stores/useHeaderStore"
+import { FilterStates } from "@/types/recipes"
 
 export function useRecipeList() {
-    const { recipes, favoriteRecipes, setFavoriteRecipes } = useRecipesStore()
-    const { activeFilter, filter, setRecipes } = useRecipesStore()
+    const { recipes, favoriteRecipes, setFavoriteRecipes, activeFilter, setRecipes } = useRecipesStore()
+
     const { user } = useSettingsStore()
     const { setHeaderText } = useHeaderStore()
 
-    const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
+    const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
     const loadingRef = useRef(false)
 
     const [page, setPage] = useState(1)
@@ -22,6 +23,19 @@ export function useRecipeList() {
     const [refreshing, setRefreshing] = useState(false)
     const [isSearching, setIsSearching] = useState(false)
 
+    const recipeFilters = useMemo<FilterStates>(
+        () => ({
+            country: activeFilter.country && activeFilter.country !== "Any" ? activeFilter.country : undefined,
+            mealType: activeFilter.mealType,
+            public: activeFilter.public,
+            time: activeFilter.time !== null && activeFilter.time !== undefined ? activeFilter.time : null,
+            isSaved: activeFilter.isSaved,
+        }),
+        [activeFilter.country, activeFilter.mealType, activeFilter.public, activeFilter.time, activeFilter.isSaved]
+    )
+
+    const filterKey = useMemo(() => JSON.stringify(recipeFilters), [recipeFilters])
+
     const setLoadingState = (value: boolean) => {
         loadingRef.current = value
         setLoading(value)
@@ -29,99 +43,100 @@ export function useRecipeList() {
 
     const getRecipes = useCallback(
         async (pageNumber = 1) => {
-            if (!user) return
-            if (loadingRef.current) return
+            if (!user || loadingRef.current) return
 
             setLoadingState(true)
 
             try {
-                const response = await recipesClient.getRecipes(user, pageNumber)
+                const response = await recipesClient.getRecipes(user, pageNumber, recipeFilters)
 
-                if (response) {
-                    setPage(response.page)
-                    setHasNext(response.hasNext)
-                    setHeaderText("recipes", `${response.total} Recipes`)
+                if (!response) return
 
-                    if (pageNumber === 1) {
-                        setRecipes(response.recipes)
-                    } else {
-                        setRecipes((prev) => [...prev, ...response.recipes])
-                    }
+                setPage(response.page)
+                setHasNext(response.hasNext)
+                setHeaderText("recipes", `${response.total} Recipes`)
+
+                if (pageNumber === 1) {
+                    setRecipes(response.recipes)
+                } else {
+                    setRecipes((previous) => [...previous, ...response.recipes])
                 }
             } finally {
                 setLoadingState(false)
             }
         },
-        [user, setRecipes, setHeaderText]
+        [user, recipeFilters, setRecipes, setHeaderText]
     )
 
     const search = useCallback(
-        async (q: string, pageNumber = 1) => {
-            if (!user) return
-            if (loadingRef.current) return
+        async (searchQuery: string, pageNumber = 1) => {
+            if (!user || loadingRef.current) return
 
-            if (!q.trim()) {
+            const trimmedQuery = searchQuery.trim()
+
+            if (!trimmedQuery) {
                 setQuery("")
                 setIsSearching(false)
                 setHeaderText("recipes", null)
-                setRecipes([])
                 await getRecipes(1)
                 return
             }
 
             setLoadingState(true)
             setIsSearching(true)
-            setQuery(q)
+            setQuery(trimmedQuery)
 
             try {
-                const response = await recipesClient.searchRecipes(user, pageNumber, q)
+                const response = await recipesClient.searchRecipes(user, pageNumber, trimmedQuery, recipeFilters)
 
-                if (response) {
-                    setPage(response.page)
-                    setHasNext(response.hasNext)
-                    setHeaderText("recipes", `${response.total} Recipes`)
+                if (!response) return
 
-                    if (pageNumber === 1) {
-                        setRecipes(response.recipes)
-                    } else {
-                        setRecipes((prev) => [...prev, ...response.recipes])
-                    }
+                setPage(response.page)
+                setHasNext(response.hasNext)
+                setHeaderText("recipes", `${response.total} Recipes`)
+
+                if (pageNumber === 1) {
+                    setRecipes(response.recipes)
+                } else {
+                    setRecipes((previous) => [...previous, ...response.recipes])
                 }
             } finally {
                 setLoadingState(false)
             }
         },
-        [user, getRecipes, setRecipes, setHeaderText]
+        [user, recipeFilters, getRecipes, setRecipes, setHeaderText]
     )
 
     const getNextPage = useCallback(async () => {
-        if (loading) return
-        if (!hasNext) return
+        if (loading || !hasNext) return
 
         if (isSearching) {
             await search(query, page + 1)
         } else {
             await getRecipes(page + 1)
         }
-    }, [loading, hasNext, page, isSearching, query, search, getRecipes])
+    }, [loading, hasNext, isSearching, query, page, search, getRecipes])
 
-    const updateQuery = (q: string) => {
-        setQuery(q)
+    const updateQuery = useCallback(
+        (nextQuery: string) => {
+            setQuery(nextQuery)
 
-        if (debounceTimeout.current) {
-            clearTimeout(debounceTimeout.current)
-        }
+            if (debounceTimeout.current) {
+                clearTimeout(debounceTimeout.current)
+            }
 
-        debounceTimeout.current = setTimeout(async () => {
-            await search(q, 1)
-        }, DEBOUNCE_TIME)
-    }
+            debounceTimeout.current = setTimeout(() => {
+                void search(nextQuery, 1)
+            }, DEBOUNCE_TIME)
+        },
+        [search]
+    )
 
     const refresh = useCallback(async () => {
         setRefreshing(true)
 
         try {
-            if (isSearching) {
+            if (isSearching && query.trim()) {
                 await search(query, 1)
             } else {
                 await getRecipes(1)
@@ -131,102 +146,118 @@ export function useRecipeList() {
         }
     }, [isSearching, query, search, getRecipes])
 
-    const toggleFavorite = async (recipe: RecipeSummary) => {
-        const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
+    const toggleFavorite = useCallback(
+        async (recipe: RecipeSummary) => {
+            const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
 
-        if (isFavorite) {
-            await setFavoriteRecipes(favoriteRecipes.filter((r) => r.id !== recipe.id))
-        } else {
-            await setFavoriteRecipes([...favoriteRecipes, recipe])
-        }
-    }
+            if (isFavorite) {
+                await setFavoriteRecipes(favoriteRecipes.filter((favoriteRecipe) => favoriteRecipe.id !== recipe.id))
+            } else {
+                await setFavoriteRecipes([...favoriteRecipes, recipe])
+            }
+        },
+        [favoriteRecipes, setFavoriteRecipes]
+    )
+
+    // Favorites are stored locally, so apply the visible filters
+    // and the active search query to them here.
+    const filteredFavorites = useMemo(() => {
+        const normalizedQuery = query.trim().toLowerCase()
+
+        return favoriteRecipes.filter((recipe) => {
+            if (!recipeFilters.public && recipe.public) {
+                return false
+            }
+
+            if (recipeFilters.isSaved && !recipe.isSaved) {
+                return false
+            }
+
+            if (
+                recipeFilters.mealType !== "Any" &&
+                recipe.mealType?.toLowerCase() !== recipeFilters.mealType.toLowerCase()
+            ) {
+                return false
+            }
+
+            if (recipeFilters.country && recipe.country?.toLowerCase() !== recipeFilters.country.toLowerCase()) {
+                return false
+            }
+
+            if (recipeFilters.time != null && Number(recipe.time) > recipeFilters.time) {
+                return false
+            }
+
+            if (normalizedQuery) {
+                const title = recipe.title?.toLowerCase() ?? ""
+
+                if (!title.includes(normalizedQuery)) {
+                    return false
+                }
+            }
+
+            return true
+        })
+    }, [favoriteRecipes, recipeFilters, query])
 
     const grouped = useMemo(() => {
-        let favorites = favoriteRecipes
-
-        let userRecipes = recipes.filter(
-            (r) => r.user === user && !favoriteRecipes.some((recipe) => recipe.id === r.id)
-        )
-
-        let publicR = recipes.filter((r) => r.user !== user && !favoriteRecipes.some((recipe) => recipe.id === r.id))
-
-        if (filter) {
-            if (activeFilter.mealType !== "Any") {
-                userRecipes = userRecipes.filter(
-                    (r) => r.mealType?.toLowerCase() === activeFilter.mealType.toLowerCase()
-                )
-
-                publicR = publicR.filter((r) => r.mealType?.toLowerCase() === activeFilter.mealType.toLowerCase())
-
-                favorites = favorites.filter((r) => r.mealType?.toLowerCase() === activeFilter.mealType.toLowerCase())
-            }
-
-            if (!activeFilter.public) {
-                publicR = []
-            }
-
-            if (activeFilter.country && activeFilter.country !== "Any") {
-                userRecipes = userRecipes.filter((r) => r.country?.toLowerCase() === activeFilter.country.toLowerCase())
-
-                publicR = publicR.filter((r) => r.country?.toLowerCase() === activeFilter.country.toLowerCase())
-
-                favorites = favorites.filter((r) => r.country?.toLowerCase() === activeFilter.country.toLowerCase())
-            }
-
-            if (activeFilter.time) {
-                userRecipes = userRecipes.filter((r) => Number(r.time) <= activeFilter.time!)
-
-                publicR = publicR.filter((r) => Number(r.time) <= activeFilter.time!)
-
-                favorites = favorites.filter((r) => Number(r.time) <= activeFilter.time!)
-            }
-        }
+        const favoriteIds = new Set(filteredFavorites.map((favoriteRecipe) => favoriteRecipe.id))
 
         return {
-            favorites,
-            userRecipes,
-            publicR,
+            favorites: filteredFavorites,
+            userRecipes: recipes.filter((recipe) => recipe.user === user && !favoriteIds.has(recipe.id)),
+            publicR: recipes.filter((recipe) => recipe.user !== user && !favoriteIds.has(recipe.id)),
         }
-    }, [recipes, favoriteRecipes, activeFilter, filter, user])
+    }, [recipes, filteredFavorites, user])
 
     const sections = useMemo(() => {
-        const arr: any[] = []
+        const result: Array<{ type: "section"; title: string } | { type: "recipe"; recipe: RecipeSummary }> = []
 
-        const pushSection = (title: string, list: RecipeSummary[]) => {
-            if (!list || list.length === 0) return
+        const addSection = (title: string, recipesForSection: RecipeSummary[]) => {
+            if (recipesForSection.length === 0) return
 
-            arr.push({
+            result.push({
                 type: "section",
                 title,
             })
 
-            list.forEach((r) => {
-                if (!r) return
-
-                arr.push({
+            recipesForSection.forEach((recipe) => {
+                result.push({
                     type: "recipe",
-                    recipe: r,
+                    recipe,
                 })
             })
         }
 
-        pushSection("Favorite Recipes", grouped.favorites)
-        pushSection("My Recipes", grouped.userRecipes)
-        pushSection("Public Recipes", grouped.publicR)
+        addSection("Favorite Recipes", grouped.favorites)
+        addSection("My Recipes", grouped.userRecipes)
+        addSection("Public Recipes", grouped.publicR)
 
-        return arr
+        return result
     }, [grouped])
 
+    // Initial load and reload whenever active filters change.
     useEffect(() => {
-        getRecipes(1)
-    }, [getRecipes])
+        if (query.trim()) {
+            void search(query, 1)
+        } else {
+            void getRecipes(1)
+        }
+    }, [filterKey, getRecipes, search])
+
+    useEffect(() => {
+        return () => {
+            if (debounceTimeout.current) {
+                clearTimeout(debounceTimeout.current)
+            }
+        }
+    }, [])
 
     return {
         states: {
             sections,
             refreshing,
             loading,
-            favoriteRecipes,
             page,
             hasNext,
             query,

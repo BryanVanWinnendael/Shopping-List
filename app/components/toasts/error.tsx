@@ -3,6 +3,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { BlurView } from "expo-blur"
 import { XCircle } from "lucide-react-native"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     text1: string
@@ -25,7 +26,7 @@ export default function Error({ text1, text2 }: Props) {
                 paddingVertical: 10,
                 paddingHorizontal: 14,
 
-                borderRadius: 999,
+                borderRadius: BORDER_RADIUS_FULL,
                 overflow: "hidden",
 
                 backgroundColor: vars.backgroundColor,
@@ -39,7 +40,7 @@ export default function Error({ text1, text2 }: Props) {
                 style={{
                     width: 28,
                     height: 28,
-                    borderRadius: 999,
+                    borderRadius: BORDER_RADIUS_FULL,
                     backgroundColor: "rgba(239, 68, 68, 0.15)",
                     alignItems: "center",
                     justifyContent: "center",

@@ -11,12 +11,14 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated"
 import * as Haptics from "expo-haptics"
+import { BlurView } from "expo-blur"
+import { GlassView } from "expo-glass-effect"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
 import { User } from "@/types"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { X } from "lucide-react-native"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     user: User
@@ -31,8 +33,12 @@ export default function UserColor({ user }: Props) {
     const opacity = useSharedValue(0)
 
     const [modalVisible, setModalVisible] = useState(false)
+
     const resetColor = theme === "light" ? "#9ca3af" : "#50555C"
+
     const [pickedColor, setPickedColor] = useState(userColors.colors[user] ? userColors.colors[user] : resetColor)
+
+    const colorScheme = theme === "light" ? "light" : "dark"
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
@@ -41,6 +47,7 @@ export default function UserColor({ user }: Props) {
 
     const onColorChange = (color: ColorFormatsObject) => {
         "worklet"
+
         currentColor.value = color.hex
         scale.value = withSpring(1.05)
     }
@@ -53,13 +60,17 @@ export default function UserColor({ user }: Props) {
                 [user]: color.hex,
             },
         })
+
         setPickedColor(color.hex)
         scale.value = withSpring(1)
+
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     }
 
     const resetToDefault = () => {
-        const newColors = { ...userColors.colors }
+        const newColors = {
+            ...userColors.colors,
+        }
 
         delete newColors[user]
 
@@ -104,147 +115,148 @@ export default function UserColor({ user }: Props) {
 
     return (
         <View style={styles.row}>
-            <Text style={[styles.title, { color: vars.textColor }]}>{user}</Text>
+            <Text
+                style={[
+                    styles.title,
+                    {
+                        color: vars.textColor,
+                    },
+                ]}
+            >
+                {user}
+            </Text>
 
-            <PressableScale style={[styles.button, { borderColor: vars.secondaryBorderColor }]} onPress={openModal}>
-                <View
-                    style={[
-                        styles.colorPreview,
-                        {
-                            backgroundColor: userColors.colors[user] ? userColors.colors[user] : resetColor,
-                        },
-                    ]}
-                />
-                <Text style={[styles.buttonText, { color: vars.textColor }]}>Edit</Text>
-            </PressableScale>
-
-            <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
-                <GlassOrBlurView style={styles.modalOverlay}>
-                    <Animated.View
-                        entering={FadeIn.duration(180)}
-                        exiting={FadeOut.duration(120)}
+            <GlassView glassEffectStyle="regular" isInteractive colorScheme={colorScheme} style={styles.buttonGlass}>
+                <PressableScale onPress={openModal} style={styles.button}>
+                    <View
                         style={[
-                            styles.modalContent,
-                            animatedStyle,
+                            styles.colorPreview,
                             {
-                                backgroundColor: vars.backgroundColor,
-                                borderColor: vars.borderColor,
+                                backgroundColor: userColors.colors[user] ?? resetColor,
+                            },
+                        ]}
+                    />
+
+                    <Text
+                        style={[
+                            styles.buttonText,
+                            {
+                                color: vars.textColor,
                             },
                         ]}
                     >
-                        <View style={styles.modalHeader}>
-                            <View>
-                                <Text
-                                    style={{
-                                        color: vars.textColor,
-                                        fontSize: 24,
-                                        fontWeight: "700",
-                                    }}
-                                >
-                                    User Color
-                                </Text>
+                        Edit
+                    </Text>
+                </PressableScale>
+            </GlassView>
 
-                                <Text
-                                    style={{
-                                        color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                        marginTop: 4,
-                                        fontSize: 14,
-                                    }}
+            <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
+                <BlurView intensity={24} tint={theme === "light" ? "light" : "dark"} style={styles.modalOverlay}>
+                    <Animated.View
+                        entering={FadeIn.duration(180)}
+                        exiting={FadeOut.duration(120)}
+                        style={[styles.animatedModal, animatedStyle]}
+                    >
+                        <GlassView
+                            glassEffectStyle="regular"
+                            colorScheme={colorScheme}
+                            tintColor={vars.backgroundColor}
+                            style={styles.modalContent}
+                        >
+                            <View style={styles.modalHeader}>
+                                <View>
+                                    <Text
+                                        style={{
+                                            color: vars.textColor,
+                                            fontSize: 24,
+                                            fontWeight: "700",
+                                        }}
+                                    >
+                                        User Color
+                                    </Text>
+
+                                    <Text
+                                        style={{
+                                            color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                            marginTop: 4,
+                                            fontSize: 14,
+                                        }}
+                                    >
+                                        Customize color for {user}
+                                    </Text>
+                                </View>
+
+                                <GlassView
+                                    glassEffectStyle="regular"
+                                    isInteractive
+                                    colorScheme={colorScheme}
+                                    style={styles.closeGlass}
                                 >
-                                    Customize color for {user}
-                                </Text>
+                                    <PressableScale onPress={closeModal} style={styles.closeButton}>
+                                        <X size={17} strokeWidth={2} color={vars.textColor} />
+                                    </PressableScale>
+                                </GlassView>
                             </View>
 
-                            <PressableScale
-                                onPress={closeModal}
-                                style={[
-                                    styles.closeButton,
-                                    {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                        borderColor: vars.secondaryBorderColor,
-                                    },
-                                ]}
-                            >
-                                <X size={18} color={vars.textColor} />
-                            </PressableScale>
-                        </View>
-
-                        <View style={{ marginTop: 24 }}>
-                            <ColorPicker
-                                value={pickedColor}
-                                sliderThickness={20}
-                                thumbSize={24}
-                                onChange={onColorChange}
-                                onCompleteJS={onColorPick}
-                                boundedThumb
-                            >
-                                <HueCircular
-                                    thumbShape="circle"
-                                    containerStyle={{
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }}
+                            <View style={styles.colorPickerContainer}>
+                                <ColorPicker
+                                    value={pickedColor}
+                                    sliderThickness={20}
+                                    thumbSize={24}
+                                    onChange={onColorChange}
+                                    onCompleteJS={onColorPick}
+                                    boundedThumb
+                                    style={styles.colorPicker}
                                 >
-                                    <Panel1
-                                        style={{
-                                            borderRadius: 24,
-                                            width: "70%",
-                                            height: "70%",
-                                            alignSelf: "center",
-                                        }}
-                                    />
-                                </HueCircular>
-                            </ColorPicker>
-                        </View>
+                                    <HueCircular thumbShape="circle" containerStyle={styles.hueContainer}>
+                                        <Panel1 style={styles.panel} />
+                                    </HueCircular>
+                                </ColorPicker>
+                            </View>
 
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                gap: 12,
-                                marginTop: 24,
-                            }}
-                        >
-                            <PressableScale
-                                onPress={resetToDefault}
-                                style={[
-                                    styles.secondaryButton,
-                                    {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                    },
-                                ]}
-                            >
-                                <Text
-                                    style={{
-                                        color: vars.textColor,
-                                        fontWeight: "600",
-                                    }}
+                            <View style={styles.actions}>
+                                <GlassView
+                                    glassEffectStyle="regular"
+                                    isInteractive
+                                    colorScheme={colorScheme}
+                                    style={styles.secondaryGlass}
                                 >
-                                    Reset
-                                </Text>
-                            </PressableScale>
+                                    <PressableScale onPress={resetToDefault} style={styles.secondaryButton}>
+                                        <Text
+                                            style={{
+                                                color: vars.textColor,
+                                                fontSize: 14,
+                                                fontWeight: "600",
+                                            }}
+                                        >
+                                            Reset
+                                        </Text>
+                                    </PressableScale>
+                                </GlassView>
 
-                            <PressableScale
-                                onPress={closeModal}
-                                style={[
-                                    styles.primaryButton,
-                                    {
-                                        backgroundColor: vars.accentColor,
-                                    },
-                                ]}
-                            >
-                                <Text
-                                    style={{
-                                        color: "#fff",
-                                        fontWeight: "700",
-                                        fontSize: 16,
-                                    }}
+                                <GlassView
+                                    glassEffectStyle="regular"
+                                    isInteractive
+                                    colorScheme={colorScheme}
+                                    tintColor={vars.accentColor}
+                                    style={styles.primaryGlass}
                                 >
-                                    Done
-                                </Text>
-                            </PressableScale>
-                        </View>
+                                    <PressableScale
+                                        onPress={closeModal}
+                                        style={[
+                                            styles.primaryButton,
+                                            {
+                                                backgroundColor: `${vars.accentColor}E6`,
+                                            },
+                                        ]}
+                                    >
+                                        <Text style={styles.doneText}>Done</Text>
+                                    </PressableScale>
+                                </GlassView>
+                            </View>
+                        </GlassView>
                     </Animated.View>
-                </GlassOrBlurView>
+                </BlurView>
             </Modal>
         </View>
     )
@@ -256,54 +268,122 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
     },
-    title: { fontWeight: "600", fontSize: 16 },
+    title: {
+        fontWeight: "600",
+        fontSize: 16,
+    },
+    buttonGlass: {
+        height: 36,
+        minWidth: 62,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
     button: {
-        borderRadius: 24,
-        borderWidth: 1,
+        height: 36,
+        minWidth: 62,
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "center",
         paddingHorizontal: 12,
-        paddingVertical: 8,
     },
-    buttonText: { fontSize: 14 },
-    colorPreview: { width: 20, height: 20, marginRight: 8, borderRadius: 999 },
-    panel: { borderRadius: 20, width: "70%", height: "70%", alignSelf: "center" },
+    buttonText: {
+        fontSize: 13,
+        fontWeight: "600",
+    },
+    colorPreview: {
+        width: 18,
+        height: 18,
+        marginRight: 7,
+        borderRadius: BORDER_RADIUS_FULL,
+    },
     modalOverlay: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingHorizontal: 16,
+        paddingHorizontal: 12,
+    },
+    animatedModal: {
+        width: "100%",
+        maxWidth: 420,
+        maxHeight: "90%",
     },
     modalContent: {
         width: "100%",
-        maxWidth: 420,
-        borderRadius: 28,
-        borderWidth: 1,
+        borderRadius: BORDER_RADIUS_L,
         padding: 22,
+        overflow: "hidden",
     },
     modalHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
     },
+    closeGlass: {
+        width: 36,
+        height: 36,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
     closeButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 999,
+        width: 36,
+        height: 36,
         justifyContent: "center",
         alignItems: "center",
-        borderWidth: 1,
+    },
+    colorPickerContainer: {
+        marginTop: 24,
+        alignItems: "center",
+    },
+    colorPicker: {
+        width: 300,
+        height: 300,
+    },
+    hueContainer: {
+        width: 300,
+        height: 300,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    panel: {
+        borderRadius: BORDER_RADIUS_L,
+        width: "72%",
+        height: "72%",
+        alignSelf: "center",
+    },
+    actions: {
+        flexDirection: "row",
+        gap: 10,
+        marginTop: 20,
+    },
+    secondaryGlass: {
+        flex: 1,
+        minHeight: 48,
+        borderRadius: BORDER_RADIUS_M,
+        overflow: "hidden",
     },
     secondaryButton: {
         flex: 1,
-        borderRadius: 18,
-        paddingVertical: 14,
+        minHeight: 48,
         alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 14,
+    },
+    primaryGlass: {
+        flex: 1,
+        minHeight: 48,
+        borderRadius: BORDER_RADIUS_M,
+        overflow: "hidden",
     },
     primaryButton: {
         flex: 1,
-        borderRadius: 18,
-        paddingVertical: 14,
+        minHeight: 48,
         alignItems: "center",
+        justifyContent: "center",
+        borderRadius: BORDER_RADIUS_M,
+    },
+    doneText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 15,
     },
 })

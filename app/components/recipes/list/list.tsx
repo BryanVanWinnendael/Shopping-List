@@ -1,12 +1,12 @@
 import { useRef } from "react"
 import { ActivityIndicator, FlatList, View } from "react-native"
-import { useHeaderHeight } from "@react-navigation/elements"
 import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
+import { HEADER_HEIGHT } from "@/lib/constants"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 type Props = {
-    favoriteRecipes: RecipeSummary[]
     toggleFavorite: (recipe: RecipeSummary) => void
     sections: any[]
     getNextPage: () => void
@@ -15,16 +15,8 @@ type Props = {
     loading: boolean
 }
 
-export default function RecipesList({
-    favoriteRecipes,
-    toggleFavorite,
-    sections,
-    getNextPage,
-    refreshing,
-    refresh,
-    loading,
-}: Props) {
-    const headerHeight = useHeaderHeight()
+export default function RecipesList({ toggleFavorite, sections, getNextPage, refreshing, refresh, loading }: Props) {
+    const insets = useSafeAreaInsets()
 
     const flatListRef = useRef<FlatList>(null)
 
@@ -35,7 +27,7 @@ export default function RecipesList({
             return <RecipeSectionHeader title={item.title} />
         }
 
-        return <RecipeCard recipe={item.recipe} favoriteRecipes={favoriteRecipes} toggleFavorite={toggleFavorite} />
+        return <RecipeCard recipe={item.recipe} toggleFavorite={toggleFavorite} />
     }
 
     return (
@@ -45,7 +37,7 @@ export default function RecipesList({
             keyExtractor={(item, index) =>
                 item.type === "section" ? `section-${item.title}-${index}` : `recipe-${item.recipe.id}`
             }
-            ListHeaderComponent={<View style={{ height: headerHeight }} />}
+            ListHeaderComponent={<View style={{ height: HEADER_HEIGHT }} />}
             onEndReached={getNextPage}
             onEndReachedThreshold={0.5}
             refreshing={refreshing}

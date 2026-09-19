@@ -1,25 +1,27 @@
 import { View } from "react-native"
-import { useHeaderHeight } from "@react-navigation/elements"
+import Toast from "react-native-toast-message"
+
 import { useWeeklyCategories } from "@/hooks/weekly/useWeeklyCategories"
 import BottomSheet from "@/components/weekly/categories/bottomSheet"
 import List from "@/components/weekly/categories/list"
 import { useWeeklyProducts } from "@/hooks/weekly/useWeeklyProducts"
 import useThemes from "@/hooks/themes/useThemes"
-import Toast from "react-native-toast-message"
 import { Category } from "@/types/generated/models/category"
 
 export default function WeeklyCategories() {
     const { vars } = useThemes()
+
     const {
         actions: weeklyCategoriesActions,
         refs: weeklyCategoriesRefs,
         states: weeklyCategoriesStates,
     } = useWeeklyCategories()
+
     const { actions: weeklyProductsActions } = useWeeklyProducts()
-    const headerHeight = useHeaderHeight()
 
     const updateCategory = async (category: Category) => {
         const newCronProduct = await weeklyCategoriesActions.updateCategory(category)
+
         if (!newCronProduct) {
             Toast.show({
                 type: "error",
@@ -32,14 +34,20 @@ export default function WeeklyCategories() {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: vars.backgroundColor, padding: 16 }}>
+        <View
+            style={{
+                flex: 1,
+                backgroundColor: vars.backgroundColor,
+                padding: 16,
+            }}
+        >
             <List
                 open={weeklyCategoriesActions.open}
                 cronProducts={weeklyCategoriesStates.cronProducts}
                 refreshing={weeklyCategoriesStates.loading}
-                headerHeight={headerHeight}
                 refresh={weeklyCategoriesActions.getCronProducts}
             />
+
             <BottomSheet
                 close={weeklyCategoriesActions.close}
                 sheetRef={weeklyCategoriesRefs.bottomSheetRef}

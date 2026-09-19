@@ -7,6 +7,7 @@ import { Recipe } from "@/types/generated/models/recipe"
 import { PressableScale } from "pressto"
 import { ChevronRight } from "lucide-react-native"
 import { MEALS } from "@/lib/constants"
+import { BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     recipe: Recipe
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 11,
         paddingVertical: 6,
-        borderRadius: 14,
+        borderRadius: BORDER_RADIUS_M,
     },
     metaText: {
         fontSize: 13,

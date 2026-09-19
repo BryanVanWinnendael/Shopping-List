@@ -1,12 +1,13 @@
 import { useCallback, useRef, useState } from "react"
+
 import { Product } from "@/types/list"
-import BottomSheet from "@gorhom/bottom-sheet"
 import { modelClient } from "@/lib/model"
 import { updateCategory as updateFirebaseCategory } from "@/lib/firebase"
 import { Category } from "@/types/generated/models/category"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 export function useCategories() {
-    const bottomSheetRef = useRef<BottomSheet>(null)
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
 
     const [training, setTraining] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -21,17 +22,25 @@ export function useCategories() {
         bottomSheetRef.current?.close()
     }, [])
 
-    const trainModel = async () => {
+    const trainModel = useCallback(async () => {
         setTraining(true)
-        await modelClient.trainModel()
-        setTraining(false)
-    }
 
-    const updateCategory = async (category: Category) => {
-        if (!selectedProduct) return
-        await updateFirebaseCategory(selectedProduct, category)
-        close()
-    }
+        try {
+            await modelClient.trainModel()
+        } finally {
+            setTraining(false)
+        }
+    }, [])
+
+    const updateCategory = useCallback(
+        async (category: Category) => {
+            if (!selectedProduct) return
+
+            await updateFirebaseCategory(selectedProduct, category)
+            close()
+        },
+        [selectedProduct, close]
+    )
 
     return {
         states: {

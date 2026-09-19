@@ -20,6 +20,7 @@ export interface CreateRecipeRequest {
   mealType?: MealType | null
   country?: string | null
   persons?: number | null
+  isSaved?: boolean | null
 }
 
 export type GetRecipeResponse = Recipe

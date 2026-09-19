@@ -1,6 +1,7 @@
 import { Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
 import { Nutrition } from "@/types/generated/models/nutrition"
+import { BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     nutrition: Nutrition
@@ -34,7 +35,7 @@ export default function NutritionList({ nutrition }: Props) {
 
             <View
                 style={{
-                    borderRadius: 16,
+                    borderRadius: BORDER_RADIUS_M,
                     backgroundColor: vars.secondaryBackgroundColor,
                     overflow: "hidden",
                 }}

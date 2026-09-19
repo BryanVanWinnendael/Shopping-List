@@ -1,7 +1,7 @@
 import { ActivityIndicator, FlatList, View } from "react-native"
 import Recipe from "@/components/online-recipes/recipe"
-import { useHeaderHeight } from "@react-navigation/elements"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
+import { HEADER_HEIGHT } from "@/lib/constants"
 
 type Props = {
     results: OnlineRecipe[]
@@ -11,8 +11,6 @@ type Props = {
 }
 
 export function List({ results, onEndReached, loading, variant = "list" }: Props) {
-    const headerHeight = useHeaderHeight()
-
     const isGrid = variant === "grid"
 
     return (
@@ -29,8 +27,8 @@ export function List({ results, onEndReached, loading, variant = "list" }: Props
             numColumns={isGrid ? 2 : 1}
             columnWrapperStyle={isGrid ? { gap: 12, paddingHorizontal: 12 } : undefined}
             contentContainerStyle={{
-                paddingTop: headerHeight,
-                paddingBottom: headerHeight + 60,
+                paddingTop: HEADER_HEIGHT,
+                paddingBottom: HEADER_HEIGHT + 60,
             }}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}

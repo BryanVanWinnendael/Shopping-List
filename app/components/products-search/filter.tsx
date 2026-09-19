@@ -1,10 +1,12 @@
+import { ScrollView, Text, View } from "react-native"
 import { useState } from "react"
-import { ScrollView, StyleSheet, Text, View } from "react-native"
+import { PressableScale } from "pressto"
+
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { CATEGORY_ORDER } from "@/lib/constants"
-import { PressableScale } from "pressto"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     selected: Category[]
@@ -17,7 +19,7 @@ type FilterCategory = {
 }
 
 const FILTER_CATEGORIES: FilterCategory[] = CATEGORY_ORDER.filter((c) => c !== "remaining" && c !== "fish").map((c) =>
-    c === "meat" ? { label: "meat/fish", value: "meat" } : { label: c, value: c }
+    c === "meat" ? { label: "Meat / Fish", value: "meat" } : { label: c, value: c }
 )
 
 export default function Filter({ selected, onApply }: Props) {
@@ -31,6 +33,7 @@ export default function Filter({ selected, onApply }: Props) {
             const newSelected = prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
 
             onApply(newSelected)
+
             return newSelected
         })
     }
@@ -41,76 +44,94 @@ export default function Filter({ selected, onApply }: Props) {
     }
 
     return (
-        <View style={{ padding: 16 }}>
-            <Text
-                style={{
-                    fontSize: 18,
-                    fontWeight: "600",
-                    marginBottom: 12,
-                    color: vars.textColor,
-                }}
-            >
-                Filter by category
-            </Text>
-
+        <View style={{ flex: 1 }}>
             <ScrollView
+                style={{ flex: 1 }}
                 contentContainerStyle={{
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    gap: 8,
+                    paddingHorizontal: 20,
+                    paddingTop: 64,
+                    paddingBottom: 74,
                 }}
+                showsVerticalScrollIndicator={false}
             >
-                {FILTER_CATEGORIES.map(({ label, value }) => {
-                    const active = localSelected.includes(value)
+                <View
+                    style={{
+                        flexDirection: "row",
+                        flexWrap: "wrap",
+                        gap: 8,
+                    }}
+                >
+                    {FILTER_CATEGORIES.map(({ label, value }) => {
+                        const active = localSelected.includes(value)
 
-                    return (
-                        <PressableScale
-                            key={value}
-                            onPress={() => toggleCategory(value)}
-                            style={{
-                                paddingHorizontal: 12,
-                                paddingVertical: 8,
-                                borderRadius: 24,
-                                borderWidth: 1,
-                                borderColor: active ? aColor : vars.secondaryBorderColor,
-                                backgroundColor: active ? aColor : vars.secondaryBackgroundColor,
-                            }}
-                        >
-                            <Text
+                        return (
+                            <PressableScale
+                                key={value}
+                                onPress={() => toggleCategory(value)}
                                 style={{
-                                    color: active ? vars.secondaryBackgroundColor : vars.textColor,
-                                    fontSize: 14,
+                                    paddingHorizontal: 14,
+                                    paddingVertical: 10,
+                                    borderRadius: BORDER_RADIUS_L,
+                                    borderWidth: 1,
+                                    borderColor: active ? aColor : vars.secondaryBorderColor,
+                                    backgroundColor: active ? aColor : vars.secondaryBackgroundColor,
                                 }}
                             >
-                                {label}
-                            </Text>
-                        </PressableScale>
-                    )
-                })}
+                                <Text
+                                    style={{
+                                        color: active ? "#fff" : vars.textColor,
+                                        fontSize: 14,
+                                        fontWeight: active ? "600" : "500",
+                                    }}
+                                >
+                                    {label}
+                                </Text>
+                            </PressableScale>
+                        )
+                    })}
+                </View>
             </ScrollView>
 
             <View
                 style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    marginTop: 20,
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    paddingHorizontal: 20,
+                    paddingTop: 8,
+                    paddingBottom: 8,
+                    backgroundColor: "transparent",
                 }}
             >
-                <PressableScale style={[styles.button, { backgroundColor: aColor }]} onPress={clearAll}>
-                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>Clear</Text>
+                <PressableScale
+                    onPress={clearAll}
+                    style={{
+                        minHeight: 50,
+                        borderRadius: BORDER_RADIUS_L,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: aColor,
+                        shadowOffset: {
+                            width: 0,
+                            height: 4,
+                        },
+                        shadowOpacity: 0.16,
+                        shadowRadius: 8,
+                        elevation: 4,
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: "#fff",
+                            fontWeight: "700",
+                            fontSize: 15,
+                        }}
+                    >
+                        Clear Filters
+                    </Text>
                 </PressableScale>
             </View>
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    button: {
-        borderRadius: 26,
-        height: 52,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        width: "100%",
-    },
-})

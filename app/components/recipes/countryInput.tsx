@@ -1,9 +1,10 @@
-import { COUNTRIES } from "@/lib/constants"
-import { useHeaderHeight } from "@react-navigation/elements"
+import { COUNTRIES, HEADER_HEIGHT } from "@/lib/constants"
 import { useMemo, useState } from "react"
 import { FlatList, Modal, Pressable, Text, TextInput, View } from "react-native"
 import { Country } from "@/types/recipes"
 import useThemes from "@/hooks/themes/useThemes"
+import { PressableScale } from "pressto"
+import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     value?: Country | null
@@ -12,7 +13,6 @@ type Props = {
 
 export default function CountryInput({ value, onChange }: Props) {
     const { vars, theme } = useThemes()
-    const headerHeight = useHeaderHeight()
 
     const [visible, setVisible] = useState(false)
     const [query, setQuery] = useState("")
@@ -24,13 +24,13 @@ export default function CountryInput({ value, onChange }: Props) {
 
     return (
         <>
-            <Pressable
+            <PressableScale
                 onPress={() => setVisible(true)}
                 style={{
                     backgroundColor: vars.secondaryBackgroundColor,
                     borderWidth: 1,
                     borderColor: vars.secondaryBorderColor,
-                    borderRadius: 14,
+                    borderRadius: BORDER_RADIUS_M,
                     paddingHorizontal: 12,
                     paddingVertical: 8,
                     flexDirection: "row",
@@ -40,14 +40,14 @@ export default function CountryInput({ value, onChange }: Props) {
             >
                 <Text style={{ fontSize: 20 }}>{value?.flag ?? "🌍"}</Text>
                 <Text style={{ fontSize: 16, color: vars.textColor }}>{value?.name ?? "Select country"}</Text>
-            </Pressable>
+            </PressableScale>
 
             <Modal visible={visible} animationType="slide">
                 <View
                     style={{
                         flex: 1,
                         padding: 16,
-                        paddingTop: headerHeight,
+                        paddingTop: HEADER_HEIGHT,
                         backgroundColor: vars.backgroundColor,
                     }}
                 >
@@ -58,7 +58,7 @@ export default function CountryInput({ value, onChange }: Props) {
                         style={{
                             color: vars.textColor,
                             padding: 12,
-                            borderRadius: 14,
+                            borderRadius: BORDER_RADIUS_M,
                             borderWidth: 1,
                             borderColor: vars.borderColor,
                             marginBottom: 12,
@@ -88,7 +88,7 @@ export default function CountryInput({ value, onChange }: Props) {
                             </Pressable>
                         }
                         renderItem={({ item }) => (
-                            <Pressable
+                            <PressableScale
                                 onPress={() => {
                                     onChange(item)
                                     setVisible(false)
@@ -103,21 +103,21 @@ export default function CountryInput({ value, onChange }: Props) {
                             >
                                 <Text style={{ fontSize: 22 }}>{item.flag}</Text>
                                 <Text style={{ fontSize: 16, color: vars.textColor }}>{item.name}</Text>
-                            </Pressable>
+                            </PressableScale>
                         )}
                     />
 
-                    <Pressable
+                    <PressableScale
                         onPress={() => setVisible(false)}
                         style={{
                             padding: 16,
                             alignItems: "center",
-                            borderRadius: 24,
+                            borderRadius: BORDER_RADIUS_L,
                             backgroundColor: vars.accentColor,
                         }}
                     >
                         <Text style={{ fontWeight: "600", color: "#fff" }}>Close</Text>
-                    </Pressable>
+                    </PressableScale>
                 </View>
             </Modal>
         </>

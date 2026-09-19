@@ -1,6 +1,7 @@
 import { Text } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
-import { GRADIENT, IS_DEV, VERSION } from "@/lib/constants"
+import { GRADIENT, VERSION } from "@/lib/constants"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 export default function InfoChip() {
     return (
@@ -14,10 +15,9 @@ export default function InfoChip() {
                 top: 12,
                 right: 16,
                 zIndex: 999,
-
                 paddingHorizontal: 12,
                 paddingVertical: 5,
-                borderRadius: 999,
+                borderRadius: BORDER_RADIUS_FULL,
             }}
         >
             <Text
@@ -28,7 +28,7 @@ export default function InfoChip() {
                     letterSpacing: 0.6,
                 }}
             >
-                {IS_DEV ? "DEV " : ""}V{VERSION}
+                {__DEV__ ? "DEV " : ""}V{VERSION}
             </Text>
         </LinearGradient>
     )

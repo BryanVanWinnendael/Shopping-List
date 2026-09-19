@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { CreateRecipeRequest, Ingredient } from "@/types/recipes"
 import { onlineRecipesClient } from "@/lib/online-recipes"
 import { useLocalSearchParams } from "expo-router"
-import GorhomBottomSheet from "@gorhom/bottom-sheet"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useCreateRecipe } from "@/hooks/recipes/useCreateRecipe"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 export default function useOnlineRecipeDetails() {
     const { user } = useSettingsStore()
@@ -15,7 +15,7 @@ export default function useOnlineRecipeDetails() {
     const [recipe, setRecipe] = useState<OnlineRecipeDetails | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
 
-    const sheetRef = useRef<GorhomBottomSheet>(null)
+    const sheetRef = useRef<BottomSheetRef>(null)
 
     const open = () => sheetRef.current?.expand()
     const close = () => sheetRef.current?.close()
@@ -44,6 +44,7 @@ export default function useOnlineRecipeDetails() {
             ingredients: mapIngredients(recipe.ingredients),
             persons: recipe.persons,
             time: recipe.time,
+            isSaved: true,
         }
 
         return await addRecipeActions.createRecipe(request)

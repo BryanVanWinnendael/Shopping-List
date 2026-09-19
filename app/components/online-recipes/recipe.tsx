@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
 import { Link } from "expo-router"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import { Image } from "expo-image"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
+import { GlassView } from "expo-glass-effect"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     recipe: OnlineRecipe
@@ -11,7 +12,9 @@ type Props = {
 }
 
 export default function Recipe({ recipe, variant }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
+
+    const glassColorScheme = theme === "light" ? "light" : "dark"
 
     return (
         <Link
@@ -35,16 +38,25 @@ export default function Recipe({ recipe, variant }: Props) {
                         />
 
                         <View style={styles.overlay}>
-                            <GlassOrBlurView
-                                backgroundColor={vars.secondaryBackgroundColor}
-                                blurBorderWidth={0}
+                            <GlassView
+                                colorScheme={glassColorScheme}
+                                glassEffectStyle="regular"
+                                isInteractive
                                 style={styles.titleGlass}
-                                forceBlur
                             >
-                                <Text style={[styles.recipeTitle, { color: vars.textColor }]} numberOfLines={2}>
+                                <Text
+                                    style={[
+                                        styles.recipeTitle,
+                                        {
+                                            color: vars.textColor,
+                                        },
+                                    ]}
+                                    numberOfLines={2}
+                                    ellipsizeMode="tail"
+                                >
                                     {recipe.title}
                                 </Text>
-                            </GlassOrBlurView>
+                            </GlassView>
                         </View>
                     </View>
                 </View>
@@ -62,7 +74,7 @@ export default function Recipe({ recipe, variant }: Props) {
 const styles = StyleSheet.create({
     recipeCard: {
         width: "100%",
-        borderRadius: 28,
+        borderRadius: BORDER_RADIUS_L,
         overflow: "hidden",
         elevation: 4,
         backgroundColor: "transparent",
@@ -91,7 +103,7 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         paddingHorizontal: 10,
         paddingVertical: 6,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         marginBottom: 6,
     },
 })

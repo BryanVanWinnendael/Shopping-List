@@ -1,9 +1,10 @@
 import { ActivityIndicator, View } from "react-native"
 import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import useThemes from "@/hooks/themes/useThemes"
+import { GlassView } from "expo-glass-effect"
 import { Trash } from "lucide-react-native"
-import { SHADOW_STYLE } from "@/lib/constants"
+
+import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     clearLogs: () => void
@@ -11,29 +12,29 @@ type Props = {
 }
 
 export default function ClearButton({ clearLogs, loading }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
 
     return (
         <View
-            style={[
-                {
-                    position: "absolute",
-                    bottom: 24,
-                    right: 24,
-                    zIndex: 1,
-                },
-                SHADOW_STYLE,
-            ]}
+            style={{
+                position: "absolute",
+                bottom: 24,
+                right: 24,
+                zIndex: 1,
+            }}
         >
-            <GlassOrBlurView
+            <GlassView
+                glassEffectStyle="regular"
+                isInteractive={!loading}
+                colorScheme={theme === "light" ? "light" : "dark"}
+                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     flexDirection: "row",
-                    borderRadius: 26,
+                    borderRadius: BORDER_RADIUS_FULL,
                     overflow: "hidden",
-                    borderWidth: 1,
+                    width: 48,
+                    height: 48,
                 }}
-                backgroundColor={vars.secondaryBackgroundColor}
-                borderColor={`${vars.secondaryBorderColor}50`}
             >
                 <PressableScale
                     enabled={!loading}
@@ -51,7 +52,7 @@ export default function ClearButton({ clearLogs, loading }: Props) {
                         <Trash size={20} color={vars.textColor} />
                     )}
                 </PressableScale>
-            </GlassOrBlurView>
+            </GlassView>
         </View>
     )
 }

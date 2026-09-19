@@ -1,23 +1,23 @@
 import { ActivityIndicator, FlatList, View } from "react-native"
 import Log from "@/components/logs/log"
 import { Trace } from "@/types/generated/models/trace"
+import { HEADER_HEIGHT } from "@/lib/constants"
 
 type Props = {
     traces: Trace[]
-    headerHeight: number
     loading: boolean
     refreshing: boolean
     onRefresh: () => void
     onEndReached: () => void
 }
 
-export default function List({ traces, headerHeight, loading, onEndReached, refreshing, onRefresh }: Props) {
+export default function List({ traces, loading, onEndReached, refreshing, onRefresh }: Props) {
     return (
         <FlatList
             data={traces}
             renderItem={({ item }) => <Log trace={item} />}
             keyExtractor={(item, index) => item.traceId + index}
-            ListHeaderComponent={<View style={{ height: headerHeight }} />}
+            ListHeaderComponent={<View style={{ height: HEADER_HEIGHT }} />}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
             refreshing={refreshing}

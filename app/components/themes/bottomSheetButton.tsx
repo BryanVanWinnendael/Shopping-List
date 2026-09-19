@@ -2,6 +2,7 @@ import { StyleSheet, View } from "react-native"
 import { Moon, Sun } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     open: () => void
@@ -22,7 +23,7 @@ export default function BottomSheetButton({ open }: Props) {
 const styles = StyleSheet.create({
     iconButton: {
         padding: 8,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
     },
     sheetContent: {
         flex: 1,

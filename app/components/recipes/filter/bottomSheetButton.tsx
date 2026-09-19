@@ -1,21 +1,14 @@
+import { useCallback, useEffect } from "react"
 import { Text, View } from "react-native"
-import { useSettingsStore } from "@/stores/useSettingsStore"
+import { GlassView } from "expo-glass-effect"
 import { ChevronDown, ListFilter } from "lucide-react-native"
-import { BlurView } from "expo-blur"
-import Animated, {
-    useAnimatedProps,
-    useAnimatedStyle,
-    useSharedValue,
-    withSequence,
-    withTiming,
-} from "react-native-reanimated"
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated"
 import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
+
 import { useRecipesFilter } from "@/hooks/recipes/useRecipesFilter"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import useThemes from "@/hooks/themes/useThemes"
-import { useCallback, useEffect } from "react"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     onPress: () => void
@@ -24,79 +17,37 @@ type Props = {
     setExpanded: (expanded: boolean) => void
 }
 
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
+const AnimatedGlassView = Animated.createAnimatedComponent(GlassView)
 
 export default function BottomSheetButton({ onPress, onExpandedChange, expanded, setExpanded }: Props) {
     const { vars, theme } = useThemes()
-    const { newUI } = useSettingsStore()
     const { states } = useRecipesFilter()
     const { setFilter } = useRecipesStore()
 
     const width = useSharedValue(48)
-    const blurIntensity = useSharedValue(50)
-
-    const backgroundColorTint = theme === "light" ? "systemThickMaterialLight" : "systemThickMaterialDark"
 
     const animatedStyle = useAnimatedStyle(() => ({
         width: width.value,
     }))
 
-    const animatedBlurProps = useAnimatedProps(() => ({
-        intensity: blurIntensity.value,
-    }))
-
     const toggle = useCallback(() => {
-        setExpanded(!expanded)
-        onExpandedChange(!expanded)
-    }, [setExpanded, onExpandedChange, expanded])
+        const nextExpanded = !expanded
+
+        setExpanded(nextExpanded)
+        onExpandedChange(nextExpanded)
+    }, [expanded, setExpanded, onExpandedChange])
 
     useEffect(() => {
         if (expanded) {
-            width.value = withSequence(withTiming(240, { duration: 180 }), withTiming(220, { duration: 220 }))
-
-            blurIntensity.value = withSequence(withTiming(100, { duration: 180 }), withTiming(50, { duration: 300 }))
+            width.value = withSequence(withTiming(240, { duration: 180 }), withTiming(230, { duration: 220 }))
 
             setFilter(true)
         } else {
-            width.value = withSequence(withTiming(48, { duration: 150 }), withTiming(48, { duration: 150 }))
-
-            blurIntensity.value = withSequence(withTiming(80, { duration: 100 }), withTiming(50, { duration: 150 }))
+            width.value = withTiming(48, { duration: 180 })
 
             setFilter(false)
         }
-    }, [expanded])
-
-    const Content = (
-        <PressableScale
-            onPress={toggle}
-            style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
-        >
-            {expanded && (
-                <PressableScale onPress={onPress} style={{ paddingRight: 10 }}>
-                    <Text style={{ color: vars.textColor }}>Filtered by</Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", maxWidth: 120 }}>
-                        <Text style={{ color: vars.accentColor }} numberOfLines={1}>
-                            {states.label}
-                        </Text>
-                        <ChevronDown color={vars.accentColor} size={16} />
-                    </View>
-                </PressableScale>
-            )}
-
-            <View
-                style={{
-                    justifyContent: "center",
-                    alignItems: "center",
-                    backgroundColor: expanded ? vars.accentColor : "transparent",
-                    padding: expanded ? 8 : 0,
-                    borderRadius: 20,
-                    paddingHorizontal: expanded ? 20 : 0,
-                }}
-            >
-                <ListFilter size={22} color={vars.textColor} style={{ transform: [{ translateX: 1 }] }} />
-            </View>
-        </PressableScale>
-    )
+    }, [expanded, setFilter])
 
     return (
         <Animated.View
@@ -105,52 +56,101 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
                     position: "absolute",
                     bottom: 26,
                     right: 80,
+                    height: 48,
                     zIndex: 1,
                 },
                 animatedStyle,
-                SHADOW_STYLE,
             ]}
         >
-            <View
+            <AnimatedGlassView
+                glassEffectStyle="regular"
+                isInteractive
+                colorScheme={theme === "light" ? "light" : "dark"}
+                tintColor={vars.secondaryBackgroundColor}
                 style={{
-                    borderRadius: 100,
-                    overflow: newUI ? "visible" : "hidden",
-                    borderWidth: newUI ? 0 : 1,
-                    borderColor: `${vars.secondaryBorderColor}50`,
+                    height: 48,
+                    width: "100%",
+                    borderRadius: BORDER_RADIUS_FULL,
+                    overflow: "hidden",
                 }}
             >
-                {newUI ? (
-                    <GlassOrBlurView
+                <PressableScale
+                    onPress={toggle}
+                    style={{
+                        height: 48,
+                        width: "100%",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        paddingHorizontal: expanded ? 6 : 14,
+                    }}
+                >
+                    {expanded && (
+                        <PressableScale
+                            onPress={onPress}
+                            style={{
+                                width: 160,
+                                paddingHorizontal: 12,
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: vars.textColor,
+                                    fontSize: 13,
+                                    fontWeight: "500",
+                                }}
+                            >
+                                Filtered by
+                            </Text>
+
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    width: "100%",
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        flexShrink: 1,
+                                        color: vars.accentColor,
+                                        fontSize: 14,
+                                        fontWeight: "600",
+                                    }}
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    {states.label}
+                                </Text>
+
+                                <ChevronDown color={vars.accentColor} size={16} strokeWidth={2.5} />
+                            </View>
+                        </PressableScale>
+                    )}
+
+                    <View
                         style={{
-                            flexDirection: "row",
+                            width: expanded ? 52 : undefined,
+                            justifyContent: "center",
                             alignItems: "center",
-                            justifyContent: "flex-end",
-                            paddingHorizontal: expanded ? 6 : 14,
-                            height: 48,
-                            borderRadius: 100,
-                        }}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        borderColor={`${vars.secondaryBorderColor}50`}
-                    >
-                        {Content}
-                    </GlassOrBlurView>
-                ) : (
-                    <AnimatedBlurView
-                        animatedProps={animatedBlurProps}
-                        tint={backgroundColorTint}
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "flex-end",
-                            paddingHorizontal: expanded ? 6 : 14,
-                            height: 48,
-                            borderRadius: 100,
+                            backgroundColor: expanded ? vars.accentColor : "transparent",
+                            paddingVertical: expanded ? 8 : 0,
+                            paddingHorizontal: expanded ? 16 : 0,
+                            borderRadius: BORDER_RADIUS_L,
                         }}
                     >
-                        {Content}
-                    </AnimatedBlurView>
-                )}
-            </View>
+                        <ListFilter
+                            size={22}
+                            strokeWidth={2}
+                            color={expanded ? "#fff" : vars.textColor}
+                            style={{
+                                transform: [{ translateX: 1 }],
+                            }}
+                        />
+                    </View>
+                </PressableScale>
+            </AnimatedGlassView>
         </Animated.View>
     )
 }

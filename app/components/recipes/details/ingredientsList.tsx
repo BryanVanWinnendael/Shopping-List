@@ -7,6 +7,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import CustomImage from "@/components/customImage"
 import Toast from "react-native-toast-message"
 import { Recipe } from "@/types/generated/models/recipe"
+import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     recipe: Recipe
@@ -58,13 +59,14 @@ export default function IngredientsList({ recipe }: Props) {
             await Promise.all(
                 missingIndexes.map(async (index) => {
                     const ingredient = ingredients[index]
+
                     await actions.createProduct(ingredient.product, ingredient.url)
                 })
             )
 
             setSelected((prev) => {
                 const merged = new Set(prev)
-                missingIndexes.forEach((i) => merged.add(i))
+                missingIndexes.forEach((index) => merged.add(index))
                 return Array.from(merged)
             })
         } finally {
@@ -83,20 +85,27 @@ export default function IngredientsList({ recipe }: Props) {
                 styles.container,
                 {
                     backgroundColor: vars.secondaryBackgroundColor,
-                    borderColor: vars.secondaryBorderColor,
                 },
             ]}
         >
+            {/* Header */}
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
-                    <View style={[styles.iconWrapper, { backgroundColor: `${vars.accentColor}20` }]}>
-                        <ShoppingBasket size={18} color={vars.accentColor} />
+                    <View
+                        style={[
+                            styles.iconWrapper,
+                            {
+                                backgroundColor: `${vars.accentColor}18`,
+                            },
+                        ]}
+                    >
+                        <ShoppingBasket size={19} strokeWidth={2.2} color={vars.accentColor} />
                     </View>
 
                     <View style={styles.textBlock}>
                         <Text style={[styles.title, { color: vars.textColor }]}>Ingredients</Text>
 
-                        <Text style={[styles.subtitle]}>Add ingredients directly to the list</Text>
+                        <Text style={styles.subtitle}>Add ingredients to your shopping list</Text>
                     </View>
                 </View>
 
@@ -106,37 +115,34 @@ export default function IngredientsList({ recipe }: Props) {
                     style={[
                         styles.addAllButton,
                         {
-                            backgroundColor: allAdded ? "rgba(52,199,89,0.15)" : vars.backgroundColor,
+                            backgroundColor: allAdded ? `${vars.accentColor}14` : vars.backgroundColor,
                             borderColor: vars.borderColor,
-                            opacity: loadingAll ? 0.7 : 1,
+                            opacity: loadingAll ? 0.6 : 1,
                         },
                     ]}
                 >
-                    {allAdded && <Check size={16} color="#34C759" style={{ marginRight: 6 }} />}
-
                     {loadingAll ? (
-                        <ActivityIndicator size="small" color={vars.textColor} />
+                        <ActivityIndicator size="small" color={vars.accentColor} />
+                    ) : allAdded ? (
+                        <>
+                            <Check size={15} strokeWidth={2.5} color={vars.accentColor} />
+
+                            <Text style={[styles.addAllText, { color: vars.accentColor }]}>Added</Text>
+                        </>
                     ) : (
-                        <Text
-                            style={{
-                                color: allAdded ? "#34C759" : vars.textColor,
-                                fontWeight: "600",
-                                fontSize: 14,
-                            }}
-                        >
-                            {allAdded ? "Added All" : "Add All"}
-                        </Text>
+                        <Text style={[styles.addAllText, { color: vars.textColor }]}>Add All</Text>
                     )}
                 </PressableScale>
             </View>
 
+            {/* Ingredients */}
             <View style={styles.list}>
                 {ingredients.map((ingredient, index) => {
                     const isSelected = selectedSet.has(index)
 
                     return (
                         <View
-                            key={`${ingredient}-${index}`}
+                            key={`${ingredient.product}-${index}`}
                             style={[
                                 styles.itemRow,
                                 {
@@ -147,7 +153,7 @@ export default function IngredientsList({ recipe }: Props) {
                         >
                             <View style={styles.itemContent}>
                                 {ingredient.type === "image" && ingredient.url && (
-                                    <CustomImage url={ingredient.url} height={38} width={38} />
+                                    <CustomImage url={ingredient.url} height={40} width={40} />
                                 )}
 
                                 <Text style={[styles.itemText, { color: vars.textColor }]} numberOfLines={1}>
@@ -161,25 +167,37 @@ export default function IngredientsList({ recipe }: Props) {
                                 style={[
                                     styles.itemButton,
                                     {
-                                        backgroundColor: isSelected
-                                            ? "rgba(52,199,89,0.15)"
-                                            : vars.secondaryBackgroundColor,
-                                        borderColor: vars.borderColor,
+                                        backgroundColor: isSelected ? `${vars.accentColor}12` : "transparent",
                                     },
                                 ]}
                             >
-                                {isSelected && <Check size={14} color="#34C759" style={{ marginRight: 4 }} />}
+                                {isSelected ? (
+                                    <>
+                                        <Check size={15} strokeWidth={2.5} color={vars.accentColor} />
 
-                                <Text
-                                    style={{
-                                        fontSize: 13,
-                                        fontWeight: "600",
-                                        color: isSelected ? "#34C759" : vars.textColor,
-                                        textDecorationLine: isSelected ? "underline" : "none",
-                                    }}
-                                >
-                                    {isSelected ? "Added" : "Add"}
-                                </Text>
+                                        <Text
+                                            style={[
+                                                styles.itemButtonText,
+                                                {
+                                                    color: vars.accentColor,
+                                                },
+                                            ]}
+                                        >
+                                            Added
+                                        </Text>
+                                    </>
+                                ) : (
+                                    <Text
+                                        style={[
+                                            styles.itemButtonText,
+                                            {
+                                                color: vars.accentColor,
+                                            },
+                                        ]}
+                                    >
+                                        Add
+                                    </Text>
+                                )}
                             </PressableScale>
                         </View>
                     )
@@ -190,83 +208,94 @@ export default function IngredientsList({ recipe }: Props) {
 }
 
 const styles = StyleSheet.create({
-    textBlock: {
-        flex: 1,
-        paddingRight: 12,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: "700",
-        flexWrap: "wrap",
-    },
-    subtitle: {
-        fontSize: 13,
-        marginTop: 2,
-        flexWrap: "wrap",
-        color: "#9ca3af",
-    },
     container: {
-        borderRadius: 24,
-        padding: 16,
-        borderWidth: 1,
-        gap: 10,
+        borderRadius: BORDER_RADIUS_L,
+        padding: 14,
+        gap: 12,
     },
     header: {
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
+        justifyContent: "space-between",
     },
     titleContainer: {
+        flex: 1,
         flexDirection: "row",
         alignItems: "center",
-        flex: 1,
-        gap: 12,
+        gap: 11,
         paddingRight: 10,
     },
     iconWrapper: {
-        width: 42,
-        height: 42,
-        borderRadius: 999,
+        width: 40,
+        height: 40,
+        borderRadius: BORDER_RADIUS_M,
         justifyContent: "center",
         alignItems: "center",
     },
+    textBlock: {
+        flex: 1,
+    },
+    title: {
+        fontSize: 17,
+        fontWeight: "700",
+        letterSpacing: -0.2,
+    },
+    subtitle: {
+        marginTop: 2,
+        fontSize: 12.5,
+        color: "#8E8E93",
+    },
     addAllButton: {
+        minHeight: 34,
+        paddingHorizontal: 12,
+        borderRadius: BORDER_RADIUS_M,
+        borderWidth: StyleSheet.hairlineWidth,
         flexDirection: "row",
         alignItems: "center",
-        borderRadius: 999,
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-        borderWidth: 1,
+        justifyContent: "center",
+        gap: 5,
+    },
+    addAllText: {
+        fontSize: 13,
+        fontWeight: "600",
     },
     list: {
-        gap: 10,
-        marginTop: 6,
+        gap: 7,
     },
     itemRow: {
+        minHeight: 58,
+        borderRadius: BORDER_RADIUS_M,
+        paddingHorizontal: 10,
+        paddingVertical: 9,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: 12,
-        borderRadius: 18,
-        borderWidth: 1,
+        borderWidth: StyleSheet.hairlineWidth,
     },
     itemContent: {
+        flex: 1,
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
-        flex: 1,
+        paddingRight: 8,
     },
     itemText: {
+        flex: 1,
         fontSize: 15,
         fontWeight: "500",
-        flex: 1,
+        letterSpacing: -0.1,
     },
     itemButton: {
+        minHeight: 32,
+        paddingHorizontal: 10,
+        borderRadius: BORDER_RADIUS_M,
         flexDirection: "row",
         alignItems: "center",
-        borderRadius: 999,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderWidth: 1,
+        justifyContent: "center",
+        gap: 4,
+    },
+    itemButtonText: {
+        fontSize: 13,
+        fontWeight: "600",
     },
 })

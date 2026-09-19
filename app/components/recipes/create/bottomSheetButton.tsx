@@ -1,9 +1,10 @@
 import { PressableScale } from "pressto"
 import { Plus } from "lucide-react-native"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import useThemes from "@/hooks/themes/useThemes"
+import { GlassView } from "expo-glass-effect"
 import { View } from "react-native"
-import { SHADOW_STYLE } from "@/lib/constants"
+
+import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     onPress: () => void
@@ -14,34 +15,40 @@ export default function BottomSheetButton({ onPress }: Props) {
 
     return (
         <View
-            style={[
-                {
-                    position: "absolute",
-                    bottom: 26,
-                    right: 20,
-                    height: 48,
-                    width: 48,
-                    zIndex: 1,
-                },
-                SHADOW_STYLE,
-            ]}
+            style={{
+                position: "absolute",
+                bottom: 26,
+                right: 20,
+                height: 48,
+                width: 48,
+                zIndex: 1,
+            }}
         >
-            <GlassOrBlurView
+            <GlassView
+                glassEffectStyle="regular"
+                isInteractive
                 style={{
                     height: 48,
                     width: 48,
                     justifyContent: "center",
                     alignItems: "center",
                     overflow: "hidden",
-                    borderRadius: 100,
+                    borderRadius: BORDER_RADIUS_FULL,
                 }}
-                backgroundColor={vars.secondaryBackgroundColor}
-                borderColor={`${vars.secondaryBorderColor}50`}
+                tintColor={vars.secondaryBackgroundColor}
             >
-                <PressableScale onPress={onPress} style={{ justifyContent: "center", alignItems: "center" }}>
-                    <Plus size={24} color={vars.textColor} />
+                <PressableScale
+                    onPress={onPress}
+                    style={{
+                        width: 48,
+                        height: 48,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <Plus size={24} strokeWidth={2} color={vars.textColor} />
                 </PressableScale>
-            </GlassOrBlurView>
+            </GlassView>
         </View>
     )
 }

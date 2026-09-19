@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from "react-native"
-import { IS_DEV } from "@/lib/constants"
 import CategoryIcon from "@/components/categoryIcon"
 import AddButton from "@/components/products-search/addButton"
 import useThemes from "@/hooks/themes/useThemes"
 import CustomImage from "@/components/customImage"
 import { Product as ProductType } from "@/types/generated/models/product"
+import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     product: ProductType
@@ -21,7 +21,7 @@ export default function Product({ product }: Props) {
             ]}
         >
             <View style={styles.innerCard}>
-                <CustomImage style={{ borderRadius: 14 }} url={product.image} height={60} width={60} />
+                <CustomImage style={{ borderRadius: BORDER_RADIUS_M }} url={product.image} height={60} width={60} />
 
                 <View style={styles.info}>
                     <Text style={[styles.productName, { color: vars.textColor, fontSize: vars.textSize }]}>
@@ -44,7 +44,7 @@ export default function Product({ product }: Props) {
             </View>
 
             <View style={styles.buttons}>
-                {!IS_DEV && (
+                {!__DEV__ && (
                     <>
                         <AddButton product={product} mode="image" />
                         <AddButton product={product} mode="text" />
@@ -58,7 +58,7 @@ export default function Product({ product }: Props) {
 const styles = StyleSheet.create({
     card: {
         borderWidth: 1,
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
         padding: 10,
         marginVertical: 10,
         overflow: "hidden",

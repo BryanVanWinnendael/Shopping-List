@@ -1,5 +1,4 @@
 import { httpRequest } from "./httpHelper"
-import { IS_DEV } from "./constants"
 import * as Notifications from "expo-notifications"
 import { Alert, Linking } from "react-native"
 import { User } from "@/types"
@@ -58,7 +57,7 @@ const pushNotification = async (
     user: User
 ): Promise<PushUserNotificationByTypeResponse | null> => {
     const request: PushUserNotificationByTypeRequest = {
-        env: IS_DEV ? "dev" : "prod",
+        env: __DEV__ ? "dev" : "prod",
     }
 
     try {

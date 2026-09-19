@@ -1,14 +1,18 @@
 import { View } from "react-native"
-import { DrawerContentComponentProps, DrawerItemList } from "@react-navigation/drawer"
+import { DrawerItemList } from "expo-router/drawer"
 import { SafeAreaView } from "react-native-safe-area-context"
+
 import ThemesBottomSheetButton from "@/components/themes/bottomSheetButton"
 import UsersBottomSheetButton from "@/components/users/bottomSheetButton"
 import InfoChip from "@/components/infoChip"
 import useThemes from "@/hooks/themes/useThemes"
 
-type Props = DrawerContentComponentProps & {
+type Props = {
     openThemes: () => void
     openUsers: () => void
+    state: any
+    navigation: any
+    descriptors: any
 }
 
 export default function CustomDrawerContent({ openThemes, openUsers, ...props }: Props) {

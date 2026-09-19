@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { productsSearchClient } from "@/lib/product-search"
-import BottomSheet from "@gorhom/bottom-sheet"
 import { Category } from "@/types/generated/models/category"
 import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
 import { useHeaderStore } from "@/stores/useHeaderStore"
 import { DEBOUNCE_TIME } from "@/lib/constants"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 const EMPTY_RESULT: ProductsSearchResponse = {
     products: [],
@@ -27,7 +27,7 @@ export function useProductsSearch() {
     const [loading, setLoading] = useState(false)
     const [selectedCategories, setSelectedCategories] = useState<Category[]>([])
 
-    const bottomSheetRef = useRef<BottomSheet>(null)
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
 
     const open = useCallback(() => {
         bottomSheetRef.current?.expand()

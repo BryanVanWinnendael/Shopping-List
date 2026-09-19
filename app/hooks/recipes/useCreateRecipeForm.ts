@@ -1,13 +1,14 @@
 import { useCallback, useRef, useState } from "react"
 import * as ImagePicker from "expo-image-picker"
 import { Country, CreateRecipeRequest, Ingredient } from "@/types/recipes"
-import BottomSheet from "@gorhom/bottom-sheet"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { MealType } from "@/types/generated/models/meal_type"
+import { BottomSheetRef } from "@/components/native/appBottomSheet"
 
 export function useCreateRecipeForm() {
     const { user } = useSettingsStore()
-    const bottomSheetRef = useRef<BottomSheet>(null)
+
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
 
     const [title, setTitle] = useState("")
     const [publicRecipe, setPublicRecipe] = useState(true)
@@ -33,44 +34,53 @@ export function useCreateRecipeForm() {
         bottomSheetRef.current?.close()
     }, [])
 
-    const addInstruction = () => {
+    const addInstruction = useCallback(() => {
         setInstructions((prev) => [...prev, ""])
-    }
+    }, [])
 
-    const updateInstruction = (index: number, value: string) => {
+    const updateInstruction = useCallback((index: number, value: string) => {
         setInstructions((prev) => {
             const updated = [...prev]
             updated[index] = value
             return updated
         })
-    }
+    }, [])
 
-    const removeInstruction = (index: number) => {
+    const removeInstruction = useCallback((index: number) => {
         setInstructions((prev) => prev.filter((_, i) => i !== index))
-    }
+    }, [])
 
-    const addIngredient = () => {
-        setIngredients((prev) => [...prev, { product: "", type: "text" }])
-    }
+    const addIngredient = useCallback(() => {
+        setIngredients((prev) => [
+            ...prev,
+            {
+                product: "",
+                type: "text",
+            },
+        ])
+    }, [])
 
-    const updateIngredient = (index: number, field: keyof Ingredient, value: any) => {
+    const updateIngredient = useCallback((index: number, field: keyof Ingredient, value: any) => {
         setIngredients((prev) => {
             const updated = [...prev]
-            updated[index] = { ...updated[index], [field]: value }
+            updated[index] = {
+                ...updated[index],
+                [field]: value,
+            }
             return updated
         })
-    }
+    }, [])
 
-    const removeIngredient = (index: number) => {
+    const removeIngredient = useCallback((index: number) => {
         setIngredients((prev) => prev.filter((_, i) => i !== index))
-    }
+    }, [])
 
-    const setBannerImage = (uri: string | null, image: ImagePicker.ImagePickerAsset | null) => {
+    const setBannerImage = useCallback((uri: string | null, image: ImagePicker.ImagePickerAsset | null) => {
         setBanner(uri)
         setImage(image)
-    }
+    }, [])
 
-    const reset = () => {
+    const reset = useCallback(() => {
         setTitle("")
         setPublicRecipe(true)
         setBanner(null)
@@ -82,10 +92,12 @@ export function useCreateRecipeForm() {
         setMealType("Any")
         setTime(0)
         setPersons(0)
-    }
+    }, [])
 
-    const getCreateRecipeRequest = (): CreateRecipeRequest | null => {
-        if (!title || !user) return null
+    const getCreateRecipeRequest = useCallback((): CreateRecipeRequest | null => {
+        if (!title || !user) {
+            return null
+        }
 
         return {
             user,
@@ -100,7 +112,7 @@ export function useCreateRecipeForm() {
             ingredients,
             persons,
         }
-    }
+    }, [user, title, publicRecipe, image, instructions, source, mealType, countryObject, time, ingredients, persons])
 
     return {
         states: {
@@ -116,6 +128,7 @@ export function useCreateRecipeForm() {
             time,
             persons,
         },
+
         actions: {
             setTitle,
             setPublicRecipe,
@@ -136,6 +149,7 @@ export function useCreateRecipeForm() {
             open,
             setPersons,
         },
+
         refs: {
             bottomSheetRef,
         },

@@ -1,40 +1,41 @@
 import { StyleSheet, Text, View } from "react-native"
-import { Link, router } from "expo-router"
+import { Link } from "expo-router"
 import { MEALS } from "@/lib/constants"
 import * as Haptics from "expo-haptics"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { Image } from "expo-image"
+import { GlassView } from "expo-glass-effect"
+import { EyeOff, Globe } from "lucide-react-native"
 import { Recipe } from "@/types/generated/models/recipe"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 import useDeleteRecipe from "@/hooks/recipes/useDeleteRecipe"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     recipe: Recipe
-    favoriteRecipes: RecipeSummary[]
     toggleFavorite: (recipe: RecipeSummary) => void
 }
 
 export default function RecipeCard({ recipe, toggleFavorite }: Props) {
     const { actions } = useDeleteRecipe()
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
     const { favoriteRecipes } = useRecipesStore()
     const { user } = useSettingsStore()
 
     const canEdit = recipe.user === user
+
     const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
 
     const deleteRecipe = async () => {
-        const response = await actions.deleteRecipe(recipe.id)
-        if (response) {
-            router.replace("/recipes")
-        }
+        await actions.deleteRecipe(recipe.id)
     }
 
+    const glassColorScheme = theme === "light" ? "light" : "dark"
+
     return (
-        <Link href={`/recipes/${recipe.id}`} key={recipe.id} style={{ marginBottom: 16 }}>
+        <Link href={`/recipes/${recipe.id}`} key={recipe.id} style={styles.link}>
             <Link.Trigger>
                 <View style={styles.recipeCard}>
                     <View style={styles.imageWrapper}>
@@ -43,8 +44,8 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                                 source={recipe.banner}
                                 style={styles.recipeImage}
                                 placeholder={recipe.banner.replace("large-", "small-")}
-                                placeholderContentFit={"cover"}
-                                contentFit={"cover"}
+                                placeholderContentFit="cover"
+                                contentFit="cover"
                                 transition={250}
                             />
                         ) : (
@@ -58,75 +59,132 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                             />
                         )}
 
-                        <View style={styles.overlay}>
-                            <GlassOrBlurView
-                                backgroundColor={vars.secondaryBackgroundColor}
-                                blurBorderWidth={0}
+                        <View pointerEvents="box-none" style={styles.overlay}>
+                            <GlassView
+                                colorScheme={glassColorScheme}
+                                glassEffectStyle="regular"
+                                isInteractive
                                 style={styles.titleGlass}
-                                forceBlur
                             >
                                 <Text
-                                    style={[styles.recipeTitle, { color: vars.textColor }]}
+                                    style={[
+                                        styles.recipeTitle,
+                                        {
+                                            color: vars.textColor,
+                                        },
+                                    ]}
                                     numberOfLines={2}
                                     ellipsizeMode="tail"
                                 >
                                     {recipe.title}
                                 </Text>
-                            </GlassOrBlurView>
+                            </GlassView>
 
                             <View style={styles.chipsRow}>
                                 {recipe.mealType && recipe.mealType !== "Any" && (
-                                    <GlassOrBlurView
-                                        backgroundColor={vars.secondaryBackgroundColor}
-                                        blurBorderWidth={0}
+                                    <GlassView
+                                        colorScheme={glassColorScheme}
+                                        glassEffectStyle="regular"
+                                        isInteractive
                                         style={styles.chipGlass}
-                                        forceBlur
                                     >
-                                        <Text style={[styles.chipText, { color: vars.textColor }]}>
+                                        <Text
+                                            style={[
+                                                styles.chipText,
+                                                {
+                                                    color: vars.textColor,
+                                                },
+                                            ]}
+                                        >
                                             {MEALS[recipe.mealType]} {recipe.mealType}
                                         </Text>
-                                    </GlassOrBlurView>
+                                    </GlassView>
                                 )}
 
                                 {recipe.country && (
-                                    <GlassOrBlurView
-                                        backgroundColor={vars.secondaryBackgroundColor}
-                                        blurBorderWidth={0}
+                                    <GlassView
+                                        colorScheme={glassColorScheme}
+                                        glassEffectStyle="regular"
+                                        isInteractive
                                         style={styles.chipGlass}
-                                        forceBlur
                                     >
-                                        <Text style={[styles.chipText, { color: vars.textColor }]}>
+                                        <Text
+                                            style={[
+                                                styles.chipText,
+                                                {
+                                                    color: vars.textColor,
+                                                },
+                                            ]}
+                                        >
                                             {recipe.country}
                                         </Text>
-                                    </GlassOrBlurView>
+                                    </GlassView>
                                 )}
 
                                 {Number(recipe.time) > 0 && (
-                                    <GlassOrBlurView
-                                        backgroundColor={vars.secondaryBackgroundColor}
-                                        blurBorderWidth={0}
+                                    <GlassView
+                                        colorScheme={glassColorScheme}
+                                        glassEffectStyle="regular"
+                                        isInteractive
                                         style={styles.chipGlass}
-                                        forceBlur
                                     >
-                                        <Text style={[styles.chipText, { color: vars.textColor }]}>
+                                        <Text
+                                            style={[
+                                                styles.chipText,
+                                                {
+                                                    color: vars.textColor,
+                                                },
+                                            ]}
+                                        >
                                             ⏱ {recipe.time} min
                                         </Text>
-                                    </GlassOrBlurView>
+                                    </GlassView>
                                 )}
 
                                 {Number(recipe.persons) > 0 && (
-                                    <GlassOrBlurView
-                                        backgroundColor={vars.secondaryBackgroundColor}
-                                        blurBorderWidth={0}
+                                    <GlassView
+                                        colorScheme={glassColorScheme}
+                                        glassEffectStyle="regular"
+                                        isInteractive
                                         style={styles.chipGlass}
-                                        forceBlur
                                     >
-                                        <Text style={[styles.chipText, { color: vars.textColor }]}>
+                                        <Text
+                                            style={[
+                                                styles.chipText,
+                                                {
+                                                    color: vars.textColor,
+                                                },
+                                            ]}
+                                        >
                                             👥 {recipe.persons} Persons
                                         </Text>
-                                    </GlassOrBlurView>
+                                    </GlassView>
                                 )}
                             </View>
+                        </View>
+
+                        <View pointerEvents="box-none" style={styles.savedIndicators}>
+                            {recipe.isSaved && (
+                                <GlassView
+                                    isInteractive
+                                    colorScheme={glassColorScheme}
+                                    glassEffectStyle="regular"
+                                    style={styles.savedGlass}
+                                >
+                                    <Globe size={18} strokeWidth={2.2} color={vars.textColor} />
+                                </GlassView>
+                            )}
+
+                            {!recipe.public && (
+                                <GlassView
+                                    isInteractive
+                                    colorScheme={glassColorScheme}
+                                    glassEffectStyle="regular"
+                                    style={styles.savedGlass}
+                                >
+                                    <EyeOff size={18} strokeWidth={2.2} color={vars.textColor} />
+                                </GlassView>
+                            )}
                         </View>
                     </View>
                 </View>
@@ -135,41 +193,73 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
             <Link.Menu>
                 <Link.MenuAction
                     title={isFavorite ? "Unfavorite" : "Favorite"}
-                    icon="star"
+                    icon={isFavorite ? "star.slash" : "star"}
                     onPress={async () => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+
                         toggleFavorite(recipe)
                     }}
                 />
 
-                {canEdit ? (
+                {recipe.isSaved && (
+                    <Link.MenuAction
+                        title="Saved from online recipes"
+                        icon="globe"
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                        }}
+                    />
+                )}
+
+                {!recipe.public && (
+                    <Link.MenuAction
+                        title="Private recipe"
+                        icon="eye.slash"
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                        }}
+                    />
+                )}
+
+                {canEdit && (
                     <Link.MenuAction
                         title="Delete"
                         destructive
                         icon="trash"
                         onPress={async () => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+
                             await deleteRecipe()
                         }}
                     />
-                ) : (
-                    <></>
                 )}
             </Link.Menu>
 
-            <Link.Preview style={{ width: 300, height: 220 }}>
-                <View style={styles.recipeCard}>
+            <Link.Preview
+                style={{
+                    width: 300,
+                    height: 220,
+                }}
+            >
+                <View style={styles.previewCard}>
                     {recipe.banner ? (
                         <Image
                             source={recipe.banner}
-                            style={styles.recipeImage}
+                            style={styles.previewImage}
                             placeholder={recipe.banner.replace("large-", "small-")}
-                            placeholderContentFit={"contain"}
-                            contentFit={"contain"}
+                            placeholderContentFit="cover"
+                            contentFit="cover"
                             transition={250}
                         />
                     ) : (
-                        <View style={[styles.recipeImage, { backgroundColor: vars.secondaryBackgroundColor }]} />
+                        <View
+                            style={[
+                                styles.previewImage,
+                                {
+                                    backgroundColor: vars.secondaryBackgroundColor,
+                                },
+                            ]}
+                        />
                     )}
                 </View>
             </Link.Preview>
@@ -178,65 +268,87 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
 }
 
 const styles = StyleSheet.create({
+    link: {
+        marginBottom: 16,
+    },
     recipeCard: {
         width: "100%",
-        borderRadius: 28,
+        borderRadius: BORDER_RADIUS_L,
         overflow: "hidden",
-        elevation: 4,
         backgroundColor: "transparent",
     },
     imageWrapper: {
         position: "relative",
+        overflow: "hidden",
+        borderRadius: BORDER_RADIUS_L,
     },
     recipeImage: {
         width: "100%",
-        height: 170,
+        height: 190,
     },
     overlay: {
         position: "absolute",
-        bottom: 0,
         left: 0,
         right: 0,
+        bottom: 0,
         padding: 14,
         gap: 8,
     },
+    titleGlass: {
+        alignSelf: "flex-start",
+        maxWidth: "90%",
+        paddingHorizontal: 13,
+        paddingVertical: 8,
+        borderRadius: BORDER_RADIUS_L,
+    },
     recipeTitle: {
-        fontSize: 16,
-        fontWeight: "800",
-        letterSpacing: 0.2,
+        fontSize: 17,
+        lineHeight: 21,
+        fontWeight: "700",
+        letterSpacing: -0.2,
     },
     chipsRow: {
         flexDirection: "row",
         flexWrap: "wrap",
-        gap: 6,
+        gap: 7,
         alignItems: "center",
     },
     chipGlass: {
         alignSelf: "flex-start",
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 999,
+        paddingHorizontal: 11,
+        paddingVertical: 7,
+        borderRadius: BORDER_RADIUS_FULL,
     },
     chipText: {
         fontSize: 12,
+        lineHeight: 16,
         fontWeight: "600",
-        letterSpacing: 0.2,
+        letterSpacing: 0.1,
     },
-    titleGlass: {
-        alignSelf: "flex-start",
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 999,
-        marginBottom: 6,
-    },
-    left: {
-        flex: 1,
-        paddingRight: 8,
-    },
-    right: {
+    savedIndicators: {
+        position: "absolute",
+        top: 12,
+        right: 12,
         flexDirection: "row",
+        alignItems: "center",
         gap: 6,
-        flexWrap: "wrap",
-        justifyContent: "flex-end",
+    },
+    savedGlass: {
+        width: 40,
+        height: 40,
+        borderRadius: BORDER_RADIUS_FULL,
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+    },
+    previewCard: {
+        width: "100%",
+        height: "100%",
+        borderRadius: BORDER_RADIUS_L,
+        overflow: "hidden",
+    },
+    previewImage: {
+        width: "100%",
+        height: "100%",
     },
 })

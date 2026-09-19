@@ -8,11 +8,11 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
+import { GlassView } from "expo-glass-effect"
+import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import { PressableScale } from "pressto"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     value: string
@@ -31,7 +31,11 @@ export function SearchBar({ value, updateQuery }: Props) {
     }
 
     const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }],
+        transform: [
+            {
+                scale: scale.value,
+            },
+        ],
     }))
 
     return (
@@ -45,18 +49,20 @@ export function SearchBar({ value, updateQuery }: Props) {
                     zIndex: 10,
                 },
                 animatedStyle,
-                SHADOW_STYLE,
             ]}
         >
-            <GlassOrBlurView
-                backgroundColor={vars.secondaryBackgroundColor}
-                borderColor={`${vars.secondaryBorderColor}50`}
+            <GlassView
+                glassEffectStyle="regular"
+                isInteractive
+                colorScheme={theme === "light" ? "light" : "dark"}
+                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     flexDirection: "row",
                     alignItems: "center",
                     paddingHorizontal: 16,
                     height: 48,
-                    borderRadius: 26,
+                    borderRadius: BORDER_RADIUS_L,
+                    overflow: "hidden",
                 }}
             >
                 <Search size={20} color={vars.textColor} />
@@ -91,7 +97,7 @@ export function SearchBar({ value, updateQuery }: Props) {
                         </PressableScale>
                     </Animated.View>
                 )}
-            </GlassOrBlurView>
+            </GlassView>
         </AnimatedView>
     )
 }

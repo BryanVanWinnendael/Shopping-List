@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native"
+import { NativeScrollEvent, NativeSyntheticEvent, StyleSheet, View } from "react-native"
 import List from "@/components/products-list/list"
 import { useUpdateProduct } from "@/hooks/products-list/useUpdateProduct"
 import { useUpdateProductModal } from "@/hooks/products-list/useUpdateProductModal"
@@ -8,6 +8,8 @@ import { Modal } from "@/components/inputs/update/modal"
 import ProductInput from "@/components/inputs/productInput"
 import useThemes from "@/hooks/themes/useThemes"
 import { useNetworkMonitor } from "@/hooks/useNetworkMonitor"
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
+import { useRef } from "react"
 
 export default function Index() {
     useNetworkMonitor()
@@ -16,6 +18,47 @@ export default function Index() {
     const { actions: editItemActions, states: editItemStates } = useUpdateProduct()
     const { actions: editModalActions, states: editModalStates } = useUpdateProductModal()
     const { actions: productsSearchActions, states: productsSearchStates } = useProductsSearchList()
+
+    const isInputFocused = useRef(false)
+    const inputScale = useSharedValue(1)
+    const iosAnimation = {
+        duration: 280,
+        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+    }
+    const previousScrollY = useRef(0)
+
+    const handleInputBlur = () => {
+        isInputFocused.current = false
+    }
+
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const currentScrollY = event.nativeEvent.contentOffset.y
+        const scrollDelta = currentScrollY - previousScrollY.current
+
+        previousScrollY.current = Math.max(0, currentScrollY)
+
+        // Keep the input full-size while typing.
+        if (isInputFocused.current) return
+
+        if (scrollDelta > 3) {
+            inputScale.value = withTiming(0.82, iosAnimation)
+        } else if (scrollDelta < -3) {
+            inputScale.value = withTiming(1, iosAnimation)
+        }
+    }
+
+    const handleInputFocus = () => {
+        isInputFocused.current = true
+        inputScale.value = withTiming(1, iosAnimation)
+    }
+
+    const restoreInputSize = () => {
+        inputScale.value = withTiming(1, iosAnimation)
+    }
+
+    const inputAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: inputScale.value }],
+    }))
 
     const closeUpdateModal = () => {
         editItemActions.reset()
@@ -36,10 +79,15 @@ export default function Index() {
                     openSearchProductsBottomSheet={productsSearchActions.open}
                     setQuery={productsSearchActions.setQuery}
                     searchProduct={productsSearchActions.searchProduct}
+                    onScroll={handleScroll}
                 />
+
                 <View pointerEvents="box-none" style={styles.inputOverlay}>
-                    <ProductInput />
+                    <Animated.View style={[styles.animatedInput, inputAnimatedStyle]}>
+                        <ProductInput onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    </Animated.View>
                 </View>
+
                 <BottomSheet onClose={productsSearchActions.close} sheetRef={productsSearchStates.bottomSheetRef} />
             </View>
 
@@ -68,5 +116,8 @@ const styles = StyleSheet.create({
         width: "100%",
         backgroundColor: "transparent",
         justifyContent: "flex-end",
+    },
+    animatedInput: {
+        transformOrigin: "bottom",
     },
 })

@@ -1,80 +1,116 @@
-import { RefObject, useMemo } from "react"
+import { RefObject } from "react"
 import { StyleSheet, Text, View } from "react-native"
-import GorhomBottomSheet from "@gorhom/bottom-sheet"
-import { useSettingsStore } from "@/stores/useSettingsStore"
-import { Theme } from "@/types"
+import ExpoBottomSheet from "@expo/ui/community/bottom-sheet"
 import { Check } from "lucide-react-native"
 import { PressableScale } from "pressto"
-import CustomBottomSheet from "@/components/customBottomSheet"
+
+import { useSettingsStore } from "@/stores/useSettingsStore"
+import { Theme } from "@/types"
 import { THEMES } from "@/lib/constants"
 import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     close: () => void
-    sheetRef: RefObject<GorhomBottomSheet | null>
+    sheetRef: RefObject<ExpoBottomSheet | null>
 }
 
 export default function BottomSheet({ close, sheetRef }: Props) {
     const { vars } = useThemes()
     const { theme, setTheme } = useSettingsStore()
-    const snapPoints = useMemo(() => ["20%"], [])
 
     const selectTheme = (newTheme: Theme) => {
         setTheme(newTheme)
     }
 
     return (
-        <CustomBottomSheet sheetRef={sheetRef} snapPoints={snapPoints} onClose={close} backgroundMode={"half"}>
-            <Text style={[styles.sheetTitle, { color: theme === "light" ? "gray" : "#50555C" }]}>Select Theme</Text>
+        <ExpoBottomSheet ref={sheetRef} index={-1} enableDynamicSizing enablePanDownToClose onClose={close}>
+            <View style={styles.container}>
+                <Text
+                    style={[
+                        styles.sheetTitle,
+                        {
+                            color: theme === "light" ? "#6b7280" : "#9ca3af",
+                        },
+                    ]}
+                >
+                    Select Theme
+                </Text>
 
-            {THEMES.map((item) => {
-                const isSelected = theme === item.key
-                return (
-                    <PressableScale
-                        key={item.key}
-                        onPress={() => selectTheme(item.key)}
-                        style={styles.themeOptionContainer}
-                    >
-                        <Text
-                            style={{
-                                color: vars.textColor,
-                                fontSize: 16,
-                            }}
-                        >
-                            {item.label}
-                        </Text>
+                <View style={styles.options}>
+                    {THEMES.map((item) => {
+                        const isSelected = theme === item.key
 
-                        <View
-                            style={{
-                                width: 20,
-                                height: 20,
-                                borderRadius: 999,
-                                borderWidth: 2,
-                                borderColor: isSelected ? vars.accentColor : "gray",
-                                backgroundColor: isSelected ? vars.accentColor : "transparent",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            {isSelected && <Check size={14} color="white" strokeWidth={3} />}
-                        </View>
-                    </PressableScale>
-                )
-            })}
-        </CustomBottomSheet>
+                        return (
+                            <PressableScale
+                                key={item.key}
+                                onPress={() => selectTheme(item.key)}
+                                style={styles.themeOptionContainer}
+                            >
+                                <Text
+                                    style={[
+                                        styles.themeText,
+                                        {
+                                            color: vars.textColor,
+                                        },
+                                    ]}
+                                >
+                                    {item.label}
+                                </Text>
+
+                                <View
+                                    style={[
+                                        styles.checkCircle,
+                                        {
+                                            borderColor: isSelected
+                                                ? vars.accentColor
+                                                : theme === "light"
+                                                  ? "#9ca3af"
+                                                  : "#50555C",
+                                            backgroundColor: isSelected ? vars.accentColor : "transparent",
+                                        },
+                                    ]}
+                                >
+                                    {isSelected && <Check size={14} color="#fff" strokeWidth={3} />}
+                                </View>
+                            </PressableScale>
+                        )
+                    })}
+                </View>
+            </View>
+        </ExpoBottomSheet>
     )
 }
 
 const styles = StyleSheet.create({
+    container: {
+        paddingHorizontal: 20,
+        paddingTop: 12,
+    },
     sheetTitle: {
         fontSize: 18,
         fontWeight: "700",
-        marginBottom: 12,
+        marginBottom: 8,
+    },
+    options: {
+        width: "100%",
     },
     themeOptionContainer: {
+        minHeight: 48,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 12,
+        paddingVertical: 8,
+    },
+    themeText: {
+        fontSize: 16,
+    },
+    checkCircle: {
+        width: 20,
+        height: 20,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 2,
+        alignItems: "center",
+        justifyContent: "center",
     },
 })

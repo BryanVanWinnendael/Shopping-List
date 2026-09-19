@@ -1,18 +1,20 @@
 import { Star, StarOff } from "lucide-react-native"
 import { PressableScale } from "pressto"
+import { GlassView } from "expo-glass-effect"
+
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { Recipe } from "@/types/generated/models/recipe"
-import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
+import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
     recipe: Recipe
 }
 
 export default function FavoriteButton({ recipe }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
     const { setFavoriteRecipes, favoriteRecipes } = useRecipesStore()
+
     const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
 
     const handleAddToFavorites = async () => {
@@ -26,31 +28,29 @@ export default function FavoriteButton({ recipe }: Props) {
     return (
         <PressableScale
             onPress={handleAddToFavorites}
-            style={[
-                {
+            style={{
+                justifyContent: "center",
+                alignItems: "center",
+                width: 48,
+                height: 48,
+            }}
+        >
+            <GlassView
+                glassEffectStyle="regular"
+                isInteractive
+                colorScheme={theme === "light" ? "light" : "dark"}
+                tintColor={vars.secondaryBackgroundColor}
+                style={{
+                    borderRadius: BORDER_RADIUS_FULL,
+                    overflow: "hidden",
                     justifyContent: "center",
                     alignItems: "center",
                     width: 48,
                     height: 48,
-                },
-                SHADOW_STYLE_LIGHT,
-            ]}
-        >
-            <GlassOrBlurView
-                borderColor={`${vars.secondaryBorderColor}50`}
-                style={[
-                    {
-                        borderRadius: 50,
-                        overflow: "hidden",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        width: 48,
-                        height: 48,
-                    },
-                ]}
+                }}
             >
                 {isFavorite ? <StarOff size={20} color={vars.textColor} /> : <Star size={20} color={vars.textColor} />}
-            </GlassOrBlurView>
+            </GlassView>
         </PressableScale>
     )
 }
