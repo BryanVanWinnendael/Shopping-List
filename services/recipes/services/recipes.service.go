@@ -171,10 +171,8 @@ func filterRecipes(recipes []models.RecipeSummary, filter models.RecipeFilter) [
 			}
 		}
 
-		if filter.Public != nil {
-			if recipe.Public == nil || *recipe.Public != *filter.Public {
-				continue
-			}
+		if filter.Public != nil && !*filter.Public && recipe.Public != nil && *recipe.Public {
+			continue
 		}
 
 		if filter.Time != nil {
@@ -183,10 +181,10 @@ func filterRecipes(recipes []models.RecipeSummary, filter models.RecipeFilter) [
 			}
 		}
 
-		if filter.IsSaved != nil {
+		if filter.IsSaved != nil && *filter.IsSaved {
 			recipeIsSaved := recipe.IsSaved != nil && *recipe.IsSaved
 
-			if recipeIsSaved != *filter.IsSaved {
+			if !recipeIsSaved {
 				continue
 			}
 		}
