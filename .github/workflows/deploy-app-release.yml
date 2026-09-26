@@ -3,6 +3,12 @@ name: Deploy App Release
 on:
   workflow_dispatch:
     inputs:
+      branch:
+        description: "Branch to deploy from"
+        required: true
+        default: "main"
+        type: string
+
       version:
         description: "App version (e.g. 2.5.0)"
         required: false
@@ -29,26 +35,33 @@ jobs:
             echo "❌ Version or buildNumber required"
             exit 1
           fi
-          
+
           if [ -n "${{ inputs.version }}" ]; then
             if ! echo "${{ inputs.version }}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
               echo "❌ Invalid version format. Expected x.y.z"
               exit 1
             fi
           fi
-          
+
           if [ -n "${{ inputs.buildNumber }}" ]; then
             if ! echo "${{ inputs.buildNumber }}" | grep -Eq '^[0-9]+$'; then
               echo "❌ Invalid build number. Expected integer"
               exit 1
             fi
           fi
-          
+
+          if ! echo "${{ inputs.branch }}" | grep -Eq '^[a-zA-Z0-9._/-]+$'; then
+            echo "❌ Invalid branch name"
+            exit 1
+          fi
+
           echo "✅ Inputs valid"
+          echo "Branch: ${{ inputs.branch }}"
 
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.branch }}
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -80,13 +93,13 @@ jobs:
           EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
         run: |
           npx eas --version
-          
+
           if [ -n "${{ inputs.version }}" ] && [ -n "${{ inputs.buildNumber }}" ]; then
             yarn build --v=${{ inputs.version }} --build=${{ inputs.buildNumber }}
-          
+
           elif [ -n "${{ inputs.version }}" ]; then
             yarn build --v=${{ inputs.version }}
-          
+
           else
             yarn build --build=${{ inputs.buildNumber }}
           fi
@@ -113,8 +126,8 @@ jobs:
 
           git commit -m "$COMMIT_MSG" || echo "No changes to commit"
 
-          git pull --rebase origin main
-          git push origin main
+          git pull --rebase origin "${{ inputs.branch }}"
+          git push origin "HEAD:${{ inputs.branch }}"
 
       - name: Cleanup
         if: always()
