@@ -11,7 +11,7 @@ type Props = {
 }
 
 export default function BottomSheetButton({ onPress }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
 
     return (
         <View
@@ -27,6 +27,7 @@ export default function BottomSheetButton({ onPress }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive
+                colorScheme={theme === "light" ? "light" : "dark"}
                 style={{
                     height: 48,
                     width: 48,

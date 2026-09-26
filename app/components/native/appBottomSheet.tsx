@@ -1,13 +1,8 @@
-import React, { ElementRef, forwardRef, useImperativeHandle, useMemo, useState } from "react"
-import { View } from "react-native"
-
+import React, { forwardRef, useImperativeHandle, useMemo, useState } from "react"
+import { StyleSheet, View } from "react-native"
 import CommunityBottomSheet from "@expo/ui/community/bottom-sheet"
-
-import { BottomSheet as SwiftBottomSheet, Group, Host } from "@expo/ui/swift-ui"
-
+import { BottomSheet, Button, Host, RNHostView } from "@expo/ui/swift-ui"
 import { presentationBackground, presentationDetents, presentationDragIndicator } from "@expo/ui/swift-ui/modifiers"
-
-export type BottomSheetRef = ElementRef<typeof CommunityBottomSheet>
 
 export type AppBottomSheetMethods = {
     close: () => void
@@ -40,75 +35,16 @@ type Props = {
      *   Uses the normal native sheet background.
      *
      * "adaptive"
-     *   Collapsed = native Liquid Glass / system material
+     *   Collapsed = native system material
      *   Expanded = backgroundColor
      */
     backgroundMode?: BottomSheetBackgroundMode
 
     /**
      * Background used by the expanded detent.
-     *
-     * Pass vars.backgroundColor from your theme.
      */
     backgroundColor?: string
 }
-
-const AppBottomSheet = forwardRef<AppBottomSheetMethods, Props>(
-    (
-        {
-            children,
-            index = -1,
-            snapPoints = ["50%"],
-            enablePanDownToClose = false,
-            enableDynamicSizing = true,
-            onClose,
-            backgroundMode = "default",
-            backgroundColor,
-        },
-        ref
-    ) => {
-        /*
-         * DEV
-         *
-         * Keep using the community implementation in Expo Go.
-         */
-        if (__DEV__) {
-            return (
-                <CommunityBottomSheet
-                    ref={ref as any}
-                    index={index}
-                    snapPoints={snapPoints}
-                    enablePanDownToClose={enablePanDownToClose}
-                    enableDynamicSizing={enableDynamicSizing}
-                    onClose={onClose}
-                >
-                    {children}
-                </CommunityBottomSheet>
-            )
-        }
-
-        /*
-         * BUILD / PRODUCTION
-         *
-         * Use the native SwiftUI implementation.
-         */
-        return (
-            <ProductionBottomSheet
-                ref={ref}
-                index={index}
-                snapPoints={snapPoints}
-                enablePanDownToClose={enablePanDownToClose}
-                onClose={onClose}
-                backgroundMode={backgroundMode}
-                backgroundColor={backgroundColor}
-            >
-                {children}
-            </ProductionBottomSheet>
-        )
-    }
-)
-
-AppBottomSheet.displayName = "AppBottomSheet"
 
 type ProductionProps = {
     children: React.ReactNode
@@ -117,34 +53,38 @@ type ProductionProps = {
 
     snapPoints: (string | number)[]
 
-    enablePanDownToClose: boolean
+    enablePanDownToClose?: boolean
 
     onClose?: () => void
 
-    backgroundMode: BottomSheetBackgroundMode
+    backgroundMode?: BottomSheetBackgroundMode
 
     backgroundColor?: string
 }
 
+/**
+ * Production/native implementation using Expo UI SwiftUI BottomSheet.
+ */
 const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>(
-    ({ children, index, snapPoints, onClose, backgroundMode, backgroundColor }, ref) => {
+    (
+        {
+            children,
+            index,
+            snapPoints,
+            enablePanDownToClose = false,
+            onClose,
+            backgroundMode = "default",
+            backgroundColor,
+        },
+        ref
+    ) => {
         const [isPresented, setIsPresented] = useState(index >= 0)
 
-        /*
-         * We represent the selected detent by its index.
-         *
-         * Example:
-         *
-         * ["55%", "85%"]
-         *
-         * 0 = 55%
-         * 1 = 85%
-         */
         const [currentIndex, setCurrentIndex] = useState(Math.max(index, 0))
 
-        /*
-         * Convert React Native/Gorhom-style snap points
-         * into SwiftUI presentation detents.
+        /**
+         * Convert the React Native/RNGH-style snap points into
+         * SwiftUI presentation detents.
          */
         const detents = useMemo(() => {
             return snapPoints.map((point) => {
@@ -162,9 +102,6 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                     } as const
                 }
 
-                /*
-                 * Fallback for values such as "medium"/"large".
-                 */
                 if (point === "large") {
                     return "large" as const
                 }
@@ -173,26 +110,13 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
             })
         }, [snapPoints])
 
-        /*
-         * SwiftUI requires the actual PresentationDetent
-         * as the selection value.
-         *
-         * We use the same object from the detents array.
-         */
-        const selectedDetent = detents[Math.min(currentIndex, Math.max(detents.length - 1, 0))]
+        const safeCurrentIndex = Math.min(Math.max(currentIndex, 0), Math.max(detents.length - 1, 0))
 
-        /*
-         * Adaptive background:
-         *
-         * collapsed:
-         *   no presentationBackground modifier
-         *
-         *   -> iOS keeps the native sheet material / glass
-         *
-         * expanded:
-         *   presentationBackground(backgroundColor)
-         *
-         *   -> the entire native sheet becomes your app color
+        const selectedDetent = detents[safeCurrentIndex]
+
+        /**
+         * Expo UI modifiers applied directly to the native
+         * BottomSheet.
          */
         const modifiers = useMemo(() => {
             const result = [
@@ -220,32 +144,17 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                 presentationDragIndicator("visible"),
             ]
 
-            /*
-             * Default mode:
-             *
-             * Do not override the native sheet background.
-             */
-            if (backgroundMode === "default") {
-                return result
-            }
-
-            /*
-             * Adaptive mode:
-             *
-             * Only the LAST detent receives the app background.
-             *
-             * At the smaller detent we deliberately do NOT add
-             * presentationBackground(), allowing iOS to render
-             * its native translucent sheet surface.
-             */
-            const isExpanded = currentIndex >= detents.length - 1
-
-            if (isExpanded && backgroundColor) {
+            if (
+                backgroundMode === "adaptive" &&
+                backgroundColor &&
+                detents.length > 0 &&
+                safeCurrentIndex === detents.length - 1
+            ) {
                 result.push(presentationBackground(backgroundColor))
             }
 
             return result
-        }, [backgroundMode, backgroundColor, currentIndex, detents, selectedDetent])
+        }, [backgroundMode, backgroundColor, detents, safeCurrentIndex, selectedDetent])
 
         useImperativeHandle(
             ref,
@@ -254,19 +163,8 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                     setIsPresented(false)
                 },
 
-                collapse: () => {
-                    setCurrentIndex(0)
-                    setIsPresented(true)
-                },
-
                 dismiss: () => {
                     setIsPresented(false)
-                },
-
-                expand: () => {
-                    setCurrentIndex(Math.max(detents.length - 1, 0))
-
-                    setIsPresented(true)
                 },
 
                 forceClose: () => {
@@ -277,40 +175,52 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                     setIsPresented(true)
                 },
 
+                collapse: () => {
+                    if (detents.length === 0) {
+                        return
+                    }
+
+                    setCurrentIndex(0)
+                    setIsPresented(true)
+                },
+
+                expand: () => {
+                    if (detents.length === 0) {
+                        return
+                    }
+
+                    setCurrentIndex(detents.length - 1)
+                    setIsPresented(true)
+                },
+
                 snapToIndex: (nextIndex: number) => {
                     if (nextIndex < 0) {
                         setIsPresented(false)
                         return
                     }
 
-                    const safeIndex = Math.min(nextIndex, Math.max(detents.length - 1, 0))
+                    if (detents.length === 0) {
+                        return
+                    }
+
+                    const safeIndex = Math.min(nextIndex, detents.length - 1)
 
                     setCurrentIndex(safeIndex)
                     setIsPresented(true)
                 },
 
                 snapToPosition: (position) => {
-                    let nextIndex = currentIndex
+                    const nextIndex = snapPoints.findIndex((point) => point === position)
 
-                    if (typeof position === "number") {
-                        const indexForHeight = snapPoints.findIndex((point) => point === position)
-
-                        if (indexForHeight >= 0) {
-                            nextIndex = indexForHeight
-                        }
-                    } else {
-                        const indexForString = snapPoints.findIndex((point) => point === position)
-
-                        if (indexForString >= 0) {
-                            nextIndex = indexForString
-                        }
+                    if (nextIndex < 0) {
+                        return
                     }
 
                     setCurrentIndex(nextIndex)
                     setIsPresented(true)
                 },
             }),
-            [currentIndex, detents.length, snapPoints]
+            [detents.length, snapPoints]
         )
 
         const handlePresentedChange = (presented: boolean) => {
@@ -322,30 +232,90 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
         }
 
         return (
-            <Host
-                style={{
-                    position: "absolute",
-                    width: 0,
-                    height: 0,
-                }}
-            >
-                <SwiftBottomSheet isPresented={isPresented} onIsPresentedChange={handlePresentedChange}>
-                    <Group modifiers={modifiers}>
-                        <View
-                            style={{
-                                flex: 1,
-                                backgroundColor: "transparent",
-                            }}
-                        >
-                            {children}
-                        </View>
-                    </Group>
-                </SwiftBottomSheet>
+            <Host style={styles.host}>
+                <BottomSheet
+                    isPresented={isPresented}
+                    onIsPresentedChange={handlePresentedChange}
+                    anchor={<Button label="" onPress={() => {}} />}
+                    modifiers={modifiers}
+                >
+                    <RNHostView>
+                        <View style={styles.content}>{children}</View>
+                    </RNHostView>
+                </BottomSheet>
             </Host>
         )
     }
 )
 
 ProductionBottomSheet.displayName = "ProductionBottomSheet"
+
+/**
+ * Public AppBottomSheet.
+ *
+ * DEV:
+ *   Uses Expo community implementation so it works in Expo Go.
+ *
+ * Production:
+ *   Uses the native SwiftUI BottomSheet.
+ */
+const AppBottomSheet = forwardRef<AppBottomSheetMethods, Props>(
+    (
+        {
+            children,
+            index = -1,
+            snapPoints = ["50%"],
+            enablePanDownToClose = false,
+            enableDynamicSizing = true,
+            onClose,
+            backgroundMode = "default",
+            backgroundColor,
+        },
+        ref
+    ) => {
+        if (__DEV__) {
+            return (
+                <CommunityBottomSheet
+                    ref={ref as any}
+                    index={index}
+                    snapPoints={snapPoints}
+                    enablePanDownToClose={enablePanDownToClose}
+                    enableDynamicSizing={enableDynamicSizing}
+                    onClose={onClose}
+                >
+                    {children}
+                </CommunityBottomSheet>
+            )
+        }
+
+        return (
+            <ProductionBottomSheet
+                ref={ref}
+                index={index}
+                snapPoints={snapPoints}
+                enablePanDownToClose={enablePanDownToClose}
+                onClose={onClose}
+                backgroundMode={backgroundMode}
+                backgroundColor={backgroundColor}
+            >
+                {children}
+            </ProductionBottomSheet>
+        )
+    }
+)
+
+AppBottomSheet.displayName = "AppBottomSheet"
+
+const styles = StyleSheet.create({
+    host: {
+        position: "absolute",
+        width: 0,
+        height: 0,
+    },
+    content: {
+        flex: 1,
+        backgroundColor: "transparent",
+    },
+})
 
 export default AppBottomSheet
