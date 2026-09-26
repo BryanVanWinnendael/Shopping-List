@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useState } from "react"
 import { StyleSheet, View } from "react-native"
 import CommunityBottomSheet from "@expo/ui/community/bottom-sheet"
-import { BottomSheet, Group, Host, RNHostView } from "@expo/ui/swift-ui"
+import { BottomSheet, Button, Group, Host, RNHostView } from "@expo/ui/swift-ui"
 import { presentationBackground, presentationDetents, presentationDragIndicator } from "@expo/ui/swift-ui/modifiers"
 
 export type AppBottomSheetMethods = {
@@ -233,7 +233,11 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
 
         return (
             <Host style={styles.host}>
-                <BottomSheet isPresented={isPresented} onIsPresentedChange={handlePresentedChange}>
+                <BottomSheet
+                    isPresented={isPresented}
+                    onIsPresentedChange={handlePresentedChange}
+                    anchor={<Button label="" onPress={() => {}} />}
+                >
                     <Group modifiers={modifiers}>
                         <RNHostView>
                             <View style={styles.content}>{children}</View>
@@ -296,14 +300,13 @@ AppBottomSheet.displayName = "AppBottomSheet"
 
 const styles = StyleSheet.create({
     host: {
-        flex: 1,
-        width: "100%",
-        height: "100%",
+        position: "absolute",
+        width: 0,
+        height: 0,
     },
-
     content: {
+        flex: 1,
         backgroundColor: "transparent",
-        width: "100%",
     },
 })
 
