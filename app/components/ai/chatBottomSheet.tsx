@@ -7,6 +7,7 @@ import { useAiContextStore } from "@/stores/useAiContextStore"
 import ChatView from "@/components/ai/chatView"
 import { AIProvider } from "@/types/ai"
 import { AI_MODEL_ID, downloadLocalModel, isLocalModelDownloaded } from "@/lib/ai/settings"
+import { logsClient } from "@/lib/logs"
 
 type Props = {
     pathname: string
@@ -102,10 +103,14 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
                 setDownloadProgress(progress)
             })
 
+            logsClient.createLog("done downloading model", "GET", true)
+
             setModelDownloaded(true)
 
             await setProvider("downloaded")
         } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            logsClient.createLog(message, "GET", true)
             console.error("Failed to download/load AI model:", error)
         } finally {
             setDownloadingModel(false)

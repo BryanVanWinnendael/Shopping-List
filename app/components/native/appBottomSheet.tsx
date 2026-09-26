@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useState } from "react"
 import { StyleSheet, View } from "react-native"
 import CommunityBottomSheet from "@expo/ui/community/bottom-sheet"
-import { BottomSheet, Button, Group, Host, RNHostView } from "@expo/ui/swift-ui"
+import { BottomSheet, Group, Host, RNHostView } from "@expo/ui/swift-ui"
 import { presentationBackground, presentationDetents, presentationDragIndicator } from "@expo/ui/swift-ui/modifiers"
 
 export type AppBottomSheetMethods = {
@@ -56,43 +56,63 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
         const [currentIndex, setCurrentIndex] = useState(Math.max(index, 0))
 
         /**
-         * Convert your existing React Native style snap points
-         * into Expo UI presentation detents.
+         * Convert React Native/Gorhom-style snap points
+         * into SwiftUI presentation detents.
          */
         const detents = useMemo(() => {
-            return snapPoints.map((point) => {
-                if (typeof point === "number") {
-                    return { height: point } as const
-                }
+            return snapPoints
+                .map((point) => {
+                    if (typeof point === "number") {
+                        return {
+                            height: point,
+                        } as const
+                    }
 
-                if (point.endsWith("%")) {
-                    const percentage = Number(point.replace("%", ""))
+                    if (point.endsWith("%")) {
+                        const percentage = Number(point.replace("%", ""))
 
-                    return {
-                        fraction: percentage / 100,
-                    } as const
-                }
+                        if (Number.isFinite(percentage) && percentage > 0) {
+                            return {
+                                fraction: percentage / 100,
+                            } as const
+                        }
 
-                if (point === "medium") {
-                    return "medium" as const
-                }
+                        return null
+                    }
 
-                if (point === "large") {
-                    return "large" as const
-                }
+                    if (point === "medium") {
+                        return "medium" as const
+                    }
 
-                return "medium" as const
-            })
+                    if (point === "large") {
+                        return "large" as const
+                    }
+
+                    return null
+                })
+                .filter(
+                    (point): point is { height: number } | { fraction: number } | "medium" | "large" => point !== null
+                )
         }, [snapPoints])
 
-        const safeCurrentIndex = Math.min(Math.max(currentIndex, 0), Math.max(detents.length - 1, 0))
+        const safeCurrentIndex = detents.length === 0 ? 0 : Math.min(Math.max(currentIndex, 0), detents.length - 1)
 
         const selectedDetent = detents[safeCurrentIndex]
 
+        /**
+         * Whether the current detent is the collapsed/lowest one.
+         *
+         * We deliberately DON'T apply presentationBackground
+         * to the collapsed state so iOS can use its native
+         * Liquid Glass sheet appearance.
+         */
+        const isCollapsed = safeCurrentIndex === 0
+
         const modifiers = useMemo(() => {
-            const result = [
+            const result: any[] = [
                 presentationDetents(detents as any, {
                     selection: selectedDetent as any,
+
                     onSelectionChange: (detent: any) => {
                         const nextIndex = detents.findIndex((item) => {
                             if (typeof item === "object" && typeof detent === "object") {
@@ -117,12 +137,23 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                 presentationDragIndicator("visible"),
             ]
 
-            if (backgroundMode === "adaptive" && backgroundColor) {
+            /**
+             * IMPORTANT:
+             *
+             * presentationBackground opts the sheet out of
+             * the native translucent/Liquid Glass material.
+             *
+             * Therefore:
+             * - default -> native Liquid Glass
+             * - adaptive + collapsed -> native Liquid Glass
+             * - adaptive + expanded -> your app background
+             */
+            if (backgroundMode === "adaptive" && backgroundColor && !isCollapsed) {
                 result.push(presentationBackground(backgroundColor))
             }
 
             return result
-        }, [backgroundMode, backgroundColor, detents, selectedDetent])
+        }, [backgroundMode, backgroundColor, detents, selectedDetent, isCollapsed])
 
         useImperativeHandle(
             ref,
@@ -144,16 +175,21 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                 },
 
                 collapse: () => {
-                    if (detents.length === 0) return
+                    if (detents.length === 0) {
+                        return
+                    }
 
                     setCurrentIndex(0)
                     setIsPresented(true)
                 },
 
                 expand: () => {
-                    if (detents.length === 0) return
+                    if (detents.length === 0) {
+                        return
+                    }
 
                     setCurrentIndex(detents.length - 1)
+
                     setIsPresented(true)
                 },
 
@@ -163,7 +199,9 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                         return
                     }
 
-                    if (detents.length === 0) return
+                    if (detents.length === 0) {
+                        return
+                    }
 
                     const safeIndex = Math.min(nextIndex, detents.length - 1)
 
@@ -174,7 +212,9 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                 snapToPosition: (position) => {
                     const nextIndex = snapPoints.findIndex((point) => point === position)
 
-                    if (nextIndex < 0) return
+                    if (nextIndex < 0) {
+                        return
+                    }
 
                     setCurrentIndex(nextIndex)
                     setIsPresented(true)
@@ -193,11 +233,7 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
 
         return (
             <Host style={styles.host}>
-                <BottomSheet
-                    isPresented={isPresented}
-                    onIsPresentedChange={handlePresentedChange}
-                    anchor={<Button label="" onPress={() => {}} />}
-                >
+                <BottomSheet isPresented={isPresented} onIsPresentedChange={handlePresentedChange}>
                     <Group modifiers={modifiers}>
                         <RNHostView>
                             <View style={styles.content}>{children}</View>
@@ -260,13 +296,14 @@ AppBottomSheet.displayName = "AppBottomSheet"
 
 const styles = StyleSheet.create({
     host: {
-        position: "absolute",
-        width: 0,
-        height: 0,
+        flex: 1,
+        width: "100%",
+        height: "100%",
     },
 
     content: {
         backgroundColor: "transparent",
+        width: "100%",
     },
 })
 
