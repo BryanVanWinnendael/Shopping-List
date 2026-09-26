@@ -1,4 +1,4 @@
-import AppBottomSheet, { AppBottomSheetMethods } from "@/components/native/appBottomSheet"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
 import useThemes from "@/hooks/themes/useThemes"
 import { RefObject, useEffect, useState } from "react"
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
@@ -11,7 +11,7 @@ import { logsClient } from "@/lib/logs"
 
 type Props = {
     pathname: string
-    sheetRef: RefObject<AppBottomSheetMethods | null>
+    sheetRef: RefObject<BottomSheetRef | null>
     onClose: () => void
 }
 
@@ -99,18 +99,20 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
             setDownloadingModel(true)
             setDownloadProgress(0)
 
+            await logsClient.createLog("downloading model", "GET", true)
+
             await downloadLocalModel((progress) => {
                 setDownloadProgress(progress)
             })
 
-            logsClient.createLog("done downloading model", "GET", true)
+            await logsClient.createLog("done downloading model", "GET", true)
 
             setModelDownloaded(true)
 
             await setProvider("downloaded")
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error)
-            logsClient.createLog(message, "GET", true)
+            await logsClient.createLog(message, "GET", true)
             console.error("Failed to download/load AI model:", error)
         } finally {
             setDownloadingModel(false)

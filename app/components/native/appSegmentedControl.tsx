@@ -34,7 +34,7 @@ export default function AppSegmentedControl({ values, selectedIndex, appearance 
     const selectedValue = values[selectedIndex] ?? values[0]
 
     return (
-        <Host style={style}>
+        <Host style={style} colorScheme={appearance}>
             <Picker
                 selection={selectedValue}
                 onSelectionChange={(selection) => {
