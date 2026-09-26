@@ -20,11 +20,10 @@ export default function CustomSwitch({ value, onChange, disabled = false }: Prop
                 onValueChange={onChange}
                 disabled={disabled}
                 trackColor={{
-                    false: "#767577",
+                    false: vars.backgroundColor,
                     true: vars.accentColor,
                 }}
-                thumbColor={value ? (newUI ? "#ffffff" : "#ffffff") : "#f4f3f4"}
-                ios_backgroundColor={vars.backgroundColor}
+                ios_backgroundColor={vars.secondaryBorderColor}
             />
         </View>
     )

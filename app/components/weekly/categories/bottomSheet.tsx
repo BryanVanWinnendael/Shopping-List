@@ -16,8 +16,6 @@ type Props = {
 export default function BottomSheet({ sheetRef, close, updateCategory }: Props) {
     const { vars, theme } = useThemes()
 
-    const backgroundColor = theme === "dark" ? "#080808" : theme === "true dark" ? "#000000" : "#FFFFFF"
-
     return (
         <AppBottomSheet
             ref={sheetRef}
@@ -26,7 +24,7 @@ export default function BottomSheet({ sheetRef, close, updateCategory }: Props) 
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"
-            backgroundColor={backgroundColor}
+            backgroundColor={vars.backgroundColor}
         >
             <View style={{ flex: 1 }}>
                 <View

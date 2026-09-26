@@ -2,8 +2,6 @@ import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native"
 import Svg, { Path } from "react-native-svg"
 import { GlassView } from "expo-glass-effect"
 import { PressableScale } from "pressto"
-
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
@@ -16,9 +14,8 @@ type Props = {
 
 export default function Input({ createCronProduct, setProduct, product, loading }: Props) {
     const { vars, theme } = useThemes()
-    const { aColorUse } = useSettingsStore()
 
-    const usesAccent = aColorUse.input
+    const isReady = Boolean(product)
 
     return (
         <View style={styles.container}>
@@ -26,14 +23,13 @@ export default function Input({ createCronProduct, setProduct, product, loading 
                 glassEffectStyle="regular"
                 isInteractive
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={vars.secondaryBackgroundColor}
-                style={styles.innerContainer}
+                style={styles.glassView}
             >
                 <View style={styles.inputRow}>
                     <TextInput
                         keyboardAppearance={theme === "light" ? "light" : "dark"}
                         placeholder="Type here..."
-                        placeholderTextColor="#aaa"
+                        placeholderTextColor="#999"
                         value={product}
                         onChangeText={setProduct}
                         style={[
@@ -49,35 +45,33 @@ export default function Input({ createCronProduct, setProduct, product, loading 
                             }
                         }}
                     />
-                </View>
 
-                <View style={styles.pillRow}>
                     <View style={styles.sendWrapper}>
-                        {product && (
-                            <PressableScale
-                                onPress={createCronProduct}
-                                style={[
-                                    styles.sendButton,
-                                    {
-                                        backgroundColor: usesAccent ? vars.accentColor : vars.secondaryBorderColor,
-                                    },
-                                ]}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator size="small" color={vars.textColor} />
-                                ) : (
-                                    <Svg width={20} height={20} viewBox="0 -0.5 25 25" fill="none">
-                                        <Path
-                                            d="M18.455 9.8834L7.063 4.1434C6.76535 3.96928 6.40109 3.95274 6.08888 4.09916C5.77667 4.24558 5.55647 4.53621 5.5 4.8764C5.5039 4.98942 5.53114 5.10041 5.58 5.2024L7.749 10.4424C7.85786 10.7903 7.91711 11.1519 7.925 11.5164C7.91714 11.8809 7.85789 12.2425 7.749 12.5904L5.58 17.8304C5.53114 17.9324 5.5039 18.0434 5.5 18.1564C5.55687 18.4961 5.77703 18.7862 6.0889 18.9323C6.40078 19.0785 6.76456 19.062 7.062 18.8884L18.455 13.1484C19.0903 12.8533 19.4967 12.2164 19.4967 11.5159C19.4967 10.8154 19.0903 10.1785 18.455 9.8834V9.8834Z"
-                                            stroke={usesAccent ? "#fff" : vars.textColor}
-                                            strokeWidth={2}
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </Svg>
-                                )}
-                            </PressableScale>
-                        )}
+                        <PressableScale
+                            onPress={createCronProduct}
+                            enabled={isReady && !loading}
+                            style={[
+                                styles.sendButton,
+                                {
+                                    backgroundColor: vars.accentColor,
+                                    opacity: !isReady || loading ? 0.35 : 1,
+                                },
+                            ]}
+                        >
+                            {loading ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <Svg width={20} height={20} viewBox="0 -0.5 25 25" fill="none">
+                                    <Path
+                                        d="M18.455 9.8834L7.063 4.1434C6.76535 3.96928 6.40109 3.95274 6.08888 4.09916C5.77667 4.24558 5.55647 4.53621 5.5 4.8764C5.5039 4.98942 5.53114 5.10041 5.58 5.2024L7.749 10.4424C7.85786 10.7903 7.91711 11.1519 7.925 11.5164C7.91714 11.8809 7.85789 12.2425 7.749 12.5904L5.58 17.8304C5.53114 17.9324 5.5039 18.0434 5.5 18.1564C5.55687 18.4961 5.77703 18.7862 6.0889 18.9323C6.40078 19.0785 6.76456 19.062 7.062 18.8884L18.455 13.1484C19.0903 12.8533 19.4967 12.2164 19.4967 11.5159C19.4967 10.8154 19.0903 10.1785 18.455 9.8834V9.8834Z"
+                                        stroke="#fff"
+                                        strokeWidth={2}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </Svg>
+                            )}
+                        </PressableScale>
                     </View>
                 </View>
             </GlassView>
@@ -87,47 +81,44 @@ export default function Input({ createCronProduct, setProduct, product, loading 
 
 const styles = StyleSheet.create({
     container: {
-        paddingBottom: 40,
         paddingHorizontal: 10,
+        paddingBottom: 40,
     },
-    innerContainer: {
+    glassView: {
+        minHeight: 58,
+        maxHeight: 130,
         borderRadius: BORDER_RADIUS_L,
-        paddingHorizontal: 18,
-        paddingTop: 10,
-        paddingBottom: 14,
+        paddingLeft: 16,
+        paddingRight: 6,
+        paddingVertical: 6,
         overflow: "hidden",
     },
     inputRow: {
         flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 4,
+        alignItems: "flex-end",
         minHeight: 44,
     },
     textInput: {
         flex: 1,
-        minHeight: 40,
+        minHeight: 42,
+        maxHeight: 100,
+        paddingVertical: 9,
+        paddingHorizontal: 2,
         fontSize: 16,
-    },
-    pillRow: {
-        flexDirection: "row",
-        justifyContent: "flex-end",
-        marginTop: 12,
+        fontWeight: "400",
     },
     sendWrapper: {
-        height: 40,
+        width: 42,
+        height: 42,
+        alignItems: "center",
         justifyContent: "center",
+        marginLeft: 6,
     },
     sendButton: {
-        borderRadius: BORDER_RADIUS_FULL,
+        width: 42,
         height: 42,
-        minWidth: 56,
-        paddingHorizontal: 16,
+        borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",
         justifyContent: "center",
-    },
-    modalOverlay: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
     },
 })

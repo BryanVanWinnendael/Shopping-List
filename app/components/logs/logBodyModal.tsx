@@ -11,10 +11,9 @@ import Animated, {
 } from "react-native-reanimated"
 import { PressableScale } from "pressto"
 import { X } from "lucide-react-native"
-
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
+import { GlassView } from "expo-glass-effect"
 
 type Props = {
     body: string | null
@@ -24,6 +23,8 @@ type Props = {
 
 export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
     const { vars, theme } = useThemes()
+
+    const colorScheme = theme === "light" ? "light" : "dark"
 
     const scale = useSharedValue(0.96)
     const opacity = useSharedValue(0)
@@ -73,99 +74,101 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
 
     return (
         <Modal visible={body !== null} transparent animationType="none" onRequestClose={close}>
-            <GlassOrBlurView style={styles.modalOverlay}>
+            <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalOverlay}>
                 <Animated.View
                     entering={FadeIn.duration(180)}
                     exiting={FadeOut.duration(120)}
-                    style={[
-                        styles.modalContent,
-                        animatedStyle,
-                        {
-                            backgroundColor: vars.backgroundColor,
-                            borderColor: vars.borderColor,
-                        },
-                    ]}
+                    style={[styles.animatedModal, animatedStyle]}
                 >
-                    <View style={styles.modalHeader}>
-                        <View style={{ flex: 1 }}>
-                            <Text
-                                style={{
-                                    color: vars.textColor,
-                                    fontSize: 24,
-                                    fontWeight: "700",
-                                }}
-                            >
-                                {title}
-                            </Text>
+                    <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
+                        {/* Header */}
+                        <View style={styles.modalHeader}>
+                            <View style={{ flex: 1 }}>
+                                <Text
+                                    style={{
+                                        color: vars.textColor,
+                                        fontSize: 24,
+                                        fontWeight: "700",
+                                    }}
+                                >
+                                    {title}
+                                </Text>
 
-                            <Text
-                                style={{
-                                    color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                    marginTop: 4,
-                                    fontSize: 14,
-                                }}
+                                <Text
+                                    style={{
+                                        color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                        marginTop: 4,
+                                        fontSize: 14,
+                                    }}
+                                >
+                                    Decompressed payload
+                                </Text>
+                            </View>
+
+                            {/* Glass close button */}
+                            <GlassView
+                                glassEffectStyle="regular"
+                                isInteractive
+                                colorScheme={colorScheme}
+                                style={styles.closeGlass}
                             >
-                                Decompressed payload
-                            </Text>
+                                <PressableScale onPress={close} style={styles.closeButton}>
+                                    <X size={18} strokeWidth={2} color={vars.textColor} />
+                                </PressableScale>
+                            </GlassView>
                         </View>
 
-                        <PressableScale
-                            onPress={close}
-                            style={[
-                                styles.closeButton,
-                                {
-                                    backgroundColor: vars.secondaryBackgroundColor,
-                                    borderColor: vars.secondaryBorderColor,
-                                },
-                            ]}
+                        {/* Body */}
+                        <ScrollView
+                            style={styles.scrollView}
+                            contentContainerStyle={styles.scrollContent}
+                            showsVerticalScrollIndicator={false}
                         >
-                            <X size={18} color={vars.textColor} />
-                        </PressableScale>
-                    </View>
-
-                    <ScrollView
-                        style={{ marginTop: 20 }}
-                        contentContainerStyle={{
-                            paddingBottom: 10,
-                        }}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View
-                            style={[
-                                styles.codeContainer,
-                                {
-                                    backgroundColor: vars.secondaryBackgroundColor,
-                                    borderColor: vars.secondaryBorderColor,
-                                },
-                            ]}
-                        >
-                            <Text
-                                selectable
+                            <View
                                 style={[
-                                    styles.code,
+                                    styles.codeContainer,
                                     {
-                                        color: vars.textColor,
+                                        backgroundColor: vars.secondaryBackgroundColor,
+                                        borderColor: vars.secondaryBorderColor,
                                     },
                                 ]}
                             >
-                                {prettyBody}
-                            </Text>
-                        </View>
-                    </ScrollView>
+                                <Text
+                                    selectable
+                                    style={[
+                                        styles.code,
+                                        {
+                                            color: vars.textColor,
+                                        },
+                                    ]}
+                                >
+                                    {prettyBody}
+                                </Text>
+                            </View>
+                        </ScrollView>
 
-                    <PressableScale
-                        onPress={close}
-                        style={[
-                            styles.doneButton,
-                            {
-                                backgroundColor: vars.accentColor,
-                            },
-                        ]}
-                    >
-                        <Text style={styles.doneText}>Done</Text>
-                    </PressableScale>
+                        {/* Glass footer button */}
+                        <GlassView
+                            glassEffectStyle="regular"
+                            isInteractive
+                            colorScheme={colorScheme}
+                            style={styles.doneGlass}
+                        >
+                            <PressableScale
+                                onPress={close}
+                                style={[
+                                    styles.doneButton,
+                                    {
+                                        backgroundColor: `${vars.accentColor}E6`,
+                                    },
+                                ]}
+                            >
+                                <Text style={styles.doneText}>Done</Text>
+                            </PressableScale>
+                        </GlassView>
+                    </GlassView>
                 </Animated.View>
-            </GlassOrBlurView>
+            </GlassView>
         </Modal>
     )
 }
@@ -177,43 +180,71 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
     },
-    modalContent: {
+
+    animatedModal: {
         width: "100%",
         maxWidth: 500,
         maxHeight: "85%",
-        borderRadius: BORDER_RADIUS_L,
-        borderWidth: 1,
-        padding: 22,
     },
+
+    modalContent: {
+        width: "100%",
+        maxHeight: "100%",
+        borderRadius: BORDER_RADIUS_L,
+        padding: 22,
+        overflow: "hidden",
+    },
+
     modalHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
     },
+
+    closeGlass: {
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
+
     closeButton: {
         width: 40,
         height: 40,
-        borderRadius: BORDER_RADIUS_FULL,
         justifyContent: "center",
         alignItems: "center",
-        borderWidth: 1,
     },
+
+    scrollView: {
+        marginTop: 20,
+    },
+
+    scrollContent: {
+        paddingBottom: 10,
+    },
+
     codeContainer: {
         borderRadius: BORDER_RADIUS_M,
         borderWidth: 1,
         padding: 16,
     },
+
     code: {
         fontFamily: "monospace",
         fontSize: 13,
         lineHeight: 20,
     },
+
+    doneGlass: {
+        marginTop: 14,
+        borderRadius: BORDER_RADIUS_L,
+        overflow: "hidden",
+    },
+
     doneButton: {
-        marginTop: 24,
         borderRadius: BORDER_RADIUS_L,
         paddingVertical: 14,
         alignItems: "center",
     },
+
     doneText: {
         color: "#fff",
         fontWeight: "700",

@@ -1,5 +1,4 @@
 import { BlurView } from "expo-blur"
-import { LinearGradient } from "expo-linear-gradient"
 import { RefObject, useEffect } from "react"
 import { Text, View } from "react-native"
 
@@ -16,8 +15,6 @@ export default function SearchProducts() {
     const { vars, theme } = useThemes()
     const { states, actions, refs } = useProductsSearch()
     const { loadUserRecipes } = useRecipesStore()
-
-    const backgroundColor = theme === "dark" ? "#080808" : theme === "true dark" ? "#000000" : "#FFFFFF"
 
     useEffect(() => {
         loadUserRecipes()
@@ -46,10 +43,9 @@ export default function SearchProducts() {
                 enablePanDownToClose
                 onClose={actions.close}
                 backgroundMode="adaptive"
-                backgroundColor={backgroundColor}
+                backgroundColor={vars.backgroundColor}
             >
                 <View style={{ flex: 1 }}>
-                    {/* Header */}
                     <View
                         style={{
                             position: "absolute",
@@ -81,19 +77,6 @@ export default function SearchProducts() {
                                 Filter Products
                             </Text>
                         </BlurView>
-
-                        <LinearGradient
-                            pointerEvents="none"
-                            colors={["transparent", `${backgroundColor}20`, `${backgroundColor}70`, backgroundColor]}
-                            locations={[0, 0.35, 0.75, 1]}
-                            style={{
-                                position: "absolute",
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                height: 12,
-                            }}
-                        />
                     </View>
 
                     <Filter selected={states.selectedCategories} onApply={actions.applyFilters} />

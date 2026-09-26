@@ -27,7 +27,6 @@ export default function ClearButton({ clearLogs, loading }: Props) {
                 glassEffectStyle="regular"
                 isInteractive={!loading}
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     flexDirection: "row",
                     borderRadius: BORDER_RADIUS_FULL,

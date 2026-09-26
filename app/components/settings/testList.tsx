@@ -43,11 +43,15 @@ export default function TestList() {
 
     return (
         <>
-            <GlassView
-                glassEffectStyle="regular"
-                colorScheme={colorScheme}
-                tintColor={vars.secondaryBackgroundColor}
-                style={styles.container}
+            <View
+                style={[
+                    styles.container,
+                    {
+                        backgroundColor: vars.secondaryBackgroundColor,
+                        borderColor: vars.secondaryBorderColor,
+                        borderWidth: 1,
+                    },
+                ]}
             >
                 <View style={styles.row}>
                     <Text
@@ -81,13 +85,17 @@ export default function TestList() {
                         </PressableScale>
                     </GlassView>
                 </View>
-            </GlassView>
+            </View>
 
-            <GlassView
-                glassEffectStyle="regular"
-                colorScheme={colorScheme}
-                tintColor={vars.secondaryBackgroundColor}
-                style={styles.container}
+            <View
+                style={[
+                    styles.container,
+                    {
+                        backgroundColor: vars.secondaryBackgroundColor,
+                        borderColor: vars.secondaryBorderColor,
+                        borderWidth: 1,
+                    },
+                ]}
             >
                 <View style={styles.row}>
                     <Text
@@ -121,7 +129,7 @@ export default function TestList() {
                         </PressableScale>
                     </GlassView>
                 </View>
-            </GlassView>
+            </View>
         </>
     )
 }

@@ -1,5 +1,4 @@
 import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { BookmarkPlus } from "lucide-react-native"
 import useOnlineRecipeDetails from "@/hooks/recipes/useOnlineRecipeDetails"
@@ -10,13 +9,14 @@ import Toast from "react-native-toast-message"
 import { delay } from "@/lib/utils"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
+import { GlassView } from "expo-glass-effect"
 
 type Props = {
     recipe: OnlineRecipeDetails
 }
 
 export default function AddToRecipesButton({ recipe }: Props) {
-    const { vars } = useThemes()
+    const { vars, theme } = useThemes()
     const { actions, states } = useOnlineRecipeDetails()
 
     const addToRecipe = useCallback(() => {
@@ -71,8 +71,10 @@ export default function AddToRecipesButton({ recipe }: Props) {
                 },
             ]}
         >
-            <GlassOrBlurView
-                borderColor={`${vars.secondaryBorderColor}50`}
+            <GlassView
+                glassEffectStyle="regular"
+                isInteractive
+                colorScheme={theme === "light" ? "light" : "dark"}
                 style={[
                     {
                         borderRadius: BORDER_RADIUS_FULL,
@@ -89,7 +91,7 @@ export default function AddToRecipesButton({ recipe }: Props) {
                 ) : (
                     <BookmarkPlus size={20} color={vars.textColor} />
                 )}
-            </GlassOrBlurView>
+            </GlassView>
         </PressableScale>
     )
 }

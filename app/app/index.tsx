@@ -7,13 +7,10 @@ import BottomSheet from "@/components/products-list/products-search/bottomSheet"
 import { Modal } from "@/components/inputs/update/modal"
 import ProductInput from "@/components/inputs/productInput"
 import useThemes from "@/hooks/themes/useThemes"
-import { useNetworkMonitor } from "@/hooks/useNetworkMonitor"
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
 import { useRef } from "react"
 
 export default function Index() {
-    useNetworkMonitor()
-
     const { vars } = useThemes()
     const { actions: editItemActions, states: editItemStates } = useUpdateProduct()
     const { actions: editModalActions, states: editModalStates } = useUpdateProductModal()
@@ -49,10 +46,6 @@ export default function Index() {
 
     const handleInputFocus = () => {
         isInputFocused.current = true
-        inputScale.value = withTiming(1, iosAnimation)
-    }
-
-    const restoreInputSize = () => {
         inputScale.value = withTiming(1, iosAnimation)
     }
 

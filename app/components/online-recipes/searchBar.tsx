@@ -65,7 +65,6 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                 glassEffectStyle="regular"
                 isInteractive
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     flexDirection: "row",
                     alignItems: "center",

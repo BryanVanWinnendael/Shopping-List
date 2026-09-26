@@ -4,7 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import CustomDrawerContent from "@/components/customDrawerContent"
 import NavButton from "@/components/navButton"
 import Header from "@/components/header"
-import { useEffect } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { usePathname } from "expo-router"
 import ThemesBottomSheet from "@/components/themes/bottomSheet"
@@ -21,6 +21,9 @@ import useUsers from "@/hooks/users/useUsers"
 import Toast from "react-native-toast-message"
 import Success from "@/components/toasts/success"
 import Error from "@/components/toasts/error"
+import AiChatBottomSheet from "@/components/ai/chatBottomSheet"
+import { AppBottomSheetMethods } from "@/components/native/appBottomSheet"
+import { useShake } from "@/hooks/useShake"
 import { useNotificationsStore } from "@/stores/useNotificationsStore"
 import {
     Bookmark,
@@ -33,27 +36,50 @@ import {
     TagIcon,
     TextSearch,
 } from "lucide-react-native"
+import { useNetworkMonitor } from "@/hooks/useNetworkMonitor"
+import { useAiContextStore } from "@/stores/useAiContextStore"
 
 const ICON_SIZE = 18
 
 export default function RootLayout() {
     const { vars } = useThemes()
-    const loadRecipes = useRecipesStore((state) => state.loadRecipes)
-    const loadSettings = useSettingsStore((state) => state.loadSettings)
-    const loadNotifications = useNotificationsStore((state) => state.loadNotifications)
-    const { user, theme } = useSettingsStore()
     const { actions: themesActions, refs: themesRefs } = useThemes()
     const { actions: usersActions, refs: usersRefs } = useUsers()
+    const { provider } = useAiContextStore()
+    const { user, theme } = useSettingsStore()
+
+    const loadRecipes = useRecipesStore((state) => state.loadRecipes)
+    const loadSettings = useSettingsStore((state) => state.loadSettings)
+
+    const loadNotifications = useNotificationsStore((state) => state.loadNotifications)
+
+    const loadProvider = useAiContextStore((state) => state.loadProvider)
+
     const pathname = usePathname()
+    const assistantSheetRef = useRef<AppBottomSheetMethods>(null)
 
     // true when inside /recipes/[id]
     const inRecipeDetail = /^\/recipes\/[^/]+$/.test(pathname) || /^\/online-recipes\/[^/]+$/.test(pathname)
+
+    const openAssistant = useCallback(() => {
+        if (provider === "disabled") {
+            return
+        }
+
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+
+        assistantSheetRef.current?.expand()
+    }, [provider])
 
     useEffect(() => {
         loadSettings()
         loadRecipes()
         loadNotifications()
+        loadProvider()
     }, [user])
+
+    useShake(openAssistant)
+    useNetworkMonitor()
 
     return (
         <>
@@ -102,7 +128,7 @@ export default function RootLayout() {
                                 },
                                 headerLeft: () =>
                                     inRecipeDetail ? null : <NavButton open={navigation.toggleDrawer} />,
-                                headerTitle: () => (inRecipeDetail ? null : <Header />),
+                                headerRight: () => (inRecipeDetail ? null : <Header />),
                                 headerBackground: () => (inRecipeDetail ? null : <CustomHeader />),
                                 headerStyle: { backgroundColor: "transparent" },
                             })}
@@ -233,6 +259,11 @@ export default function RootLayout() {
 
                     <ThemesBottomSheet sheetRef={themesRefs.bottomSheetRef} close={themesActions.close} />
                     <UsersBottomSheet close={usersActions.close} sheetRef={usersRefs.bottomSheetRef} />
+                    <AiChatBottomSheet
+                        pathname={pathname}
+                        sheetRef={assistantSheetRef}
+                        onClose={() => assistantSheetRef.current?.close()}
+                    />
                     <Toast
                         config={{
                             success: ({ text1, text2 }: any) => <Success text1={text1} text2={text2} />,

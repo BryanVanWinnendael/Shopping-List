@@ -10,6 +10,7 @@ import TestList from "@/components/settings/testList"
 import { ADMIN_USERS_ARRAY, HEADER_HEIGHT } from "@/lib/constants"
 import Section from "@/components/settings/section"
 import useThemes from "@/hooks/themes/useThemes"
+import AiModel from "@/components/settings/aiModel"
 
 export default function Settings() {
     const { vars } = useThemes()
@@ -31,6 +32,10 @@ export default function Settings() {
                 <AColor />
                 <UserColors />
                 <FontSize />
+            </Section>
+
+            <Section title="AI">
+                <AiModel />
             </Section>
 
             {ADMIN_USERS_ARRAY.includes(user ?? "") && (

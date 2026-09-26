@@ -69,7 +69,6 @@ export function useUpdateRecipe() {
                 mealType: response.mealType,
                 persons: response.persons,
             }
-            console.log(updatedRecipeSummary)
             updateRecipeStore(updatedRecipeSummary)
         }
 

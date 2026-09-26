@@ -19,8 +19,7 @@ export default function NavButton({ open }: Props) {
                 glassEffectStyle="regular"
                 isInteractive
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={`${vars.secondaryBackgroundColor}CC`}
-                style={[styles.glass, { shadowOpacity: theme === "light" ? 0.1 : 0.24 }]}
+                style={styles.glass}
             >
                 <AlignLeft size={24} strokeWidth={2.2} color={vars.textColor} />
             </GlassView>
@@ -30,16 +29,16 @@ export default function NavButton({ open }: Props) {
 
 const styles = StyleSheet.create({
     touchable: {
-        width: 40,
-        height: 40,
-        marginLeft: 6,
+        width: 48,
+        height: 48,
+        marginLeft: 12,
         marginBottom: 6,
         alignItems: "center",
         justifyContent: "center",
     },
     glass: {
-        width: 40,
-        height: 40,
+        width: 48,
+        height: 48,
         borderRadius: BORDER_RADIUS_FULL,
         overflow: "hidden",
         alignItems: "center",

@@ -3,7 +3,7 @@ export default {
         name: "Shopping List",
         slug: "shopping-list",
         scheme: "shopping-list-scheme",
-        version: "2.5.0",
+        version: "3.0.0",
         orientation: "portrait",
         icon: "./assets/icon.png",
         userInterfaceStyle: "automatic",
@@ -72,6 +72,13 @@ export default {
                     },
                 },
             ],
+            [
+                "expo-sensors",
+                {
+                    motionPermission: "Allow this app to detect when you shake your device to open the AI assistant.",
+                },
+            ],
+            ["expo-ai-kit", { llm: true }],
         ],
 
         extra: {

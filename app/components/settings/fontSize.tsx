@@ -84,11 +84,15 @@ export default function FontSize() {
     }
 
     return (
-        <GlassView
-            glassEffectStyle="regular"
-            colorScheme={colorScheme}
-            tintColor={vars.secondaryBackgroundColor}
-            style={styles.container}
+        <View
+            style={[
+                styles.container,
+                {
+                    backgroundColor: vars.secondaryBackgroundColor,
+                    borderColor: vars.secondaryBorderColor,
+                    borderWidth: 1,
+                },
+            ]}
         >
             <View style={styles.row}>
                 <View style={styles.titleContainer}>
@@ -149,12 +153,7 @@ export default function FontSize() {
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView
-                            glassEffectStyle="regular"
-                            colorScheme={colorScheme}
-                            tintColor={vars.backgroundColor}
-                            style={styles.modalContent}
-                        >
+                        <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text
@@ -214,7 +213,6 @@ export default function FontSize() {
                             <GlassView
                                 glassEffectStyle="regular"
                                 colorScheme={colorScheme}
-                                tintColor={vars.secondaryBackgroundColor}
                                 style={styles.previewContainer}
                             >
                                 <View style={styles.previewRow}>
@@ -279,7 +277,6 @@ export default function FontSize() {
                                     glassEffectStyle="regular"
                                     isInteractive
                                     colorScheme={colorScheme}
-                                    tintColor={vars.accentColor}
                                     style={styles.primaryGlass}
                                 >
                                     <PressableScale
@@ -299,7 +296,7 @@ export default function FontSize() {
                     </Animated.View>
                 </BlurView>
             </Modal>
-        </GlassView>
+        </View>
     )
 }
 

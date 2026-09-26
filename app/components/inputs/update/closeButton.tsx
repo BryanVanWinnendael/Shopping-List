@@ -25,7 +25,6 @@ export default function CloseButton({ close }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive
-                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     borderRadius: BORDER_RADIUS_FULL,
                     overflow: "hidden",

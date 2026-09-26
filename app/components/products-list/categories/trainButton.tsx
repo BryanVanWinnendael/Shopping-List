@@ -29,7 +29,6 @@ export default function TrainButton({ training, trainModel }: Props) {
                 glassEffectStyle="regular"
                 isInteractive={!training}
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     height: 48,
                     borderRadius: BORDER_RADIUS_L,

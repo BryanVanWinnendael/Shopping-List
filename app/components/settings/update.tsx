@@ -63,11 +63,15 @@ export default function Update() {
     }
 
     return (
-        <GlassView
-            glassEffectStyle="regular"
-            colorScheme={colorScheme}
-            tintColor={vars.secondaryBackgroundColor}
-            style={styles.container}
+        <View
+            style={[
+                styles.container,
+                {
+                    backgroundColor: vars.secondaryBackgroundColor,
+                    borderColor: vars.secondaryBorderColor,
+                    borderWidth: 1,
+                },
+            ]}
         >
             <View style={styles.row}>
                 <View style={styles.titleContainer}>
@@ -128,12 +132,7 @@ export default function Update() {
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView
-                            glassEffectStyle="regular"
-                            colorScheme={colorScheme}
-                            tintColor={vars.backgroundColor}
-                            style={styles.modalContent}
-                        >
+                        <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text
@@ -290,7 +289,6 @@ export default function Update() {
                                 glassEffectStyle="regular"
                                 isInteractive
                                 colorScheme={colorScheme}
-                                tintColor={vars.accentColor}
                                 style={styles.doneGlass}
                             >
                                 <PressableScale
@@ -309,7 +307,7 @@ export default function Update() {
                     </Animated.View>
                 </BlurView>
             </Modal>
-        </GlassView>
+        </View>
     )
 }
 

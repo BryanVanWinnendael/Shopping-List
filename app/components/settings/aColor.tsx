@@ -90,11 +90,15 @@ export default function AColor() {
     }
 
     return (
-        <GlassView
-            glassEffectStyle="regular"
-            colorScheme={colorScheme}
-            tintColor={vars.secondaryBackgroundColor}
-            style={styles.container}
+        <View
+            style={[
+                styles.container,
+                {
+                    backgroundColor: vars.secondaryBackgroundColor,
+                    borderColor: vars.secondaryBorderColor,
+                    borderWidth: 1,
+                },
+            ]}
         >
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
@@ -168,78 +172,6 @@ export default function AColor() {
                             },
                         ]}
                     >
-                        Use Accent Color for Image Picker
-                    </Text>
-
-                    <Text
-                        style={[
-                            styles.description,
-                            {
-                                color: theme === "light" ? "#6b7280" : "#9ca3af",
-                            },
-                        ]}
-                    >
-                        Applies accent color to image upload button.
-                    </Text>
-                </View>
-
-                <CustomSwitch
-                    value={aColorUse.image}
-                    onChange={(val) =>
-                        setAColorUse({
-                            ...aColorUse,
-                            image: val,
-                        })
-                    }
-                />
-            </View>
-
-            <View style={styles.row}>
-                <View style={styles.textBlock}>
-                    <Text
-                        style={[
-                            styles.rowTitle,
-                            {
-                                color: vars.textColor,
-                            },
-                        ]}
-                    >
-                        Use Accent Color for Send Button
-                    </Text>
-
-                    <Text
-                        style={[
-                            styles.description,
-                            {
-                                color: theme === "light" ? "#6b7280" : "#9ca3af",
-                            },
-                        ]}
-                    >
-                        Applies accent color to message send button.
-                    </Text>
-                </View>
-
-                <CustomSwitch
-                    value={aColorUse.input}
-                    onChange={(val) =>
-                        setAColorUse({
-                            ...aColorUse,
-                            input: val,
-                        })
-                    }
-                />
-            </View>
-
-            <View style={styles.row}>
-                <View style={styles.textBlock}>
-                    <Text
-                        style={[
-                            styles.rowTitle,
-                            {
-                                color: vars.textColor,
-                            },
-                        ]}
-                    >
                         Use Accent Color for Header
                     </Text>
 
@@ -273,12 +205,7 @@ export default function AColor() {
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView
-                            glassEffectStyle="regular"
-                            colorScheme={colorScheme}
-                            tintColor={vars.backgroundColor}
-                            style={styles.modalContent}
-                        >
+                        <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text
@@ -353,7 +280,6 @@ export default function AColor() {
                                     glassEffectStyle="regular"
                                     isInteractive
                                     colorScheme={colorScheme}
-                                    tintColor={aColor}
                                     style={styles.primaryGlass}
                                 >
                                     <PressableScale
@@ -373,7 +299,7 @@ export default function AColor() {
                     </Animated.View>
                 </BlurView>
             </Modal>
-        </GlassView>
+        </View>
     )
 }
 

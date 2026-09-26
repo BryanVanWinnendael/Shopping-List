@@ -308,13 +308,11 @@ export default function Form({ onClose }: Props) {
                 </View>
             </ScrollView>
 
-            {/* Create button */}
             <View style={styles.createButtonContainer}>
                 <GlassView
                     glassEffectStyle="regular"
                     isInteractive={!addRecipeStates.loading}
                     colorScheme={colorScheme}
-                    tintColor={vars.accentColor}
                     style={styles.createGlass}
                 >
                     <PressableScale

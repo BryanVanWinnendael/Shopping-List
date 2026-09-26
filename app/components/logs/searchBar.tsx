@@ -55,7 +55,6 @@ export function SearchBar({ value, updateQuery }: Props) {
                 glassEffectStyle="regular"
                 isInteractive
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     flexDirection: "row",
                     alignItems: "center",

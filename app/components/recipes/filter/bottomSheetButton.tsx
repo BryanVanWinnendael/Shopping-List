@@ -66,7 +66,6 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
                 glassEffectStyle="regular"
                 isInteractive
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     height: 48,
                     width: "100%",

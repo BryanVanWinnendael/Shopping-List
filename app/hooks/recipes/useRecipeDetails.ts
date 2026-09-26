@@ -3,9 +3,11 @@ import { useLocalSearchParams } from "expo-router"
 import { recipesClient } from "@/lib/recipes"
 import { Recipe } from "@/types/generated/models/recipe"
 import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { useAiContextStore } from "@/stores/useAiContextStore"
 
 export function useRecipeDetails() {
     const { id } = useLocalSearchParams()
+    const { setRecipe: setRecipeContext } = useAiContextStore()
 
     const sheetRef = useRef<BottomSheetRef>(null)
 
@@ -32,6 +34,7 @@ export function useRecipeDetails() {
         const response = await recipesClient.getRecipe(id)
         if (response) {
             setRecipe(response)
+            setRecipeContext(response)
         }
     }, [id])
 

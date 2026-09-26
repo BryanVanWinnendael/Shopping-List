@@ -15,7 +15,7 @@ export default function ProductPreview({ product }: Props) {
     const { vars, actions } = useThemes()
 
     return (
-        <GlassView glassEffectStyle="regular" style={styles.container} tintColor={vars.secondaryBackgroundColor}>
+        <GlassView glassEffectStyle="regular" style={styles.container}>
             {product.url && <CustomImage url={product.url} style={styles.image} />}
 
             {!product.url && (

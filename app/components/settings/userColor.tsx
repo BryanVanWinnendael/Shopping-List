@@ -157,12 +157,7 @@ export default function UserColor({ user }: Props) {
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView
-                            glassEffectStyle="regular"
-                            colorScheme={colorScheme}
-                            tintColor={vars.backgroundColor}
-                            style={styles.modalContent}
-                        >
+                        <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text
@@ -238,7 +233,6 @@ export default function UserColor({ user }: Props) {
                                     glassEffectStyle="regular"
                                     isInteractive
                                     colorScheme={colorScheme}
-                                    tintColor={vars.accentColor}
                                     style={styles.primaryGlass}
                                 >
                                     <PressableScale

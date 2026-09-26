@@ -26,8 +26,6 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
     const scrollViewRef = useRef<ScrollView>(null)
     const maxTimeY = useRef(0)
 
-    const backgroundColor = theme === "dark" ? "#080808" : theme === "true dark" ? "#000000" : "#FFFFFF"
-
     const handleMaxTimeFocus = () => {
         setTimeout(() => {
             scrollViewRef.current?.scrollTo({
@@ -45,7 +43,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
             enablePanDownToClose
             onClose={onClose}
             backgroundMode="adaptive"
-            backgroundColor={backgroundColor}
+            backgroundColor={vars.backgroundColor}
         >
             <KeyboardAvoidingView
                 style={{ flex: 1 }}

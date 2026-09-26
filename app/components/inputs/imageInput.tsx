@@ -1,150 +1,491 @@
-import { ActionSheetIOS, Platform, Text } from "react-native"
+import { Animated, Modal, Pressable, StyleSheet, Text, View } from "react-native"
 import * as ImagePicker from "expo-image-picker"
-import Svg, { Path } from "react-native-svg"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
 import { SaveFormat, useImageManipulator } from "expo-image-manipulator"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import useThemes from "@/hooks/themes/useThemes"
-import { ImagePlus } from "lucide-react-native"
+import { type CameraType, CameraView, useCameraPermissions } from "expo-camera"
+import { Camera, ImagePlus, RotateCcw, X } from "lucide-react-native"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
+import { GlassView } from "expo-glass-effect"
 
 type Props = {
     onPick: (uri: string, image: ImagePicker.ImagePickerAsset) => void
     type: "list" | "recipe"
+    onFocus?: () => void
+    onBlur?: () => void
 }
 
 const FIFTEEN_MB = 15 * 1024 * 1024
 
-export default function ImageInput({ onPick, type }: Props) {
+export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = () => {} }: Props) {
     const { vars } = useThemes()
-    const { theme, aColorUse } = useSettingsStore()
+    const { theme } = useSettingsStore()
+
+    const [permission, requestPermission] = useCameraPermissions()
+
     const [pickedUri, setPickedUri] = useState<string | null>(null)
+    const [menuVisible, setMenuVisible] = useState(false)
+    const [cameraVisible, setCameraVisible] = useState(false)
+    const [facing, setFacing] = useState<CameraType>("back")
+
+    const cameraRef = useRef<CameraView>(null)
+
+    /*
+     * Only animate scale.
+     *
+     * Do NOT animate opacity on a parent of GlassView.
+     */
+    const menuScale = useRef(new Animated.Value(0.82)).current
+
     const manipulator = useImageManipulator(pickedUri ?? "")
 
+    const openMenu = () => {
+        onFocus()
+
+        setMenuVisible(true)
+
+        menuScale.setValue(0.82)
+
+        requestAnimationFrame(() => {
+            Animated.spring(menuScale, {
+                toValue: 1,
+                friction: 8,
+                tension: 110,
+                useNativeDriver: true,
+            }).start()
+        })
+    }
+
+    const closeMenu = () => {
+        onBlur()
+
+        Animated.timing(menuScale, {
+            toValue: 0.96,
+            duration: 70,
+            useNativeDriver: true,
+        }).start(() => {
+            setMenuVisible(false)
+        })
+    }
+
     const pickImageLibrary = async () => {
+        closeMenu()
+
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["images"],
+            quality: 1,
         })
 
         if (!result.canceled) {
             const asset = result.assets[0]
+
             setPickedUri(asset.uri)
         }
     }
 
-    const pickCamera = async () => {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync()
-        if (status !== "granted") {
-            alert("Camera permission denied")
-            return
+    const openCamera = async () => {
+        closeMenu()
+
+        if (!permission?.granted) {
+            const result = await requestPermission()
+
+            if (!result.granted) {
+                return
+            }
         }
-        const result = await ImagePicker.launchCameraAsync()
-        if (!result.canceled) {
-            const asset = result.assets[0]
-            setPickedUri(asset.uri)
+
+        setCameraVisible(true)
+    }
+
+    const takePhoto = async () => {
+        if (!cameraRef.current) return
+
+        try {
+            const photo = await cameraRef.current.takePictureAsync({
+                quality: 1,
+            })
+
+            if (!photo?.uri) return
+
+            setCameraVisible(false)
+            setPickedUri(photo.uri)
+        } catch (error) {
+            console.error("Failed to take photo:", error)
         }
+    }
+
+    const flipCamera = () => {
+        setFacing((current) => (current === "back" ? "front" : "back"))
     }
 
     useEffect(() => {
         if (!manipulator || !pickedUri) return
 
+        let cancelled = false
+
         const processImage = async () => {
-            const rendered = await manipulator.renderAsync()
+            try {
+                const rendered = await manipulator.renderAsync()
 
-            const fileSize = (rendered as any).fileSize ?? 0
+                if (cancelled) return
 
-            let compress = 0.6
+                const fileSize = (rendered as any).fileSize ?? 0
 
-            if (fileSize > FIFTEEN_MB) {
-                compress = 0.3
+                let compress = 0.6
+
+                if (fileSize > FIFTEEN_MB) {
+                    compress = 0.3
+                }
+
+                const saved = await rendered.saveAsync({
+                    compress,
+                    format: SaveFormat.JPEG,
+                })
+
+                if (cancelled) return
+
+                onPick(saved.uri, saved)
+            } catch (error) {
+                console.error("Failed to process image:", error)
             }
-
-            const saved = await rendered.saveAsync({
-                compress,
-                format: SaveFormat.JPEG,
-            })
-
-            onPick(saved.uri, saved)
         }
 
         processImage()
+
+        return () => {
+            cancelled = true
+        }
     }, [manipulator, pickedUri])
 
-    const showActionSheet = () => {
-        if (Platform.OS === "ios") {
-            ActionSheetIOS.showActionSheetWithOptions(
-                {
-                    options: ["Cancel", "Take Photo", "Choose Picture"],
-                    cancelButtonIndex: 0,
-                    userInterfaceStyle: theme === "light" ? "light" : "dark",
-                },
-                (buttonIndex) => {
-                    switch (buttonIndex) {
-                        case 1:
-                            pickCamera()
-                            break
-                        case 2:
-                            pickImageLibrary()
-                            break
-                    }
-                }
-            )
-        }
+    const renderMenu = () => (
+        <>
+            {menuVisible && (
+                <>
+                    <Pressable onPress={closeMenu} style={styles.menuBackdrop} />
+
+                    <Animated.View
+                        style={[
+                            styles.menuWrapper,
+                            type === "recipe" && styles.recipeMenuWrapper,
+                            {
+                                transform: [
+                                    {
+                                        scale: menuScale,
+                                    },
+                                ],
+                            },
+                        ]}
+                    >
+                        <GlassView
+                            key={theme}
+                            style={styles.menu}
+                            glassEffectStyle="regular"
+                            isInteractive
+                            colorScheme={theme === "light" ? "light" : "dark"}
+                        >
+                            <PressableScale onPress={openCamera} style={styles.menuItem}>
+                                <View
+                                    style={[
+                                        styles.menuIcon,
+                                        {
+                                            backgroundColor: vars.secondaryBackgroundColor,
+                                        },
+                                    ]}
+                                >
+                                    <Camera size={18} color={vars.textColor} strokeWidth={2} />
+                                </View>
+
+                                <Text
+                                    style={[
+                                        styles.menuText,
+                                        {
+                                            color: vars.textColor,
+                                        },
+                                    ]}
+                                >
+                                    Take Photo
+                                </Text>
+                            </PressableScale>
+
+                            <PressableScale onPress={pickImageLibrary} style={styles.menuItem}>
+                                <View
+                                    style={[
+                                        styles.menuIcon,
+                                        {
+                                            backgroundColor: vars.secondaryBackgroundColor,
+                                        },
+                                    ]}
+                                >
+                                    <ImagePlus size={18} color={vars.textColor} strokeWidth={2} />
+                                </View>
+
+                                <Text
+                                    style={[
+                                        styles.menuText,
+                                        {
+                                            color: vars.textColor,
+                                        },
+                                    ]}
+                                >
+                                    Choose Photo
+                                </Text>
+                            </PressableScale>
+                        </GlassView>
+                    </Animated.View>
+                </>
+            )}
+        </>
+    )
+
+    const renderCamera = () => (
+        <Modal visible={cameraVisible} transparent animationType="slide" onRequestClose={() => setCameraVisible(false)}>
+            <View style={styles.cameraOverlay}>
+                <View style={styles.cameraCard}>
+                    <CameraView
+                        ref={cameraRef}
+                        style={styles.cameraPreview}
+                        facing={facing}
+                        mode="picture"
+                        animateShutter
+                    />
+
+                    <GlassView
+                        style={styles.cameraCloseGlass}
+                        glassEffectStyle="regular"
+                        isInteractive
+                        colorScheme={theme === "light" ? "light" : "dark"}
+                    >
+                        <PressableScale onPress={() => setCameraVisible(false)} style={styles.cameraControl}>
+                            <X size={20} color="#fff" strokeWidth={2} />
+                        </PressableScale>
+                    </GlassView>
+
+                    <GlassView
+                        style={styles.cameraFlipGlass}
+                        glassEffectStyle="regular"
+                        isInteractive
+                        colorScheme={theme === "light" ? "light" : "dark"}
+                    >
+                        <PressableScale onPress={flipCamera} style={styles.cameraControl}>
+                            <RotateCcw size={19} color="#fff" strokeWidth={2} />
+                        </PressableScale>
+                    </GlassView>
+
+                    <View style={styles.cameraBottom}>
+                        <Pressable onPress={takePhoto} style={styles.shutterOuter}>
+                            <View style={styles.shutterInner} />
+                        </Pressable>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    )
+
+    if (type === "list") {
+        return (
+            <View style={styles.listContainer}>
+                <GlassView
+                    style={styles.listGlass}
+                    glassEffectStyle="regular"
+                    isInteractive
+                    colorScheme={theme === "light" ? "light" : "dark"}
+                >
+                    <PressableScale onPress={openMenu} style={styles.listButton}>
+                        <ImagePlus size={21} color={vars.textColor} strokeWidth={2} />
+                    </PressableScale>
+                </GlassView>
+
+                {renderMenu()}
+                {renderCamera()}
+            </View>
+        )
     }
 
-    return type === "list" ? (
-        <PressableScale
-            onPress={showActionSheet}
-            style={{
-                backgroundColor: aColorUse.image ? vars.accentColor : vars.secondaryBorderColor,
-                borderColor: aColorUse.image ? `${vars.accentColor}50` : `${vars.secondaryBackgroundColor}50`,
-                justifyContent: "center",
-                alignItems: "center",
-                width: 40,
-                height: 40,
-                borderRadius: BORDER_RADIUS_FULL,
-                marginBottom: 8,
-            }}
-        >
-            <Svg width="20px" height="20px" viewBox="0 0 24 24" fill="none">
-                <Path
-                    d="M13.6471 16.375L12.0958 14.9623C11.3351 14.2694 10.9547 13.923 10.5236 13.7918C10.1439 13.6762 9.73844 13.6762 9.35878 13.7918C8.92768 13.923 8.5473 14.2694 7.78652 14.9623L4.92039 17.5575M13.6471 16.375L13.963 16.0873C14.7238 15.3944 15.1042 15.048 15.5352 14.9168C15.9149 14.8012 16.3204 14.8012 16.7 14.9168C17.1311 15.048 17.5115 15.3944 18.2723 16.0873L19.4237 17.0896M13.6471 16.375L17.0469 19.4528M17 9C17 10.1046 16.1046 11 15 11C13.8954 11 13 10.1046 13 9C13 7.89543 13.8954 7 15 7C16.1046 7 17 7.89543 17 9ZM21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                    stroke={aColorUse.image ? "#fff" : vars.textColor}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-            </Svg>
-        </PressableScale>
-    ) : (
-        <PressableScale
-            onPress={showActionSheet}
-            style={{
-                marginTop: 12,
-                paddingVertical: 12,
-                paddingHorizontal: 12,
-                borderRadius: BORDER_RADIUS_L,
-                backgroundColor: vars.secondaryBackgroundColor,
-                borderWidth: 1,
-                borderColor: vars.secondaryBorderColor,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-            }}
-        >
-            <ImagePlus size={15} color={vars.textColor} strokeWidth={2} />
-
-            <Text
+    return (
+        <>
+            <PressableScale
+                onPress={openMenu}
                 style={{
-                    color: vars.textColor,
-                    fontSize: 13,
-                    fontWeight: "600",
+                    marginTop: 12,
+                    paddingVertical: 12,
+                    paddingHorizontal: 12,
+                    borderRadius: BORDER_RADIUS_L,
+                    backgroundColor: vars.secondaryBackgroundColor,
+                    borderWidth: 1,
+                    borderColor: vars.secondaryBorderColor,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
                 }}
             >
-                Add Image
-            </Text>
-        </PressableScale>
+                <ImagePlus size={15} color={vars.textColor} strokeWidth={2} />
+
+                <Text
+                    style={{
+                        color: vars.textColor,
+                        fontSize: 13,
+                        fontWeight: "600",
+                    }}
+                >
+                    Add Image
+                </Text>
+            </PressableScale>
+
+            {renderMenu()}
+            {renderCamera()}
+        </>
     )
 }
+
+const styles = StyleSheet.create({
+    listContainer: {
+        width: 55,
+        height: 55,
+        position: "relative",
+        zIndex: 100,
+        overflow: "visible",
+    },
+
+    listGlass: {
+        width: 55,
+        height: 55,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
+
+    listButton: {
+        width: "100%",
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    menuWrapper: {
+        position: "absolute",
+        left: 0,
+        bottom: 0,
+        width: 250,
+        transformOrigin: "bottom left",
+        zIndex: 200,
+    },
+
+    recipeMenuWrapper: {
+        left: 0,
+        bottom: 0,
+    },
+
+    menu: {
+        width: "100%",
+        borderRadius: BORDER_RADIUS_L,
+        padding: 6,
+        overflow: "hidden",
+    },
+
+    menuItem: {
+        height: 54,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 10,
+        borderRadius: 18,
+    },
+
+    menuIcon: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 11,
+    },
+
+    menuText: {
+        fontSize: 16,
+        fontWeight: "500",
+    },
+
+    menuBackdrop: {
+        position: "absolute",
+        top: -1000,
+        left: -1000,
+        right: -1000,
+        bottom: -1000,
+        zIndex: 150,
+    },
+
+    cameraOverlay: {
+        flex: 1,
+        justifyContent: "flex-end",
+        paddingHorizontal: 5,
+        paddingVertical: 5,
+    },
+
+    cameraCard: {
+        width: "100%",
+        height: "70%",
+        minHeight: 380,
+        backgroundColor: "#000",
+        borderRadius: 48,
+        overflow: "hidden",
+        position: "relative",
+    },
+
+    cameraPreview: {
+        ...StyleSheet.absoluteFill,
+    },
+
+    cameraCloseGlass: {
+        position: "absolute",
+        top: 14,
+        left: 14,
+        width: 42,
+        height: 42,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
+
+    cameraFlipGlass: {
+        position: "absolute",
+        top: 14,
+        right: 14,
+        width: 42,
+        height: 42,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+    },
+
+    cameraControl: {
+        width: "100%",
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    cameraBottom: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 24,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    shutterOuter: {
+        width: 68,
+        height: 68,
+        borderRadius: 34,
+        borderWidth: 4,
+        borderColor: "#fff",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    shutterInner: {
+        width: 54,
+        height: 54,
+        borderRadius: 27,
+        backgroundColor: "#fff",
+    },
+})

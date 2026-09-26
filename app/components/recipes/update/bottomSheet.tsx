@@ -30,8 +30,6 @@ export default function BottomSheet({
 }: Props) {
     const { vars, theme } = useThemes()
 
-    const backgroundColor = theme === "dark" ? "#080808" : theme === "true dark" ? "#000000" : "#FFFFFF"
-
     const isDark = theme !== "light"
 
     const confirmDelete = () => {
@@ -52,11 +50,11 @@ export default function BottomSheet({
         <AppBottomSheet
             ref={bottomSheetRef}
             index={-1}
-            snapPoints={["55%", "85%"]}
+            snapPoints={["55%", "75%", "100%"]}
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"
-            backgroundColor={backgroundColor}
+            backgroundColor={vars.backgroundColor}
         >
             <View style={{ flex: 1 }}>
                 <View
@@ -106,7 +104,6 @@ export default function BottomSheet({
                                 glassEffectStyle="regular"
                                 isInteractive
                                 colorScheme={theme === "light" ? "light" : "dark"}
-                                tintColor={vars.secondaryBackgroundColor}
                                 style={{
                                     width: 44,
                                     height: 44,

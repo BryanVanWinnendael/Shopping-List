@@ -76,11 +76,11 @@ const Wrapper = ({
                 borderRadius: BORDER_RADIUS_M,
                 justifyContent: "center",
                 alignItems: "center",
+                backgroundColor,
             }}
         >
             <GlassView
-                tintColor={backgroundColor}
-                glassEffectStyle="regular"
+                glassEffectStyle="clear"
                 style={{
                     width: size,
                     height: size,

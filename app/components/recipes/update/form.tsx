@@ -325,7 +325,6 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                     glassEffectStyle="regular"
                     isInteractive={!editStates.loading}
                     colorScheme={colorScheme}
-                    tintColor={vars.accentColor}
                     style={styles.updateGlass}
                 >
                     <PressableScale

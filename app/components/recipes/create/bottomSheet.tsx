@@ -13,17 +13,15 @@ type Props = {
 export default function BottomSheet({ sheetRef, onClose }: Props) {
     const { vars, theme } = useThemes()
 
-    const backgroundColor = theme === "dark" ? "#080808" : theme === "true dark" ? "#000000" : "#FFFFFF"
-
     return (
         <AppBottomSheet
             ref={sheetRef}
             index={-1}
-            snapPoints={["55%", "85%"]}
+            snapPoints={["55%", "75%", "100%"]}
             enablePanDownToClose
             onClose={onClose}
             backgroundMode="adaptive"
-            backgroundColor={backgroundColor}
+            backgroundColor={vars.backgroundColor}
         >
             <View style={{ flex: 1 }}>
                 <View

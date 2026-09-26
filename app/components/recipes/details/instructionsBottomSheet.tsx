@@ -1,5 +1,4 @@
 import { BlurView } from "expo-blur"
-import { LinearGradient } from "expo-linear-gradient"
 import { RefObject } from "react"
 import { ScrollView, Text, View } from "react-native"
 
@@ -15,8 +14,6 @@ type Props = {
 export default function InstructionsBottomSheet({ sheetRef, close, instructions }: Props) {
     const { vars, theme } = useThemes()
 
-    const backgroundColor = theme === "dark" ? "#080808" : theme === "true dark" ? "#000000" : "#FFFFFF"
-
     return (
         <AppBottomSheet
             ref={sheetRef}
@@ -25,7 +22,7 @@ export default function InstructionsBottomSheet({ sheetRef, close, instructions 
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"
-            backgroundColor={backgroundColor}
+            backgroundColor={vars.backgroundColor}
         >
             <View style={{ flex: 1 }}>
                 {/* Header */}
@@ -41,7 +38,7 @@ export default function InstructionsBottomSheet({ sheetRef, close, instructions 
                     }}
                 >
                     <BlurView
-                        intensity={18}
+                        intensity={10}
                         tint={theme === "light" ? "light" : "dark"}
                         style={{
                             flex: 1,
@@ -60,19 +57,6 @@ export default function InstructionsBottomSheet({ sheetRef, close, instructions 
                             Instructions
                         </Text>
                     </BlurView>
-
-                    <LinearGradient
-                        pointerEvents="none"
-                        colors={["transparent", `${backgroundColor}20`, `${backgroundColor}70`, backgroundColor]}
-                        locations={[0, 0.35, 0.75, 1]}
-                        style={{
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            height: 12,
-                        }}
-                    />
                 </View>
 
                 <ScrollView

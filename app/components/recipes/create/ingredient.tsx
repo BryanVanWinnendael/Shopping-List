@@ -23,13 +23,12 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Pr
         <GlassView
             glassEffectStyle="regular"
             colorScheme={colorScheme}
-            tintColor={vars.secondaryBackgroundColor}
             style={{
                 position: "relative",
                 borderRadius: BORDER_RADIUS_L,
                 padding: 12,
                 marginBottom: 12,
-                overflow: "hidden",
+                overflow: "visible",
             }}
         >
             <View
@@ -156,10 +155,12 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Pr
                         borderWidth: 1,
                         borderColor: vars.secondaryBorderColor,
                         backgroundColor: vars.backgroundColor,
-                        overflow: "hidden",
+                        overflow: "visible",
                         flexDirection: "row",
                         alignItems: "center",
                         paddingHorizontal: 14,
+                        position: "relative",
+                        zIndex: 1000,
                     }}
                 >
                     <View

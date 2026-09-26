@@ -28,7 +28,15 @@ export default function BottomSheet({ close, sheetRef }: Props) {
     )
 
     return (
-        <AppBottomSheet ref={sheetRef} index={-1} snapPoints={["30%"]} enablePanDownToClose onClose={close}>
+        <AppBottomSheet
+            ref={sheetRef}
+            index={-1}
+            snapPoints={["30%"]}
+            enablePanDownToClose
+            onClose={close}
+            backgroundMode="adaptive"
+            backgroundColor={vars.backgroundColor}
+        >
             <View style={styles.sheetContainer}>
                 <Text
                     style={[

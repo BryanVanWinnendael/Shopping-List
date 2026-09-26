@@ -35,7 +35,16 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
     const glassColorScheme = theme === "light" ? "light" : "dark"
 
     return (
-        <Link href={`/recipes/${recipe.id}`} key={recipe.id} style={styles.link}>
+        <Link
+            href={{
+                pathname: `/recipes/${recipe.id}`,
+                params: {
+                    title: recipe.title,
+                },
+            }}
+            key={recipe.id}
+            style={styles.link}
+        >
             <Link.Trigger>
                 <View style={styles.recipeCard}>
                     <View style={styles.imageWrapper}>

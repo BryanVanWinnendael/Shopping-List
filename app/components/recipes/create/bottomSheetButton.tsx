@@ -35,7 +35,6 @@ export default function BottomSheetButton({ onPress }: Props) {
                     overflow: "hidden",
                     borderRadius: BORDER_RADIUS_FULL,
                 }}
-                tintColor={vars.secondaryBackgroundColor}
             >
                 <PressableScale
                     onPress={onPress}

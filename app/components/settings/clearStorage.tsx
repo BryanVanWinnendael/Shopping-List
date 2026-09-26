@@ -15,11 +15,15 @@ export default function ClearStorage() {
     }
 
     return (
-        <GlassView
-            glassEffectStyle="regular"
-            colorScheme={colorScheme}
-            tintColor={vars.secondaryBackgroundColor}
-            style={styles.container}
+        <View
+            style={[
+                styles.container,
+                {
+                    backgroundColor: vars.secondaryBackgroundColor,
+                    borderColor: vars.secondaryBorderColor,
+                    borderWidth: 1,
+                },
+            ]}
         >
             <View style={styles.row}>
                 <Text style={[styles.title, { color: vars.textColor }]}>Clear Storage</Text>
@@ -44,7 +48,7 @@ export default function ClearStorage() {
                     </PressableScale>
                 </GlassView>
             </View>
-        </GlassView>
+        </View>
     )
 }
 

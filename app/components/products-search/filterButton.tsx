@@ -42,7 +42,6 @@ export default function FilterButton({ open, shifted }: Props) {
                     glassEffectStyle="regular"
                     isInteractive
                     colorScheme={theme === "light" ? "light" : "dark"}
-                    tintColor={vars.secondaryBackgroundColor}
                     style={{
                         flexDirection: "row",
                         borderRadius: BORDER_RADIUS_L,

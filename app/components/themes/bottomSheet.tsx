@@ -9,6 +9,7 @@ import { Theme } from "@/types"
 import { THEMES } from "@/lib/constants"
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
+import AppBottomSheet from "@/components/native/appBottomSheet"
 
 type Props = {
     close: () => void
@@ -24,7 +25,15 @@ export default function BottomSheet({ close, sheetRef }: Props) {
     }
 
     return (
-        <ExpoBottomSheet ref={sheetRef} index={-1} enableDynamicSizing enablePanDownToClose onClose={close}>
+        <AppBottomSheet
+            ref={sheetRef}
+            index={-1}
+            snapPoints={["25%"]}
+            enablePanDownToClose
+            onClose={close}
+            backgroundMode="adaptive"
+            backgroundColor={vars.backgroundColor}
+        >
             <View style={styles.container}>
                 <Text
                     style={[
@@ -78,7 +87,7 @@ export default function BottomSheet({ close, sheetRef }: Props) {
                     })}
                 </View>
             </View>
-        </ExpoBottomSheet>
+        </AppBottomSheet>
     )
 }
 

@@ -73,7 +73,6 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                 glassEffectStyle="regular"
                 isInteractive
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={vars.secondaryBackgroundColor}
                 style={[
                     {
                         flexDirection: "row",

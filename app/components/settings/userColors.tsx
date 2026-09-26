@@ -17,11 +17,15 @@ export default function UserColors() {
     const colorScheme = theme === "light" ? "light" : "dark"
 
     return (
-        <GlassView
-            glassEffectStyle="regular"
-            colorScheme={colorScheme}
-            tintColor={vars.secondaryBackgroundColor}
-            style={styles.container}
+        <View
+            style={[
+                styles.container,
+                {
+                    backgroundColor: vars.secondaryBackgroundColor,
+                    borderColor: vars.secondaryBorderColor,
+                    borderWidth: 1,
+                },
+            ]}
         >
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
@@ -79,7 +83,7 @@ export default function UserColors() {
                     ))}
                 </View>
             </Accordion>
-        </GlassView>
+        </View>
     )
 }
 

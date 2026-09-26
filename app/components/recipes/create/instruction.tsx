@@ -22,7 +22,6 @@ export default function Instruction({ instruction, index, onUpdate, onRemove }: 
         <GlassView
             glassEffectStyle="regular"
             colorScheme={colorScheme}
-            tintColor={vars.secondaryBackgroundColor}
             style={{
                 flexDirection: "row",
                 alignItems: "flex-start",

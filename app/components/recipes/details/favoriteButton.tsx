@@ -39,7 +39,6 @@ export default function FavoriteButton({ recipe }: Props) {
                 glassEffectStyle="regular"
                 isInteractive
                 colorScheme={theme === "light" ? "light" : "dark"}
-                tintColor={vars.secondaryBackgroundColor}
                 style={{
                     borderRadius: BORDER_RADIUS_FULL,
                     overflow: "hidden",

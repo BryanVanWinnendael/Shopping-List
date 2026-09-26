@@ -81,7 +81,6 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
                     glassEffectStyle="regular"
                     isInteractive
                     colorScheme={theme === "light" ? "light" : "dark"}
-                    tintColor={vars.secondaryBackgroundColor}
                     style={styles.container}
                 >
                     {collapsed ? (

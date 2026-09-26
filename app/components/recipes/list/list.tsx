@@ -4,7 +4,6 @@ import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 import { HEADER_HEIGHT } from "@/lib/constants"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 type Props = {
     toggleFavorite: (recipe: RecipeSummary) => void
@@ -16,8 +15,6 @@ type Props = {
 }
 
 export default function RecipesList({ toggleFavorite, sections, getNextPage, refreshing, refresh, loading }: Props) {
-    const insets = useSafeAreaInsets()
-
     const flatListRef = useRef<FlatList>(null)
 
     const renderRecipe = ({ item }: any) => {
