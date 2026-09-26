@@ -40,6 +40,7 @@ export default function AiModel() {
     const { provider, setProvider } = useAiContextStore()
 
     const [downloadingModel, setDownloadingModel] = useState(false)
+    const [downloadProgress, setDownloadProgress] = useState(0)
     const [deletingModel, setDeletingModel] = useState(false)
     const [modelDownloaded, setModelDownloaded] = useState(false)
     const [supportsBuiltInAI, setSupportsBuiltInAI] = useState(false)
@@ -156,18 +157,19 @@ export default function AiModel() {
 
         try {
             setDownloadingModel(true)
+            setDownloadProgress(0)
 
             await downloadLocalModel((progress) => {
-                console.log(`Downloading model: ${Math.round(progress * 100)}%`)
+                setDownloadProgress(progress)
             })
 
             setModelDownloaded(true)
-
             await setProvider("downloaded")
         } catch (error) {
             console.error("Failed to download AI model:", error)
         } finally {
             setDownloadingModel(false)
+            setDownloadProgress(0)
         }
     }
 
@@ -304,13 +306,14 @@ export default function AiModel() {
                         title="Downloaded model"
                         description={
                             downloadingModel
-                                ? "Downloading AI model..."
+                                ? `Downloading AI model... ${Math.round(downloadProgress * 100)}%`
                                 : modelDownloaded
                                   ? "AI model is stored on this device."
                                   : "Download an AI model to this device. Requires about 0.5 GB of storage."
                         }
                         selected={provider === "downloaded"}
                         loading={downloadingModel}
+                        progress={downloadingModel ? downloadProgress : undefined}
                         disabled={downloadingModel || deletingModel}
                         onPress={() => handleSelectProvider("downloaded")}
                     />
@@ -334,6 +337,7 @@ function ProviderOption({
     description,
     selected,
     loading = false,
+    progress,
     disabled = false,
     onPress,
 }: {
@@ -342,6 +346,7 @@ function ProviderOption({
     description: string
     selected: boolean
     loading?: boolean
+    progress?: number
     disabled?: boolean
     onPress: () => void | Promise<void>
 }) {
@@ -382,6 +387,27 @@ function ProviderOption({
                 >
                     {description}
                 </Text>
+
+                {loading && progress !== undefined && (
+                    <View
+                        style={[
+                            styles.progressTrack,
+                            {
+                                backgroundColor: vars.secondaryBorderColor,
+                            },
+                        ]}
+                    >
+                        <View
+                            style={[
+                                styles.progressFill,
+                                {
+                                    backgroundColor: vars.accentColor,
+                                    width: `${Math.round(progress * 100)}%`,
+                                },
+                            ]}
+                        />
+                    </View>
+                )}
             </View>
 
             <CustomSwitch value={selected} onChange={onPress} disabled={disabled} />
@@ -565,5 +591,17 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 2,
         lineHeight: 17,
+    },
+
+    progressTrack: {
+        height: 4,
+        borderRadius: 2,
+        overflow: "hidden",
+        marginTop: 8,
+    },
+
+    progressFill: {
+        height: "100%",
+        borderRadius: 2,
     },
 })

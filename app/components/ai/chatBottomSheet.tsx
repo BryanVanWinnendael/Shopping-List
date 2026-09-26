@@ -103,9 +103,10 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
             })
 
             setModelDownloaded(true)
+
             await setProvider("downloaded")
         } catch (error) {
-            console.error("Failed to download AI model:", error)
+            console.error("Failed to download/load AI model:", error)
         } finally {
             setDownloadingModel(false)
             setDownloadProgress(0)

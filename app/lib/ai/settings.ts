@@ -42,6 +42,16 @@ export async function downloadLocalModel(onProgress?: (progress: number) => void
 
     await AsyncStorage.setItem(AI_MODEL_DOWNLOADED_KEY, "true")
 
+    // The model is downloaded, now load it into memory.
+    const { setModel } = await import("expo-ai-kit")
+
+    await setModel(AI_MODEL_ID, {
+        generation: {
+            temperature: 0.7,
+            maxTokens: 512,
+        },
+    })
+
     return AI_MODEL_ID
 }
 

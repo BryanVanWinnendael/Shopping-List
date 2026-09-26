@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useState } from "react"
 import { StyleSheet, View } from "react-native"
 import CommunityBottomSheet from "@expo/ui/community/bottom-sheet"
-import { BottomSheet, Button, Host, RNHostView } from "@expo/ui/swift-ui"
+import { BottomSheet, Button, Group, Host, RNHostView } from "@expo/ui/swift-ui"
 import { presentationBackground, presentationDetents, presentationDragIndicator } from "@expo/ui/swift-ui/modifiers"
 
 export type AppBottomSheetMethods = {
@@ -19,52 +19,25 @@ export type BottomSheetBackgroundMode = "default" | "adaptive"
 
 type Props = {
     children: React.ReactNode
-
     index?: number
-
     snapPoints?: (string | number)[]
-
     enablePanDownToClose?: boolean
-
     enableDynamicSizing?: boolean
-
     onClose?: () => void
-
-    /**
-     * "default"
-     *   Uses the normal native sheet background.
-     *
-     * "adaptive"
-     *   Collapsed = native system material
-     *   Expanded = backgroundColor
-     */
     backgroundMode?: BottomSheetBackgroundMode
-
-    /**
-     * Background used by the expanded detent.
-     */
     backgroundColor?: string
 }
 
 type ProductionProps = {
     children: React.ReactNode
-
     index: number
-
     snapPoints: (string | number)[]
-
     enablePanDownToClose?: boolean
-
     onClose?: () => void
-
     backgroundMode?: BottomSheetBackgroundMode
-
     backgroundColor?: string
 }
 
-/**
- * Production/native implementation using Expo UI SwiftUI BottomSheet.
- */
 const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>(
     (
         {
@@ -83,15 +56,13 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
         const [currentIndex, setCurrentIndex] = useState(Math.max(index, 0))
 
         /**
-         * Convert the React Native/RNGH-style snap points into
-         * SwiftUI presentation detents.
+         * Convert your existing React Native style snap points
+         * into Expo UI presentation detents.
          */
         const detents = useMemo(() => {
             return snapPoints.map((point) => {
                 if (typeof point === "number") {
-                    return {
-                        height: point,
-                    } as const
+                    return { height: point } as const
                 }
 
                 if (point.endsWith("%")) {
@@ -100,6 +71,10 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                     return {
                         fraction: percentage / 100,
                     } as const
+                }
+
+                if (point === "medium") {
+                    return "medium" as const
                 }
 
                 if (point === "large") {
@@ -114,22 +89,20 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
 
         const selectedDetent = detents[safeCurrentIndex]
 
-        /**
-         * Expo UI modifiers applied directly to the native
-         * BottomSheet.
-         */
         const modifiers = useMemo(() => {
             const result = [
                 presentationDetents(detents as any, {
                     selection: selectedDetent as any,
-
                     onSelectionChange: (detent: any) => {
                         const nextIndex = detents.findIndex((item) => {
                             if (typeof item === "object" && typeof detent === "object") {
-                                return (
-                                    ("fraction" in item && "fraction" in detent && item.fraction === detent.fraction) ||
-                                    ("height" in item && "height" in detent && item.height === detent.height)
-                                )
+                                if ("fraction" in item && "fraction" in detent) {
+                                    return item.fraction === detent.fraction
+                                }
+
+                                if ("height" in item && "height" in detent) {
+                                    return item.height === detent.height
+                                }
                             }
 
                             return item === detent
@@ -144,21 +117,20 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                 presentationDragIndicator("visible"),
             ]
 
-            if (
-                backgroundMode === "adaptive" &&
-                backgroundColor &&
-                detents.length > 0 &&
-                safeCurrentIndex === detents.length - 1
-            ) {
+            if (backgroundMode === "adaptive" && backgroundColor) {
                 result.push(presentationBackground(backgroundColor))
             }
 
             return result
-        }, [backgroundMode, backgroundColor, detents, safeCurrentIndex, selectedDetent])
+        }, [backgroundMode, backgroundColor, detents, selectedDetent])
 
         useImperativeHandle(
             ref,
             () => ({
+                present: () => {
+                    setIsPresented(true)
+                },
+
                 close: () => {
                     setIsPresented(false)
                 },
@@ -171,23 +143,15 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                     setIsPresented(false)
                 },
 
-                present: () => {
-                    setIsPresented(true)
-                },
-
                 collapse: () => {
-                    if (detents.length === 0) {
-                        return
-                    }
+                    if (detents.length === 0) return
 
                     setCurrentIndex(0)
                     setIsPresented(true)
                 },
 
                 expand: () => {
-                    if (detents.length === 0) {
-                        return
-                    }
+                    if (detents.length === 0) return
 
                     setCurrentIndex(detents.length - 1)
                     setIsPresented(true)
@@ -199,9 +163,7 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                         return
                     }
 
-                    if (detents.length === 0) {
-                        return
-                    }
+                    if (detents.length === 0) return
 
                     const safeIndex = Math.min(nextIndex, detents.length - 1)
 
@@ -212,9 +174,7 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                 snapToPosition: (position) => {
                     const nextIndex = snapPoints.findIndex((point) => point === position)
 
-                    if (nextIndex < 0) {
-                        return
-                    }
+                    if (nextIndex < 0) return
 
                     setCurrentIndex(nextIndex)
                     setIsPresented(true)
@@ -237,11 +197,12 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
                     isPresented={isPresented}
                     onIsPresentedChange={handlePresentedChange}
                     anchor={<Button label="" onPress={() => {}} />}
-                    modifiers={modifiers}
                 >
-                    <RNHostView>
-                        <View style={styles.content}>{children}</View>
-                    </RNHostView>
+                    <Group modifiers={modifiers}>
+                        <RNHostView>
+                            <View style={styles.content}>{children}</View>
+                        </RNHostView>
+                    </Group>
                 </BottomSheet>
             </Host>
         )
@@ -250,15 +211,6 @@ const ProductionBottomSheet = forwardRef<AppBottomSheetMethods, ProductionProps>
 
 ProductionBottomSheet.displayName = "ProductionBottomSheet"
 
-/**
- * Public AppBottomSheet.
- *
- * DEV:
- *   Uses Expo community implementation so it works in Expo Go.
- *
- * Production:
- *   Uses the native SwiftUI BottomSheet.
- */
 const AppBottomSheet = forwardRef<AppBottomSheetMethods, Props>(
     (
         {
@@ -312,8 +264,8 @@ const styles = StyleSheet.create({
         width: 0,
         height: 0,
     },
+
     content: {
-        flex: 1,
         backgroundColor: "transparent",
     },
 })
