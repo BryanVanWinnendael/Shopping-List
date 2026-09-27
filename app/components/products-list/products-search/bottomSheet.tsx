@@ -4,7 +4,7 @@ import ExpoBottomSheet from "@expo/ui/community/bottom-sheet"
 import Product from "@/components/products-search/product"
 import { useProductsSearchList } from "@/hooks/products-search/useProductsSearchList"
 import useThemes from "@/hooks/themes/useThemes"
-import AppBottomSheet from "@/components/native/appBottomSheet"
+import AppBottomSheet from "@/components/native/bottom-sheet/appBottomSheet"
 import { BlurView } from "expo-blur"
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
 }
 
 export default function BottomSheet({ sheetRef, onClose }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { states, refs, actions } = useProductsSearchList()
 
     return (
@@ -24,7 +24,6 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
             enablePanDownToClose
             onClose={onClose}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             <View
                 style={{
@@ -45,7 +44,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                 >
                     <BlurView
                         intensity={10}
-                        tint={theme === "light" ? "light" : "dark"}
+                        tint={appearance}
                         style={{
                             flex: 1,
                             paddingHorizontal: 20,
@@ -58,8 +57,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                         <Text
                             style={{
                                 marginBottom: 10,
-                                color: vars.textColor,
-                                opacity: 0.2,
+                                color: vars.tertiaryTextColor,
                             }}
                         >
                             Found results: {states.total}
@@ -68,8 +66,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                         <Text
                             style={{
                                 marginBottom: 10,
-                                color: vars.textColor,
-                                opacity: 0.2,
+                                color: vars.tertiaryTextColor,
                             }}
                         >
                             Last updated: {states.dateUpdated}

@@ -2,7 +2,6 @@ import { PressableScale } from "pressto"
 import { Plus } from "lucide-react-native"
 import { GlassView } from "expo-glass-effect"
 import { View } from "react-native"
-
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
@@ -11,7 +10,7 @@ type Props = {
 }
 
 export default function BottomSheetButton({ onPress }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <View
@@ -27,7 +26,7 @@ export default function BottomSheetButton({ onPress }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={{
                     height: 48,
                     width: 48,

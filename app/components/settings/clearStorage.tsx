@@ -6,9 +6,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function ClearStorage() {
-    const { vars, theme } = useThemes()
-
-    const colorScheme = theme === "light" ? "light" : "dark"
+    const { vars, appearance } = useThemes()
 
     const handleClearStorage = async () => {
         await AsyncStorage.clear()
@@ -28,12 +26,7 @@ export default function ClearStorage() {
             <View style={styles.row}>
                 <Text style={[styles.title, { color: vars.textColor }]}>Clear Storage</Text>
 
-                <GlassView
-                    glassEffectStyle="regular"
-                    isInteractive
-                    colorScheme={colorScheme}
-                    style={styles.buttonGlass}
-                >
+                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.buttonGlass}>
                     <PressableScale onPress={handleClearStorage} style={styles.button}>
                         <Text
                             style={[

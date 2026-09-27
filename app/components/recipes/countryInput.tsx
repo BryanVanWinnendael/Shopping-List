@@ -12,7 +12,7 @@ type Props = {
 }
 
 export default function CountryInput({ value, onChange }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     const [visible, setVisible] = useState(false)
     const [query, setQuery] = useState("")
@@ -63,8 +63,8 @@ export default function CountryInput({ value, onChange }: Props) {
                             borderColor: vars.borderColor,
                             marginBottom: 12,
                         }}
-                        placeholderTextColor="#aaa"
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
                     />
 
                     <FlatList

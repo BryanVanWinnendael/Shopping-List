@@ -21,7 +21,7 @@ import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M, DEFAULT_ACOLOR } 
 import useThemes from "@/hooks/themes/useThemes"
 
 export default function AColor() {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
     const { aColor, setAColor, setAColorUse, aColorUse } = useSettingsStore()
 
     const currentColor = useSharedValue(aColor)
@@ -30,8 +30,6 @@ export default function AColor() {
 
     const [modalVisible, setModalVisible] = useState(false)
     const [pickedColor, setPickedColor] = useState(aColor)
-
-    const colorScheme = theme === "light" ? "light" : "dark"
 
     const onColorChange = (color: ColorFormatsObject) => {
         "worklet"
@@ -105,7 +103,7 @@ export default function AColor() {
                     <GlassView
                         glassEffectStyle="regular"
                         isInteractive={false}
-                        colorScheme={colorScheme}
+                        colorScheme={appearance}
                         style={styles.iconGlass}
                     >
                         <View style={styles.iconWrapper}>
@@ -138,7 +136,7 @@ export default function AColor() {
                     </View>
                 </View>
 
-                <GlassView glassEffectStyle="regular" isInteractive colorScheme={colorScheme} style={styles.editGlass}>
+                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.editGlass}>
                     <PressableScale onPress={openModal} style={styles.editButton}>
                         <View
                             style={[
@@ -199,13 +197,13 @@ export default function AColor() {
             </View>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
-                <BlurView intensity={24} tint={theme === "light" ? "light" : "dark"} style={styles.modalOverlay}>
+                <BlurView intensity={24} tint={appearance} style={styles.modalOverlay}>
                     <Animated.View
                         entering={FadeIn.duration(180)}
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
+                        <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text
@@ -232,7 +230,7 @@ export default function AColor() {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.closeGlass}
                                 >
                                     <PressableScale onPress={closeModal} style={styles.closeButton}>
@@ -261,7 +259,7 @@ export default function AColor() {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.secondaryGlass}
                                 >
                                     <PressableScale onPress={resetToDefault} style={styles.secondaryButton}>
@@ -279,7 +277,7 @@ export default function AColor() {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.primaryGlass}
                                 >
                                     <PressableScale

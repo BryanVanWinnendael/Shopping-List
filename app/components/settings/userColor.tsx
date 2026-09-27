@@ -25,7 +25,7 @@ type Props = {
 }
 
 export default function UserColor({ user }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
     const { setUserColors, userColors } = useSettingsStore()
 
     const currentColor = useSharedValue(vars.accentColor)
@@ -37,8 +37,6 @@ export default function UserColor({ user }: Props) {
     const resetColor = theme === "light" ? "#9ca3af" : "#50555C"
 
     const [pickedColor, setPickedColor] = useState(userColors.colors[user] ? userColors.colors[user] : resetColor)
-
-    const colorScheme = theme === "light" ? "light" : "dark"
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
@@ -126,7 +124,7 @@ export default function UserColor({ user }: Props) {
                 {user}
             </Text>
 
-            <GlassView glassEffectStyle="regular" isInteractive colorScheme={colorScheme} style={styles.buttonGlass}>
+            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.buttonGlass}>
                 <PressableScale onPress={openModal} style={styles.button}>
                     <View
                         style={[
@@ -151,13 +149,13 @@ export default function UserColor({ user }: Props) {
             </GlassView>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
-                <BlurView intensity={24} tint={theme === "light" ? "light" : "dark"} style={styles.modalOverlay}>
+                <BlurView intensity={24} tint={appearance} style={styles.modalOverlay}>
                     <Animated.View
                         entering={FadeIn.duration(180)}
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
+                        <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text
@@ -184,7 +182,7 @@ export default function UserColor({ user }: Props) {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.closeGlass}
                                 >
                                     <PressableScale onPress={closeModal} style={styles.closeButton}>
@@ -213,7 +211,7 @@ export default function UserColor({ user }: Props) {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.secondaryGlass}
                                 >
                                     <PressableScale onPress={resetToDefault} style={styles.secondaryButton}>
@@ -232,7 +230,7 @@ export default function UserColor({ user }: Props) {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.primaryGlass}
                                 >
                                     <PressableScale

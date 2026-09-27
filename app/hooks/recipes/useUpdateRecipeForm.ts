@@ -4,7 +4,7 @@ import * as ImagePicker from "expo-image-picker"
 import { Country, Ingredient, UpdateRecipeRequest } from "@/types/recipes"
 import { Recipe } from "@/types/generated/models/recipe"
 import { MealType } from "@/types/generated/models/meal_type"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 function convertToCountry(countryStr?: string | null): Country | null {
     if (!countryStr) return null

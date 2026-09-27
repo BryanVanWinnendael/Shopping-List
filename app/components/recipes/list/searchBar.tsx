@@ -26,7 +26,7 @@ const AnimatedView = Animated.createAnimatedComponent(Animated.View)
 const AnimatedGlassView = Animated.createAnimatedComponent(GlassView)
 
 export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { width } = useWindowDimensions()
 
     const right = useSharedValue(140)
@@ -72,7 +72,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
             <AnimatedGlassView
                 glassEffectStyle="regular"
                 isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={[
                     {
                         flexDirection: "row",
@@ -113,7 +113,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                             onChangeText={updateQuery}
                             onFocus={handleFocus}
                             placeholder="Search recipes..."
-                            placeholderTextColor="gray"
+                            placeholderTextColor={vars.tertiaryTextColor}
                             returnKeyType="search"
                             style={{
                                 flex: 1,
@@ -121,7 +121,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                                 fontSize: 17,
                                 color: vars.textColor,
                             }}
-                            keyboardAppearance={theme === "light" ? "light" : "dark"}
+                            keyboardAppearance={appearance}
                         />
 
                         {value.length > 0 && (

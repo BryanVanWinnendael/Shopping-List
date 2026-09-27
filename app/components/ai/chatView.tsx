@@ -66,7 +66,7 @@ function getProviderLabel(provider: AIProvider) {
 }
 
 export default function ChatView({ pathname, provider }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     const { title } = useGlobalSearchParams<{
         title?: string
@@ -168,7 +168,7 @@ export default function ChatView({ pathname, provider }: Props) {
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.headerOverlay}>
-                <BlurView intensity={10} tint={theme === "light" ? "light" : "dark"} style={styles.headerBlur}>
+                <BlurView intensity={10} tint={appearance} style={styles.headerBlur}>
                     <View style={styles.headerContent}>
                         <View
                             style={[
@@ -338,14 +338,14 @@ export default function ChatView({ pathname, provider }: Props) {
                         style={styles.glassInput}
                         glassEffectStyle="regular"
                         isInteractive
-                        colorScheme={theme === "light" ? "light" : "dark"}
+                        colorScheme={appearance}
                     >
                         <TextInput
                             value={input}
                             onChangeText={setInput}
                             placeholder={`Ask about ${pageTitle.toLowerCase()}…`}
                             placeholderTextColor="#999"
-                            keyboardAppearance={theme === "light" ? "light" : "dark"}
+                            keyboardAppearance={appearance}
                             style={[
                                 styles.input,
                                 {

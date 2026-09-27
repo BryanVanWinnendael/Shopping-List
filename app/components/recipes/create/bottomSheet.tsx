@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, Text, View } from "react-native"
 import { RefObject } from "react"
 import Form from "@/components/recipes/create/form"
 import useThemes from "@/hooks/themes/useThemes"
-import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 type Props = {
     sheetRef: RefObject<BottomSheetRef | null>
@@ -11,7 +11,7 @@ type Props = {
 }
 
 export default function BottomSheet({ sheetRef, onClose }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <AppBottomSheet
@@ -21,7 +21,6 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
             enablePanDownToClose
             onClose={onClose}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             <View style={{ flex: 1 }}>
                 <View
@@ -37,7 +36,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                 >
                     <BlurView
                         intensity={10}
-                        tint={theme === "light" ? "light" : "dark"}
+                        tint={appearance}
                         style={{
                             flex: 1,
                             paddingHorizontal: 20,

@@ -1,6 +1,5 @@
 import { Animated, Modal, Pressable, StyleSheet, Text, View } from "react-native"
 import * as ImagePicker from "expo-image-picker"
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
 import { SaveFormat, useImageManipulator } from "expo-image-manipulator"
 import { useEffect, useRef, useState } from "react"
@@ -20,8 +19,7 @@ type Props = {
 const FIFTEEN_MB = 15 * 1024 * 1024
 
 export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = () => {} }: Props) {
-    const { vars } = useThemes()
-    const { theme } = useSettingsStore()
+    const { vars, appearance, theme } = useThemes()
 
     const [permission, requestPermission] = useCameraPermissions()
 
@@ -183,7 +181,7 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
                             style={styles.menu}
                             glassEffectStyle="regular"
                             isInteractive
-                            colorScheme={theme === "light" ? "light" : "dark"}
+                            colorScheme={appearance}
                         >
                             <PressableScale onPress={openCamera} style={styles.menuItem}>
                                 <View
@@ -255,7 +253,7 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
                         style={styles.cameraCloseGlass}
                         glassEffectStyle="regular"
                         isInteractive
-                        colorScheme={theme === "light" ? "light" : "dark"}
+                        colorScheme={appearance}
                     >
                         <PressableScale onPress={() => setCameraVisible(false)} style={styles.cameraControl}>
                             <X size={20} color="#fff" strokeWidth={2} />
@@ -266,7 +264,7 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
                         style={styles.cameraFlipGlass}
                         glassEffectStyle="regular"
                         isInteractive
-                        colorScheme={theme === "light" ? "light" : "dark"}
+                        colorScheme={appearance}
                     >
                         <PressableScale onPress={flipCamera} style={styles.cameraControl}>
                             <RotateCcw size={19} color="#fff" strokeWidth={2} />
@@ -286,12 +284,7 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
     if (type === "list") {
         return (
             <View style={styles.listContainer}>
-                <GlassView
-                    style={styles.listGlass}
-                    glassEffectStyle="regular"
-                    isInteractive
-                    colorScheme={theme === "light" ? "light" : "dark"}
-                >
+                <GlassView style={styles.listGlass} glassEffectStyle="regular" isInteractive colorScheme={appearance}>
                     <PressableScale onPress={openMenu} style={styles.listButton}>
                         <ImagePlus size={21} color={vars.textColor} strokeWidth={2} />
                     </PressableScale>

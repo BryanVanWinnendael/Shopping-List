@@ -4,7 +4,6 @@ import Svg, { Path } from "react-native-svg"
 import { GlassView } from "expo-glass-effect"
 import { Product } from "@/types/list"
 import useThemes from "@/hooks/themes/useThemes"
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
@@ -15,19 +14,13 @@ type Props = {
 }
 
 export default function ProductInput({ product, value, updateName, updateProduct }: Props) {
-    const { vars } = useThemes()
-    const { theme } = useSettingsStore()
+    const { vars, appearance } = useThemes()
 
     const inputValue = value || product?.name || ""
 
     return (
         <View style={styles.container}>
-            <GlassView
-                style={styles.glassView}
-                glassEffectStyle="regular"
-                isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
-            >
+            <GlassView style={styles.glassView} glassEffectStyle="regular" isInteractive colorScheme={appearance}>
                 <View style={styles.inputRow}>
                     <TextInput
                         autoFocus
@@ -35,7 +28,7 @@ export default function ProductInput({ product, value, updateName, updateProduct
                         onChangeText={updateName}
                         placeholder="Edit product..."
                         placeholderTextColor="#999"
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        keyboardAppearance={appearance}
                         returnKeyType="done"
                         onSubmitEditing={updateProduct}
                         style={[

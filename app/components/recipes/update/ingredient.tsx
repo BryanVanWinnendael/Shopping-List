@@ -16,16 +16,14 @@ type Props = {
 }
 
 export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRemoveImage }: Props) {
-    const { vars, theme } = useThemes()
-
-    const colorScheme = theme === "light" ? "light" : "dark"
+    const { vars, appearance } = useThemes()
 
     const imageUri = ingredient.url ?? ingredient.image?.uri
 
     return (
         <GlassView
             glassEffectStyle="regular"
-            colorScheme={colorScheme}
+            colorScheme={appearance}
             style={{
                 position: "relative",
                 borderRadius: BORDER_RADIUS_L,
@@ -45,7 +43,7 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
                 <GlassView
                     glassEffectStyle="regular"
                     isInteractive
-                    colorScheme={colorScheme}
+                    colorScheme={appearance}
                     style={{
                         width: 30,
                         height: 30,
@@ -73,9 +71,9 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
                 value={ingredient.product ?? ""}
                 onChangeText={(value) => onUpdate(index, "product", value)}
                 placeholder="Ingredient"
-                placeholderTextColor="gray"
+                placeholderTextColor={vars.tertiaryTextColor}
                 returnKeyType="done"
-                keyboardAppearance={theme === "light" ? "light" : "dark"}
+                keyboardAppearance={appearance}
                 style={{
                     height: 46,
                     paddingHorizontal: 14,
@@ -110,7 +108,6 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
                         resizeMode="contain"
                     />
 
-                    {/* Remove image */}
                     <View
                         style={{
                             position: "absolute",
@@ -122,7 +119,7 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
                         <GlassView
                             glassEffectStyle="regular"
                             isInteractive
-                            colorScheme={colorScheme}
+                            colorScheme={appearance}
                             style={{
                                 width: 30,
                                 height: 30,
@@ -193,7 +190,7 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
 
                         <Text
                             style={{
-                                color: "gray",
+                                color: vars.tertiaryTextColor,
                                 fontSize: 12,
                                 marginTop: 2,
                             }}

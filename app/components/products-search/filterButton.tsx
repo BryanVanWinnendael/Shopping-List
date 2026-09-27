@@ -12,7 +12,7 @@ type Props = {
 }
 
 export default function FilterButton({ open, shifted }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [
@@ -41,7 +41,7 @@ export default function FilterButton({ open, shifted }: Props) {
                 <GlassView
                     glassEffectStyle="regular"
                     isInteractive
-                    colorScheme={theme === "light" ? "light" : "dark"}
+                    colorScheme={appearance}
                     style={{
                         flexDirection: "row",
                         borderRadius: BORDER_RADIUS_L,

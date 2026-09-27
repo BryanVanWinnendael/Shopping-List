@@ -4,7 +4,7 @@ import { Product } from "@/types/list"
 import { modelClient } from "@/lib/model"
 import { updateCategory as updateFirebaseCategory } from "@/lib/firebase"
 import { Category } from "@/types/generated/models/category"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 export function useCategories() {
     const bottomSheetRef = useRef<BottomSheetRef>(null)

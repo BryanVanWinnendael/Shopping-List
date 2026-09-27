@@ -22,7 +22,7 @@ import { Type, X } from "lucide-react-native"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 export default function FontSize() {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
     const { fontSize, setFontSize } = useSettingsStore()
 
     const scale = useSharedValue(0.96)
@@ -30,8 +30,6 @@ export default function FontSize() {
 
     const [modalVisible, setModalVisible] = useState(false)
     const [tempFontSize, setTempFontSize] = useState(fontSize)
-
-    const colorScheme = theme === "light" ? "light" : "dark"
 
     const getTextSize = tempFontSize / 2
     const getLabelSize = tempFontSize / 3
@@ -99,7 +97,7 @@ export default function FontSize() {
                     <GlassView
                         glassEffectStyle="regular"
                         isInteractive={false}
-                        colorScheme={colorScheme}
+                        colorScheme={appearance}
                         style={styles.iconGlass}
                     >
                         <View style={styles.iconWrapper}>
@@ -131,7 +129,7 @@ export default function FontSize() {
                     </View>
                 </View>
 
-                <GlassView glassEffectStyle="regular" isInteractive colorScheme={colorScheme} style={styles.editGlass}>
+                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.editGlass}>
                     <PressableScale onPress={openModal} style={styles.editButton}>
                         <Text
                             style={{
@@ -147,13 +145,13 @@ export default function FontSize() {
             </View>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
-                <BlurView intensity={24} tint={theme === "light" ? "light" : "dark"} style={styles.modalOverlay}>
+                <BlurView intensity={24} tint={appearance} style={styles.modalOverlay}>
                     <Animated.View
                         entering={FadeIn.duration(180)}
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
+                        <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text
@@ -180,7 +178,7 @@ export default function FontSize() {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.closeGlass}
                                 >
                                     <PressableScale onPress={closeModal} style={styles.closeButton}>
@@ -212,7 +210,7 @@ export default function FontSize() {
 
                             <GlassView
                                 glassEffectStyle="regular"
-                                colorScheme={colorScheme}
+                                colorScheme={appearance}
                                 style={styles.previewContainer}
                             >
                                 <View style={styles.previewRow}>
@@ -257,7 +255,7 @@ export default function FontSize() {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.secondaryGlass}
                                 >
                                     <PressableScale onPress={resetFontSize} style={styles.secondaryButton}>
@@ -276,7 +274,7 @@ export default function FontSize() {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.primaryGlass}
                                 >
                                     <PressableScale

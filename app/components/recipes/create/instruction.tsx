@@ -14,14 +14,12 @@ type Props = {
 }
 
 export default function Instruction({ instruction, index, onUpdate, onRemove }: Props) {
-    const { vars, theme } = useThemes()
-
-    const colorScheme = theme === "light" ? "light" : "dark"
+    const { vars, appearance } = useThemes()
 
     return (
         <GlassView
             glassEffectStyle="regular"
-            colorScheme={colorScheme}
+            colorScheme={appearance}
             style={{
                 flexDirection: "row",
                 alignItems: "flex-start",
@@ -67,11 +65,11 @@ export default function Instruction({ instruction, index, onUpdate, onRemove }: 
                 value={instruction}
                 onChangeText={(text) => onUpdate(index, text)}
                 placeholder={`Step ${index + 1}`}
-                placeholderTextColor="gray"
+                placeholderTextColor={vars.tertiaryTextColor}
                 multiline
                 textAlignVertical="top"
                 scrollEnabled
-                keyboardAppearance={theme === "light" ? "light" : "dark"}
+                keyboardAppearance={appearance}
                 style={{
                     flex: 1,
                     minHeight: 46,

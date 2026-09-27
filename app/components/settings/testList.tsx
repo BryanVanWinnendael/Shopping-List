@@ -10,11 +10,9 @@ import { GlassView } from "expo-glass-effect"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function TestList() {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { user } = useSettingsStore()
     const { products } = useProductsListStore()
-
-    const colorScheme = theme === "light" ? "light" : "dark"
 
     const handleAddTestList = async () => {
         if (!user) return
@@ -68,7 +66,7 @@ export default function TestList() {
                     <GlassView
                         glassEffectStyle="regular"
                         isInteractive
-                        colorScheme={colorScheme}
+                        colorScheme={appearance}
                         style={styles.buttonGlass}
                     >
                         <PressableScale onPress={handleAddTestList} style={styles.button}>
@@ -112,7 +110,7 @@ export default function TestList() {
                     <GlassView
                         glassEffectStyle="regular"
                         isInteractive
-                        colorScheme={colorScheme}
+                        colorScheme={appearance}
                         style={styles.buttonGlass}
                     >
                         <PressableScale onPress={handleRemoveTestList} style={styles.button}>

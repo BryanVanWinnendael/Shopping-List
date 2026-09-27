@@ -7,7 +7,7 @@ import { PressableScale } from "pressto"
 import { USERS_ARRAY } from "@/lib/constants"
 import { User } from "@/types"
 import useThemes from "@/hooks/themes/useThemes"
-import AppBottomSheet from "@/components/native/appBottomSheet"
+import AppBottomSheet from "@/components/native/bottom-sheet/appBottomSheet"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
@@ -35,7 +35,6 @@ export default function BottomSheet({ close, sheetRef }: Props) {
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             <View style={styles.sheetContainer}>
                 <Text

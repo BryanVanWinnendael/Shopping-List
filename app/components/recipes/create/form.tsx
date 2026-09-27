@@ -29,13 +29,9 @@ type Props = {
 }
 
 export default function Form({ onClose }: Props) {
-    const { vars, theme } = useThemes()
-
+    const { vars, appearance } = useThemes()
     const { actions: addRecipeActions, states: addRecipeStates } = useCreateRecipe()
-
     const { actions: addRecipeFormActions, states: addRecipeFormStates } = useCreateRecipeForm()
-
-    const colorScheme = theme === "light" ? "light" : "dark"
 
     const createRecipe = async () => {
         const createRecipeRequest = addRecipeFormActions.getCreateRecipeRequest()
@@ -115,8 +111,8 @@ export default function Form({ onClose }: Props) {
                         onChangeText={addRecipeFormActions.setTitle}
                         style={inputStyle}
                         placeholder="Recipe title"
-                        placeholderTextColor="gray"
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
                     />
                 </View>
 
@@ -126,7 +122,7 @@ export default function Form({ onClose }: Props) {
 
                         <Text
                             style={{
-                                color: theme === "light" ? "#6b7280" : "#8b9199",
+                                color: vars.tertiaryTextColor,
                                 fontSize: 13,
                                 marginTop: -5,
                             }}
@@ -157,7 +153,7 @@ export default function Form({ onClose }: Props) {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.closeGlass}
                                 >
                                     <PressableScale
@@ -182,14 +178,13 @@ export default function Form({ onClose }: Props) {
                         onChangeText={addRecipeFormActions.setSource}
                         style={inputStyle}
                         placeholder="https://..."
-                        placeholderTextColor="gray"
+                        placeholderTextColor={vars.tertiaryTextColor}
                         autoCapitalize="none"
                         autoCorrect={false}
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        keyboardAppearance={appearance}
                     />
                 </View>
 
-                {/* Meal Type */}
                 <View style={styles.section}>
                     <Text style={labelStyle}>Meal Type</Text>
 
@@ -215,8 +210,8 @@ export default function Form({ onClose }: Props) {
                         returnKeyType="done"
                         style={inputStyle}
                         placeholder="e.g. 45 minutes"
-                        placeholderTextColor="gray"
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
                     />
                 </View>
 
@@ -230,8 +225,8 @@ export default function Form({ onClose }: Props) {
                         returnKeyType="done"
                         style={inputStyle}
                         placeholder="e.g. 4"
-                        placeholderTextColor="gray"
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
                     />
                 </View>
 
@@ -312,7 +307,7 @@ export default function Form({ onClose }: Props) {
                 <GlassView
                     glassEffectStyle="regular"
                     isInteractive={!addRecipeStates.loading}
-                    colorScheme={colorScheme}
+                    colorScheme={appearance}
                     style={styles.createGlass}
                 >
                     <PressableScale

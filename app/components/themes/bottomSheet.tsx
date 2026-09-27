@@ -9,7 +9,7 @@ import { Theme } from "@/types"
 import { THEMES } from "@/lib/constants"
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
-import AppBottomSheet from "@/components/native/appBottomSheet"
+import AppBottomSheet from "@/components/native/bottom-sheet/appBottomSheet"
 
 type Props = {
     close: () => void
@@ -32,7 +32,6 @@ export default function BottomSheet({ close, sheetRef }: Props) {
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             <View style={styles.container}>
                 <Text

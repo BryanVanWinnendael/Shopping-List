@@ -9,14 +9,14 @@ type Props = {
 }
 
 export default function MealTypeSegment({ value, onChange }: Props) {
-    const { theme } = useThemes()
+    const { appearance } = useThemes()
     const selectedIndex = MEAL_TYPES.findIndex((type) => type.toLowerCase() === value.toLowerCase())
 
     return (
         <AppSegmentedControl
             values={MEAL_TYPES}
             selectedIndex={selectedIndex >= 0 ? selectedIndex : 0}
-            appearance={theme === "light" ? "light" : "dark"}
+            appearance={appearance}
             onChange={(_, nextValue) => {
                 onChange(nextValue as MealType)
             }}

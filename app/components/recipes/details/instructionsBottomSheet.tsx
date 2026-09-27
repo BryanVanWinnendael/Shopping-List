@@ -1,8 +1,7 @@
 import { BlurView } from "expo-blur"
 import { RefObject } from "react"
 import { ScrollView, Text, View } from "react-native"
-
-import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import useThemes from "@/hooks/themes/useThemes"
 
 type Props = {
@@ -12,7 +11,7 @@ type Props = {
 }
 
 export default function InstructionsBottomSheet({ sheetRef, close, instructions }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <AppBottomSheet
@@ -22,10 +21,8 @@ export default function InstructionsBottomSheet({ sheetRef, close, instructions 
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             <View style={{ flex: 1 }}>
-                {/* Header */}
                 <View
                     style={{
                         position: "absolute",
@@ -39,7 +36,7 @@ export default function InstructionsBottomSheet({ sheetRef, close, instructions 
                 >
                     <BlurView
                         intensity={10}
-                        tint={theme === "light" ? "light" : "dark"}
+                        tint={appearance}
                         style={{
                             flex: 1,
                             paddingHorizontal: 20,

@@ -11,7 +11,7 @@ type Props = {
 }
 
 export default function TrainButton({ training, trainModel }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <PressableScale
@@ -28,7 +28,7 @@ export default function TrainButton({ training, trainModel }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive={!training}
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={{
                     height: 48,
                     borderRadius: BORDER_RADIUS_L,

@@ -18,14 +18,12 @@ import { Sparkles, X } from "lucide-react-native"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function Update() {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
 
     const [modalVisible, setModalVisible] = useState(false)
 
     const scale = useSharedValue(0.96)
     const opacity = useSharedValue(0)
-
-    const colorScheme = theme === "light" ? "light" : "dark"
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
@@ -78,7 +76,7 @@ export default function Update() {
                     <GlassView
                         glassEffectStyle="regular"
                         isInteractive={false}
-                        colorScheme={colorScheme}
+                        colorScheme={appearance}
                         style={styles.iconGlass}
                     >
                         <View style={styles.iconWrapper}>
@@ -110,7 +108,7 @@ export default function Update() {
                     </View>
                 </View>
 
-                <GlassView glassEffectStyle="regular" isInteractive colorScheme={colorScheme} style={styles.readGlass}>
+                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.readGlass}>
                     <PressableScale onPress={openModal} style={styles.readButton}>
                         <Text
                             style={{
@@ -126,13 +124,13 @@ export default function Update() {
             </View>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
-                <BlurView intensity={24} tint={theme === "light" ? "light" : "dark"} style={styles.modalOverlay}>
+                <BlurView intensity={24} tint={appearance} style={styles.modalOverlay}>
                     <Animated.View
                         entering={FadeIn.duration(180)}
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
+                        <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text
@@ -159,7 +157,7 @@ export default function Update() {
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.closeGlass}
                                 >
                                     <PressableScale onPress={closeModal} style={styles.closeButton}>
@@ -217,7 +215,7 @@ export default function Update() {
                                                 {update.version && (
                                                     <GlassView
                                                         glassEffectStyle="regular"
-                                                        colorScheme={colorScheme}
+                                                        colorScheme={appearance}
                                                         style={{
                                                             borderRadius: BORDER_RADIUS_FULL,
                                                             overflow: "hidden",
@@ -288,7 +286,7 @@ export default function Update() {
                             <GlassView
                                 glassEffectStyle="regular"
                                 isInteractive
-                                colorScheme={colorScheme}
+                                colorScheme={appearance}
                                 style={styles.doneGlass}
                             >
                                 <PressableScale

@@ -11,10 +11,8 @@ import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function UserColors() {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
     const { setUserColors, userColors } = useSettingsStore()
-
-    const colorScheme = theme === "light" ? "light" : "dark"
 
     return (
         <View
@@ -31,7 +29,7 @@ export default function UserColors() {
                 <View style={styles.titleContainer}>
                     <GlassView
                         glassEffectStyle="regular"
-                        colorScheme={colorScheme}
+                        colorScheme={appearance}
                         isInteractive={false}
                         style={styles.iconGlass}
                     >

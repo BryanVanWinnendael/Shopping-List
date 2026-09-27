@@ -16,7 +16,7 @@ type Props = {
 }
 
 export default function AddToRecipesButton({ recipe }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { actions, states } = useOnlineRecipeDetails()
 
     const addToRecipe = useCallback(() => {
@@ -74,7 +74,7 @@ export default function AddToRecipesButton({ recipe }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={[
                     {
                         borderRadius: BORDER_RADIUS_FULL,

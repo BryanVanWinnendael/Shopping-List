@@ -4,7 +4,7 @@ import { Category } from "@/types/generated/models/category"
 import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
 import { useHeaderStore } from "@/stores/useHeaderStore"
 import { DEBOUNCE_TIME } from "@/lib/constants"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 const EMPTY_RESULT: ProductsSearchResponse = {
     products: [],

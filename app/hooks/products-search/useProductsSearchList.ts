@@ -3,7 +3,7 @@ import { FlatList } from "react-native"
 import { useProductsSearchStore } from "@/stores/useProductsSearchStore"
 import { productsSearchClient } from "@/lib/product-search"
 import { Category } from "@/types/generated/models/category"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 export function useProductsSearchList() {
     const { products: response, setProducts, setQuery } = useProductsSearchStore()

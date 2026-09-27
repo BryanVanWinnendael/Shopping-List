@@ -13,7 +13,6 @@ import { GlassView } from "expo-glass-effect"
 import { Grid2X2, List } from "lucide-react-native"
 
 import useThemes from "@/hooks/themes/useThemes"
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
@@ -29,8 +28,7 @@ const COLLAPSED_WIDTH = 48
 const SEGMENT_WIDTH = EXPANDED_WIDTH / OPTIONS.length
 
 export default function StyleButton({ value, setStyle, collapsed }: Props) {
-    const { vars } = useThemes()
-    const { theme } = useSettingsStore()
+    const { vars, appearance } = useThemes()
 
     const translateX = useSharedValue(0)
     const scale = useSharedValue(1)
@@ -77,12 +75,7 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
     return (
         <View style={styles.wrapper}>
             <Animated.View style={containerStyle}>
-                <GlassView
-                    glassEffectStyle="regular"
-                    isInteractive
-                    colorScheme={theme === "light" ? "light" : "dark"}
-                    style={styles.container}
-                >
+                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.container}>
                     {collapsed ? (
                         <Animated.View
                             entering={FadeIn.duration(150)}
@@ -113,11 +106,14 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
                             />
 
                             <PressableScale onPress={() => setStyle("grid")} style={styles.button}>
-                                <Grid2X2 size={22} color={value === "grid" ? vars.textColor : "gray"} />
+                                <Grid2X2
+                                    size={22}
+                                    color={value === "grid" ? vars.textColor : vars.secondaryTextColor}
+                                />
                             </PressableScale>
 
                             <PressableScale onPress={() => setStyle("list")} style={styles.button}>
-                                <List size={22} color={value === "list" ? vars.textColor : "gray"} />
+                                <List size={22} color={value === "list" ? vars.textColor : vars.secondaryTextColor} />
                             </PressableScale>
                         </Animated.View>
                     )}

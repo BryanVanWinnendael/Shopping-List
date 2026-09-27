@@ -3,7 +3,7 @@ import * as ImagePicker from "expo-image-picker"
 import { Country, CreateRecipeRequest, Ingredient } from "@/types/recipes"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { MealType } from "@/types/generated/models/meal_type"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 export function useCreateRecipeForm() {
     const { user } = useSettingsStore()

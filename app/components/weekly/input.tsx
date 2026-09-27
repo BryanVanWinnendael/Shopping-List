@@ -13,21 +13,16 @@ type Props = {
 }
 
 export default function Input({ createCronProduct, setProduct, product, loading }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     const isReady = Boolean(product)
 
     return (
         <View style={styles.container}>
-            <GlassView
-                glassEffectStyle="regular"
-                isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
-                style={styles.glassView}
-            >
+            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.glassView}>
                 <View style={styles.inputRow}>
                     <TextInput
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        keyboardAppearance={appearance}
                         placeholder="Type here..."
                         placeholderTextColor="#999"
                         value={product}

@@ -22,7 +22,7 @@ import Toast from "react-native-toast-message"
 import Success from "@/components/toasts/success"
 import Error from "@/components/toasts/error"
 import AiChatBottomSheet from "@/components/ai/chatBottomSheet"
-import { AppBottomSheetMethods } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import { useShake } from "@/hooks/useShake"
 import { useNotificationsStore } from "@/stores/useNotificationsStore"
 import {
@@ -56,7 +56,7 @@ export default function RootLayout() {
     const loadProvider = useAiContextStore((state) => state.loadProvider)
 
     const pathname = usePathname()
-    const assistantSheetRef = useRef<AppBottomSheetMethods>(null)
+    const assistantSheetRef = useRef<BottomSheetRef>(null)
 
     // true when inside /recipes/[id]
     const inRecipeDetail = /^\/recipes\/[^/]+$/.test(pathname) || /^\/online-recipes\/[^/]+$/.test(pathname)

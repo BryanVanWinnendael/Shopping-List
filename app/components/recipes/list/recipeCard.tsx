@@ -20,7 +20,7 @@ type Props = {
 
 export default function RecipeCard({ recipe, toggleFavorite }: Props) {
     const { actions } = useDeleteRecipe()
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { favoriteRecipes } = useRecipesStore()
     const { user } = useSettingsStore()
 
@@ -31,8 +31,6 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
     const deleteRecipe = async () => {
         await actions.deleteRecipe(recipe.id)
     }
-
-    const glassColorScheme = theme === "light" ? "light" : "dark"
 
     return (
         <Link
@@ -70,7 +68,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
 
                         <View pointerEvents="box-none" style={styles.overlay}>
                             <GlassView
-                                colorScheme={glassColorScheme}
+                                colorScheme={appearance}
                                 glassEffectStyle="regular"
                                 isInteractive
                                 style={styles.titleGlass}
@@ -92,7 +90,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                             <View style={styles.chipsRow}>
                                 {recipe.mealType && recipe.mealType !== "Any" && (
                                     <GlassView
-                                        colorScheme={glassColorScheme}
+                                        colorScheme={appearance}
                                         glassEffectStyle="regular"
                                         isInteractive
                                         style={styles.chipGlass}
@@ -112,7 +110,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
 
                                 {recipe.country && (
                                     <GlassView
-                                        colorScheme={glassColorScheme}
+                                        colorScheme={appearance}
                                         glassEffectStyle="regular"
                                         isInteractive
                                         style={styles.chipGlass}
@@ -132,7 +130,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
 
                                 {Number(recipe.time) > 0 && (
                                     <GlassView
-                                        colorScheme={glassColorScheme}
+                                        colorScheme={appearance}
                                         glassEffectStyle="regular"
                                         isInteractive
                                         style={styles.chipGlass}
@@ -152,7 +150,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
 
                                 {Number(recipe.persons) > 0 && (
                                     <GlassView
-                                        colorScheme={glassColorScheme}
+                                        colorScheme={appearance}
                                         glassEffectStyle="regular"
                                         isInteractive
                                         style={styles.chipGlass}
@@ -176,7 +174,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                             {recipe.isSaved && (
                                 <GlassView
                                     isInteractive
-                                    colorScheme={glassColorScheme}
+                                    colorScheme={appearance}
                                     glassEffectStyle="regular"
                                     style={styles.savedGlass}
                                 >
@@ -187,7 +185,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                             {!recipe.public && (
                                 <GlassView
                                     isInteractive
-                                    colorScheme={glassColorScheme}
+                                    colorScheme={appearance}
                                     glassEffectStyle="regular"
                                     style={styles.savedGlass}
                                 >

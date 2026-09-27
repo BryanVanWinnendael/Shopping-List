@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 export default function useUsers() {
     const bottomSheetRef = useRef<BottomSheetRef>(null)

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import { MealType } from "@/types/generated/models/meal_type"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 export function useRecipesFilter() {
     const { activeFilter, updateFilter, setActiveFilter } = useRecipesStore()

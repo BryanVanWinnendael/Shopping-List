@@ -22,7 +22,7 @@ type Props = {
 const AnimatedView = Animated.createAnimatedComponent(Animated.View)
 
 export function SearchBar({ value, updateQuery }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     const scale = useSharedValue(1)
 
@@ -54,7 +54,7 @@ export function SearchBar({ value, updateQuery }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={{
                     flexDirection: "row",
                     alignItems: "center",
@@ -79,7 +79,7 @@ export function SearchBar({ value, updateQuery }: Props) {
                         fontSize: 17,
                         color: vars.textColor,
                     }}
-                    keyboardAppearance={theme === "light" ? "light" : "dark"}
+                    keyboardAppearance={appearance}
                 />
 
                 {value.length > 0 && (

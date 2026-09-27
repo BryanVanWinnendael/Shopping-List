@@ -12,7 +12,7 @@ type Props = {
 }
 
 export default function ClearButton({ clearLogs, loading }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <View
@@ -26,7 +26,7 @@ export default function ClearButton({ clearLogs, loading }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive={!loading}
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={{
                     flexDirection: "row",
                     borderRadius: BORDER_RADIUS_FULL,

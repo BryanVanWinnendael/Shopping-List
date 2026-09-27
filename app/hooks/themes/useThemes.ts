@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef } from "react"
 
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { User } from "@/types"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 function capitalize(str: string) {
     if (!str) return str
@@ -71,6 +71,32 @@ export default function useThemes() {
         return "white"
     }, [theme])
 
+    const secondaryTextColor = useMemo(() => {
+        switch (theme) {
+            case "light":
+                return "#9CA3AF"
+            case "dark":
+                return "#A1A1AA"
+            case "true dark":
+                return "#8A8A8A"
+            default:
+                return "#9CA3AF"
+        }
+    }, [theme])
+
+    const tertiaryTextColor = useMemo(() => {
+        switch (theme) {
+            case "light":
+                return "#4B5563"
+            case "dark":
+                return "#D4D4D8"
+            case "true dark":
+                return "#B8B8B8"
+            default:
+                return "#4B5563"
+        }
+    }, [theme])
+
     const textSize = fontSize / 2
     const labelSize = fontSize / 3
 
@@ -89,6 +115,8 @@ export default function useThemes() {
         [theme, user, userColors]
     )
 
+    const appearance: "light" | "dark" = theme === "light" ? "light" : "dark"
+
     return {
         actions: {
             open,
@@ -106,11 +134,13 @@ export default function useThemes() {
             borderColor,
             secondaryBorderColor,
             textColor,
+            secondaryTextColor,
+            tertiaryTextColor,
             accentColor: aColor,
             textSize,
             labelSize,
         },
-
+        appearance,
         theme,
     }
 }

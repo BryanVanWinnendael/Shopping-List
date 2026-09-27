@@ -10,7 +10,7 @@ type Props = {
 }
 
 export default function BottomSheetButton({ open }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <PressableScale
@@ -25,7 +25,7 @@ export default function BottomSheetButton({ open }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={{
                     borderRadius: BORDER_RADIUS_FULL,
                     overflow: "hidden",

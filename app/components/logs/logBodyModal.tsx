@@ -22,9 +22,7 @@ type Props = {
 }
 
 export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
-    const { vars, theme } = useThemes()
-
-    const colorScheme = theme === "light" ? "light" : "dark"
+    const { vars, appearance } = useThemes()
 
     const scale = useSharedValue(0.96)
     const opacity = useSharedValue(0)
@@ -74,14 +72,13 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
 
     return (
         <Modal visible={body !== null} transparent animationType="none" onRequestClose={close}>
-            <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalOverlay}>
+            <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalOverlay}>
                 <Animated.View
                     entering={FadeIn.duration(180)}
                     exiting={FadeOut.duration(120)}
                     style={[styles.animatedModal, animatedStyle]}
                 >
-                    <GlassView glassEffectStyle="regular" colorScheme={colorScheme} style={styles.modalContent}>
-                        {/* Header */}
+                    <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <View style={{ flex: 1 }}>
                                 <Text
@@ -96,7 +93,7 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
 
                                 <Text
                                     style={{
-                                        color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                        color: vars.secondaryTextColor,
                                         marginTop: 4,
                                         fontSize: 14,
                                     }}
@@ -105,11 +102,10 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
                                 </Text>
                             </View>
 
-                            {/* Glass close button */}
                             <GlassView
                                 glassEffectStyle="regular"
                                 isInteractive
-                                colorScheme={colorScheme}
+                                colorScheme={appearance}
                                 style={styles.closeGlass}
                             >
                                 <PressableScale onPress={close} style={styles.closeButton}>
@@ -147,11 +143,10 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
                             </View>
                         </ScrollView>
 
-                        {/* Glass footer button */}
                         <GlassView
                             glassEffectStyle="regular"
                             isInteractive
-                            colorScheme={colorScheme}
+                            colorScheme={appearance}
                             style={styles.doneGlass}
                         >
                             <PressableScale

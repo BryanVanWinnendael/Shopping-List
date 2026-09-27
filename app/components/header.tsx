@@ -17,7 +17,7 @@ const HEADER_HORIZONTAL_PADDING = 28
 const CONTENT_MAX_WIDTH = HEADER_MAX_WIDTH - HEADER_HORIZONTAL_PADDING
 
 export default function Header() {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { products } = useProductsListStore()
     const { headers } = useHeaderStore()
     const pathname = usePathname()
@@ -51,12 +51,7 @@ export default function Header() {
 
     return (
         <View style={styles.outerContainer}>
-            <GlassView
-                glassEffectStyle="regular"
-                isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
-                style={styles.glass}
-            >
+            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.glass}>
                 {products === null ? (
                     <ActivityIndicator size="small" color={vars.textColor} />
                 ) : currentRouteName !== "index" ? (

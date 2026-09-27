@@ -1,4 +1,4 @@
-import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import useThemes from "@/hooks/themes/useThemes"
 import { RefObject, useEffect, useState } from "react"
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
@@ -128,7 +128,6 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
             enablePanDownToClose
             onClose={onClose}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             {loadingProvider ? (
                 <View style={styles.loadingContainer}>

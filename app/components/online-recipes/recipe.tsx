@@ -12,9 +12,7 @@ type Props = {
 }
 
 export default function Recipe({ recipe, variant }: Props) {
-    const { vars, theme } = useThemes()
-
-    const glassColorScheme = theme === "light" ? "light" : "dark"
+    const { vars, appearance } = useThemes()
 
     return (
         <Link
@@ -39,7 +37,7 @@ export default function Recipe({ recipe, variant }: Props) {
 
                         <View style={styles.overlay}>
                             <GlassView
-                                colorScheme={glassColorScheme}
+                                colorScheme={appearance}
                                 glassEffectStyle="regular"
                                 isInteractive
                                 style={styles.titleGlass}

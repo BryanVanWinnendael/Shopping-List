@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react"
 import { ActivityIndicator, Image, StyleSheet, TextInput, View } from "react-native"
 import { PressableScale } from "pressto"
 import * as ImagePicker from "expo-image-picker"
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useSharedValue, withTiming } from "react-native-reanimated"
 import { X } from "lucide-react-native"
 import { useProductsList } from "@/hooks/products-list/useProductsList"
@@ -18,8 +17,7 @@ type Props = {
 }
 
 export default function ProductInput({ onFocus, onBlur }: Props) {
-    const { vars } = useThemes()
-    const { theme } = useSettingsStore()
+    const { vars, appearance } = useThemes()
     const { actions, states } = useProductsList()
 
     const inputRef = useRef<TextInput>(null)
@@ -66,7 +64,7 @@ export default function ProductInput({ onFocus, onBlur }: Props) {
                             style={styles.closeButtonGlass}
                             glassEffectStyle="regular"
                             isInteractive
-                            colorScheme={theme === "light" ? "light" : "dark"}
+                            colorScheme={appearance}
                         >
                             <PressableScale onPress={removeImage} style={styles.closeButton}>
                                 <X size={15} strokeWidth={2.5} color={vars.textColor} />
@@ -78,18 +76,13 @@ export default function ProductInput({ onFocus, onBlur }: Props) {
                 )}
             </View>
 
-            <GlassView
-                style={styles.glassView}
-                glassEffectStyle="regular"
-                isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
-            >
+            <GlassView style={styles.glassView} glassEffectStyle="regular" isInteractive colorScheme={appearance}>
                 <View style={styles.inputRow}>
                     <TextInput
                         onFocus={onFocus}
                         onBlur={onBlur}
                         ref={inputRef}
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        keyboardAppearance={appearance}
                         placeholder="Type here..."
                         placeholderTextColor="#999"
                         value={productName}

@@ -5,7 +5,7 @@ import { Category } from "@/types/generated/models/category"
 import { CreateCategoryRequest } from "@/types/generated/contracts/category-model"
 import { CronProduct } from "@/types/generated/models/cron_product"
 import { UpdateCronProductCategoryRequest } from "@/types/generated/contracts/cron"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 export function useWeeklyCategories() {
     const bottomSheetRef = useRef<BottomSheetRef>(null)

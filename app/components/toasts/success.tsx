@@ -1,6 +1,5 @@
 import { ActivityIndicator, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import { BlurView } from "expo-blur"
 import { CheckCircle2 } from "lucide-react-native"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
@@ -11,15 +10,14 @@ type Props = {
 }
 
 export default function Success({ text1, text2 }: Props) {
-    const { theme } = useSettingsStore()
-    const { vars } = useThemes()
+    const { vars, appearance } = useThemes()
 
     const isLoading = text1 && text1.includes("...")
 
     return (
         <BlurView
             intensity={70}
-            tint={theme === "light" ? "light" : "dark"}
+            tint={appearance}
             style={{
                 flexDirection: "row",
                 alignItems: "center",

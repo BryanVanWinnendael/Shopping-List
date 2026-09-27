@@ -6,7 +6,7 @@ import { Trash } from "lucide-react-native"
 
 import EditRecipeForm from "@/components/recipes/update/form"
 import useThemes from "@/hooks/themes/useThemes"
-import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import { Recipe } from "@/types/generated/models/recipe"
 import { GlassView } from "expo-glass-effect"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
@@ -28,9 +28,7 @@ export default function BottomSheet({
     updateRecipeDetails,
     deleteLoading,
 }: Props) {
-    const { vars, theme } = useThemes()
-
-    const isDark = theme !== "light"
+    const { vars, appearance } = useThemes()
 
     const confirmDelete = () => {
         Alert.alert("Delete recipe?", "This action cannot be undone.", [
@@ -54,7 +52,6 @@ export default function BottomSheet({
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             <View style={{ flex: 1 }}>
                 <View
@@ -70,7 +67,7 @@ export default function BottomSheet({
                 >
                     <BlurView
                         intensity={10}
-                        tint={isDark ? "dark" : "light"}
+                        tint={appearance}
                         style={{
                             flex: 1,
                             paddingHorizontal: 20,
@@ -103,7 +100,7 @@ export default function BottomSheet({
                             <GlassView
                                 glassEffectStyle="regular"
                                 isInteractive
-                                colorScheme={theme === "light" ? "light" : "dark"}
+                                colorScheme={appearance}
                                 style={{
                                     width: 44,
                                     height: 44,

@@ -4,7 +4,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_S } from "@/lib/theme"
 
 export default function CustomHeader() {
-    const { theme } = useThemes()
+    const { appearance } = useThemes()
 
     return (
         <View
@@ -16,7 +16,7 @@ export default function CustomHeader() {
         >
             <BlurView
                 intensity={10}
-                tint={theme === "light" ? "light" : "dark"}
+                tint={appearance}
                 style={{
                     position: "absolute",
                     top: 0,

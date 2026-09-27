@@ -11,16 +11,11 @@ type Props = {
 }
 
 export default function NavButton({ open }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <PressableScale onPress={open} style={styles.touchable}>
-            <GlassView
-                glassEffectStyle="regular"
-                isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
-                style={styles.glass}
-            >
+            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.glass}>
                 <AlignLeft size={24} strokeWidth={2.2} color={vars.textColor} />
             </GlassView>
         </PressableScale>

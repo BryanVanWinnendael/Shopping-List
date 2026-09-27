@@ -5,7 +5,7 @@ import { useLocalSearchParams } from "expo-router"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useCreateRecipe } from "@/hooks/recipes/useCreateRecipe"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 export default function useOnlineRecipeDetails() {
     const { user } = useSettingsStore()

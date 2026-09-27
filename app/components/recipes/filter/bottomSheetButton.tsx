@@ -20,7 +20,7 @@ type Props = {
 const AnimatedGlassView = Animated.createAnimatedComponent(GlassView)
 
 export default function BottomSheetButton({ onPress, onExpandedChange, expanded, setExpanded }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { states } = useRecipesFilter()
     const { setFilter } = useRecipesStore()
 
@@ -65,7 +65,7 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
             <AnimatedGlassView
                 glassEffectStyle="regular"
                 isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={{
                     height: 48,
                     width: "100%",

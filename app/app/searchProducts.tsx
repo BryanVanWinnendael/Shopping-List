@@ -8,11 +8,11 @@ import { List } from "@/components/products-search/list"
 import Filter from "@/components/products-search/filter"
 import useThemes from "@/hooks/themes/useThemes"
 import FilterButton from "@/components/products-search/filterButton"
-import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 
 export default function SearchProducts() {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { states, actions, refs } = useProductsSearch()
     const { loadUserRecipes } = useRecipesStore()
 
@@ -43,7 +43,6 @@ export default function SearchProducts() {
                 enablePanDownToClose
                 onClose={actions.close}
                 backgroundMode="adaptive"
-                backgroundColor={vars.backgroundColor}
             >
                 <View style={{ flex: 1 }}>
                     <View
@@ -59,7 +58,7 @@ export default function SearchProducts() {
                     >
                         <BlurView
                             intensity={18}
-                            tint={theme === "light" ? "light" : "dark"}
+                            tint={appearance}
                             style={{
                                 flex: 1,
                                 paddingHorizontal: 20,

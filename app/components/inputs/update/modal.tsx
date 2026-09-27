@@ -24,12 +24,12 @@ type Props = {
 }
 
 export function Modal({ isOpen, closeUpdateModal, product, name, updateName, updateProduct }: Props) {
-    const { theme } = useThemes()
+    const { appearance } = useThemes()
 
     return (
         <NativeModal transparent animationType="fade" visible={isOpen} onRequestClose={closeUpdateModal}>
             <TouchableWithoutFeedback onPress={closeUpdateModal}>
-                <BlurView intensity={24} tint={theme === "light" ? "light" : "dark"} style={styles.backdrop}>
+                <BlurView intensity={24} tint={appearance} style={styles.backdrop}>
                     <KeyboardAvoidingView
                         behavior={Platform.OS === "ios" ? "padding" : "height"}
                         style={styles.keyboardView}

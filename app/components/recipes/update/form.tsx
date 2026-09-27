@@ -11,7 +11,6 @@ import {
 import { PressableScale } from "pressto"
 import { X } from "lucide-react-native"
 import { GlassView } from "expo-glass-effect"
-
 import { useUpdateRecipeForm } from "@/hooks/recipes/useUpdateRecipeForm"
 import { useUpdateRecipe } from "@/hooks/recipes/useUpdateRecipe"
 import Ingredient from "@/components/recipes/update/ingredient"
@@ -33,11 +32,9 @@ type Props = {
 }
 
 export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { states: formStates, actions: formActions } = useUpdateRecipeForm(recipe)
     const { states: editStates, actions: editActions } = useUpdateRecipe()
-
-    const colorScheme = theme === "light" ? "light" : "dark"
 
     const updateRecipe = async () => {
         const mappedRequest = formActions.getUpdateRecipeRequest()
@@ -118,19 +115,18 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         onChangeText={formActions.setTitle}
                         style={inputStyle}
                         placeholder="Recipe title"
-                        placeholderTextColor="gray"
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
                     />
                 </View>
 
-                {/* Public */}
                 <View style={styles.rowSection}>
                     <View style={styles.labelBlock}>
                         <Text style={labelStyle}>Public</Text>
 
                         <Text
                             style={{
-                                color: theme === "light" ? "#6b7280" : "#8b9199",
+                                color: vars.tertiaryTextColor,
                                 fontSize: 13,
                                 marginTop: -5,
                             }}
@@ -162,7 +158,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                                 <GlassView
                                     glassEffectStyle="regular"
                                     isInteractive
-                                    colorScheme={colorScheme}
+                                    colorScheme={appearance}
                                     style={styles.closeGlass}
                                 >
                                     <PressableScale
@@ -191,7 +187,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         placeholderTextColor="gray"
                         autoCapitalize="none"
                         autoCorrect={false}
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        keyboardAppearance={appearance}
                     />
                 </View>
 
@@ -221,7 +217,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         style={inputStyle}
                         placeholder="e.g. 45 minutes"
                         placeholderTextColor="gray"
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        keyboardAppearance={appearance}
                     />
                 </View>
 
@@ -237,7 +233,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         style={inputStyle}
                         placeholder="e.g. 4"
                         placeholderTextColor="gray"
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        keyboardAppearance={appearance}
                     />
                 </View>
 
@@ -324,7 +320,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                 <GlassView
                     glassEffectStyle="regular"
                     isInteractive={!editStates.loading}
-                    colorScheme={colorScheme}
+                    colorScheme={appearance}
                     style={styles.updateGlass}
                 >
                     <PressableScale

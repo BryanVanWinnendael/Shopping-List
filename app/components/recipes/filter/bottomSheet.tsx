@@ -1,7 +1,6 @@
 import { BlurView } from "expo-blur"
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from "react-native"
 import { RefObject, useRef } from "react"
-
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import MealTypeSegment from "@/components/recipes/mealTypeSegment"
 import Field from "@/components/recipes/filter/field"
@@ -9,7 +8,7 @@ import CountriesFilter from "@/components/recipes/filter/countriesFilter"
 import useThemes from "@/hooks/themes/useThemes"
 import CustomSwitch from "@/components/customSwitch"
 import { MealType } from "@/types/generated/models/meal_type"
-import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import { PressableScale } from "pressto"
 import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
@@ -19,7 +18,7 @@ type Props = {
 }
 
 export default function BottomSheet({ sheetRef, onClose }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
 
     const { activeFilter, updateFilter, setActiveFilter } = useRecipesStore()
 
@@ -43,7 +42,6 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
             enablePanDownToClose
             onClose={onClose}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
@@ -64,7 +62,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                     >
                         <BlurView
                             intensity={10}
-                            tint={theme === "light" ? "light" : "dark"}
+                            tint={appearance}
                             style={{
                                 flex: 1,
                                 paddingHorizontal: 20,
@@ -137,7 +135,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                                                 marginTop: 3,
                                                 fontSize: 13,
                                                 lineHeight: 18,
-                                                color: theme === "light" ? "#6b7280" : "#8b9199",
+                                                color: vars.tertiaryTextColor,
                                             }}
                                         >
                                             Turn off to show only private recipes. When enabled, all recipes will be
@@ -225,7 +223,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                                                 time: v ? parseInt(v, 10) : null,
                                             })
                                         }
-                                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                                        keyboardAppearance={appearance}
                                         style={{
                                             borderWidth: 1,
                                             borderColor: vars.secondaryBorderColor,

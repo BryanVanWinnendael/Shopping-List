@@ -36,7 +36,7 @@ function getProviderLabel(provider: AIProvider | null) {
 }
 
 export default function AiModel() {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
     const { provider, setProvider } = useAiContextStore()
 
     const [downloadingModel, setDownloadingModel] = useState(false)
@@ -46,7 +46,6 @@ export default function AiModel() {
     const [supportsBuiltInAI, setSupportsBuiltInAI] = useState(false)
     const [checkingBuiltInSupport, setCheckingBuiltInSupport] = useState(true)
 
-    const colorScheme = theme === "light" ? "light" : "dark"
     const providerLabel = getProviderLabel(provider)
     const aiEnabled = provider !== "disabled"
     const expanded = provider !== "disabled"
@@ -212,7 +211,7 @@ export default function AiModel() {
                 <View style={styles.titleContainer}>
                     <GlassView
                         glassEffectStyle="regular"
-                        colorScheme={colorScheme}
+                        colorScheme={appearance}
                         isInteractive={false}
                         style={styles.iconGlass}
                     >

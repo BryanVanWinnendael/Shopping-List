@@ -7,7 +7,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 export default function BackButton() {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <PressableScale
@@ -22,7 +22,7 @@ export default function BackButton() {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={{
                     borderRadius: BORDER_RADIUS_FULL,
                     overflow: "hidden",

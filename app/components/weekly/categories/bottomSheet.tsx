@@ -2,7 +2,7 @@ import { BlurView } from "expo-blur"
 import { RefObject } from "react"
 import { Text, View } from "react-native"
 
-import AppBottomSheet, { BottomSheetRef } from "@/components/native/appBottomSheet"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import UpdateCategoryList from "@/components/products-list/categories/updateCategoryList"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
@@ -14,7 +14,7 @@ type Props = {
 }
 
 export default function BottomSheet({ sheetRef, close, updateCategory }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <AppBottomSheet
@@ -24,7 +24,6 @@ export default function BottomSheet({ sheetRef, close, updateCategory }: Props) 
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"
-            backgroundColor={vars.backgroundColor}
         >
             <View style={{ flex: 1 }}>
                 <View
@@ -40,7 +39,7 @@ export default function BottomSheet({ sheetRef, close, updateCategory }: Props) 
                 >
                     <BlurView
                         intensity={10}
-                        tint={theme === "light" ? "light" : "dark"}
+                        tint={appearance}
                         style={{
                             flex: 1,
                             paddingHorizontal: 20,

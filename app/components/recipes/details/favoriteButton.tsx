@@ -1,7 +1,6 @@
 import { Star, StarOff } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import { GlassView } from "expo-glass-effect"
-
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import useThemes from "@/hooks/themes/useThemes"
 import { Recipe } from "@/types/generated/models/recipe"
@@ -12,7 +11,7 @@ type Props = {
 }
 
 export default function FavoriteButton({ recipe }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
     const { setFavoriteRecipes, favoriteRecipes } = useRecipesStore()
 
     const isFavorite = favoriteRecipes.some((favoriteRecipe) => favoriteRecipe.id === recipe.id)
@@ -38,7 +37,7 @@ export default function FavoriteButton({ recipe }: Props) {
             <GlassView
                 glassEffectStyle="regular"
                 isInteractive
-                colorScheme={theme === "light" ? "light" : "dark"}
+                colorScheme={appearance}
                 style={{
                     borderRadius: BORDER_RADIUS_FULL,
                     overflow: "hidden",

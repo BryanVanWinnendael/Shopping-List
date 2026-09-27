@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useLocalSearchParams } from "expo-router"
 import { recipesClient } from "@/lib/recipes"
 import { Recipe } from "@/types/generated/models/recipe"
-import { BottomSheetRef } from "@/components/native/appBottomSheet"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import { useAiContextStore } from "@/stores/useAiContextStore"
 
 export function useRecipeDetails() {
