@@ -1,7 +1,7 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react"
-import { Animated, StyleSheet, View } from "react-native"
+import React, { forwardRef, useImperativeHandle, useMemo, useState } from "react"
+import { StyleSheet, View } from "react-native"
 import { BottomSheet, Button, Group, Host, RNHostView } from "@expo/ui/swift-ui"
-import { presentationDetents, presentationDragIndicator } from "@expo/ui/swift-ui/modifiers"
+import { presentationBackground, presentationDetents, presentationDragIndicator } from "@expo/ui/swift-ui/modifiers"
 import type { BottomSheetProps, BottomSheetRef } from "./appBottomSheet"
 
 type Props = BottomSheetProps
@@ -52,24 +52,14 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
 
         const selectedDetent = detents[safeCurrentIndex]
 
-        const shouldShowCustomBackground =
+        const shouldUseCustomBackground =
             backgroundMode === "adaptive" &&
             !!backgroundColor &&
             detents.length > 0 &&
             safeCurrentIndex === detents.length - 1
 
-        const backgroundOpacity = useRef(new Animated.Value(shouldShowCustomBackground ? 1 : 0)).current
-
-        useEffect(() => {
-            Animated.timing(backgroundOpacity, {
-                toValue: shouldShowCustomBackground ? 1 : 0,
-                duration: 600,
-                useNativeDriver: true,
-            }).start()
-        }, [backgroundOpacity, shouldShowCustomBackground])
-
         const modifiers = useMemo(() => {
-            return [
+            const nextModifiers = [
                 presentationDetents(detents as any, {
                     selection: selectedDetent as any,
 
@@ -93,7 +83,13 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
 
                 presentationDragIndicator("visible"),
             ]
-        }, [detents, selectedDetent])
+
+            if (shouldUseCustomBackground && backgroundColor) {
+                nextModifiers.push(presentationBackground(backgroundColor))
+            }
+
+            return nextModifiers
+        }, [detents, selectedDetent, shouldUseCustomBackground, backgroundColor])
 
         useImperativeHandle(
             ref,
@@ -180,19 +176,6 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
                     <Group modifiers={modifiers}>
                         <RNHostView>
                             <View style={styles.content}>
-                                {backgroundColor && (
-                                    <Animated.View
-                                        pointerEvents="none"
-                                        style={[
-                                            styles.backgroundOverlay,
-                                            {
-                                                backgroundColor,
-                                                opacity: backgroundOpacity,
-                                            },
-                                        ]}
-                                    />
-                                )}
-
                                 <View style={styles.children}>{children}</View>
                             </View>
                         </RNHostView>
@@ -214,9 +197,6 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         backgroundColor: "transparent",
-    },
-    backgroundOverlay: {
-        ...StyleSheet.absoluteFill,
     },
     children: {
         flex: 1,
