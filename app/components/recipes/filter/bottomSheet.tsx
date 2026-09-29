@@ -226,11 +226,11 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                                         keyboardAppearance={appearance}
                                         style={{
                                             borderWidth: 1,
-                                            borderColor: vars.secondaryBorderColor,
+                                            borderColor: vars.borderColor,
                                             borderRadius: BORDER_RADIUS_M,
                                             paddingHorizontal: 14,
                                             paddingVertical: 12,
-                                            backgroundColor: vars.secondaryBackgroundColor,
+                                            backgroundColor: vars.backgroundColor,
                                             color: vars.textColor,
                                             fontSize: 16,
                                         }}

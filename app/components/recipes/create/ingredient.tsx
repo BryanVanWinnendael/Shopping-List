@@ -79,7 +79,7 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Pr
                     borderRadius: BORDER_RADIUS_M,
                     backgroundColor: vars.backgroundColor,
                     borderWidth: 1,
-                    borderColor: vars.secondaryBorderColor,
+                    borderColor: vars.borderColor,
                     color: vars.textColor,
                     fontSize: 16,
                 }}
@@ -152,7 +152,7 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Pr
                         borderRadius: BORDER_RADIUS_M,
                         borderWidth: 1,
                         borderColor: vars.secondaryBorderColor,
-                        backgroundColor: vars.backgroundColor,
+                        backgroundColor: vars.secondaryBackgroundColor,
                         overflow: "visible",
                         flexDirection: "row",
                         alignItems: "center",
@@ -168,7 +168,7 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Pr
                             borderRadius: BORDER_RADIUS_M,
                             justifyContent: "center",
                             alignItems: "center",
-                            backgroundColor: vars.secondaryBackgroundColor,
+                            backgroundColor: vars.backgroundColor,
                             marginRight: 11,
                         }}
                     >

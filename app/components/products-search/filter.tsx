@@ -73,8 +73,8 @@ export default function Filter({ selected, onApply }: Props) {
                                     paddingVertical: 10,
                                     borderRadius: BORDER_RADIUS_L,
                                     borderWidth: 1,
-                                    borderColor: active ? aColor : vars.secondaryBorderColor,
-                                    backgroundColor: active ? aColor : vars.secondaryBackgroundColor,
+                                    borderColor: active ? aColor : vars.borderColor,
+                                    backgroundColor: active ? aColor : vars.backgroundColor,
                                 }}
                             >
                                 <Text

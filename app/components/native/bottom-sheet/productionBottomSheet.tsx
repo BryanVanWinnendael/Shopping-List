@@ -4,23 +4,8 @@ import { BottomSheet, Button, Group, Host, RNHostView } from "@expo/ui/swift-ui"
 import { presentationBackground, presentationDetents, presentationDragIndicator } from "@expo/ui/swift-ui/modifiers"
 import type { BottomSheetProps, BottomSheetRef } from "./appBottomSheet"
 
-type Props = BottomSheetProps
-
-const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
-    (
-        {
-            children,
-            index = -1,
-            snapPoints = [],
-            enablePanDownToClose = false,
-            enableDynamicSizing = false,
-            onClose,
-            backgroundMode = "default",
-            backgroundColor,
-            appearance = "light",
-        },
-        ref
-    ) => {
+const ProductionBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
+    ({ children, index = -1, snapPoints = [], onClose, backgroundMode = "default", backgroundColor }, ref) => {
         const [isPresented, setIsPresented] = useState(index >= 0)
         const [currentIndex, setCurrentIndex] = useState(Math.max(index, 0))
 
@@ -52,11 +37,23 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
 
         const selectedDetent = detents[safeCurrentIndex]
 
+        /*
+         * Only use the custom application background when the
+         * sheet is actually at the "large" detent.
+         *
+         * Example:
+         *
+         * ["25%"]
+         * -> Liquid Glass
+         *
+         * ["25%", "large"]
+         * -> 25% = Liquid Glass
+         * -> large = custom background
+         */
+        const currentSnapPoint = snapPoints[safeCurrentIndex]
+
         const shouldUseCustomBackground =
-            backgroundMode === "adaptive" &&
-            !!backgroundColor &&
-            detents.length > 0 &&
-            safeCurrentIndex === detents.length - 1
+            backgroundMode === "adaptive" && !!backgroundColor && currentSnapPoint === "large"
 
         const modifiers = useMemo(() => {
             const nextModifiers = [
@@ -111,18 +108,14 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
                 },
 
                 collapse: () => {
-                    if (detents.length === 0) {
-                        return
-                    }
+                    if (detents.length === 0) return
 
                     setCurrentIndex(0)
                     setIsPresented(true)
                 },
 
                 expand: () => {
-                    if (detents.length === 0) {
-                        return
-                    }
+                    if (detents.length === 0) return
 
                     setCurrentIndex(detents.length - 1)
                     setIsPresented(true)
@@ -134,9 +127,7 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
                         return
                     }
 
-                    if (detents.length === 0) {
-                        return
-                    }
+                    if (detents.length === 0) return
 
                     const safeIndex = Math.min(nextIndex, detents.length - 1)
 
@@ -147,9 +138,7 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
                 snapToPosition: (position: string | number) => {
                     const nextIndex = snapPoints.findIndex((point) => point === position)
 
-                    if (nextIndex < 0) {
-                        return
-                    }
+                    if (nextIndex < 0) return
 
                     setCurrentIndex(nextIndex)
                     setIsPresented(true)
@@ -167,7 +156,7 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, Props>(
         }
 
         return (
-            <Host style={styles.host} colorScheme={appearance}>
+            <Host style={styles.host} colorScheme="light">
                 <BottomSheet
                     isPresented={isPresented}
                     onIsPresentedChange={handlePresentedChange}

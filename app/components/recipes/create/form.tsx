@@ -76,9 +76,9 @@ export default function Form({ onClose }: Props) {
 
     const inputStyle = {
         color: vars.textColor,
-        backgroundColor: vars.secondaryBackgroundColor,
+        backgroundColor: vars.backgroundColor,
         borderWidth: 1,
-        borderColor: vars.secondaryBorderColor,
+        borderColor: vars.borderColor,
         borderRadius: BORDER_RADIUS_M,
         paddingHorizontal: 14,
         paddingVertical: 11,
@@ -250,8 +250,8 @@ export default function Form({ onClose }: Props) {
                         style={[
                             styles.addButton,
                             {
-                                backgroundColor: vars.secondaryBackgroundColor,
-                                borderColor: vars.secondaryBorderColor,
+                                backgroundColor: vars.backgroundColor,
+                                borderColor: vars.borderColor,
                             },
                         ]}
                     >
@@ -286,8 +286,8 @@ export default function Form({ onClose }: Props) {
                         style={[
                             styles.addButton,
                             {
-                                backgroundColor: vars.secondaryBackgroundColor,
-                                borderColor: vars.secondaryBorderColor,
+                                backgroundColor: vars.backgroundColor,
+                                borderColor: vars.borderColor,
                             },
                         ]}
                     >

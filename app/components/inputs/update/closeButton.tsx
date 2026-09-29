@@ -10,7 +10,7 @@ type Props = {
 }
 
 export default function CloseButton({ close }: Props) {
-    const { vars } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
         <PressableScale
@@ -23,6 +23,7 @@ export default function CloseButton({ close }: Props) {
             }}
         >
             <GlassView
+                colorScheme={appearance}
                 glassEffectStyle="regular"
                 isInteractive
                 style={{

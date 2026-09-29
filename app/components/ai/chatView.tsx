@@ -230,7 +230,7 @@ export default function ChatView({ pathname, provider }: Props) {
                                     style={[
                                         styles.thinking,
                                         {
-                                            backgroundColor: vars.secondaryBackgroundColor,
+                                            backgroundColor: vars.backgroundColor,
                                         },
                                     ]}
                                 >
@@ -268,7 +268,7 @@ export default function ChatView({ pathname, provider }: Props) {
                                           }
                                         : {
                                               alignSelf: "flex-start",
-                                              backgroundColor: vars.secondaryBackgroundColor,
+                                              backgroundColor: vars.backgroundColor,
                                           },
                                 ]}
                             >
@@ -310,12 +310,12 @@ export default function ChatView({ pathname, provider }: Props) {
                                                 marginBottom: 4,
                                             },
                                             code_inline: {
-                                                backgroundColor: vars.secondaryBackgroundColor,
+                                                backgroundColor: vars.backgroundColor,
                                                 borderRadius: 4,
                                                 paddingHorizontal: 4,
                                             },
                                             code_block: {
-                                                backgroundColor: vars.secondaryBackgroundColor,
+                                                backgroundColor: vars.backgroundColor,
                                                 borderRadius: 8,
                                                 padding: 10,
                                             },

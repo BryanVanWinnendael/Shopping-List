@@ -27,9 +27,9 @@ export default function CountryInput({ value, onChange }: Props) {
             <PressableScale
                 onPress={() => setVisible(true)}
                 style={{
-                    backgroundColor: vars.secondaryBackgroundColor,
+                    backgroundColor: vars.backgroundColor,
                     borderWidth: 1,
-                    borderColor: vars.secondaryBorderColor,
+                    borderColor: vars.borderColor,
                     borderRadius: BORDER_RADIUS_M,
                     paddingHorizontal: 12,
                     paddingVertical: 8,

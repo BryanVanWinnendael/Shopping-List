@@ -12,10 +12,10 @@ type Props = {
 }
 
 export default function ProductPreview({ product }: Props) {
-    const { vars, actions } = useThemes()
+    const { vars, actions, appearance } = useThemes()
 
     return (
-        <GlassView glassEffectStyle="regular" style={styles.container}>
+        <GlassView colorScheme={appearance} glassEffectStyle="regular" style={styles.container}>
             {product.url && <CustomImage url={product.url} style={styles.image} />}
 
             {!product.url && (

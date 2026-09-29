@@ -42,8 +42,8 @@ export default function CountriesFilter() {
                 style={[
                     styles.selector,
                     {
-                        borderColor: vars.secondaryBorderColor,
-                        backgroundColor: vars.secondaryBackgroundColor,
+                        borderColor: vars.borderColor,
+                        backgroundColor: vars.backgroundColor,
                     },
                 ]}
                 onPress={toggleDropdown}
@@ -63,9 +63,9 @@ export default function CountriesFilter() {
                     styles.dropdown,
                     animatedStyle,
                     {
-                        backgroundColor: vars.secondaryBackgroundColor,
+                        backgroundColor: vars.backgroundColor,
                         borderWidth: 1,
-                        borderColor: vars.secondaryBorderColor,
+                        borderColor: vars.borderColor,
                     },
                 ]}
             >
@@ -80,7 +80,7 @@ export default function CountriesFilter() {
                             <PressableScale
                                 key={country}
                                 onPress={() => handleSelect(country)}
-                                style={[styles.option, { backgroundColor: vars.secondaryBackgroundColor }]}
+                                style={[styles.option, { backgroundColor: vars.backgroundColor }]}
                             >
                                 <Text style={{ color: vars.textColor }}>{country}</Text>
                             </PressableScale>

@@ -79,7 +79,7 @@ export default function Instruction({ instruction, index, onUpdate, onRemove }: 
                     borderRadius: BORDER_RADIUS_M,
                     backgroundColor: vars.backgroundColor,
                     borderWidth: 1,
-                    borderColor: vars.secondaryBorderColor,
+                    borderColor: vars.borderColor,
                     color: vars.textColor,
                     fontSize: 15,
                     lineHeight: 21,

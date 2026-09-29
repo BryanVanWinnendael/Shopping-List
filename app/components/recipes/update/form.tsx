@@ -80,9 +80,9 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
 
     const inputStyle = {
         color: vars.textColor,
-        backgroundColor: vars.secondaryBackgroundColor,
+        backgroundColor: vars.backgroundColor,
         borderWidth: 1,
-        borderColor: vars.secondaryBorderColor,
+        borderColor: vars.borderColor,
         borderRadius: BORDER_RADIUS_M,
         paddingHorizontal: 14,
         paddingVertical: 11,
@@ -263,8 +263,8 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         style={[
                             styles.addButton,
                             {
-                                backgroundColor: vars.secondaryBackgroundColor,
-                                borderColor: vars.secondaryBorderColor,
+                                backgroundColor: vars.backgroundColor,
+                                borderColor: vars.borderColor,
                             },
                         ]}
                     >
@@ -299,8 +299,8 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         style={[
                             styles.addButton,
                             {
-                                backgroundColor: vars.secondaryBackgroundColor,
-                                borderColor: vars.secondaryBorderColor,
+                                backgroundColor: vars.backgroundColor,
+                                borderColor: vars.borderColor,
                             },
                         ]}
                     >
