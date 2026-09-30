@@ -23,18 +23,15 @@ export type BottomSheetProps = {
     onClose?: () => void
     backgroundMode?: "default" | "adaptive"
     backgroundColor?: string
-    appearance?: "light" | "dark"
 }
 
 const AppBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>((props, ref) => {
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
 
-    const bottomSheetAppearance = props.appearance ?? appearance
     const bottomSheetBackgroundColor = props.backgroundColor ?? vars.secondaryBackgroundColor
 
     const bottomSheetProps: BottomSheetProps = {
         ...props,
-        appearance: bottomSheetAppearance,
         backgroundColor: bottomSheetBackgroundColor,
     }
 

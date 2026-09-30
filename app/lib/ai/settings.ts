@@ -36,13 +36,13 @@ export const isLocalModelDownloaded = async (): Promise<boolean> => {
 export async function downloadLocalModel(onProgress?: (progress: number) => void) {
     const { downloadModel } = await import("expo-ai-kit")
 
-    await downloadModel(AI_MODEL_ID, {
-        onProgress,
-    })
-
+    await downloadModel(AI_MODEL_ID, { onProgress })
     await AsyncStorage.setItem(AI_MODEL_DOWNLOADED_KEY, "true")
 
-    // The model is downloaded, now load it into memory.
+    return AI_MODEL_ID
+}
+
+export async function loadLocalModel() {
     const { setModel } = await import("expo-ai-kit")
 
     await setModel(AI_MODEL_ID, {
@@ -51,8 +51,6 @@ export async function downloadLocalModel(onProgress?: (progress: number) => void
             maxTokens: 512,
         },
     })
-
-    return AI_MODEL_ID
 }
 
 export async function deleteLocalModel() {

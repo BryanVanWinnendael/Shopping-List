@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur"
-import { KeyboardAvoidingView, Platform, Text, View } from "react-native"
+import { Text, View } from "react-native"
 import { RefObject } from "react"
 import Form from "@/components/recipes/create/form"
 import useThemes from "@/hooks/themes/useThemes"
@@ -56,13 +56,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                     </BlurView>
                 </View>
 
-                <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
-                    keyboardVerticalOffset={0}
-                >
-                    <Form onClose={onClose} />
-                </KeyboardAvoidingView>
+                <Form onClose={onClose} />
             </View>
         </AppBottomSheet>
     )

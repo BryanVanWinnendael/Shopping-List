@@ -1,5 +1,5 @@
 import Drawer from "expo-router/drawer"
-import { KeyboardAvoidingView, Platform, StatusBar } from "react-native"
+import { Appearance, KeyboardAvoidingView, Platform, StatusBar } from "react-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import CustomDrawerContent from "@/components/customDrawerContent"
 import NavButton from "@/components/navButton"
@@ -42,7 +42,7 @@ import { useAiContextStore } from "@/stores/useAiContextStore"
 const ICON_SIZE = 18
 
 export default function RootLayout() {
-    const { vars } = useThemes()
+    const { vars, appearance } = useThemes()
     const { actions: themesActions, refs: themesRefs } = useThemes()
     const { actions: usersActions, refs: usersRefs } = useUsers()
     const { provider } = useAiContextStore()
@@ -80,6 +80,10 @@ export default function RootLayout() {
 
     useShake(openAssistant)
     useNetworkMonitor()
+
+    useEffect(() => {
+        Appearance.setColorScheme(appearance ?? null) // null = follow system
+    }, [appearance])
 
     return (
         <>

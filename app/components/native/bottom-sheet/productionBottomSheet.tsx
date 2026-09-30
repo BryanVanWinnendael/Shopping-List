@@ -37,23 +37,18 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
 
         const selectedDetent = detents[safeCurrentIndex]
 
-        /*
-         * Only use the custom application background when the
-         * sheet is actually at the "large" detent.
-         *
-         * Example:
-         *
-         * ["25%"]
-         * -> Liquid Glass
-         *
-         * ["25%", "large"]
-         * -> 25% = Liquid Glass
-         * -> large = custom background
-         */
+        const isLargeDetent = (point: string | number | undefined) => {
+            if (point === "large") return true
+            if (typeof point === "string" && point.endsWith("%")) {
+                return Number(point.replace("%", "")) >= 100
+            }
+            return false
+        }
+
         const currentSnapPoint = snapPoints[safeCurrentIndex]
 
         const shouldUseCustomBackground =
-            backgroundMode === "adaptive" && !!backgroundColor && currentSnapPoint === "large"
+            backgroundMode === "adaptive" && !!backgroundColor && isLargeDetent(currentSnapPoint)
 
         const modifiers = useMemo(() => {
             const nextModifiers = [
@@ -156,7 +151,7 @@ const ProductionBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         }
 
         return (
-            <Host style={styles.host} colorScheme="light">
+            <Host style={styles.host}>
                 <BottomSheet
                     isPresented={isPresented}
                     onIsPresentedChange={handlePresentedChange}

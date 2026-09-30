@@ -1,4 +1,4 @@
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Text, View } from "react-native"
+import { ActivityIndicator, Alert, Text, View } from "react-native"
 import { RefObject } from "react"
 import { BlurView } from "expo-blur"
 import { PressableScale } from "pressto"
@@ -119,13 +119,7 @@ export default function BottomSheet({
                     </BlurView>
                 </View>
 
-                <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
-                    keyboardVerticalOffset={0}
-                >
-                    <EditRecipeForm recipe={recipe} close={close} updateRecipeDetails={updateRecipeDetails} />
-                </KeyboardAvoidingView>
+                <EditRecipeForm recipe={recipe} close={close} updateRecipeDetails={updateRecipeDetails} />
             </View>
         </AppBottomSheet>
     )

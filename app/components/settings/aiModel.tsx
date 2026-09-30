@@ -9,12 +9,13 @@ import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 import { AIProvider } from "@/types/ai"
 import { useAiContextStore } from "@/stores/useAiContextStore"
 import {
-    AI_MODEL_ID,
     deleteLocalModel,
     downloadLocalModel,
     isLocalModelDownloaded,
+    loadLocalModel,
     supportsOnDeviceAI,
 } from "@/lib/ai/settings"
+import { logsClient } from "@/lib/logs"
 
 function getProviderLabel(provider: AIProvider | null) {
     switch (provider) {
@@ -132,16 +133,14 @@ export default function AiModel() {
 
         // Downloaded model already exists.
         if (modelDownloaded) {
-            const { setModel } = await import("expo-ai-kit")
-
-            await setModel(AI_MODEL_ID, {
-                generation: {
-                    temperature: 0.7,
-                    maxTokens: 512,
-                },
-            })
-
-            await setProvider("downloaded")
+            try {
+                await loadLocalModel()
+                await setProvider("downloaded")
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error)
+                await logsClient.createLog(message, "GET", true)
+                console.error("Failed to load downloaded AI model:", error)
+            }
             return
         }
 
@@ -150,22 +149,28 @@ export default function AiModel() {
     }
 
     const handleDownloadedModel = async () => {
-        if (downloadingModel || deletingModel) {
+        if (downloadingModel || deletingModel) return
+
+        setDownloadingModel(true)
+        setDownloadProgress(0)
+
+        try {
+            await downloadLocalModel((progress) => setDownloadProgress(progress))
+            setModelDownloaded(true)
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            await logsClient.createLog(message, "GET", true)
+            setDownloadingModel(false)
+            setDownloadProgress(0)
             return
         }
 
         try {
-            setDownloadingModel(true)
-            setDownloadProgress(0)
-
-            await downloadLocalModel((progress) => {
-                setDownloadProgress(progress)
-            })
-
-            setModelDownloaded(true)
+            await loadLocalModel()
             await setProvider("downloaded")
         } catch (error) {
-            console.error("Failed to download AI model:", error)
+            const message = error instanceof Error ? error.message : String(error)
+            await logsClient.createLog(message, "GET", true)
         } finally {
             setDownloadingModel(false)
             setDownloadProgress(0)
