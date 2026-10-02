@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native"
+import Toast from "react-native-toast-message"
 import { Bot, Cloud, Cpu, Trash2 } from "lucide-react-native"
 import { GlassView } from "expo-glass-effect"
 import Accordion from "@/components/accordion"
@@ -16,6 +17,14 @@ import {
     supportsOnDeviceAI,
 } from "@/lib/ai/settings"
 import { logsClient } from "@/lib/logs"
+
+function getErrorMessage(error: unknown) {
+    if (error instanceof Error) {
+        return error.message
+    }
+
+    return String(error)
+}
 
 function getProviderLabel(provider: AIProvider | null) {
     switch (provider) {
@@ -41,15 +50,18 @@ export default function AiModel() {
     const { provider, setProvider } = useAiContextStore()
 
     const [downloadingModel, setDownloadingModel] = useState(false)
+    const [loadingModel, setLoadingModel] = useState(false)
     const [downloadProgress, setDownloadProgress] = useState(0)
     const [deletingModel, setDeletingModel] = useState(false)
     const [modelDownloaded, setModelDownloaded] = useState(false)
     const [supportsBuiltInAI, setSupportsBuiltInAI] = useState(false)
     const [checkingBuiltInSupport, setCheckingBuiltInSupport] = useState(true)
+    const busyRef = useRef(false)
 
     const providerLabel = getProviderLabel(provider)
     const aiEnabled = provider !== "disabled"
     const expanded = provider !== "disabled"
+    const isBusy = downloadingModel || loadingModel || deletingModel
 
     useEffect(() => {
         let mounted = true
@@ -86,7 +98,7 @@ export default function AiModel() {
     }, [])
 
     const handleToggle = async () => {
-        if (downloadingModel || deletingModel) {
+        if (isBusy) {
             return
         }
 
@@ -98,8 +110,29 @@ export default function AiModel() {
         await setProvider(null)
     }
 
-    const handleSelectProvider = async (selectedProvider: AIProvider) => {
-        if (downloadingModel || deletingModel || checkingBuiltInSupport) {
+    const activateDownloadedModel = async () => {
+        setLoadingModel(true)
+
+        try {
+            await loadLocalModel()
+            await setProvider("downloaded")
+        } catch (error) {
+            const message = getErrorMessage(error)
+            console.error("Failed to load downloaded AI model:", error)
+            await logsClient.createLog(message, "GET", true)
+            Toast.show({
+                type: "error",
+                text1: "Failed to load AI model",
+                text2: message,
+            })
+            throw error
+        } finally {
+            setLoadingModel(false)
+        }
+    }
+
+    const handleSelectProvider = async (selectedProvider: AIProvider, enabled: boolean) => {
+        if (busyRef.current || isBusy || checkingBuiltInSupport) {
             return
         }
 
@@ -108,49 +141,54 @@ export default function AiModel() {
             return
         }
 
-        // Tapping the currently selected provider toggles it off.
-        if (provider === selectedProvider) {
-            if (selectedProvider === "downloaded") {
+        // Ignore stale switch events that match the current selection.
+        if (enabled === (provider === selectedProvider)) {
+            return
+        }
+
+        busyRef.current = true
+
+        try {
+            // Turning the current provider off.
+            if (!enabled) {
+                if (selectedProvider === "downloaded" && provider === "downloaded") {
+                    const { unloadModel } = await import("expo-ai-kit")
+                    await unloadModel()
+                }
+
+                if (provider === selectedProvider) {
+                    await setProvider(null)
+                }
+
+                return
+            }
+
+            // Switching away from the downloaded model should unload it.
+            if (provider === "downloaded" && selectedProvider !== "downloaded") {
                 const { unloadModel } = await import("expo-ai-kit")
                 await unloadModel()
             }
 
-            await setProvider(null)
-            return
-        }
-
-        // Switching away from the downloaded model should unload it.
-        if (provider === "downloaded" && selectedProvider !== "downloaded") {
-            const { unloadModel } = await import("expo-ai-kit")
-            await unloadModel()
-        }
-
-        // Normal providers.
-        if (selectedProvider !== "downloaded") {
-            await setProvider(selectedProvider)
-            return
-        }
-
-        // Downloaded model already exists.
-        if (modelDownloaded) {
-            try {
-                await loadLocalModel()
-                await setProvider("downloaded")
-            } catch (error) {
-                const message = error instanceof Error ? error.message : String(error)
-                await logsClient.createLog(message, "GET", true)
-                console.error("Failed to load downloaded AI model:", error)
+            // Normal providers.
+            if (selectedProvider !== "downloaded") {
+                await setProvider(selectedProvider)
+                return
             }
-            return
-        }
 
-        // Download model first.
-        await handleDownloadedModel()
+            // Downloaded model already exists.
+            if (modelDownloaded) {
+                await activateDownloadedModel()
+                return
+            }
+
+            // Download model first.
+            await handleDownloadedModel()
+        } finally {
+            busyRef.current = false
+        }
     }
 
     const handleDownloadedModel = async () => {
-        if (downloadingModel || deletingModel) return
-
         setDownloadingModel(true)
         setDownloadProgress(0)
 
@@ -158,29 +196,33 @@ export default function AiModel() {
             await downloadLocalModel((progress) => setDownloadProgress(progress))
             setModelDownloaded(true)
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
+            const message = getErrorMessage(error)
+            console.error("Failed to download AI model:", error)
             await logsClient.createLog(message, "GET", true)
-            setDownloadingModel(false)
-            setDownloadProgress(0)
+            Toast.show({
+                type: "error",
+                text1: "Failed to download AI model",
+                text2: message,
+            })
             return
-        }
-
-        try {
-            await loadLocalModel()
-            await setProvider("downloaded")
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            await logsClient.createLog(message, "GET", true)
         } finally {
             setDownloadingModel(false)
             setDownloadProgress(0)
         }
+
+        try {
+            await activateDownloadedModel()
+        } catch {
+            // Error already logged and toasted in activateDownloadedModel.
+        }
     }
 
     const handleDeleteDownloadedModel = async () => {
-        if (downloadingModel || deletingModel) {
+        if (busyRef.current || isBusy) {
             return
         }
+
+        busyRef.current = true
 
         try {
             setDeletingModel(true)
@@ -197,8 +239,14 @@ export default function AiModel() {
             setModelDownloaded(false)
         } catch (error) {
             console.error("Failed to delete AI model:", error)
+            Toast.show({
+                type: "error",
+                text1: "Failed to delete AI model",
+                text2: getErrorMessage(error),
+            })
         } finally {
             setDeletingModel(false)
+            busyRef.current = false
         }
     }
 
@@ -248,18 +296,20 @@ export default function AiModel() {
                         >
                             {downloadingModel
                                 ? "Downloading AI model..."
-                                : deletingModel
-                                  ? "Deleting AI model..."
-                                  : provider === "disabled"
-                                    ? "AI features are disabled"
-                                    : provider
-                                      ? `Using ${providerLabel}`
-                                      : "Choose an AI model"}
+                                : loadingModel
+                                  ? "Loading AI model..."
+                                  : deletingModel
+                                    ? "Deleting AI model..."
+                                    : provider === "disabled"
+                                      ? "AI features are disabled"
+                                      : provider
+                                        ? `Using ${providerLabel}`
+                                        : "Choose an AI model"}
                         </Text>
                     </View>
                 </View>
 
-                <CustomSwitch value={aiEnabled} onChange={handleToggle} disabled={downloadingModel || deletingModel} />
+                <CustomSwitch value={aiEnabled} onChange={handleToggle} disabled={isBusy} />
             </View>
 
             <Accordion expanded={expanded} style={styles.accordion}>
@@ -280,8 +330,8 @@ export default function AiModel() {
                         title="Cloud AI"
                         description="Use the online AI service."
                         selected={provider === "cloud"}
-                        disabled={downloadingModel || deletingModel || checkingBuiltInSupport}
-                        onPress={() => handleSelectProvider("cloud")}
+                        disabled={isBusy || checkingBuiltInSupport}
+                        onPress={(enabled) => handleSelectProvider("cloud", enabled)}
                     />
 
                     <ProviderOption
@@ -295,13 +345,13 @@ export default function AiModel() {
                                   : "Use the AI model provided by the device."
                         }
                         selected={provider === "built-in"}
-                        disabled={checkingBuiltInSupport || downloadingModel || deletingModel || !supportsBuiltInAI}
-                        onPress={() => handleSelectProvider("built-in")}
+                        disabled={checkingBuiltInSupport || isBusy || !supportsBuiltInAI}
+                        onPress={(enabled) => handleSelectProvider("built-in", enabled)}
                     />
 
                     <ProviderOption
                         icon={
-                            downloadingModel ? (
+                            downloadingModel || loadingModel ? (
                                 <ActivityIndicator size="small" color={vars.accentColor} />
                             ) : (
                                 <Bot size={18} color={vars.accentColor} />
@@ -311,21 +361,23 @@ export default function AiModel() {
                         description={
                             downloadingModel
                                 ? `Downloading AI model... ${Math.round(downloadProgress * 100)}%`
-                                : modelDownloaded
-                                  ? "AI model is stored on this device."
-                                  : "Download an AI model to this device. Requires about 0.5 GB of storage."
+                                : loadingModel
+                                  ? "Loading AI model into memory..."
+                                  : modelDownloaded
+                                    ? "AI model is stored on this device."
+                                    : "Download an AI model to this device. Requires about 0.5 GB of storage."
                         }
                         selected={provider === "downloaded"}
                         loading={downloadingModel}
                         progress={downloadingModel ? downloadProgress : undefined}
-                        disabled={downloadingModel || deletingModel}
-                        onPress={() => handleSelectProvider("downloaded")}
+                        disabled={isBusy}
+                        onPress={(enabled) => handleSelectProvider("downloaded", enabled)}
                     />
 
                     {modelDownloaded && (
                         <DeleteModelOption
                             deleting={deletingModel}
-                            disabled={downloadingModel}
+                            disabled={isBusy}
                             onPress={handleDeleteDownloadedModel}
                         />
                     )}
@@ -352,7 +404,7 @@ function ProviderOption({
     loading?: boolean
     progress?: number
     disabled?: boolean
-    onPress: () => void | Promise<void>
+    onPress: (enabled: boolean) => void | Promise<void>
 }) {
     const { vars, theme } = useThemes()
 
@@ -414,7 +466,17 @@ function ProviderOption({
                 )}
             </View>
 
-            <CustomSwitch value={selected} onChange={onPress} disabled={disabled} />
+            <CustomSwitch
+                value={selected}
+                onChange={(enabled) => {
+                    if (enabled === selected) {
+                        return
+                    }
+
+                    void onPress(enabled)
+                }}
+                disabled={disabled}
+            />
         </View>
     )
 }

@@ -29,6 +29,30 @@ export const clearAIProvider = async (): Promise<void> => {
 }
 
 export const isLocalModelDownloaded = async (): Promise<boolean> => {
+    try {
+        if (__DEV__) {
+            return false
+        }
+
+        const { getDownloadableModels } = await import("expo-ai-kit")
+        const models = await getDownloadableModels()
+        const model = models.find((entry) => entry.id === AI_MODEL_ID)
+
+        if (model) {
+            const downloaded = model.status === "downloaded" || model.status === "loading" || model.status === "ready"
+
+            if (downloaded) {
+                await AsyncStorage.setItem(AI_MODEL_DOWNLOADED_KEY, "true")
+            } else {
+                await AsyncStorage.removeItem(AI_MODEL_DOWNLOADED_KEY)
+            }
+
+            return downloaded
+        }
+    } catch (error) {
+        console.error("Failed to read native AI model status:", error)
+    }
+
     const value = await AsyncStorage.getItem(AI_MODEL_DOWNLOADED_KEY)
     return value === "true"
 }
