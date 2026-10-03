@@ -214,7 +214,6 @@ export default function ChatView({ pathname, provider }: Props) {
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
                 keyboardVerticalOffset={0}
             >
-                {/* Messages */}
                 <FlatList
                     ref={listRef}
                     data={messages}
@@ -230,7 +229,7 @@ export default function ChatView({ pathname, provider }: Props) {
                                     style={[
                                         styles.thinking,
                                         {
-                                            backgroundColor: vars.backgroundColor,
+                                            backgroundColor: vars.secondaryBackgroundColor,
                                         },
                                     ]}
                                 >
@@ -268,7 +267,7 @@ export default function ChatView({ pathname, provider }: Props) {
                                           }
                                         : {
                                               alignSelf: "flex-start",
-                                              backgroundColor: vars.backgroundColor,
+                                              backgroundColor: vars.secondaryBackgroundColor,
                                           },
                                 ]}
                             >
@@ -310,12 +309,12 @@ export default function ChatView({ pathname, provider }: Props) {
                                                 marginBottom: 4,
                                             },
                                             code_inline: {
-                                                backgroundColor: vars.backgroundColor,
+                                                backgroundColor: vars.secondaryBackgroundColor,
                                                 borderRadius: 4,
                                                 paddingHorizontal: 4,
                                             },
                                             code_block: {
-                                                backgroundColor: vars.backgroundColor,
+                                                backgroundColor: vars.secondaryBackgroundColor,
                                                 borderRadius: 8,
                                                 padding: 10,
                                             },
@@ -332,7 +331,6 @@ export default function ChatView({ pathname, provider }: Props) {
                     }}
                 />
 
-                {/* Composer */}
                 <View style={styles.composerOverlay}>
                     <GlassView
                         style={styles.glassInput}

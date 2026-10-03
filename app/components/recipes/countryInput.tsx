@@ -27,7 +27,7 @@ export default function CountryInput({ value, onChange }: Props) {
             <PressableScale
                 onPress={() => setVisible(true)}
                 style={{
-                    backgroundColor: vars.backgroundColor,
+                    backgroundColor: vars.secondaryBackgroundColor,
                     borderWidth: 1,
                     borderColor: vars.borderColor,
                     borderRadius: BORDER_RADIUS_M,
@@ -62,6 +62,7 @@ export default function CountryInput({ value, onChange }: Props) {
                             borderWidth: 1,
                             borderColor: vars.borderColor,
                             marginBottom: 12,
+                            backgroundColor: vars.secondaryBackgroundColor,
                         }}
                         placeholderTextColor={vars.tertiaryTextColor}
                         keyboardAppearance={appearance}

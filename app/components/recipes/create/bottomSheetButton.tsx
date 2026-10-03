@@ -27,6 +27,7 @@ export default function BottomSheetButton({ onPress }: Props) {
                 glassEffectStyle="regular"
                 isInteractive
                 colorScheme={appearance}
+                tintColor={vars.backgroundColor}
                 style={{
                     height: 48,
                     width: 48,

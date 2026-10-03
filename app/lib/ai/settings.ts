@@ -58,9 +58,22 @@ export const isLocalModelDownloaded = async (): Promise<boolean> => {
 }
 
 export async function downloadLocalModel(onProgress?: (progress: number) => void) {
-    const { downloadModel } = await import("expo-ai-kit")
+    const { downloadModel, deleteModel } = await import("expo-ai-kit")
 
-    await downloadModel(AI_MODEL_ID, { onProgress })
+    try {
+        await downloadModel(AI_MODEL_ID, { onProgress })
+    } catch (error) {
+        const message = String((error as Error)?.message ?? error)
+
+        if (!message.toLowerCase().includes("sha256")) throw error
+
+        // Remove the corrupt/partial file and retry once from scratch.
+        try {
+            await deleteModel(AI_MODEL_ID)
+        } catch {}
+        await downloadModel(AI_MODEL_ID, { onProgress })
+    }
+
     await AsyncStorage.setItem(AI_MODEL_DOWNLOADED_KEY, "true")
 
     return AI_MODEL_ID

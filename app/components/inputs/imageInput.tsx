@@ -305,7 +305,7 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
                     paddingVertical: 12,
                     paddingHorizontal: 12,
                     borderRadius: BORDER_RADIUS_L,
-                    backgroundColor: vars.backgroundColor,
+                    backgroundColor: vars.secondaryBackgroundColor,
                     borderWidth: 1,
                     borderColor: vars.borderColor,
                     flexDirection: "row",
