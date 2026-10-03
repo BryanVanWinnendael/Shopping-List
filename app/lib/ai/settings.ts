@@ -5,7 +5,7 @@ const AI_PROVIDER_KEY = "app_aiProviderKey"
 const AI_MODEL_DOWNLOADED_KEY = "app_aiModelDownloaded"
 const AI_DOWNLOADED_MODELS_KEY = "app_aiDownloadedModels"
 
-export const AI_MODEL_ID = "qwen3-0.6b"
+export const AI_MODEL_ID = "qwen3-0.6b-litert-v1"
 
 const LOCAL_MODELS = [
     {
@@ -85,6 +85,8 @@ export const clearAIProvider = async (): Promise<void> => {
     await AsyncStorage.removeItem(AI_PROVIDER_KEY)
 }
 
+// checks if only AI_MODEL_ID is downloaded
+// TODO: make it check if selected model is downloaded
 export const isLocalModelDownloaded = async (): Promise<boolean> => {
     if (__DEV__) return false
 
