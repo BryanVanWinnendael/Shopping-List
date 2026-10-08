@@ -335,27 +335,24 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
 
 const styles = StyleSheet.create({
     listContainer: {
-        width: 55,
-        height: 55,
+        width: 54,
+        height: 54,
         position: "relative",
         zIndex: 100,
         overflow: "visible",
     },
-
     listGlass: {
-        width: 55,
-        height: 55,
+        width: 54,
+        height: 54,
         borderRadius: BORDER_RADIUS_FULL,
         overflow: "hidden",
     },
-
     listButton: {
         width: "100%",
         height: "100%",
         alignItems: "center",
         justifyContent: "center",
     },
-
     menuWrapper: {
         position: "absolute",
         left: 0,
@@ -364,19 +361,16 @@ const styles = StyleSheet.create({
         transformOrigin: "bottom left",
         zIndex: 200,
     },
-
     recipeMenuWrapper: {
         left: 0,
         bottom: 0,
     },
-
     menu: {
         width: "100%",
         borderRadius: BORDER_RADIUS_L,
         padding: 6,
         overflow: "hidden",
     },
-
     menuItem: {
         height: 54,
         flexDirection: "row",
@@ -384,7 +378,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         borderRadius: 18,
     },
-
     menuIcon: {
         width: 38,
         height: 38,
@@ -393,12 +386,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         marginRight: 11,
     },
-
     menuText: {
         fontSize: 16,
         fontWeight: "500",
     },
-
     menuBackdrop: {
         position: "absolute",
         top: -1000,
@@ -407,14 +398,12 @@ const styles = StyleSheet.create({
         bottom: -1000,
         zIndex: 150,
     },
-
     cameraOverlay: {
         flex: 1,
         justifyContent: "flex-end",
         paddingHorizontal: 5,
         paddingVertical: 5,
     },
-
     cameraCard: {
         width: "100%",
         height: "70%",
@@ -424,11 +413,9 @@ const styles = StyleSheet.create({
         overflow: "hidden",
         position: "relative",
     },
-
     cameraPreview: {
         ...StyleSheet.absoluteFill,
     },
-
     cameraCloseGlass: {
         position: "absolute",
         top: 14,
@@ -438,7 +425,6 @@ const styles = StyleSheet.create({
         borderRadius: BORDER_RADIUS_FULL,
         overflow: "hidden",
     },
-
     cameraFlipGlass: {
         position: "absolute",
         top: 14,
@@ -448,14 +434,12 @@ const styles = StyleSheet.create({
         borderRadius: BORDER_RADIUS_FULL,
         overflow: "hidden",
     },
-
     cameraControl: {
         width: "100%",
         height: "100%",
         alignItems: "center",
         justifyContent: "center",
     },
-
     cameraBottom: {
         position: "absolute",
         left: 0,
@@ -464,7 +448,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-
     shutterOuter: {
         width: 68,
         height: 68,
@@ -474,7 +457,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-
     shutterInner: {
         width: 54,
         height: 54,

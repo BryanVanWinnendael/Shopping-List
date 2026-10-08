@@ -1,10 +1,11 @@
-import { View } from "react-native"
+import { useCallback } from "react"
+import { StyleSheet, View } from "react-native"
 import Toast from "react-native-toast-message"
 
 import { useWeeklyCategories } from "@/hooks/weekly/useWeeklyCategories"
+import { useWeeklyProducts } from "@/hooks/weekly/useWeeklyProducts"
 import BottomSheet from "@/components/weekly/categories/bottomSheet"
 import List from "@/components/weekly/categories/list"
-import { useWeeklyProducts } from "@/hooks/weekly/useWeeklyProducts"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
 
@@ -19,28 +20,25 @@ export default function WeeklyCategories() {
 
     const { actions: weeklyProductsActions } = useWeeklyProducts()
 
-    const updateCategory = async (category: Category) => {
-        const newCronProduct = await weeklyCategoriesActions.updateCategory(category)
+    const updateCategory = useCallback(
+        async (category: Category) => {
+            const newCronProduct = await weeklyCategoriesActions.updateCategory(category)
 
-        if (!newCronProduct) {
-            Toast.show({
-                type: "error",
-                text1: "Error: Category failed to update",
-            })
-            return
-        }
+            if (!newCronProduct) {
+                Toast.show({
+                    type: "error",
+                    text1: "Error: Category failed to update",
+                })
+                return
+            }
 
-        await weeklyProductsActions.updateCronProduct(newCronProduct)
-    }
+            await weeklyProductsActions.updateCronProduct(newCronProduct)
+        },
+        [weeklyCategoriesActions, weeklyProductsActions]
+    )
 
     return (
-        <View
-            style={{
-                flex: 1,
-                backgroundColor: vars.backgroundColor,
-                padding: 16,
-            }}
-        >
+        <View style={[styles.container, { backgroundColor: vars.backgroundColor }]}>
             <List
                 open={weeklyCategoriesActions.open}
                 cronProducts={weeklyCategoriesStates.cronProducts}
@@ -56,3 +54,10 @@ export default function WeeklyCategories() {
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 16,
+    },
+})

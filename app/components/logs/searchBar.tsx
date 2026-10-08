@@ -1,4 +1,4 @@
-import { TextInput } from "react-native"
+import { StyleSheet, TextInput } from "react-native"
 import { Search, X } from "lucide-react-native"
 import Animated, {
     FadeIn,
@@ -19,51 +19,27 @@ type Props = {
     updateQuery: (text: string) => void
 }
 
-const AnimatedView = Animated.createAnimatedComponent(Animated.View)
+const CLEAR_FADE_IN = FadeIn.duration(120)
+const CLEAR_FADE_OUT = FadeOut.duration(120)
 
 export function SearchBar({ value, updateQuery }: Props) {
     const { vars, appearance } = useThemes()
 
     const scale = useSharedValue(1)
 
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }))
+
     const handleFocus = () => {
         scale.value = withSequence(withTiming(1.03, { duration: 120 }), withTiming(1, { duration: 180 }))
     }
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [
-            {
-                scale: scale.value,
-            },
-        ],
-    }))
+    const clear = () => updateQuery("")
 
     return (
-        <AnimatedView
-            style={[
-                {
-                    position: "absolute",
-                    bottom: 24,
-                    left: 24,
-                    right: 88,
-                    zIndex: 10,
-                },
-                animatedStyle,
-            ]}
-        >
-            <GlassView
-                glassEffectStyle="regular"
-                isInteractive
-                colorScheme={appearance}
-                style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 16,
-                    height: 48,
-                    borderRadius: BORDER_RADIUS_L,
-                    overflow: "hidden",
-                }}
-            >
+        <Animated.View style={[styles.container, animatedStyle]}>
+            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.glass}>
                 <Search size={20} color={vars.textColor} />
 
                 <TextInput
@@ -73,30 +49,51 @@ export function SearchBar({ value, updateQuery }: Props) {
                     placeholder="Search logs..."
                     placeholderTextColor="gray"
                     returnKeyType="search"
-                    style={{
-                        flex: 1,
-                        marginLeft: 10,
-                        fontSize: 17,
-                        color: vars.textColor,
-                    }}
                     keyboardAppearance={appearance}
+                    style={[styles.input, { color: vars.textColor }]}
                 />
 
                 {value.length > 0 && (
-                    <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(120)}>
+                    <Animated.View entering={CLEAR_FADE_IN} exiting={CLEAR_FADE_OUT}>
                         <PressableScale
-                            onPress={() => updateQuery("")}
+                            onPress={clear}
                             hitSlop={10}
-                            style={{
-                                padding: 4,
-                                marginLeft: 6,
-                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Clear search"
+                            style={styles.clearButton}
                         >
                             <X size={18} color={vars.textColor} />
                         </PressableScale>
                     </Animated.View>
                 )}
             </GlassView>
-        </AnimatedView>
+        </Animated.View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        position: "absolute",
+        bottom: 24,
+        left: 24,
+        right: 88,
+        zIndex: 10,
+    },
+    glass: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        height: 48,
+        borderRadius: BORDER_RADIUS_L,
+        overflow: "hidden",
+    },
+    input: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: 17,
+    },
+    clearButton: {
+        padding: 4,
+        marginLeft: 6,
+    },
+})

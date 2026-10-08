@@ -1,282 +1,212 @@
-import Drawer from "expo-router/drawer"
-import { Appearance, KeyboardAvoidingView, Platform, StatusBar } from "react-native"
-import { GestureHandlerRootView } from "react-native-gesture-handler"
-import CustomDrawerContent from "@/components/customDrawerContent"
-import NavButton from "@/components/navButton"
-import Header from "@/components/header"
 import { useCallback, useEffect, useRef } from "react"
-import { useSettingsStore } from "@/stores/useSettingsStore"
+import { Appearance, KeyboardAvoidingView, Platform, StatusBar, StyleSheet } from "react-native"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
+import Drawer from "expo-router/drawer"
 import { usePathname } from "expo-router"
-import ThemesBottomSheet from "@/components/themes/bottomSheet"
-import SelectUser from "@/components/users/selectUser"
-import UsersBottomSheet from "@/components/users/bottomSheet"
-import CustomHeader from "@/components/customHeader"
 import { PressablesConfig } from "pressto"
 import * as Haptics from "expo-haptics"
-import { useRecipesStore } from "@/stores/useRecipesStore"
-import { ADMIN_USERS_ARRAY } from "@/lib/constants"
-import GradientBackground from "@/components/gradientBackground"
-import useThemes from "@/hooks/themes/useThemes"
-import useUsers from "@/hooks/users/useUsers"
-import Toast from "react-native-toast-message"
-import Success from "@/components/toasts/success"
-import Error from "@/components/toasts/error"
-import AiChatBottomSheet from "@/components/ai/chatBottomSheet"
-import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
-import { useShake } from "@/hooks/useShake"
-import { useNotificationsStore } from "@/stores/useNotificationsStore"
+import Toast, { ToastConfig } from "react-native-toast-message"
 import {
     Bookmark,
     BookOpen,
     CalendarCog,
     CalendarPlus,
     List,
+    LucideIcon,
     Search,
     Settings,
     TagIcon,
     TextSearch,
 } from "lucide-react-native"
+import CustomDrawerContent from "@/components/customDrawerContent"
+import NavButton from "@/components/navButton"
+import Header from "@/components/header"
+import CustomHeader from "@/components/customHeader"
+import GradientBackground from "@/components/gradientBackground"
+import ThemesBottomSheet from "@/components/themes/bottomSheet"
+import UsersBottomSheet from "@/components/users/bottomSheet"
+import SelectUser from "@/components/users/selectUser"
+import AiChatBottomSheet from "@/components/ai/chatBottomSheet"
+import SuccessToast from "@/components/toasts/success"
+import ErrorToast from "@/components/toasts/error"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
+import useThemes from "@/hooks/themes/useThemes"
+import useUsers from "@/hooks/users/useUsers"
+import { useShake } from "@/hooks/useShake"
 import { useNetworkMonitor } from "@/hooks/useNetworkMonitor"
+import { useSettingsStore } from "@/stores/useSettingsStore"
+import { useRecipesStore } from "@/stores/useRecipesStore"
+import { useNotificationsStore } from "@/stores/useNotificationsStore"
 import { useAiContextStore } from "@/stores/useAiContextStore"
+import { ADMIN_USERS_ARRAY } from "@/lib/constants"
 
 const ICON_SIZE = 18
 
+// Matches /recipes/[id] and /online-recipes/[id]
+const RECIPE_DETAIL_REGEX = /^\/(online-)?recipes\/[^/]+$/
+
+const softHaptic = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
+}
+
+type DrawerScreen = {
+    name: string
+    label: string
+    Icon: LucideIcon
+    adminOnly?: boolean
+}
+
+const DRAWER_SCREENS: DrawerScreen[] = [
+    { name: "index", label: "List", Icon: List },
+    { name: "recipes", label: "Recipes", Icon: Bookmark },
+    { name: "online-recipes", label: "Online Recipes", Icon: TextSearch },
+    { name: "searchProducts", label: "Search Products", Icon: Search },
+    { name: "weekly", label: "Weekly List", Icon: CalendarPlus },
+    { name: "logs", label: "Logs", Icon: BookOpen, adminOnly: true },
+    { name: "categories", label: "Categories", Icon: TagIcon, adminOnly: true },
+    { name: "weeklyCategories", label: "Weekly Categories", Icon: CalendarCog, adminOnly: true },
+    { name: "settings", label: "Settings", Icon: Settings },
+]
+
+const PRESSABLES_ANIMATION_CONFIG = { damping: 30, stiffness: 200 }
+const PRESSABLES_CONFIG = { minScale: 0.9, activeOpacity: 0.6 }
+const PRESSABLES_HANDLERS = { onPress: softHaptic }
+
+const TOAST_CONFIG: ToastConfig = {
+    success: ({ text1, text2 }) => <SuccessToast text1={text1} text2={text2} />,
+    error: ({ text1, text2 }) => <ErrorToast text1={text1} text2={text2} />,
+}
+
 export default function RootLayout() {
-    const { vars, appearance } = useThemes()
-    const { actions: themesActions, refs: themesRefs } = useThemes()
+    const { vars, appearance, actions: themesActions, refs: themesRefs } = useThemes()
     const { actions: usersActions, refs: usersRefs } = useUsers()
-    const { provider } = useAiContextStore()
-    const { user, theme } = useSettingsStore()
 
-    const loadRecipes = useRecipesStore((state) => state.loadRecipes)
-    const loadSettings = useSettingsStore((state) => state.loadSettings)
-
-    const loadNotifications = useNotificationsStore((state) => state.loadNotifications)
-
+    const provider = useAiContextStore((state) => state.provider)
     const loadProvider = useAiContextStore((state) => state.loadProvider)
+    const user = useSettingsStore((state) => state.user)
+    const theme = useSettingsStore((state) => state.theme)
+    const loadSettings = useSettingsStore((state) => state.loadSettings)
+    const loadRecipes = useRecipesStore((state) => state.loadRecipes)
+    const loadNotifications = useNotificationsStore((state) => state.loadNotifications)
 
     const pathname = usePathname()
     const assistantSheetRef = useRef<BottomSheetRef>(null)
 
-    // true when inside /recipes/[id]
-    const inRecipeDetail = /^\/recipes\/[^/]+$/.test(pathname) || /^\/online-recipes\/[^/]+$/.test(pathname)
+    const inRecipeDetail = RECIPE_DETAIL_REGEX.test(pathname)
+    const isAdmin = ADMIN_USERS_ARRAY.includes(user ?? "")
 
     const openAssistant = useCallback(() => {
-        if (provider === "disabled") {
-            return
-        }
+        if (provider === "disabled") return
 
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-
+        softHaptic()
         assistantSheetRef.current?.expand()
     }, [provider])
+
+    const closeAssistant = useCallback(() => {
+        assistantSheetRef.current?.close()
+    }, [])
+
+    useEffect(() => {
+        loadProvider()
+    }, [loadProvider])
 
     useEffect(() => {
         loadSettings()
         loadRecipes()
         loadNotifications()
-        loadProvider()
     }, [user])
-
-    useShake(openAssistant)
-    useNetworkMonitor()
 
     useEffect(() => {
         Appearance.setColorScheme(appearance ?? null) // null = follow system
     }, [appearance])
 
+    useShake(openAssistant)
+    useNetworkMonitor()
+
     return (
-        <>
-            <PressablesConfig
-                animationType="spring"
-                animationConfig={{ damping: 30, stiffness: 200 }}
-                config={{ minScale: 0.9, activeOpacity: 0.6 }}
-                globalHandlers={{
-                    onPress: () => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
-                    },
-                }}
-            >
-                <GestureHandlerRootView
-                    style={{
-                        flex: 1,
-                        backgroundColor: vars.backgroundColor,
-                        height: "100%",
-                    }}
+        <PressablesConfig
+            animationType="spring"
+            animationConfig={PRESSABLES_ANIMATION_CONFIG}
+            config={PRESSABLES_CONFIG}
+            globalHandlers={PRESSABLES_HANDLERS}
+        >
+            <GestureHandlerRootView style={[styles.root, { backgroundColor: vars.backgroundColor }]}>
+                <SelectUser />
+                <GradientBackground />
+                <StatusBar barStyle={theme === "light" ? "dark-content" : "light-content"} animated />
+
+                <KeyboardAvoidingView
+                    style={styles.fill}
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    keyboardVerticalOffset={0}
                 >
-                    <SelectUser />
-                    <GradientBackground />
-                    <StatusBar barStyle={theme === "light" ? "dark-content" : "light-content"} animated />
-                    <KeyboardAvoidingView
-                        style={{ flex: 1, height: "100%" }}
-                        behavior={Platform.OS === "ios" ? "padding" : undefined}
-                        keyboardVerticalOffset={0}
+                    <Drawer
+                        screenListeners={{ drawerItemPress: softHaptic }}
+                        screenOptions={({ navigation }) => ({
+                            title: "",
+                            headerTransparent: true,
+                            headerStyle: styles.transparentHeader,
+                            headerLeft: () => (inRecipeDetail ? null : <NavButton open={navigation.toggleDrawer} />),
+                            headerRight: () => (inRecipeDetail ? null : <Header />),
+                            headerBackground: () => (inRecipeDetail ? null : <CustomHeader />),
+                            swipeEdgeWidth: 200,
+                            lazy: true,
+                            detachInactiveScreens: true,
+                            drawerType: "slide",
+                            drawerActiveTintColor: vars.textColor,
+                            drawerInactiveTintColor: vars.textColor,
+                            drawerActiveBackgroundColor: "transparent",
+                            drawerLabelStyle: styles.drawerLabel,
+                        })}
+                        drawerContent={(props) => (
+                            <CustomDrawerContent
+                                {...props}
+                                openThemes={themesActions.open}
+                                openUsers={usersActions.open}
+                            />
+                        )}
                     >
-                        <Drawer
-                            screenListeners={{
-                                drawerItemPress: () => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
-                                },
-                            }}
-                            screenOptions={({ navigation }) => ({
-                                swipeEdgeWidth: 200,
-                                lazy: true,
-                                detachInactiveScreens: true,
-                                drawerType: "slide",
-                                drawerActiveTintColor: vars.textColor,
-                                drawerInactiveTintColor: vars.textColor,
-                                drawerActiveBackgroundColor: "transparent",
-                                drawerLabelStyle: {
-                                    fontSize: 15,
-                                    fontWeight: "500",
-                                },
-                                headerLeft: () =>
-                                    inRecipeDetail ? null : <NavButton open={navigation.toggleDrawer} />,
-                                headerRight: () => (inRecipeDetail ? null : <Header />),
-                                headerBackground: () => (inRecipeDetail ? null : <CustomHeader />),
-                                headerStyle: { backgroundColor: "transparent" },
-                            })}
-                            drawerContent={(props) => (
-                                <CustomDrawerContent
-                                    {...props}
-                                    openThemes={themesActions.open}
-                                    openUsers={usersActions.open}
-                                />
-                            )}
-                        >
+                        {DRAWER_SCREENS.map(({ name, label, Icon, adminOnly }) => (
                             <Drawer.Screen
-                                name="index"
+                                key={name}
+                                name={name}
                                 options={{
-                                    drawerLabel: "List",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerIcon: ({ color }) => <List color={color} size={ICON_SIZE} strokeWidth={2} />,
+                                    drawerLabel: label,
+                                    drawerIcon: ({ color }) => <Icon color={color} size={ICON_SIZE} strokeWidth={2} />,
+                                    drawerItemStyle: adminOnly && !isAdmin ? styles.hidden : undefined,
                                 }}
                             />
+                        ))}
+                    </Drawer>
+                </KeyboardAvoidingView>
 
-                            <Drawer.Screen
-                                name="recipes"
-                                options={{
-                                    drawerLabel: "Recipes",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerIcon: ({ color }) => (
-                                        <Bookmark color={color} size={ICON_SIZE} strokeWidth={2} />
-                                    ),
-                                }}
-                            />
+                <ThemesBottomSheet sheetRef={themesRefs.bottomSheetRef} close={themesActions.close} />
+                <UsersBottomSheet sheetRef={usersRefs.bottomSheetRef} close={usersActions.close} />
+                <AiChatBottomSheet pathname={pathname} sheetRef={assistantSheetRef} onClose={closeAssistant} />
 
-                            <Drawer.Screen
-                                name="online-recipes"
-                                options={{
-                                    drawerLabel: "Online Recipes",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerIcon: ({ color }) => (
-                                        <TextSearch color={color} size={ICON_SIZE} strokeWidth={2} />
-                                    ),
-                                }}
-                            />
-
-                            <Drawer.Screen
-                                name="searchProducts"
-                                options={{
-                                    drawerLabel: "Search Products",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerIcon: ({ color }) => (
-                                        <Search color={color} size={ICON_SIZE} strokeWidth={2} />
-                                    ),
-                                }}
-                            />
-
-                            <Drawer.Screen
-                                name="weekly"
-                                options={{
-                                    drawerLabel: "Weekly List",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerIcon: ({ color }) => (
-                                        <CalendarPlus color={color} size={ICON_SIZE} strokeWidth={2} />
-                                    ),
-                                }}
-                            />
-
-                            <Drawer.Screen
-                                name="logs"
-                                options={{
-                                    drawerLabel: "Logs",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerItemStyle: {
-                                        display: ADMIN_USERS_ARRAY.includes(user ?? "") ? "flex" : "none",
-                                    },
-                                    drawerIcon: ({ color }) => (
-                                        <BookOpen color={color} size={ICON_SIZE} strokeWidth={2} />
-                                    ),
-                                }}
-                            />
-
-                            <Drawer.Screen
-                                name="categories"
-                                options={{
-                                    drawerLabel: "Categories",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerItemStyle: {
-                                        display: ADMIN_USERS_ARRAY.includes(user ?? "") ? "flex" : "none",
-                                    },
-                                    drawerIcon: ({ color }) => (
-                                        <TagIcon color={color} size={ICON_SIZE} strokeWidth={2} />
-                                    ),
-                                }}
-                            />
-
-                            <Drawer.Screen
-                                name="weeklyCategories"
-                                options={{
-                                    drawerLabel: "Weekly Categories",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerItemStyle: {
-                                        display: ADMIN_USERS_ARRAY.includes(user ?? "") ? "flex" : "none",
-                                    },
-                                    drawerIcon: ({ color }) => (
-                                        <CalendarCog color={color} size={ICON_SIZE} strokeWidth={2} />
-                                    ),
-                                }}
-                            />
-
-                            <Drawer.Screen
-                                name="settings"
-                                options={{
-                                    drawerLabel: "Settings",
-                                    title: "",
-                                    headerTransparent: true,
-                                    drawerIcon: ({ color }) => (
-                                        <Settings color={color} size={ICON_SIZE} strokeWidth={2} />
-                                    ),
-                                }}
-                            />
-                        </Drawer>
-                    </KeyboardAvoidingView>
-
-                    <ThemesBottomSheet sheetRef={themesRefs.bottomSheetRef} close={themesActions.close} />
-                    <UsersBottomSheet close={usersActions.close} sheetRef={usersRefs.bottomSheetRef} />
-                    <AiChatBottomSheet
-                        pathname={pathname}
-                        sheetRef={assistantSheetRef}
-                        onClose={() => assistantSheetRef.current?.close()}
-                    />
-                    <Toast
-                        config={{
-                            success: ({ text1, text2 }: any) => <Success text1={text1} text2={text2} />,
-                            error: ({ text1, text2 }: any) => <Error text1={text1} text2={text2} />,
-                        }}
-                        topOffset={100}
-                    />
-                </GestureHandlerRootView>
-            </PressablesConfig>
-        </>
+                <Toast config={TOAST_CONFIG} topOffset={100} />
+            </GestureHandlerRootView>
+        </PressablesConfig>
     )
 }
+
+const styles = StyleSheet.create({
+    root: {
+        flex: 1,
+        height: "100%",
+    },
+    fill: {
+        flex: 1,
+        height: "100%",
+    },
+    transparentHeader: {
+        backgroundColor: "transparent",
+    },
+    drawerLabel: {
+        fontSize: 15,
+        fontWeight: "500",
+    },
+    hidden: {
+        display: "none",
+    },
+})

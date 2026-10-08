@@ -1,7 +1,4 @@
-import useThemes from "@/hooks/themes/useThemes"
-import { useGlobalSearchParams } from "expo-router"
-import { Send, Sparkles } from "lucide-react-native"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
     ActivityIndicator,
     FlatList,
@@ -12,13 +9,20 @@ import {
     TextInput,
     View,
 } from "react-native"
+import { useGlobalSearchParams } from "expo-router"
+import { SendIcon } from "lucide-react-native"
 import { BlurView } from "expo-blur"
-import Markdown from "react-native-markdown-display"
-import { getAiContext } from "@/lib/ai/context"
-import { chat } from "@/lib/ai/chat"
 import { GlassView } from "expo-glass-effect"
 import { PressableScale } from "pressto"
+import Markdown from "react-native-markdown-display"
+import useThemes from "@/hooks/themes/useThemes"
+import { getAiContext } from "@/lib/ai/context"
+import { chat } from "@/lib/ai/chat"
+import { loadLocalModel } from "@/lib/ai/settings"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 import { AIProvider } from "@/types/ai"
+import { Image } from "expo-image"
+import AssistantIcon from "@/assets/assistant.png"
 
 type Props = {
     pathname: string
@@ -31,7 +35,7 @@ type Message = {
     content: string
 }
 
-const pageTitles: Record<string, string> = {
+const PAGE_TITLES: Record<string, string> = {
     "/": "Shopping List",
     "/recipes": "Recipes",
     "/online-recipes": "Online Recipes",
@@ -40,8 +44,20 @@ const pageTitles: Record<string, string> = {
     "/settings": "Settings",
 }
 
+const RECIPE_DETAIL_REGEX = /^\/recipes\/[^/]+$/
+
+const PROVIDER_LABELS: Record<AIProvider, string> = {
+    cloud: "Cloud AI",
+    "built-in": "Built-in AI",
+    downloaded: "Downloaded model",
+    disabled: "AI",
+}
+
+const SEND_ICON_PATH =
+    "M18.455 9.8834L7.063 4.1434C6.76535 3.96928 6.40109 3.95274 6.08888 4.09916C5.77667 4.24558 5.55647 4.53621 5.5 4.8764C5.5039 4.98942 5.53114 5.10041 5.58 5.2024L7.749 10.4424C7.85786 10.7903 7.91711 11.1519 7.925 11.5164C7.91714 11.8809 7.85789 12.2425 7.749 12.5904L5.58 17.8304C5.53114 17.9324 5.5039 18.0434 5.5 18.1564C5.55687 18.4961 5.77667 18.7862 6.0889 18.9323C6.40078 19.0785 6.76456 19.062 7.062 18.8884L18.455 13.1484C19.0903 12.8533 19.4967 12.2164 19.4967 11.5159C19.4967 10.8154 19.0903 10.1785 18.455 9.8834Z"
+
 function getPageTitle(pathname: string, recipeTitle?: string) {
-    if (/^\/recipes\/[^/]+$/.test(pathname)) {
+    if (RECIPE_DETAIL_REGEX.test(pathname)) {
         return recipeTitle || "Recipe details"
     }
 
@@ -49,29 +65,57 @@ function getPageTitle(pathname: string, recipeTitle?: string) {
         return "Online recipe details"
     }
 
-    return pageTitles[pathname] ?? "Current page"
+    return PAGE_TITLES[pathname] ?? "Current page"
 }
 
-function getProviderLabel(provider: AIProvider) {
-    switch (provider) {
-        case "cloud":
-            return "Cloud AI"
-        case "built-in":
-            return "Built-in AI"
-        case "downloaded":
-            return "Downloaded model"
-        default:
-            return "AI"
-    }
-}
+const MessageBubble = memo(function MessageBubble({ message }: { message: Message }) {
+    const { vars } = useThemes()
+    const mine = message.role === "user"
+
+    const markdownStyles = useMemo(
+        () => ({
+            body: { ...styles.messageText, color: vars.textColor },
+            strong: { fontWeight: "700" as const, color: vars.textColor },
+            em: { fontStyle: "italic" as const, color: vars.textColor },
+            bullet_list: styles.markdownList,
+            ordered_list: styles.markdownList,
+            list_item: styles.markdownListItem,
+            code_inline: {
+                backgroundColor: vars.secondaryBackgroundColor,
+                borderRadius: 4,
+                paddingHorizontal: 4,
+            },
+            code_block: {
+                backgroundColor: vars.secondaryBackgroundColor,
+                borderRadius: 8,
+                padding: 10,
+            },
+            link: { color: vars.accentColor },
+        }),
+        [vars.textColor, vars.secondaryBackgroundColor, vars.accentColor]
+    )
+
+    return (
+        <View
+            style={[
+                styles.message,
+                mine ? styles.messageMine : styles.messageTheirs,
+                { backgroundColor: mine ? vars.accentColor : vars.secondaryBackgroundColor },
+            ]}
+        >
+            {mine ? (
+                <Text style={[styles.messageText, styles.messageTextMine]}>{message.content}</Text>
+            ) : (
+                <Markdown style={markdownStyles}>{message.content}</Markdown>
+            )}
+        </View>
+    )
+})
 
 export default function ChatView({ pathname, provider }: Props) {
     const { vars, appearance } = useThemes()
 
-    const { title } = useGlobalSearchParams<{
-        title?: string
-    }>()
-
+    const { title } = useGlobalSearchParams<{ title?: string }>()
     const recipeTitle = Array.isArray(title) ? title[0] : title
 
     const [messages, setMessages] = useState<Message[]>([])
@@ -80,8 +124,13 @@ export default function ChatView({ pathname, provider }: Props) {
     const [downloadProgress, setDownloadProgress] = useState<number | null>(null)
 
     const listRef = useRef<FlatList<Message>>(null)
+    const idCounter = useRef(0)
 
     const pageTitle = useMemo(() => getPageTitle(pathname, recipeTitle), [pathname, recipeTitle])
+    const canSend = !!input.trim() && !sending
+
+    // Counter-based ids can't collide the way Date.now() can for two messages in the same millisecond.
+    const createId = (prefix: string) => `${prefix}-${++idCounter.current}`
 
     useEffect(() => {
         setMessages([
@@ -91,45 +140,39 @@ export default function ChatView({ pathname, provider }: Props) {
                 content: `I can help with ${pageTitle}. What would you like to do?`,
             },
         ])
-
         setInput("")
     }, [pathname, pageTitle, recipeTitle])
 
+    // Scroll to the newest message, and to the "Thinking…" indicator when it appears.
     useEffect(() => {
-        if (!messages.length) {
-            return
-        }
+        if (!messages.length) return
 
         requestAnimationFrame(() => {
-            listRef.current?.scrollToEnd({
-                animated: true,
-            })
+            listRef.current?.scrollToEnd({ animated: true })
         })
-    }, [messages.length])
+    }, [messages.length, sending])
 
     const send = async () => {
         const content = input.trim()
 
-        if (!content || sending) {
-            return
-        }
+        if (!content || sending) return
 
-        const userMessage: Message = {
-            id: `user-${Date.now()}`,
-            role: "user",
-            content,
-        }
+        const userMessage: Message = { id: createId("user"), role: "user", content }
 
         setInput("")
         setMessages((current) => [...current, userMessage])
         setSending(true)
         setDownloadProgress(null)
 
-        // Get the context at the moment the user sends
-        // the message so it contains the latest app data.
+        // Read the context when the user sends, so it contains the latest app data.
         const context = getAiContext(pathname)
 
         try {
+            // The downloaded model isn't in memory after an app restart. This loads it once and is a no-op afterwards.
+            if (provider === "downloaded") {
+                await loadLocalModel()
+            }
+
             const reply = await chat({
                 page: pageTitle,
                 pathname,
@@ -141,11 +184,7 @@ export default function ChatView({ pathname, provider }: Props) {
 
             setMessages((current) => [
                 ...current,
-                {
-                    id: `assistant-${Date.now()}`,
-                    role: "assistant",
-                    content: reply || "I couldn't generate a response.",
-                },
+                { id: createId("assistant"), role: "assistant", content: reply || "I couldn't generate a response." },
             ])
         } catch (error) {
             console.error("AI chat failed:", error)
@@ -153,7 +192,7 @@ export default function ChatView({ pathname, provider }: Props) {
             setMessages((current) => [
                 ...current,
                 {
-                    id: `error-${Date.now()}`,
+                    id: createId("error"),
                     role: "assistant",
                     content: "I couldn't generate a response. Please try again.",
                 },
@@ -164,45 +203,19 @@ export default function ChatView({ pathname, provider }: Props) {
         }
     }
 
+    const renderItem = useCallback(({ item }: { item: Message }) => <MessageBubble message={item} />, [])
+
     return (
         <View style={styles.container}>
-            {/* Header */}
             <View style={styles.headerOverlay}>
                 <BlurView intensity={10} tint={appearance} style={styles.headerBlur}>
                     <View style={styles.headerContent}>
-                        <View
-                            style={[
-                                styles.icon,
-                                {
-                                    backgroundColor: `${vars.accentColor}20`,
-                                },
-                            ]}
-                        >
-                            <Sparkles color={vars.accentColor} size={18} />
-                        </View>
+                        <Image source={AssistantIcon} style={{ width: 56, height: 56 }} />
 
                         <View style={styles.titleGroup}>
-                            <Text
-                                style={[
-                                    styles.title,
-                                    {
-                                        color: vars.textColor,
-                                    },
-                                ]}
-                            >
-                                Assistant
-                            </Text>
-
-                            <Text
-                                style={[
-                                    styles.context,
-                                    {
-                                        color: vars.textColor,
-                                    },
-                                ]}
-                                numberOfLines={1}
-                            >
-                                {getProviderLabel(provider)}
+                            <Text style={[styles.title, { color: vars.textColor }]}>Assistant</Text>
+                            <Text style={[styles.context, { color: vars.textColor }]} numberOfLines={1}>
+                                {PROVIDER_LABELS[provider]}
                             </Text>
                         </View>
                     </View>
@@ -218,117 +231,27 @@ export default function ChatView({ pathname, provider }: Props) {
                     ref={listRef}
                     data={messages}
                     keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
                     contentContainerStyle={styles.messages}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                     ListHeaderComponent={<View style={styles.listHeaderSpacer} />}
                     ListFooterComponent={
                         <>
-                            {sending ? (
-                                <View
-                                    style={[
-                                        styles.thinking,
-                                        {
-                                            backgroundColor: vars.secondaryBackgroundColor,
-                                        },
-                                    ]}
-                                >
+                            {sending && (
+                                <View style={[styles.thinking, { backgroundColor: vars.secondaryBackgroundColor }]}>
                                     <ActivityIndicator color={vars.accentColor} size="small" />
-
-                                    <Text
-                                        style={[
-                                            styles.thinkingText,
-                                            {
-                                                color: vars.textColor,
-                                            },
-                                        ]}
-                                    >
+                                    <Text style={[styles.thinkingText, { color: vars.textColor }]}>
                                         {downloadProgress === null
                                             ? "Thinking…"
                                             : `Downloading the offline model… ${downloadProgress}%`}
                                     </Text>
                                 </View>
-                            ) : null}
+                            )}
 
                             <View style={styles.listFooterSpacer} />
                         </>
                     }
-                    renderItem={({ item }) => {
-                        const mine = item.role === "user"
-
-                        return (
-                            <View
-                                style={[
-                                    styles.message,
-                                    mine
-                                        ? {
-                                              alignSelf: "flex-end",
-                                              backgroundColor: vars.accentColor,
-                                          }
-                                        : {
-                                              alignSelf: "flex-start",
-                                              backgroundColor: vars.secondaryBackgroundColor,
-                                          },
-                                ]}
-                            >
-                                {mine ? (
-                                    <Text
-                                        style={[
-                                            styles.messageText,
-                                            {
-                                                color: "#fff",
-                                            },
-                                        ]}
-                                    >
-                                        {item.content}
-                                    </Text>
-                                ) : (
-                                    <Markdown
-                                        style={{
-                                            body: {
-                                                ...styles.messageText,
-                                                color: vars.textColor,
-                                            },
-                                            strong: {
-                                                fontWeight: "700",
-                                                color: vars.textColor,
-                                            },
-                                            em: {
-                                                fontStyle: "italic",
-                                                color: vars.textColor,
-                                            },
-                                            bullet_list: {
-                                                marginTop: 4,
-                                                marginBottom: 4,
-                                            },
-                                            ordered_list: {
-                                                marginTop: 4,
-                                                marginBottom: 4,
-                                            },
-                                            list_item: {
-                                                marginBottom: 4,
-                                            },
-                                            code_inline: {
-                                                backgroundColor: vars.secondaryBackgroundColor,
-                                                borderRadius: 4,
-                                                paddingHorizontal: 4,
-                                            },
-                                            code_block: {
-                                                backgroundColor: vars.secondaryBackgroundColor,
-                                                borderRadius: 8,
-                                                padding: 10,
-                                            },
-                                            link: {
-                                                color: vars.accentColor,
-                                            },
-                                        }}
-                                    >
-                                        {item.content}
-                                    </Markdown>
-                                )}
-                            </View>
-                        )
-                    }}
                 />
 
                 <View style={styles.composerOverlay}>
@@ -344,41 +267,23 @@ export default function ChatView({ pathname, provider }: Props) {
                             placeholder={`Ask about ${pageTitle.toLowerCase()}…`}
                             placeholderTextColor="#999"
                             keyboardAppearance={appearance}
-                            style={[
-                                styles.input,
-                                {
-                                    color: vars.textColor,
-                                },
-                            ]}
+                            style={[styles.input, { color: vars.textColor }]}
                             multiline
                             maxLength={1000}
                             editable={!sending}
-                            onSubmitEditing={() => {
-                                if (Platform.OS === "ios") {
-                                    return
-                                }
-
-                                send()
-                            }}
                         />
 
                         <PressableScale
                             accessibilityRole="button"
                             accessibilityLabel="Send message"
                             onPress={send}
-                            enabled={!!input.trim() && !sending}
-                            style={[
-                                styles.send,
-                                {
-                                    backgroundColor: vars.accentColor,
-                                    opacity: !input.trim() || sending ? 0.35 : 1,
-                                },
-                            ]}
+                            enabled={canSend}
+                            style={[styles.send, { backgroundColor: vars.accentColor, opacity: canSend ? 1 : 0.35 }]}
                         >
                             {sending ? (
                                 <ActivityIndicator size="small" color="#fff" />
                             ) : (
-                                <Send color="#fff" size={17} />
+                                <SendIcon size={20} color="#fff" />
                             )}
                         </PressableScale>
                     </GlassView>
@@ -392,7 +297,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-
     headerOverlay: {
         position: "absolute",
         top: -40,
@@ -403,21 +307,18 @@ const styles = StyleSheet.create({
         elevation: 100,
         overflow: "hidden",
     },
-
     headerBlur: {
         flex: 1,
         paddingHorizontal: 20,
         paddingTop: 48,
         paddingBottom: 10,
     },
-
     headerContent: {
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
     },
-
     icon: {
         width: 34,
         height: 34,
@@ -425,52 +326,58 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-
     titleGroup: {
         flex: 1,
     },
-
     title: {
         fontSize: 22,
         fontWeight: "700",
     },
-
     context: {
         fontSize: 12,
         opacity: 0.55,
         marginTop: 1,
     },
-
     keyboard: {
         flex: 1,
         zIndex: 1,
     },
-
     messages: {
         gap: 10,
         paddingHorizontal: 16,
     },
-
     listHeaderSpacer: {
         height: 82,
     },
-
     listFooterSpacer: {
         height: 90,
     },
-
     message: {
         maxWidth: "85%",
         borderRadius: 18,
         paddingHorizontal: 13,
         paddingVertical: 10,
     },
-
+    messageMine: {
+        alignSelf: "flex-end",
+    },
+    messageTheirs: {
+        alignSelf: "flex-start",
+    },
     messageText: {
         fontSize: 15,
         lineHeight: 21,
     },
-
+    messageTextMine: {
+        color: "#fff",
+    },
+    markdownList: {
+        marginTop: 4,
+        marginBottom: 4,
+    },
+    markdownListItem: {
+        marginBottom: 4,
+    },
     thinking: {
         alignSelf: "flex-start",
         borderRadius: 18,
@@ -479,12 +386,10 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 8,
     },
-
     thinkingText: {
         fontSize: 13,
         opacity: 0.7,
     },
-
     composerOverlay: {
         position: "absolute",
         left: 0,
@@ -495,11 +400,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingBottom: 14,
     },
-
     glassInput: {
         minHeight: 56,
         maxHeight: 120,
-        borderRadius: 28,
+        borderRadius: BORDER_RADIUS_L,
         paddingLeft: 16,
         paddingRight: 6,
         paddingVertical: 6,
@@ -507,7 +411,6 @@ const styles = StyleSheet.create({
         alignItems: "flex-end",
         overflow: "hidden",
     },
-
     input: {
         flex: 1,
         minHeight: 42,
@@ -517,7 +420,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "400",
     },
-
     send: {
         width: 42,
         height: 42,

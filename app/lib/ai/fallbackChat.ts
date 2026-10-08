@@ -1,6 +1,5 @@
 import { createSystemPrompt } from "./prompt"
 import { ChatOptions } from "@/types/ai"
-import { logsClient } from "@/lib/logs"
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -25,8 +24,6 @@ class GroqError extends Error {
 }
 
 async function requestGroq({ model, messages }: { model: string; messages: GroqMessage[] }) {
-    logsClient.createLog("AI: Using Cliud Chat", "GET", false)
-
     const apiKey = process.env.GROQ_API_KEY
 
     if (!apiKey) {

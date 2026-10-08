@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native"
-import Toast from "react-native-toast-message"
 import { Bot, Cloud, Cpu, Trash2 } from "lucide-react-native"
 import { GlassView } from "expo-glass-effect"
 import Accordion from "@/components/accordion"
@@ -18,15 +17,9 @@ import {
 } from "@/lib/ai/settings"
 import { logsClient } from "@/lib/logs"
 
-function getErrorMessage(error: unknown) {
-    if (error instanceof Error) {
-        return error.message
-    }
+const getErrorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
-    return String(error)
-}
-
-function getProviderLabel(provider: AIProvider | null) {
+const getProviderLabel = (provider: AIProvider | null) => {
     switch (provider) {
         case "cloud":
             return "Cloud AI"
@@ -77,8 +70,6 @@ export default function AiModel() {
                 setModelDownloaded(downloaded)
                 setSupportsBuiltInAI(supported)
             } catch (error) {
-                console.error("Failed to initialize AI model settings:", error)
-
                 if (mounted) {
                     setModelDownloaded(false)
                     setSupportsBuiltInAI(false)
@@ -118,14 +109,7 @@ export default function AiModel() {
             await setProvider("downloaded")
         } catch (error) {
             const message = getErrorMessage(error)
-            console.error("Failed to load downloaded AI model:", error)
             await logsClient.createLog(message, "GET", true)
-            Toast.show({
-                type: "error",
-                text1: "Failed to load AI model",
-                text2: message,
-            })
-            throw error
         } finally {
             setLoadingModel(false)
         }
@@ -136,12 +120,6 @@ export default function AiModel() {
             return
         }
 
-        // Built-in AI requires device support.
-        if (selectedProvider === "built-in" && !supportsBuiltInAI) {
-            return
-        }
-
-        // Ignore stale switch events that match the current selection.
         if (enabled === (provider === selectedProvider)) {
             return
         }
@@ -197,24 +175,13 @@ export default function AiModel() {
             setModelDownloaded(true)
         } catch (error) {
             const message = getErrorMessage(error)
-            console.error("Failed to download AI model:", error)
             await logsClient.createLog(message, "GET", true)
-            Toast.show({
-                type: "error",
-                text1: "Failed to download AI model",
-                text2: message,
-            })
-            return
         } finally {
             setDownloadingModel(false)
             setDownloadProgress(0)
         }
 
-        try {
-            await activateDownloadedModel()
-        } catch {
-            // Error already logged and toasted in activateDownloadedModel.
-        }
+        await activateDownloadedModel()
     }
 
     const handleDeleteDownloadedModel = async () => {
@@ -228,9 +195,6 @@ export default function AiModel() {
             setDeletingModel(true)
 
             if (provider === "downloaded") {
-                const { unloadModel } = await import("expo-ai-kit")
-
-                await unloadModel()
                 await setProvider(null)
             }
 
@@ -238,12 +202,8 @@ export default function AiModel() {
 
             setModelDownloaded(false)
         } catch (error) {
-            console.error("Failed to delete AI model:", error)
-            Toast.show({
-                type: "error",
-                text1: "Failed to delete AI model",
-                text2: getErrorMessage(error),
-            })
+            const message = getErrorMessage(error)
+            await logsClient.createLog(message, "GET", true)
         } finally {
             setDeletingModel(false)
             busyRef.current = false

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { View } from "react-native"
+import { StyleSheet, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
 import useOnlineRecipes from "@/hooks/recipes/useOnlineRecipes"
 import { List } from "@/components/online-recipes/list"
@@ -13,13 +13,7 @@ export default function OnlineRecipes() {
     const [searchFocused, setSearchFocused] = useState(false)
 
     return (
-        <View
-            style={{
-                backgroundColor: vars.backgroundColor,
-                flex: 1,
-                paddingHorizontal: 12,
-            }}
-        >
+        <View style={[styles.container, { backgroundColor: vars.backgroundColor }]}>
             <List
                 loading={states.loading}
                 onEndReached={actions.getNextPage}
@@ -39,3 +33,10 @@ export default function OnlineRecipes() {
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 12,
+    },
+})

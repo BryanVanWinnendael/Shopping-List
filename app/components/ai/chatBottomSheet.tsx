@@ -1,18 +1,28 @@
-import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
-import useThemes from "@/hooks/themes/useThemes"
 import { RefObject, useEffect, useState } from "react"
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
-import ProviderSetup from "./providerSetup"
-import { useAiContextStore } from "@/stores/useAiContextStore"
+import Toast from "react-native-toast-message"
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import ChatView from "@/components/ai/chatView"
+import ProviderSetup from "./providerSetup"
+import useThemes from "@/hooks/themes/useThemes"
+import { useAiContextStore } from "@/stores/useAiContextStore"
 import { AIProvider } from "@/types/ai"
-import { AI_MODEL_ID, downloadLocalModel, isLocalModelDownloaded, loadLocalModel } from "@/lib/ai/settings"
+import { downloadLocalModel, isLocalModelDownloaded, loadLocalModel } from "@/lib/ai/settings"
+import { logsClient } from "@/lib/logs"
 
 type Props = {
     pathname: string
     sheetRef: RefObject<BottomSheetRef | null>
     onClose: () => void
 }
+
+type Status = "idle" | "downloading" | "loading"
+
+const SNAP_POINTS = ["55%", "75%", "100%"]
+
+const getErrorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error))
+
+const logError = (error: unknown) => logsClient.createLog(getErrorMessage(error), "GET", true)
 
 export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props) {
     const { vars } = useThemes()
@@ -21,100 +31,72 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
     const loadProvider = useAiContextStore((state) => state.loadProvider)
     const setProvider = useAiContextStore((state) => state.setProvider)
 
-    const [loadingProvider, setLoadingProvider] = useState(true)
-    const [downloadingModel, setDownloadingModel] = useState(false)
+    const [checking, setChecking] = useState(true)
+    const [status, setStatus] = useState<Status>("idle")
     const [downloadProgress, setDownloadProgress] = useState(0)
-    const [modelDownloaded, setModelDownloaded] = useState(false)
+
+    const isDownloading = status === "downloading"
+    const isBusy = status !== "idle"
 
     useEffect(() => {
         let mounted = true
 
-        const initializeProvider = async () => {
-            try {
-                await Promise.all([
-                    loadProvider(),
-                    isLocalModelDownloaded().then((downloaded) => {
-                        if (mounted) {
-                            setModelDownloaded(downloaded)
-                        }
-                    }),
-                ])
-            } finally {
-                if (mounted) {
-                    setLoadingProvider(false)
-                }
-            }
-        }
-
-        initializeProvider()
+        loadProvider()
+            .catch(logError)
+            .finally(() => {
+                if (mounted) setChecking(false)
+            })
 
         return () => {
             mounted = false
         }
     }, [loadProvider])
 
-    const handleProviderSelected = async (selectedProvider: AIProvider) => {
-        if (downloadingModel) {
-            return
-        }
-
-        // Downloaded model was selected.
-        if (selectedProvider === "downloaded") {
-            if (modelDownloaded) {
-                const { setModel } = await import("expo-ai-kit")
-
-                await setModel(AI_MODEL_ID, {
-                    generation: {
-                        temperature: 0.7,
-                        maxTokens: 512,
-                    },
-                })
-
-                await setProvider("downloaded")
-                return
-            }
-
-            // Model doesn't exist yet, so download and activate it.
-            await handleDownloadModel()
-            return
-        }
-
-        // Switching away from the downloaded model unloads it
-        // from memory, but does not delete the downloaded file.
-        if (provider === "downloaded") {
-            const { unloadModel } = await import("expo-ai-kit")
-            await unloadModel()
-        }
-
-        await setProvider(selectedProvider)
-    }
-
-    const handleDownloadModel = async () => {
-        if (downloadingModel) {
-            return
-        }
-
-        setDownloadingModel(true)
-        setDownloadProgress(0)
-
-        try {
-            await downloadLocalModel((progress) => setDownloadProgress(progress))
-            setModelDownloaded(true)
-        } catch (error) {
-            console.error("Failed to download AI model:", error)
-            setDownloadingModel(false)
-            setDownloadProgress(0)
-            return
-        }
+    // Load the downloaded model into memory (once per launch), then select it.
+    const activateDownloadedModel = async () => {
+        setStatus("loading")
 
         try {
             await loadLocalModel()
             await setProvider("downloaded")
         } catch (error) {
-            console.error("Downloaded, but failed to load AI model:", error)
+            await logsClient.createLog(getErrorMessage(error), "GET", true)
         } finally {
-            setDownloadingModel(false)
-            setDownloadProgress(0)
+            setStatus("idle")
+        }
+    }
+
+    const downloadAndActivate = async () => {
+        setStatus("downloading")
+        setDownloadProgress(0)
+
+        try {
+            await downloadLocalModel(setDownloadProgress)
+        } catch (error) {
+            await logError(error)
+            Toast.show({ type: "error", text1: "Model download failed" })
+            setStatus("idle")
+            return
+        }
+
+        // A load failure must not undo a successful download.
+        await activateDownloadedModel()
+    }
+
+    const handleProviderSelected = async (selectedProvider: AIProvider) => {
+        if (selectedProvider !== "downloaded") {
+            await setProvider(selectedProvider)
+            return
+        }
+
+        // Check at tap time. The model may have been downloaded or deleted in Settings
+        // since this sheet mounted, so a value cached on mount could be stale.
+        const downloaded = await isLocalModelDownloaded().catch(() => false)
+
+        if (downloaded) {
+            await activateDownloadedModel()
+        } else {
+            await downloadAndActivate()
         }
     }
 
@@ -122,57 +104,33 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
         <AppBottomSheet
             ref={sheetRef}
             index={-1}
-            snapPoints={["55%", "75%", "100%"]}
+            snapPoints={SNAP_POINTS}
             enablePanDownToClose
             onClose={onClose}
             backgroundMode="adaptive"
         >
-            {loadingProvider ? (
-                <View style={styles.loadingContainer}>
+            {checking ? (
+                <View style={styles.center}>
                     <ActivityIndicator size="small" />
-
-                    <Text
-                        style={[
-                            styles.loadingText,
-                            {
-                                color: vars.textColor,
-                            },
-                        ]}
-                    >
-                        Checking AI setup…
-                    </Text>
+                    <Text style={[styles.text, { color: vars.textColor }]}>Checking AI setup…</Text>
                 </View>
-            ) : downloadingModel ? (
-                <View style={styles.loadingContainer}>
+            ) : isBusy ? (
+                <View style={styles.center}>
                     <ActivityIndicator size="large" />
-
-                    <Text
-                        style={[
-                            styles.loadingText,
-                            {
-                                color: vars.textColor,
-                            },
-                        ]}
-                    >
-                        Downloading AI model…
+                    <Text style={[styles.text, { color: vars.textColor }]}>
+                        {isDownloading ? "Downloading AI model…" : "Loading AI model…"}
                     </Text>
-
-                    <Text
-                        style={[
-                            styles.progressText,
-                            {
-                                color: vars.textColor,
-                            },
-                        ]}
-                    >
-                        {Math.round(downloadProgress * 100)}%
-                    </Text>
+                    {isDownloading && (
+                        <Text style={[styles.progress, { color: vars.textColor }]}>
+                            {Math.round(downloadProgress * 100)}%
+                        </Text>
+                    )}
                 </View>
             ) : provider === null ? (
                 <ProviderSetup
                     onSelectProvider={handleProviderSelected}
-                    onDownloadModel={handleDownloadModel}
-                    downloadingModel={downloadingModel}
+                    onDownloadModel={downloadAndActivate}
+                    downloadingModel={isDownloading}
                 />
             ) : (
                 <ChatView pathname={pathname} provider={provider} />
@@ -182,19 +140,17 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
 }
 
 const styles = StyleSheet.create({
-    loadingContainer: {
+    center: {
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
         gap: 12,
     },
-
-    loadingText: {
+    text: {
         fontSize: 14,
         fontWeight: "500",
     },
-
-    progressText: {
+    progress: {
         fontSize: 13,
         fontWeight: "600",
     },

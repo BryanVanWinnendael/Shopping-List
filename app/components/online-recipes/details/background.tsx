@@ -1,19 +1,24 @@
 import { StyleSheet } from "react-native"
+import Animated, { Extrapolation, interpolate, SharedValue, useAnimatedStyle } from "react-native-reanimated"
 import CustomImage from "@/components/customImage"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
-import Animated, { Extrapolation, interpolate, SharedValue, useAnimatedStyle } from "react-native-reanimated"
 
 type Props = {
     recipe: OnlineRecipeDetails | null
     scrollY: SharedValue<number>
 }
 
+const IMAGE_HEIGHT = 240
+const PARALLAX_OFFSET = 80
+
 export default function Background({ recipe, scrollY }: Props) {
+    const imageUrl = recipe?.image
+
     const containerStyle = useAnimatedStyle(() => {
         const pullDown = Math.max(0, -scrollY.value)
 
         return {
-            height: interpolate(scrollY.value, [0, 240], [240, 0], Extrapolation.CLAMP) + pullDown,
+            height: interpolate(scrollY.value, [0, IMAGE_HEIGHT], [IMAGE_HEIGHT, 0], Extrapolation.CLAMP) + pullDown,
         }
     })
 
@@ -21,10 +26,15 @@ export default function Background({ recipe, scrollY }: Props) {
         const pullDown = Math.max(0, -scrollY.value)
 
         return {
-            height: 240 + pullDown,
+            height: IMAGE_HEIGHT + pullDown,
             transform: [
                 {
-                    translateY: interpolate(scrollY.value, [0, 240], [0, -80], Extrapolation.CLAMP),
+                    translateY: interpolate(
+                        scrollY.value,
+                        [0, IMAGE_HEIGHT],
+                        [0, -PARALLAX_OFFSET],
+                        Extrapolation.CLAMP
+                    ),
                 },
             ],
         }
@@ -33,7 +43,7 @@ export default function Background({ recipe, scrollY }: Props) {
     return (
         <Animated.View style={[styles.container, containerStyle]}>
             <Animated.View style={[styles.image, imageStyle]}>
-                {recipe?.image && <CustomImage url={recipe?.image} style={StyleSheet.absoluteFill} />}
+                {!!imageUrl && <CustomImage url={imageUrl} style={StyleSheet.absoluteFill} />}
             </Animated.View>
         </Animated.View>
     )
@@ -52,7 +62,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: 0,
         left: 0,
-        width: "100%",
-        height: 240,
+        right: 0,
+        height: IMAGE_HEIGHT,
     },
 })

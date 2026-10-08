@@ -1,78 +1,74 @@
-import { Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
-import { Nutrition } from "@/types/generated/models/nutrition"
 import { BORDER_RADIUS_M } from "@/lib/theme"
+import { Nutrition } from "@/types/generated/models/nutrition"
 
 type Props = {
     nutrition: Nutrition
 }
 
+const ITEMS: { label: string; key: keyof Nutrition }[] = [
+    { label: "Calories", key: "calories" },
+    { label: "Carbs", key: "carbohydrates" },
+    { label: "Sugars", key: "sugars" },
+    { label: "Fat", key: "fat" },
+    { label: "Sat. Fat", key: "saturatedFat" },
+    { label: "Protein", key: "protein" },
+    { label: "Fiber", key: "fiber" },
+]
+
 export default function NutritionList({ nutrition }: Props) {
     const { vars } = useThemes()
 
-    const items = [
-        { label: "Calories", value: nutrition.calories },
-        { label: "Carbs", value: nutrition.carbohydrates },
-        { label: "Sugars", value: nutrition.sugars },
-        { label: "Fat", value: nutrition.fat },
-        { label: "Sat. Fat", value: nutrition.saturatedFat },
-        { label: "Protein", value: nutrition.protein },
-        { label: "Fiber", value: nutrition.fiber },
-    ]
-
     return (
-        <View style={{ marginTop: 24 }}>
-            <Text
-                style={{
-                    color: vars.textColor,
-                    fontSize: 22,
-                    fontWeight: "700",
-                    marginBottom: 16,
-                }}
-            >
-                Nutritions
-            </Text>
+        <View style={styles.container}>
+            <Text style={[styles.title, { color: vars.textColor }]}>Nutritions</Text>
 
-            <View
-                style={{
-                    borderRadius: BORDER_RADIUS_M,
-                    backgroundColor: vars.secondaryBackgroundColor,
-                    overflow: "hidden",
-                }}
-            >
-                {items.map((item, index) => (
+            <View style={[styles.card, { backgroundColor: vars.secondaryBackgroundColor }]}>
+                {ITEMS.map(({ label, key }, index) => (
                     <View
-                        key={item.label}
-                        style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            paddingHorizontal: 16,
-                            paddingVertical: 14,
-                            borderBottomWidth: index === items.length - 1 ? 0 : 1,
-                            borderBottomColor: vars.secondaryBorderColor,
-                        }}
+                        key={key}
+                        style={[
+                            styles.row,
+                            index < ITEMS.length - 1 && {
+                                borderBottomWidth: 1,
+                                borderBottomColor: vars.secondaryBorderColor,
+                            },
+                        ]}
                     >
-                        <Text
-                            style={{
-                                color: vars.textColor,
-                                fontWeight: "500",
-                            }}
-                        >
-                            {item.label}
-                        </Text>
-
-                        <Text
-                            style={{
-                                color: vars.accentColor,
-                                fontWeight: "600",
-                            }}
-                        >
-                            {item.value}
-                        </Text>
+                        <Text style={[styles.label, { color: vars.textColor }]}>{label}</Text>
+                        <Text style={[styles.value, { color: vars.accentColor }]}>{nutrition[key]}</Text>
                     </View>
                 ))}
             </View>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        marginTop: 24,
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: "700",
+        marginBottom: 16,
+    },
+    card: {
+        borderRadius: BORDER_RADIUS_M,
+        overflow: "hidden",
+    },
+    row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+    },
+    label: {
+        fontWeight: "500",
+    },
+    value: {
+        fontWeight: "600",
+    },
+})

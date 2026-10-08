@@ -1,4 +1,4 @@
-import { View } from "react-native"
+import { StyleSheet, View } from "react-native"
 import List from "@/components/recipes/list/list"
 import RecipesFilterBottomSheetButton from "@/components/recipes/filter/bottomSheetButton"
 import AddRecipeBottomSheet from "@/components/recipes/create/bottomSheet"
@@ -21,13 +21,7 @@ export default function Recipes() {
     const [filterExpanded, setFilterExpanded] = useState(false)
 
     return (
-        <View
-            style={{
-                backgroundColor: vars.backgroundColor,
-                flex: 1,
-                paddingHorizontal: 12,
-            }}
-        >
+        <View style={[styles.container, { backgroundColor: vars.backgroundColor }]}>
             <SearchBar
                 value={recipesListStates.query}
                 updateQuery={recipesListActions.updateQuery}
@@ -57,3 +51,10 @@ export default function Recipes() {
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 12,
+    },
+})

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native"
 import BackButton from "@/components/recipes/details/backButton"
-import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 import AddToRecipesButton from "@/components/online-recipes/details/addToRecipesButton"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
     recipe: OnlineRecipeDetails | null
@@ -12,11 +12,7 @@ export default function Buttons({ recipe }: Props) {
         <View style={styles.topBar}>
             <BackButton />
 
-            {recipe && (
-                <View style={styles.actions}>
-                    <AddToRecipesButton recipe={recipe} />
-                </View>
-            )}
+            {recipe && <AddToRecipesButton recipe={recipe} />}
         </View>
     )
 }
@@ -31,10 +27,5 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         zIndex: 10,
-    },
-    actions: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
     },
 })

@@ -5,7 +5,7 @@ import { XCircle } from "lucide-react-native"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
 type Props = {
-    text1: string
+    text1?: string
     text2?: string
 }
 

@@ -1,15 +1,13 @@
 import { create } from "zustand"
-
 import { Products } from "@/types/list"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 import { Recipe } from "@/types/generated/models/recipe"
-
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import { clearAIProvider, getAIProvider, setAIProvider } from "@/lib/ai/settings"
+import { clearAIProvider, getAIProvider, restoreDownloadedModel, setAIProvider } from "@/lib/ai/settings"
 import { AIProvider } from "@/types/ai"
 
-type AiContextState = {
+export type AiContextState = {
     products: Products | null
 
     recipes: RecipeSummary[] | null
@@ -44,6 +42,10 @@ export const useAiContextStore = create<AiContextState>((set) => ({
         set({
             provider,
         })
+
+        if (provider === "downloaded") {
+            await restoreDownloadedModel(set)
+        }
     },
 
     setProvider: async (provider) => {

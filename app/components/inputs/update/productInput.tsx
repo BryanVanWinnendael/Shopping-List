@@ -1,10 +1,11 @@
+import { useState } from "react"
 import { StyleSheet, TextInput, View } from "react-native"
 import { PressableScale } from "pressto"
-import Svg, { Path } from "react-native-svg"
 import { GlassView } from "expo-glass-effect"
-import { Product } from "@/types/list"
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
+import { Product } from "@/types/list"
+import { SendIcon } from "lucide-react-native"
 
 type Props = {
     product: Product | null
@@ -16,7 +17,13 @@ type Props = {
 export default function ProductInput({ product, value, updateName, updateProduct }: Props) {
     const { vars, appearance } = useThemes()
 
-    const inputValue = value || product?.name || ""
+    // Start from the edited value or the product name, then let the user change it freely (including clearing it).
+    const [text, setText] = useState(value || product?.name || "")
+
+    const handleChange = (next: string) => {
+        setText(next)
+        updateName(next)
+    }
 
     return (
         <View style={styles.container}>
@@ -24,42 +31,24 @@ export default function ProductInput({ product, value, updateName, updateProduct
                 <View style={styles.inputRow}>
                     <TextInput
                         autoFocus
-                        value={inputValue}
-                        onChangeText={updateName}
+                        value={text}
+                        onChangeText={handleChange}
                         placeholder="Edit product..."
                         placeholderTextColor="#999"
                         keyboardAppearance={appearance}
                         returnKeyType="done"
                         onSubmitEditing={updateProduct}
-                        style={[
-                            styles.textInput,
-                            {
-                                color: vars.textColor,
-                            },
-                        ]}
+                        style={[styles.textInput, { color: vars.textColor }]}
                     />
 
-                    <View style={styles.sendWrapper}>
-                        <PressableScale
-                            onPress={updateProduct}
-                            style={[
-                                styles.sendButton,
-                                {
-                                    backgroundColor: vars.accentColor,
-                                },
-                            ]}
-                        >
-                            <Svg width={20} height={20} viewBox="0 -0.5 25 25" fill="none">
-                                <Path
-                                    d="M18.455 9.8834L7.063 4.1434C6.76535 3.96928 6.40109 3.95274 6.08888 4.09916C5.77667 4.24558 5.55647 4.53621 5.5 4.8764C5.5039 4.98942 5.53114 5.10041 5.58 5.2024L7.749 10.4424C7.85786 10.7903 7.91711 11.1519 7.925 11.5164C7.91714 11.8809 7.85789 12.2425 7.749 12.5904L5.58 17.8304C5.53114 17.9324 5.5039 18.0434 5.5 18.1564C5.55687 18.4961 5.77667 18.7862 6.0889 18.9323C6.40078 19.0785 6.76456 19.062 7.062 18.8884L18.455 13.1484C19.0903 12.8533 19.4967 12.2164 19.4967 11.5159C19.4967 10.8154 19.0903 10.1785 18.455 9.8834Z"
-                                    stroke="#fff"
-                                    strokeWidth={2}
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </Svg>
-                        </PressableScale>
-                    </View>
+                    <PressableScale
+                        onPress={updateProduct}
+                        accessibilityRole="button"
+                        accessibilityLabel="Save product"
+                        style={[styles.sendButton, { backgroundColor: vars.accentColor }]}
+                    >
+                        <SendIcon size={20} color="#fff" />
+                    </PressableScale>
                 </View>
             </GlassView>
         </View>
@@ -95,16 +84,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "400",
     },
-    sendWrapper: {
-        width: 42,
-        height: 42,
-        alignItems: "center",
-        justifyContent: "center",
-        marginLeft: 6,
-    },
     sendButton: {
         width: 42,
         height: 42,
+        marginLeft: 6,
         borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",
         justifyContent: "center",

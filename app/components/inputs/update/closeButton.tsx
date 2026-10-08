@@ -1,3 +1,4 @@
+import { StyleSheet } from "react-native"
 import { PressableScale } from "pressto"
 import Svg, { Path } from "react-native-svg"
 import { GlassView } from "expo-glass-effect"
@@ -13,29 +14,8 @@ export default function CloseButton({ close }: Props) {
     const { vars, appearance } = useThemes()
 
     return (
-        <PressableScale
-            onPress={close}
-            style={{
-                justifyContent: "center",
-                alignItems: "center",
-                width: 48,
-                height: 48,
-            }}
-        >
-            <GlassView
-                colorScheme={appearance}
-                glassEffectStyle="regular"
-                isInteractive
-                style={{
-                    borderRadius: BORDER_RADIUS_FULL,
-                    overflow: "hidden",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginBottom: 8,
-                    width: 48,
-                    height: 48,
-                }}
-            >
+        <PressableScale onPress={close} accessibilityRole="button" accessibilityLabel="Close" style={styles.button}>
+            <GlassView colorScheme={appearance} glassEffectStyle="regular" isInteractive style={styles.glass}>
                 <Svg width={20} height={20} viewBox="-0.5 0 25 25">
                     <Path d="M3 21.32L21 3.32" stroke={vars.textColor} strokeWidth={1.5} />
                     <Path d="M3 3.32L21 21.32" stroke={vars.textColor} strokeWidth={1.5} />
@@ -44,3 +24,21 @@ export default function CloseButton({ close }: Props) {
         </PressableScale>
     )
 }
+
+const styles = StyleSheet.create({
+    button: {
+        justifyContent: "center",
+        alignItems: "center",
+        width: 48,
+        height: 48,
+    },
+    glass: {
+        width: 48,
+        height: 48,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+})

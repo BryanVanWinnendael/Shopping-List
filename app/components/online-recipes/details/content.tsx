@@ -1,12 +1,12 @@
 import { Linking, StyleSheet, Text, View } from "react-native"
 import Animated, { SharedValue, useAnimatedScrollHandler } from "react-native-reanimated"
-import useThemes from "@/hooks/themes/useThemes"
 import { PressableScale } from "pressto"
 import { ChevronRight } from "lucide-react-native"
-import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 import IngredientsList from "@/components/online-recipes/details/ingredientsList"
 import Instructions from "@/components/online-recipes/details/instructions"
+import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_L } from "@/lib/theme"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
     recipe: OnlineRecipeDetails
@@ -23,46 +23,32 @@ export default function RecipeContent({ recipe, open, scrollY }: Props) {
         },
     })
 
+    const { source } = recipe
+    const hasTime = !!recipe.time && recipe.time !== 0
+    const hasIngredients = !!recipe.ingredients?.length
+
     return (
         <Animated.ScrollView onScroll={onScroll} scrollEventThrottle={16} showsVerticalScrollIndicator={false}>
             <View style={styles.content}>
-                <Text
-                    style={[
-                        styles.title,
-                        {
-                            color: vars.textColor,
-                        },
-                    ]}
-                >
-                    {recipe.title}
-                </Text>
+                <Text style={[styles.title, { color: vars.textColor }]}>{recipe.title}</Text>
 
                 <View style={styles.info}>
-                    {recipe.time && recipe.time != 0 ? (
-                        <Meta text={`⏱ ${recipe.time} min`} accent={vars.accentColor} />
-                    ) : null}
-
-                    {recipe.persons ? <Meta text={`👥 ${recipe.persons}`} accent={vars.accentColor} /> : null}
+                    {hasTime && <Meta text={`⏱ ${recipe.time} min`} accent={vars.accentColor} />}
+                    {!!recipe.persons && <Meta text={`👥 ${recipe.persons}`} accent={vars.accentColor} />}
                 </View>
 
-                <View>
-                    {recipe.ingredients && recipe.ingredients.length > 0 && <IngredientsList recipe={recipe} />}
-                </View>
+                {hasIngredients && <IngredientsList recipe={recipe} />}
 
-                <View>{recipe.instructions && <Instructions recipe={recipe} open={open} />}</View>
+                {!!recipe.instructions && <Instructions recipe={recipe} open={open} />}
 
-                {recipe.source && (
-                    <PressableScale onPress={() => Linking.openURL(recipe.source!)} style={[styles.source]}>
-                        <Text
-                            style={[
-                                styles.sourceText,
-                                {
-                                    color: vars.accentColor,
-                                },
-                            ]}
-                        >
-                            View original recipe
-                        </Text>
+                {!!source && (
+                    <PressableScale
+                        onPress={() => Linking.openURL(source)}
+                        accessibilityRole="link"
+                        accessibilityLabel="View original recipe"
+                        style={styles.source}
+                    >
+                        <Text style={[styles.sourceText, { color: vars.accentColor }]}>View original recipe</Text>
                         <ChevronRight color={vars.accentColor} />
                     </PressableScale>
                 )}
@@ -73,24 +59,8 @@ export default function RecipeContent({ recipe, open, scrollY }: Props) {
 
 function Meta({ text, accent }: { text: string; accent: string }) {
     return (
-        <View
-            style={[
-                styles.meta,
-                {
-                    backgroundColor: `${accent}20`,
-                },
-            ]}
-        >
-            <Text
-                style={[
-                    styles.metaText,
-                    {
-                        color: accent,
-                    },
-                ]}
-            >
-                {text}
-            </Text>
+        <View style={[styles.meta, { backgroundColor: `${accent}20` }]}>
+            <Text style={[styles.metaText, { color: accent }]}>{text}</Text>
         </View>
     )
 }

@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { AIProvider } from "@/types/ai"
+import { AiContextState } from "@/stores/useAiContextStore"
 
 const AI_PROVIDER_KEY = "app_aiProviderKey"
 const AI_MODEL_DOWNLOADED_KEY = "app_aiModelDownloaded"
@@ -86,7 +87,7 @@ export const clearAIProvider = async (): Promise<void> => {
 }
 
 // checks if only AI_MODEL_ID is downloaded
-// TODO: make it check if selected model is downloaded
+// TODO: make it check if selected local model is downloaded
 export const isLocalModelDownloaded = async (): Promise<boolean> => {
     if (__DEV__) return false
 
@@ -139,12 +140,28 @@ export async function loadLocalModel() {
     await setModel(AI_MODEL_ID, { generation: { temperature: 0.4, maxTokens: 512 } })
 }
 
+export async function restoreDownloadedModel(set: (partial: Partial<AiContextState>) => void) {
+    try {
+        // The file may have been deleted (storage cleanup, reinstall) since the provider was saved.
+        if (!(await isLocalModelDownloaded())) {
+            await setAIProvider(null)
+            set({ provider: null })
+            return
+        }
+
+        await loadLocalModel()
+    } catch (error) {
+        console.error("Failed to restore downloaded model:", error)
+    }
+}
+
 export async function deleteLocalModel() {
     if (__DEV__) return
 
     await registerLocalModels()
-    const { deleteModel } = await import("expo-ai-kit")
+    const { deleteModel, unloadModel } = await import("expo-ai-kit")
 
+    await unloadModel()
     await deleteModel(AI_MODEL_ID)
 
     await AsyncStorage.removeItem(AI_MODEL_DOWNLOADED_KEY)

@@ -1,40 +1,43 @@
-import { useMemo, useState } from "react"
+import { memo, useMemo, useState } from "react"
 import { StyleSheet, Text, View } from "react-native"
+import { PressableScale } from "pressto"
 import Accordion from "@/components/accordion"
+import LogBodyModal from "@/components/logs/logBodyModal"
 import useThemes from "@/hooks/themes/useThemes"
 import { decompress } from "@/lib/logs"
-import LogBodyModal from "@/components/logs/logBodyModal"
+import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 import { Trace } from "@/types/generated/models/trace"
 import { SpanNode } from "@/types/generated/models/span_node"
 import { Log as LogType } from "@/types/generated/models/log"
-import { PressableScale } from "pressto"
-import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     trace: Trace
 }
 
-type Event =
-    | {
-          type: "request"
-          span: SpanNode
-          log: LogType
-      }
-    | {
-          type: "response"
-          span: SpanNode
-          log: LogType
-      }
+type Event = {
+    type: "request" | "response"
+    span: SpanNode
+    log: LogType
+}
+
+type SelectedBody = {
+    title: string
+    body: string
+}
+
+const COLORS = {
+    request: "#3B82F6",
+    success: "#22C55E",
+    error: "#EF4444",
+}
+
+const getStatusColor = (log: LogType) => (log.error ? COLORS.error : COLORS.success)
 
 function buildEvents(node: SpanNode): Event[] {
     const events: Event[] = []
 
     if (node.request) {
-        events.push({
-            type: "request",
-            span: node,
-            log: node.request,
-        })
+        events.push({ type: "request", span: node, log: node.request })
     }
 
     for (const child of node.children ?? []) {
@@ -42,39 +45,78 @@ function buildEvents(node: SpanNode): Event[] {
     }
 
     if (node.response) {
-        events.push({
-            type: "response",
-            span: node,
-            log: node.response,
-        })
+        events.push({ type: "response", span: node, log: node.response })
     }
 
     return events
 }
 
-export default function Log({ trace }: Props) {
+type EventCardProps = {
+    event: Event
+    onOpenBody: (compressed: string, title: string) => void
+}
+
+function EventCard({ event, onOpenBody }: EventCardProps) {
+    const { vars } = useThemes()
+    const { type, span, log } = event
+
+    const textColor = { color: vars.textColor }
+    const isRequest = type === "request"
+
+    return (
+        <View style={[styles.event, { backgroundColor: vars.backgroundColor, borderColor: vars.secondaryBorderColor }]}>
+            <Text style={[styles.eventType, { color: isRequest ? COLORS.request : getStatusColor(log) }]}>
+                {isRequest ? "→ REQUEST" : "← RESPONSE"}
+            </Text>
+
+            <Text style={[styles.service, textColor]}>{span.service}</Text>
+
+            {!!log.httpMethod && (
+                <Text style={[styles.text, textColor]}>
+                    {log.httpMethod} {log.path}
+                </Text>
+            )}
+
+            {!!log.dateTime && <Text style={[styles.meta, textColor]}>{log.dateTime}</Text>}
+
+            {!isRequest && (
+                <Text style={[styles.responseStatus, { color: getStatusColor(log) }]}>
+                    {log.statusCode} • {log.durationMs} ms
+                </Text>
+            )}
+
+            {!!log.text && <Text style={[styles.text, textColor]}>{log.text}</Text>}
+
+            {!!log.requestBodyCompressed && (
+                <PressableScale onPress={() => onOpenBody(log.requestBodyCompressed!, "Request Body")}>
+                    <Text style={styles.link}>View Request Body</Text>
+                </PressableScale>
+            )}
+
+            {!!log.responseBodyCompressed && (
+                <PressableScale onPress={() => onOpenBody(log.responseBodyCompressed!, "Response Body")}>
+                    <Text style={styles.link}>View Response Body</Text>
+                </PressableScale>
+            )}
+        </View>
+    )
+}
+
+function Log({ trace }: Props) {
     const { vars } = useThemes()
 
     const [expanded, setExpanded] = useState(false)
-    const [selectedBody, setSelectedBody] = useState<string | null>(null)
-    const [selectedTitle, setSelectedTitle] = useState("Body")
+    const [selected, setSelected] = useState<SelectedBody | null>(null)
 
-    const events = useMemo(() => {
-        return trace.roots.flatMap(buildEvents)
-    }, [trace])
+    const events = useMemo(() => trace.roots.flatMap(buildEvents), [trace])
 
     const rootRequest = events.find((e) => e.type === "request")?.log
-    const rootResponse = [...events].reverse().find((e) => e.type === "response")?.log
+    const rootResponse = events.findLast((e) => e.type === "response")?.log
 
-    function openBody(compressed?: string | null, title: string = "Body") {
-        if (!compressed) return
-
+    const openBody = (compressed: string, title: string) => {
         const body = decompress(compressed)
 
-        if (!body) return
-
-        setSelectedTitle(title)
-        setSelectedBody(body)
+        if (body) setSelected({ title, body })
     }
 
     return (
@@ -82,168 +124,48 @@ export default function Log({ trace }: Props) {
             <View
                 style={[
                     styles.card,
-                    {
-                        backgroundColor: vars.secondaryBackgroundColor,
-                        borderColor: vars.secondaryBorderColor,
-                    },
+                    { backgroundColor: vars.secondaryBackgroundColor, borderColor: vars.secondaryBorderColor },
                 ]}
             >
-                <PressableScale onPress={() => setExpanded((v) => !v)}>
-                    <Text
-                        style={[
-                            styles.title,
-                            {
-                                color: vars.textColor,
-                            },
-                        ]}
-                    >
+                <PressableScale onPress={() => setExpanded((value) => !value)}>
+                    <Text style={[styles.title, { color: vars.textColor }]}>
                         {rootRequest?.httpMethod ?? "TRACE"} {rootRequest?.path ?? ""}
                     </Text>
 
                     {!!rootRequest?.dateTime && (
-                        <Text
-                            style={[
-                                styles.subtitle,
-                                {
-                                    color: vars.textColor,
-                                },
-                            ]}
-                        >
-                            {rootRequest.dateTime}
-                        </Text>
+                        <Text style={[styles.subtitle, { color: vars.textColor }]}>{rootRequest.dateTime}</Text>
                     )}
 
                     {rootResponse && (
-                        <Text
-                            style={[
-                                styles.status,
-                                {
-                                    color: rootResponse.error ? "#EF4444" : "#22C55E",
-                                },
-                            ]}
-                        >
+                        <Text style={[styles.status, { color: getStatusColor(rootResponse) }]}>
                             {rootResponse.statusCode} • {rootResponse.durationMs} ms
                         </Text>
                     )}
                 </PressableScale>
 
                 <Accordion expanded={expanded}>
-                    <View style={{ marginTop: 16 }}>
-                        {events.map((event, index) => {
-                            const { span, log } = event
-
-                            return (
-                                <View
-                                    key={`${span.spanId}-${index}`}
-                                    style={[
-                                        styles.event,
-                                        {
-                                            backgroundColor: vars.backgroundColor,
-                                            borderColor: vars.secondaryBorderColor,
-                                        },
-                                    ]}
-                                >
-                                    <Text
-                                        style={{
-                                            color:
-                                                event.type === "request"
-                                                    ? "#3B82F6"
-                                                    : log.error
-                                                      ? "#EF4444"
-                                                      : "#22C55E",
-                                            fontWeight: "700",
-                                        }}
-                                    >
-                                        {event.type === "request" ? "→ REQUEST" : "← RESPONSE"}
-                                    </Text>
-
-                                    <Text
-                                        style={[
-                                            styles.service,
-                                            {
-                                                color: vars.textColor,
-                                            },
-                                        ]}
-                                    >
-                                        {span.service}
-                                    </Text>
-
-                                    {log.httpMethod && (
-                                        <Text
-                                            style={[
-                                                styles.text,
-                                                {
-                                                    color: vars.textColor,
-                                                },
-                                            ]}
-                                        >
-                                            {log.httpMethod} {log.path}
-                                        </Text>
-                                    )}
-
-                                    {!!log.dateTime && (
-                                        <Text
-                                            style={[
-                                                styles.meta,
-                                                {
-                                                    color: vars.textColor,
-                                                },
-                                            ]}
-                                        >
-                                            {log.dateTime}
-                                        </Text>
-                                    )}
-
-                                    {event.type === "response" && (
-                                        <Text
-                                            style={{
-                                                color: log.error ? "#EF4444" : "#22C55E",
-                                                marginTop: 4,
-                                            }}
-                                        >
-                                            {log.statusCode} • {log.durationMs} ms
-                                        </Text>
-                                    )}
-
-                                    {!!log.text && (
-                                        <Text
-                                            style={[
-                                                styles.text,
-                                                {
-                                                    color: vars.textColor,
-                                                },
-                                            ]}
-                                        >
-                                            {log.text}
-                                        </Text>
-                                    )}
-
-                                    {log.requestBodyCompressed && (
-                                        <PressableScale
-                                            onPress={() => openBody(log.requestBodyCompressed, "Request Body")}
-                                        >
-                                            <Text style={styles.link}>View Request Body</Text>
-                                        </PressableScale>
-                                    )}
-
-                                    {log.responseBodyCompressed && (
-                                        <PressableScale
-                                            onPress={() => openBody(log.responseBodyCompressed, "Response Body")}
-                                        >
-                                            <Text style={styles.link}>View Response Body</Text>
-                                        </PressableScale>
-                                    )}
-                                </View>
-                            )
-                        })}
+                    <View style={styles.events}>
+                        {events.map((event, index) => (
+                            <EventCard
+                                key={`${event.span.spanId}-${event.type}-${index}`}
+                                event={event}
+                                onOpenBody={openBody}
+                            />
+                        ))}
                     </View>
                 </Accordion>
             </View>
 
-            <LogBodyModal body={selectedBody} title={selectedTitle} onClose={() => setSelectedBody(null)} />
+            <LogBodyModal
+                body={selected?.body ?? null}
+                title={selected?.title ?? "Body"}
+                onClose={() => setSelected(null)}
+            />
         </>
     )
 }
+
+export default memo(Log)
 
 const styles = StyleSheet.create({
     card: {
@@ -252,11 +174,17 @@ const styles = StyleSheet.create({
         padding: 16,
         marginVertical: 6,
     },
+    events: {
+        marginTop: 16,
+    },
     event: {
         borderWidth: 1,
         borderRadius: BORDER_RADIUS_M,
         padding: 12,
         marginBottom: 10,
+    },
+    eventType: {
+        fontWeight: "700",
     },
     title: {
         fontSize: 16,
@@ -287,8 +215,11 @@ const styles = StyleSheet.create({
         marginTop: 2,
         fontSize: 12,
     },
+    responseStatus: {
+        marginTop: 4,
+    },
     link: {
-        color: "#3B82F6",
+        color: COLORS.request,
         marginTop: 10,
         fontWeight: "600",
         fontSize: 14,
