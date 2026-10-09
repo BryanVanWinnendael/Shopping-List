@@ -1,6 +1,6 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
-import { BlurView } from "expo-blur"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { CheckCircle2 } from "lucide-react-native"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
@@ -13,23 +13,24 @@ export default function Success({ text1, text2 }: Props) {
     const { vars, appearance } = useThemes()
 
     const isLoading = text1 && text1.includes("...")
+    const isLight = appearance === "light"
 
     return (
-        <BlurView
-            intensity={70}
-            tint={appearance}
-            style={[styles.container, { backgroundColor: vars.backgroundColor, borderColor: vars.borderColor }]}
+        <LiquidGlassView
+            isInteractive={false}
+            tintColor={isLight ? (isLoading ? "rgba(30,85,252,0.28)" : "rgba(34,197,94,0.28)") : undefined}
+            style={[styles.container, { borderColor: isLoading ? `${vars.accentColor}59` : "rgba(34,197,94,0.45)" }]}
         >
             <View
                 style={[
                     styles.iconWrap,
-                    { backgroundColor: isLoading ? `${vars.accentColor}20` : "rgba(34, 197, 94, 0.15)" },
+                    { backgroundColor: isLoading ? `${vars.accentColor}26` : "rgba(34,197,94,0.16)" },
                 ]}
             >
                 {isLoading ? (
                     <ActivityIndicator size="small" color={vars.accentColor} />
                 ) : (
-                    <CheckCircle2 size={16} color="#22c55e" />
+                    <CheckCircle2 size={18} color="#22c55e" />
                 )}
             </View>
             <View style={styles.textWrap}>
@@ -37,12 +38,12 @@ export default function Success({ text1, text2 }: Props) {
                     {text1}
                 </Text>
                 {!!text2 && (
-                    <Text style={[styles.subtitle, { color: vars.textColor }]} numberOfLines={2}>
+                    <Text style={[styles.subtitle, { color: vars.secondaryTextColor }]} numberOfLines={2}>
                         {text2}
                     </Text>
                 )}
             </View>
-        </BlurView>
+        </LiquidGlassView>
     )
 }
 
@@ -53,14 +54,21 @@ const styles = StyleSheet.create({
         gap: 10,
         paddingVertical: 10,
         paddingHorizontal: 14,
+        paddingRight: 18,
         borderRadius: BORDER_RADIUS_FULL,
         overflow: "hidden",
         borderWidth: 1,
         alignSelf: "center",
+        maxWidth: "92%",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 4,
     },
     iconWrap: {
-        width: 28,
-        height: 28,
+        width: 30,
+        height: 30,
         borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",
         justifyContent: "center",

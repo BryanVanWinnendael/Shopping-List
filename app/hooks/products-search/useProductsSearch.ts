@@ -84,7 +84,7 @@ export function useProductsSearch() {
     }
 
     useEffect(() => {
-        getProducts("", [])
+        getProducts("", [], 1, true)
     }, [getProducts])
 
     return {

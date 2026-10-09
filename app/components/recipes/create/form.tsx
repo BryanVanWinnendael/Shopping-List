@@ -10,6 +10,8 @@ import {
     View,
 } from "react-native"
 import { PressableScale } from "pressto"
+import { useState } from "react"
+import FormError from "@/components/native/formError"
 import { useCreateRecipeForm } from "@/hooks/recipes/useCreateRecipeForm"
 import Ingredient from "@/components/recipes/create/ingredient"
 import { useCreateRecipe } from "@/hooks/recipes/useCreateRecipe"
@@ -41,24 +43,17 @@ export default function Form({ onClose }: Props) {
     const { vars, appearance } = useThemes()
     const { actions: addRecipeActions, states: addRecipeStates } = useCreateRecipe()
     const { actions: addRecipeFormActions, states: addRecipeFormStates } = useCreateRecipeForm()
+    const [error, setError] = useState<string | null>(null)
 
     const createRecipe = async () => {
         const createRecipeRequest = addRecipeFormActions.getCreateRecipeRequest()
 
         if (!createRecipeRequest) {
-            Toast.show({
-                type: "error",
-                text1: "Error: Title cannot be empty",
-            })
+            setError("Title cannot be empty")
             return
         }
 
-        Toast.show({
-            type: "success",
-            text1: "Creating Recipe...",
-            autoHide: false,
-        })
-
+        setError(null)
         addRecipeActions.setLoading(true)
 
         const response = await addRecipeActions.createRecipe(createRecipeRequest)
@@ -76,10 +71,7 @@ export default function Form({ onClose }: Props) {
             addRecipeFormActions.reset()
             onClose()
         } else {
-            Toast.show({
-                type: "error",
-                text1: "Failed to create Recipe",
-            })
+            setError("Failed to create recipe. Please try again.")
         }
     }
 
@@ -281,6 +273,7 @@ export default function Form({ onClose }: Props) {
             </ScrollView>
 
             <View style={styles.createButtonContainer}>
+                <FormError message={error} onDismiss={() => setError(null)} />
                 <LiquidGlassView style={styles.createGlass} isInteractive={!addRecipeStates.loading}>
                     <PressableScale
                         enabled={!addRecipeStates.loading}

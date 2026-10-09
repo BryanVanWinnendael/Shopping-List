@@ -3,8 +3,11 @@ import { FlatList, NativeScrollEvent, NativeSyntheticEvent, StyleSheet } from "r
 import { Product as ProductType } from "@/types/list"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import Product from "@/components/products-list/product"
+import { ProductRowSkeleton } from "@/components/native/skeleton"
 import { Category } from "@/types/generated/models/category"
 import { HEADER_HEIGHT } from "@/lib/constants"
+
+const SKELETON_ROWS = Array.from({ length: 7 }, (_, index) => index)
 
 type Props = {
     openSearchProductsBottomSheet: () => void
@@ -31,7 +34,19 @@ export default function List({
         openEditModal()
     }
 
-    const productsList = products ? Object.values(products) : []
+    if (products === null) {
+        return (
+            <FlatList
+                data={SKELETON_ROWS}
+                keyExtractor={(item) => `skeleton-${item}`}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.contentContainer}
+                renderItem={({ index }) => <ProductRowSkeleton index={index} />}
+            />
+        )
+    }
+
+    const productsList = Object.values(products)
 
     return (
         <FlatList

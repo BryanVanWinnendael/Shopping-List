@@ -1,5 +1,6 @@
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import Product from "@/components/products-search/product"
+import { ProductRowSkeleton } from "@/components/native/skeleton"
 import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
 import { HEADER_HEIGHT } from "@/lib/constants"
 
@@ -9,7 +10,21 @@ type Props = {
     getNextPage: () => void
 }
 
+const SKELETON_ROWS = Array.from({ length: 7 }, (_, index) => index)
+
+function SkeletonRows() {
+    return (
+        <>
+            {SKELETON_ROWS.map((index) => (
+                <ProductRowSkeleton key={`skeleton-${index}`} index={index} />
+            ))}
+        </>
+    )
+}
+
 export function List({ results, loading, getNextPage }: Props) {
+    const isInitialLoading = loading && results.products.length === 0
+
     return (
         <FlatList
             data={results.products}
@@ -17,7 +32,10 @@ export function List({ results, loading, getNextPage }: Props) {
             renderItem={({ item }) => <Product product={item} />}
             onEndReached={getNextPage}
             onEndReachedThreshold={0.5}
-            ListFooterComponent={loading ? <ActivityIndicator style={styles.footerLoader} /> : null}
+            ListFooterComponent={
+                loading && !isInitialLoading ? <ActivityIndicator style={styles.footerLoader} /> : null
+            }
+            ListEmptyComponent={isInitialLoading ? <SkeletonRows /> : null}
             ListHeaderComponent={<View style={styles.header} />}
             contentContainerStyle={styles.content}
         />

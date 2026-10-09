@@ -1,7 +1,7 @@
 import { RefObject, useEffect, useState } from "react"
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
-import Toast from "react-native-toast-message"
 import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
+import FormError from "@/components/native/formError"
 import ChatView from "@/components/ai/chatView"
 import ProviderSetup from "./providerSetup"
 import useThemes from "@/hooks/themes/useThemes"
@@ -34,6 +34,7 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
     const [checking, setChecking] = useState(true)
     const [status, setStatus] = useState<Status>("idle")
     const [downloadProgress, setDownloadProgress] = useState(0)
+    const [error, setError] = useState<string | null>(null)
 
     const isDownloading = status === "downloading"
     const isBusy = status !== "idle"
@@ -69,12 +70,13 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
     const downloadAndActivate = async () => {
         setStatus("downloading")
         setDownloadProgress(0)
+        setError(null)
 
         try {
             await downloadLocalModel(setDownloadProgress)
         } catch (error) {
             await logError(error)
-            Toast.show({ type: "error", text1: "Model download failed" })
+            setError("Model download failed. Check your connection and try again.")
             setStatus("idle")
             return
         }
@@ -127,11 +129,16 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
                     )}
                 </View>
             ) : provider === null ? (
-                <ProviderSetup
-                    onSelectProvider={handleProviderSelected}
-                    onDownloadModel={downloadAndActivate}
-                    downloadingModel={isDownloading}
-                />
+                <>
+                    <View style={styles.errorWrap}>
+                        <FormError message={error} onDismiss={() => setError(null)} />
+                    </View>
+                    <ProviderSetup
+                        onSelectProvider={handleProviderSelected}
+                        onDownloadModel={downloadAndActivate}
+                        downloadingModel={isDownloading}
+                    />
+                </>
             ) : (
                 <ChatView pathname={pathname} provider={provider} />
             )}
@@ -145,6 +152,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         gap: 12,
+    },
+    errorWrap: {
+        paddingHorizontal: 20,
     },
     text: {
         fontSize: 14,

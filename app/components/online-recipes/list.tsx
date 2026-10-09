@@ -1,6 +1,7 @@
 import { useCallback } from "react"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import Recipe from "@/components/online-recipes/recipe"
+import { RecipeCardSkeleton } from "@/components/native/skeleton"
 import { HEADER_HEIGHT } from "@/lib/constants"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 
@@ -15,6 +16,7 @@ const keyExtractor = (item: OnlineRecipe, index: number) => `${item.title}-${ind
 
 export function List({ results, onEndReached, loading, variant = "list" }: Props) {
     const isGrid = variant === "grid"
+    const isInitialLoading = loading && results.length === 0
 
     const renderItem = useCallback(
         ({ item }: { item: OnlineRecipe }) => (
@@ -36,8 +38,19 @@ export function List({ results, onEndReached, loading, variant = "list" }: Props
             contentContainerStyle={styles.content}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
-            ListFooterComponent={loading ? <ActivityIndicator style={styles.loader} /> : null}
+            ListEmptyComponent={isInitialLoading ? <InitialSkeleton /> : null}
+            ListFooterComponent={loading && !isInitialLoading ? <ActivityIndicator style={styles.loader} /> : null}
         />
+    )
+}
+
+function InitialSkeleton() {
+    return (
+        <View>
+            {[0, 1, 2, 3].map((index) => (
+                <RecipeCardSkeleton key={index} index={index} />
+            ))}
+        </View>
     )
 }
 

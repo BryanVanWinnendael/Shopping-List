@@ -14,6 +14,7 @@ export default function Weekly() {
                 getCronProducts={actions.getCronProducts}
                 deleteCronProduct={actions.deleteCronProduct}
                 cronProducts={states.cronProducts}
+                loading={states.loading}
             />
 
             <View pointerEvents="box-none" style={styles.inputOverlay}>

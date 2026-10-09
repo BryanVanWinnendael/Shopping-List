@@ -3,6 +3,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native"
 import { Info, Trash } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import CategoryIcon from "@/components/categoryIcon"
+import { ProductRowSkeleton } from "@/components/native/skeleton"
 import useThemes from "@/hooks/themes/useThemes"
 import { CronProduct } from "@/types/generated/models/cron_product"
 import { HEADER_HEIGHT } from "@/lib/constants"
@@ -12,9 +13,22 @@ type Props = {
     deleteCronProduct: (id: string | null | undefined) => void
     cronProducts: CronProduct[]
     getCronProducts: () => Promise<void>
+    loading: boolean
 }
 
-export default function List({ deleteCronProduct, cronProducts, getCronProducts }: Props) {
+const SKELETON_ROWS = Array.from({ length: 7 }, (_, index) => index)
+
+function SkeletonRows() {
+    return (
+        <>
+            {SKELETON_ROWS.map((index) => (
+                <ProductRowSkeleton key={`skeleton-${index}`} index={index} />
+            ))}
+        </>
+    )
+}
+
+export default function List({ deleteCronProduct, cronProducts, getCronProducts, loading }: Props) {
     const { vars } = useThemes()
 
     const [refreshing, setRefreshing] = useState(false)
@@ -62,9 +76,13 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
                 renderItem={({ item }) => renderItem(item)}
                 keyExtractor={(_, index) => String(index)}
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Text style={{ color: vars.textColor }}>No weekly items found.</Text>
-                    </View>
+                    loading && cronProducts.length === 0 ? (
+                        <SkeletonRows />
+                    ) : (
+                        <View style={styles.emptyContainer}>
+                            <Text style={{ color: vars.textColor }}>No weekly items found.</Text>
+                        </View>
+                    )
                 }
                 refreshing={refreshing}
                 onRefresh={onRefresh}

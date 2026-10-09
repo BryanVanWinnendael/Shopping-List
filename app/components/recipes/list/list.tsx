@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
+import { RecipeCardSkeleton } from "@/components/native/skeleton"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 import { HEADER_HEIGHT } from "@/lib/constants"
 
@@ -16,6 +17,8 @@ type Props = {
 
 export default function RecipesList({ toggleFavorite, sections, getNextPage, refreshing, refresh, loading }: Props) {
     const flatListRef = useRef<FlatList>(null)
+
+    const isInitialLoading = loading && sections.length === 0
 
     const renderRecipe = ({ item }: any) => {
         if (!item) return null
@@ -41,8 +44,21 @@ export default function RecipesList({ toggleFavorite, sections, getNextPage, ref
             onRefresh={refresh}
             renderItem={renderRecipe}
             contentContainerStyle={styles.content}
-            ListFooterComponent={loading ? <ActivityIndicator style={styles.footerLoader} /> : null}
+            ListEmptyComponent={isInitialLoading ? <InitialSkeleton /> : null}
+            ListFooterComponent={
+                loading && !isInitialLoading ? <ActivityIndicator style={styles.footerLoader} /> : null
+            }
         />
+    )
+}
+
+function InitialSkeleton() {
+    return (
+        <View>
+            {[0, 1, 2, 3].map((index) => (
+                <RecipeCardSkeleton key={index} index={index} />
+            ))}
+        </View>
     )
 }
 

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
-import { BlurView } from "expo-blur"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { XCircle } from "lucide-react-native"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
@@ -12,26 +12,28 @@ type Props = {
 export default function Error({ text1, text2 }: Props) {
     const { vars, appearance } = useThemes()
 
+    const isLight = appearance === "light"
+
     return (
-        <BlurView
-            intensity={70}
-            tint={appearance}
-            style={[styles.container, { backgroundColor: vars.backgroundColor, borderColor: vars.borderColor }]}
+        <LiquidGlassView
+            isInteractive={false}
+            tintColor={isLight ? "rgba(239,68,68,0.28)" : undefined}
+            style={[styles.container, { borderColor: "rgba(239,68,68,0.45)" }]}
         >
             <View style={styles.iconWrap}>
-                <XCircle size={16} color="#ef4444" />
+                <XCircle size={18} color="#ef4444" />
             </View>
             <View style={styles.textWrap}>
                 <Text style={[styles.title, { color: vars.textColor }]} numberOfLines={1}>
                     {text1}
                 </Text>
                 {!!text2 && (
-                    <Text style={[styles.subtitle, { color: vars.textColor }]} numberOfLines={2}>
+                    <Text style={[styles.subtitle, { color: vars.secondaryTextColor }]} numberOfLines={2}>
                         {text2}
                     </Text>
                 )}
             </View>
-        </BlurView>
+        </LiquidGlassView>
     )
 }
 
@@ -42,16 +44,23 @@ const styles = StyleSheet.create({
         gap: 10,
         paddingVertical: 10,
         paddingHorizontal: 14,
+        paddingRight: 18,
         borderRadius: BORDER_RADIUS_FULL,
         overflow: "hidden",
         borderWidth: 1,
         alignSelf: "center",
+        maxWidth: "92%",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 4,
     },
     iconWrap: {
-        width: 28,
-        height: 28,
+        width: 30,
+        height: 30,
         borderRadius: BORDER_RADIUS_FULL,
-        backgroundColor: "rgba(239, 68, 68, 0.15)",
+        backgroundColor: "rgba(239,68,68,0.16)",
         alignItems: "center",
         justifyContent: "center",
     },

@@ -10,6 +10,8 @@ import {
     View,
 } from "react-native"
 import { PressableScale } from "pressto"
+import { useState } from "react"
+import FormError from "@/components/native/formError"
 import { X } from "lucide-react-native"
 import LiquidGlassView from "@/components/native/liquidGlassView"
 import { useUpdateRecipeForm } from "@/hooks/recipes/useUpdateRecipeForm"
@@ -44,24 +46,17 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
     const { vars, appearance } = useThemes()
     const { states: formStates, actions: formActions } = useUpdateRecipeForm(recipe)
     const { states: editStates, actions: editActions } = useUpdateRecipe()
+    const [error, setError] = useState<string | null>(null)
 
     const updateRecipe = async () => {
         const mappedRequest = formActions.getUpdateRecipeRequest()
 
         if (!mappedRequest) {
-            Toast.show({
-                type: "error",
-                text1: "Error: Title cannot be empty",
-            })
+            setError("Title cannot be empty")
             return
         }
 
-        Toast.show({
-            type: "success",
-            text1: "Updating Recipe...",
-            autoHide: false,
-        })
-
+        setError(null)
         editActions.setLoading(true)
 
         const response = await editActions.updateRecipe(mappedRequest, formStates.imagesToDelete)
@@ -77,14 +72,10 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
             })
 
             updateRecipeDetails(response)
+            close()
         } else {
-            Toast.show({
-                type: "error",
-                text1: "Failed to update Recipe",
-            })
+            setError("Failed to update recipe. Please try again.")
         }
-
-        close()
     }
 
     const dynamicInputStyle = [
@@ -287,6 +278,7 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
             </ScrollView>
 
             <View style={styles.updateButtonContainer}>
+                <FormError message={error} onDismiss={() => setError(null)} />
                 <LiquidGlassView style={styles.updateGlass} isInteractive={!editStates.loading}>
                     <PressableScale
                         enabled={!editStates.loading}
