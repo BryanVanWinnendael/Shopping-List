@@ -15,6 +15,7 @@ import {
     loadLocalModel,
     supportsOnDeviceAI,
 } from "@/lib/ai/settings"
+import { formatTokens, loadTokenUsage, useTokenUsage } from "@/lib/ai/usage"
 import { logsClient } from "@/lib/logs"
 
 const getErrorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error))
@@ -61,7 +62,11 @@ export default function AiModel() {
 
         const initialize = async () => {
             try {
-                const [downloaded, supported] = await Promise.all([isLocalModelDownloaded(), supportsOnDeviceAI()])
+                const [downloaded, supported] = await Promise.all([
+                    isLocalModelDownloaded(),
+                    supportsOnDeviceAI(),
+                    loadTokenUsage(),
+                ])
 
                 if (!mounted) {
                     return
@@ -287,6 +292,7 @@ export default function AiModel() {
                         selected={provider === "cloud"}
                         disabled={isBusy || checkingBuiltInSupport}
                         onPress={(enabled) => handleSelectProvider("cloud", enabled)}
+                        footer={<TokenUsage />}
                     />
 
                     <ProviderOption
@@ -342,6 +348,47 @@ export default function AiModel() {
     )
 }
 
+function TokenUsage() {
+    const { vars, theme } = useThemes()
+    const { totalTokens, window } = useTokenUsage()
+
+    const used = window ? Math.max(0, window.limit - window.remaining) : 0
+    const fraction = window && window.limit > 0 ? Math.min(1, used / window.limit) : 0
+    const subColor = theme === "light" ? "#6b7280" : "#9ca3af"
+
+    return (
+        <View style={styles.usage}>
+            {window ? (
+                <>
+                    <View style={[styles.progressTrack, { backgroundColor: vars.secondaryBorderColor, marginTop: 0 }]}>
+                        <View
+                            style={[
+                                styles.progressFill,
+                                { backgroundColor: vars.accentColor, width: `${Math.round(fraction * 100)}%` },
+                            ]}
+                        />
+                    </View>
+                    <Text style={[styles.usageText, { color: vars.textColor }]}>
+                        {formatTokens(used)} of {formatTokens(window.limit)} tokens used
+                    </Text>
+                    <Text style={[styles.usageSub, { color: subColor }]}>
+                        {window.reset ? `Resets in ${window.reset} • ` : ""}
+                        {formatTokens(totalTokens)} lifetime tokens
+                    </Text>
+                </>
+            ) : totalTokens > 0 ? (
+                <Text style={[styles.usageSub, { color: subColor }]}>
+                    {formatTokens(totalTokens)} lifetime tokens • window usage appears after your next chat
+                </Text>
+            ) : (
+                <Text style={[styles.usageSub, { color: subColor }]}>
+                    Token usage appears here after your first chat.
+                </Text>
+            )}
+        </View>
+    )
+}
+
 function ProviderOption({
     icon,
     title,
@@ -351,6 +398,7 @@ function ProviderOption({
     progress,
     disabled = false,
     onPress,
+    footer,
 }: {
     icon: React.ReactNode
     title: string
@@ -360,6 +408,7 @@ function ProviderOption({
     progress?: number
     disabled?: boolean
     onPress: (enabled: boolean) => void | Promise<void>
+    footer?: React.ReactNode
 }) {
     const { vars, theme } = useThemes()
 
@@ -419,6 +468,8 @@ function ProviderOption({
                         />
                     </View>
                 )}
+
+                {footer}
             </View>
 
             <CustomSwitch
@@ -630,5 +681,19 @@ const styles = StyleSheet.create({
     progressFill: {
         height: "100%",
         borderRadius: 2,
+    },
+
+    usage: {
+        marginTop: 10,
+        gap: 4,
+    },
+
+    usageText: {
+        fontSize: 13,
+        fontWeight: "600",
+    },
+
+    usageSub: {
+        fontSize: 11,
     },
 })

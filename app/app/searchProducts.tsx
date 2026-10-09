@@ -10,6 +10,7 @@ import FilterButton from "@/components/products-search/filterButton"
 import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import useThemes from "@/hooks/themes/useThemes"
 import { useRecipesStore } from "@/stores/useRecipesStore"
+import { useAiContextStore } from "@/stores/useAiContextStore"
 
 const SNAP_POINTS = ["40%", "55%"]
 
@@ -17,10 +18,15 @@ export default function SearchProducts() {
     const { vars, appearance } = useThemes()
     const { states, actions, refs } = useProductsSearch()
     const loadUserRecipes = useRecipesStore((state) => state.loadUserRecipes)
+    const setSearchSnapshot = useAiContextStore((state) => state.setSearchSnapshot)
 
     useEffect(() => {
         loadUserRecipes()
     }, [loadUserRecipes])
+
+    useEffect(() => {
+        setSearchSnapshot({ query: states.query, products: states.results.products })
+    }, [states.query, states.results.products, setSearchSnapshot])
 
     return (
         <>

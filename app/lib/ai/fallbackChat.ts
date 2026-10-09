@@ -1,4 +1,5 @@
 import { createSystemPrompt } from "./prompt"
+import { recordTokenUsage } from "./usage"
 import { ChatOptions } from "@/types/ai"
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -52,7 +53,13 @@ async function requestGroq({ model, messages }: { model: string; messages: GroqM
         throw new GroqError(response.status, model, `Groq request failed (${response.status}): ${errorText}`)
     }
 
-    return response.json()
+    const data = await response.json()
+
+    // Meter every cloud call: lifetime totals persist locally, and Groq's
+    // rate-limit headers give the remaining window when present.
+    void recordTokenUsage(model, data?.usage, response.headers)
+
+    return data
 }
 
 export async function completeFallbackChat({ page, pathname, messages, context }: ChatOptions): Promise<string> {

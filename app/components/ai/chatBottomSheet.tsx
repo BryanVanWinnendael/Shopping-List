@@ -133,11 +133,7 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
                     <View style={styles.errorWrap}>
                         <FormError message={error} onDismiss={() => setError(null)} />
                     </View>
-                    <ProviderSetup
-                        onSelectProvider={handleProviderSelected}
-                        onDownloadModel={downloadAndActivate}
-                        downloadingModel={isDownloading}
-                    />
+                    <ProviderSetup onSelectProvider={handleProviderSelected} />
                 </>
             ) : (
                 <ChatView pathname={pathname} provider={provider} />

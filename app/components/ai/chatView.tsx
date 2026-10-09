@@ -41,6 +41,8 @@ const PAGE_TITLES: Record<string, string> = {
     "/online-recipes": "Online Recipes",
     "/searchProducts": "Search Products",
     "/weekly": "Weekly List",
+    "/weeklyCategories": "Weekly Categories",
+    "/logs": "Logs",
     "/settings": "Settings",
 }
 

@@ -1,14 +1,20 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { StyleSheet, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
 import useOnlineRecipes from "@/hooks/recipes/useOnlineRecipes"
 import { List } from "@/components/online-recipes/list"
 import StyleButton from "@/components/online-recipes/styleButton"
 import SearchBar from "@/components/online-recipes/searchBar"
+import { useAiContextStore } from "@/stores/useAiContextStore"
 
 export default function OnlineRecipes() {
     const { vars } = useThemes()
     const { actions, states } = useOnlineRecipes()
+    const setOnlineRecipes = useAiContextStore((state) => state.setOnlineRecipes)
+
+    useEffect(() => {
+        setOnlineRecipes(states.recipes)
+    }, [states.recipes, setOnlineRecipes])
 
     const [searchFocused, setSearchFocused] = useState(false)
 

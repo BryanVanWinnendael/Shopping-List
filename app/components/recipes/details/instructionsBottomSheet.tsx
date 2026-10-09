@@ -17,7 +17,7 @@ export default function InstructionsBottomSheet({ sheetRef, close, instructions 
         <AppBottomSheet
             ref={sheetRef}
             index={-1}
-            snapPoints={["55%", "90%"]}
+            snapPoints={["55%", "100%"]}
             enablePanDownToClose
             onClose={close}
             backgroundMode="adaptive"

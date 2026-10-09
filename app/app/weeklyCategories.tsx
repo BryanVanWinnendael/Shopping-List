@@ -1,4 +1,4 @@
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
 import { StyleSheet, View } from "react-native"
 import Toast from "react-native-toast-message"
 
@@ -8,6 +8,7 @@ import BottomSheet from "@/components/weekly/categories/bottomSheet"
 import List from "@/components/weekly/categories/list"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
+import { useAiContextStore } from "@/stores/useAiContextStore"
 
 export default function WeeklyCategories() {
     const { vars } = useThemes()
@@ -19,6 +20,10 @@ export default function WeeklyCategories() {
     } = useWeeklyCategories()
 
     const { actions: weeklyProductsActions } = useWeeklyProducts()
+
+    useEffect(() => {
+        useAiContextStore.setState({ weeklyProducts: weeklyCategoriesStates.cronProducts })
+    }, [weeklyCategoriesStates.cronProducts])
 
     const updateCategory = useCallback(
         async (category: Category) => {

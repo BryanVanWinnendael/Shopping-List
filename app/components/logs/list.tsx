@@ -1,7 +1,9 @@
 import { useCallback } from "react"
-import { ActivityIndicator, FlatList, StyleSheet } from "react-native"
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native"
+import { ScrollText } from "lucide-react-native"
 import Log from "@/components/logs/log"
 import { ProductRowSkeleton } from "@/components/native/skeleton"
+import useThemes from "@/hooks/themes/useThemes"
 import { Trace } from "@/types/generated/models/trace"
 import { HEADER_HEIGHT } from "@/lib/constants"
 
@@ -27,6 +29,20 @@ function SkeletonRows() {
 
 const keyExtractor = (item: Trace) => item.traceId
 
+function EmptyState() {
+    const { vars } = useThemes()
+
+    return (
+        <View style={styles.empty}>
+            <ScrollText size={28} color={vars.secondaryTextColor} />
+            <Text style={[styles.emptyTitle, { color: vars.textColor }]}>No logs found</Text>
+            <Text style={[styles.emptySubtitle, { color: vars.secondaryTextColor }]}>
+                Logs appear here as you use the app.
+            </Text>
+        </View>
+    )
+}
+
 export default function List({ traces, loading, onEndReached, refreshing, onRefresh }: Props) {
     const renderItem = useCallback(({ item }: { item: Trace }) => <Log trace={item} />, [])
     const isInitialLoading = loading && traces.length === 0
@@ -41,7 +57,7 @@ export default function List({ traces, loading, onEndReached, refreshing, onRefr
             refreshing={refreshing}
             onRefresh={onRefresh}
             contentContainerStyle={styles.content}
-            ListEmptyComponent={isInitialLoading ? <SkeletonRows /> : null}
+            ListEmptyComponent={isInitialLoading ? <SkeletonRows /> : <EmptyState />}
             ListFooterComponent={loading && !isInitialLoading ? <ActivityIndicator style={styles.loader} /> : null}
         />
     )
@@ -54,5 +70,19 @@ const styles = StyleSheet.create({
     },
     loader: {
         marginTop: 10,
+    },
+    empty: {
+        alignItems: "center",
+        justifyContent: "center",
+        paddingTop: 80,
+        gap: 8,
+    },
+    emptyTitle: {
+        fontSize: 16,
+        fontWeight: "600",
+        marginTop: 4,
+    },
+    emptySubtitle: {
+        fontSize: 13,
     },
 })
