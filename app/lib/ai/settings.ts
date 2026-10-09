@@ -8,10 +8,29 @@ const AI_DOWNLOADED_MODELS_KEY = "app_aiDownloadedModels"
 
 export const AI_MODEL_ID = "qwen3-0.6b-litert-v1"
 
-const LOCAL_MODELS = [
+export type LocalModelTier = "light" | "powerful"
+
+export type LocalModel = {
+    id: string
+    name: string
+    tier: LocalModelTier
+    parameterCount: string
+    quantization: string
+    downloadUrl: string
+    sha256: string
+    sizeBytes: number
+    contextWindow: number
+    minRamBytes: number
+    supportedPlatforms: ("ios" | "android")[]
+    license: string
+    blurb: string
+}
+
+export const LOCAL_MODELS: LocalModel[] = [
     {
         id: AI_MODEL_ID,
         name: "Qwen3 0.6B",
+        tier: "light",
         parameterCount: "0.6B",
         quantization: "int4",
         downloadUrl:
@@ -20,10 +39,52 @@ const LOCAL_MODELS = [
         sizeBytes: 614_236_160,
         contextWindow: 4096,
         minRamBytes: 2_000_000_000,
-        supportedPlatforms: ["ios", "android"] as ("ios" | "android")[],
+        supportedPlatforms: ["ios", "android"],
         license: "Apache-2.0",
+        blurb: "Fastest answers. Runs on any device.",
+    },
+    {
+        id: "qwen3-1.7b-litert-v1",
+        name: "Qwen3 1.7B",
+        tier: "powerful",
+        parameterCount: "1.7B",
+        quantization: "int4",
+        downloadUrl:
+            "https://huggingface.co/litert-community/Qwen3-1.7B/resolve/73fbc3fe8271c162a603ee66f6e7ed25b6211195/Qwen3_1.7B.litertlm",
+        sha256: "66064a4e9269cb693e124c4e3040bcb8a446b10bca42663896329495add3861c",
+        sizeBytes: 2_056_729_520,
+        contextWindow: 4096,
+        minRamBytes: 4_000_000_000,
+        supportedPlatforms: ["ios", "android"],
+        license: "Apache-2.0",
+        blurb: "Smarter answers. Needs about 2.1 GB and a newer phone.",
     },
 ]
+
+export const TIER_LABELS: Record<LocalModelTier, string> = {
+    light: "Light",
+    powerful: "Powerful",
+}
+
+export const formatModelSize = (sizeBytes: number) => `${(sizeBytes / 1_000_000_000).toFixed(1)} GB`
+
+const AI_SELECTED_MODEL_KEY = "app_aiSelectedModel"
+
+export const getSelectedModelId = async (): Promise<string> => {
+    try {
+        const stored = await AsyncStorage.getItem(AI_SELECTED_MODEL_KEY)
+
+        if (stored && LOCAL_MODELS.some((model) => model.id === stored)) {
+            return stored
+        }
+    } catch {}
+
+    return AI_MODEL_ID
+}
+
+export const setSelectedModelId = async (id: string): Promise<void> => {
+    await AsyncStorage.setItem(AI_SELECTED_MODEL_KEY, id)
+}
 
 const registeredIds = new Set<string>()
 
@@ -86,84 +147,94 @@ export const clearAIProvider = async (): Promise<void> => {
     await AsyncStorage.removeItem(AI_PROVIDER_KEY)
 }
 
-// checks if only AI_MODEL_ID is downloaded
-// TODO: make it check if selected local model is downloaded
-export const isLocalModelDownloaded = async (): Promise<boolean> => {
+// checks if the given (or selected) local model is downloaded
+export const isLocalModelDownloaded = async (modelId?: string): Promise<boolean> => {
     if (__DEV__) return false
+
+    const id = modelId ?? (await getSelectedModelId())
 
     await registerLocalModels()
 
     try {
         const { getDownloadableModels } = await import("expo-ai-kit")
         const models = await getDownloadableModels()
-        const model = models.find((entry) => entry.id === AI_MODEL_ID)
+        const model = models.find((entry) => entry.id === id)
 
         if (model) {
             const downloaded = ["downloaded", "loading", "ready"].includes(model.status)
-            await setModelDownloadedFlag(AI_MODEL_ID, downloaded)
+            await setModelDownloadedFlag(id, downloaded)
             return downloaded
         }
     } catch (error) {
         console.error("Failed to read native AI model status:", error)
     }
 
-    const value = await AsyncStorage.getItem(AI_MODEL_DOWNLOADED_KEY)
-    return value === "true"
+    const ids = await getDownloadedModelIds()
+    return ids.includes(id)
 }
 
-export async function downloadLocalModel(onProgress?: (progress: number) => void) {
-    if (__DEV__) return
+export async function downloadLocalModel(modelId?: string, onProgress?: (progress: number) => void) {
+    if (__DEV__) return modelId ?? AI_MODEL_ID
+
+    const id = modelId ?? (await getSelectedModelId())
 
     await registerLocalModels()
     const { downloadModel, deleteModel } = await import("expo-ai-kit")
 
     try {
-        await downloadModel(AI_MODEL_ID, { onProgress })
+        await downloadModel(id, { onProgress })
     } catch (error) {
         try {
-            await deleteModel(AI_MODEL_ID)
+            await deleteModel(id)
         } catch {}
-        await setModelDownloadedFlag(AI_MODEL_ID, false)
+        await setModelDownloadedFlag(id, false)
         throw error
     }
 
-    await setModelDownloadedFlag(AI_MODEL_ID, true)
-    return AI_MODEL_ID
+    await setModelDownloadedFlag(id, true)
+    return id
 }
 
-export async function loadLocalModel() {
+export async function loadLocalModel(modelId?: string) {
     if (__DEV__) return
+
+    const id = modelId ?? (await getSelectedModelId())
 
     await registerLocalModels()
     const { setModel } = await import("expo-ai-kit")
 
-    await setModel(AI_MODEL_ID, { generation: { temperature: 0.4, maxTokens: 512 } })
+    await setModel(id, { generation: { temperature: 0.4, maxTokens: 512 } })
 }
 
 export async function restoreDownloadedModel(set: (partial: Partial<AiContextState>) => void) {
     try {
+        const selectedId = await getSelectedModelId()
+
         // The file may have been deleted (storage cleanup, reinstall) since the provider was saved.
-        if (!(await isLocalModelDownloaded())) {
+        if (!(await isLocalModelDownloaded(selectedId))) {
             await setAIProvider(null)
             set({ provider: null })
             return
         }
 
-        await loadLocalModel()
+        await loadLocalModel(selectedId)
     } catch (error) {
         console.error("Failed to restore downloaded model:", error)
     }
 }
 
-export async function deleteLocalModel() {
+export async function deleteLocalModel(modelId?: string) {
     if (__DEV__) return
+
+    const id = modelId ?? (await getSelectedModelId())
 
     await registerLocalModels()
     const { deleteModel, unloadModel } = await import("expo-ai-kit")
 
     await unloadModel()
-    await deleteModel(AI_MODEL_ID)
+    await deleteModel(id)
 
+    await setModelDownloadedFlag(id, false)
     await AsyncStorage.removeItem(AI_MODEL_DOWNLOADED_KEY)
 }
 

@@ -7,7 +7,13 @@ import ProviderSetup from "./providerSetup"
 import useThemes from "@/hooks/themes/useThemes"
 import { useAiContextStore } from "@/stores/useAiContextStore"
 import { AIProvider } from "@/types/ai"
-import { downloadLocalModel, isLocalModelDownloaded, loadLocalModel } from "@/lib/ai/settings"
+import {
+    downloadLocalModel,
+    getSelectedModelId,
+    isLocalModelDownloaded,
+    loadLocalModel,
+    setSelectedModelId,
+} from "@/lib/ai/settings"
 import { logsClient } from "@/lib/logs"
 
 type Props = {
@@ -53,27 +59,27 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
         }
     }, [loadProvider])
 
-    // Load the downloaded model into memory (once per launch), then select it.
-    const activateDownloadedModel = async () => {
+    // Load the chosen model into memory (once per launch), then select it.
+    const activateDownloadedModel = async (modelId?: string) => {
         setStatus("loading")
 
         try {
-            await loadLocalModel()
+            await loadLocalModel(modelId)
             await setProvider("downloaded")
         } catch (error) {
-            await logsClient.createLog(getErrorMessage(error), "GET", true)
+            await logError(error)
         } finally {
             setStatus("idle")
         }
     }
 
-    const downloadAndActivate = async () => {
+    const downloadAndActivate = async (modelId?: string) => {
         setStatus("downloading")
         setDownloadProgress(0)
         setError(null)
 
         try {
-            await downloadLocalModel(setDownloadProgress)
+            await downloadLocalModel(modelId, setDownloadProgress)
         } catch (error) {
             await logError(error)
             setError("Model download failed. Check your connection and try again.")
@@ -82,23 +88,29 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
         }
 
         // A load failure must not undo a successful download.
-        await activateDownloadedModel()
+        await activateDownloadedModel(modelId)
     }
 
-    const handleProviderSelected = async (selectedProvider: AIProvider) => {
+    const handleProviderSelected = async (selectedProvider: AIProvider, modelId?: string) => {
         if (selectedProvider !== "downloaded") {
             await setProvider(selectedProvider)
             return
         }
 
+        // The picker chose a model, so remember it as the one to download and run.
+        if (modelId) {
+            await setSelectedModelId(modelId)
+        }
+
         // Check at tap time. The model may have been downloaded or deleted in Settings
         // since this sheet mounted, so a value cached on mount could be stale.
-        const downloaded = await isLocalModelDownloaded().catch(() => false)
+        const id = modelId ?? (await getSelectedModelId())
+        const downloaded = await isLocalModelDownloaded(id).catch(() => false)
 
         if (downloaded) {
-            await activateDownloadedModel()
+            await activateDownloadedModel(id)
         } else {
-            await downloadAndActivate()
+            await downloadAndActivate(id)
         }
     }
 
