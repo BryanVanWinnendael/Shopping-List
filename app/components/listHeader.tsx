@@ -104,10 +104,6 @@ export default function ListHeader({ maxWidth }: ListHeaderProps) {
         ],
     }))
 
-    const hitBottomHaptic = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
-    }
-
     const dot1Style = useDotAnimation(isSearching, 0)
     const dot2Style = useDotAnimation(isSearching, 150)
     const dot3Style = useDotAnimation(isSearching, 300)

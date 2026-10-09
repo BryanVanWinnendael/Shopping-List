@@ -16,7 +16,6 @@ import useThemes from "@/hooks/themes/useThemes"
 import {
     BAR_FONT_SIZE,
     BAR_HEIGHT,
-    BAR_PADDING_H,
     BORDER_RADIUS_L,
     DOCK_BOTTOM,
     DOCK_SIDE,
