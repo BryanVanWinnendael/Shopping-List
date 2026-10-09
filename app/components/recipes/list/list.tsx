@@ -1,5 +1,5 @@
 import { useRef } from "react"
-import { ActivityIndicator, FlatList, View } from "react-native"
+import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
@@ -34,16 +34,26 @@ export default function RecipesList({ toggleFavorite, sections, getNextPage, ref
             keyExtractor={(item, index) =>
                 item.type === "section" ? `section-${item.title}-${index}` : `recipe-${item.recipe.id}`
             }
-            ListHeaderComponent={<View style={{ height: HEADER_HEIGHT }} />}
+            ListHeaderComponent={<View style={styles.headerSpacer} />}
             onEndReached={getNextPage}
             onEndReachedThreshold={0.5}
             refreshing={refreshing}
             onRefresh={refresh}
             renderItem={renderRecipe}
-            contentContainerStyle={{
-                paddingBottom: 90,
-            }}
-            ListFooterComponent={loading ? <ActivityIndicator style={{ marginTop: 10 }} /> : null}
+            contentContainerStyle={styles.content}
+            ListFooterComponent={loading ? <ActivityIndicator style={styles.footerLoader} /> : null}
         />
     )
 }
+
+const styles = StyleSheet.create({
+    headerSpacer: {
+        height: HEADER_HEIGHT,
+    },
+    content: {
+        paddingBottom: 90,
+    },
+    footerLoader: {
+        marginTop: 10,
+    },
+})

@@ -1,4 +1,4 @@
-import { FlatList, Text, View } from "react-native"
+import { FlatList, StyleSheet, Text, View } from "react-native"
 import { useMemo } from "react"
 import { Product, Products } from "@/types/list"
 import { BottomSheetButton } from "@/components/products-list/categories/bottomSheetButton"
@@ -20,10 +20,23 @@ export default function List({ products, open }: Props) {
             showsVerticalScrollIndicator={false}
             data={textProducts}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingBottom: 50 }}
-            ListHeaderComponent={<View style={{ height: HEADER_HEIGHT }} />}
+            contentContainerStyle={styles.listContent}
+            ListHeaderComponent={<View style={styles.headerSpacer} />}
             renderItem={({ item }) => <BottomSheetButton open={open} product={item} />}
-            ListEmptyComponent={<Text style={{ marginTop: 20, color: "#999" }}>No products found.</Text>}
+            ListEmptyComponent={<Text style={styles.emptyText}>No products found.</Text>}
         />
     )
 }
+
+const styles = StyleSheet.create({
+    listContent: {
+        paddingBottom: 50,
+    },
+    headerSpacer: {
+        height: HEADER_HEIGHT,
+    },
+    emptyText: {
+        marginTop: 20,
+        color: "#999",
+    },
+})

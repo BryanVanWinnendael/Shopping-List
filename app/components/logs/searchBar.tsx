@@ -8,11 +8,19 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
-import { BORDER_RADIUS_L } from "@/lib/theme"
+import {
+    BAR_FONT_SIZE,
+    BAR_HEIGHT,
+    BAR_PADDING_H,
+    BORDER_RADIUS_L,
+    DOCK_BOTTOM,
+    DOCK_SIDE,
+    SEARCH_BAR_RIGHT,
+} from "@/lib/theme"
 
 type Props = {
     value: string
@@ -39,15 +47,15 @@ export function SearchBar({ value, updateQuery }: Props) {
 
     return (
         <Animated.View style={[styles.container, animatedStyle]}>
-            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.glass}>
-                <Search size={20} color={vars.textColor} />
+            <LiquidGlassView style={styles.glass} isInteractive>
+                <Search size={18} color={vars.textColor} />
 
                 <TextInput
                     value={value}
                     onChangeText={updateQuery}
                     onFocus={handleFocus}
                     placeholder="Search logs..."
-                    placeholderTextColor="gray"
+                    placeholderTextColor={vars.tertiaryTextColor}
                     returnKeyType="search"
                     keyboardAppearance={appearance}
                     style={[styles.input, { color: vars.textColor }]}
@@ -62,11 +70,11 @@ export function SearchBar({ value, updateQuery }: Props) {
                             accessibilityLabel="Clear search"
                             style={styles.clearButton}
                         >
-                            <X size={18} color={vars.textColor} />
+                            <X size={16} color={vars.textColor} />
                         </PressableScale>
                     </Animated.View>
                 )}
-            </GlassView>
+            </LiquidGlassView>
         </Animated.View>
     )
 }
@@ -74,23 +82,29 @@ export function SearchBar({ value, updateQuery }: Props) {
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
-        bottom: 24,
-        left: 24,
-        right: 88,
+        bottom: DOCK_BOTTOM,
+        left: DOCK_SIDE,
+        right: SEARCH_BAR_RIGHT,
         zIndex: 10,
     },
     glass: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 16,
-        height: 48,
+        paddingHorizontal: BAR_PADDING_H,
+        height: BAR_HEIGHT,
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     input: {
         flex: 1,
         marginLeft: 10,
-        fontSize: 17,
+        fontSize: BAR_FONT_SIZE,
     },
     clearButton: {
         padding: 4,

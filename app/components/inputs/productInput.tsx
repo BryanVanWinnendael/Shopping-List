@@ -7,8 +7,15 @@ import { SendIcon, X } from "lucide-react-native"
 import { useProductsList } from "@/hooks/products-list/useProductsList"
 import ImageInput from "@/components/inputs/imageInput"
 import useThemes from "@/hooks/themes/useThemes"
-import { GlassView } from "expo-glass-effect"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+import {
+    BORDER_RADIUS_FULL,
+    BORDER_RADIUS_L,
+    COMPOSER_MIN_HEIGHT,
+    COMPOSER_SEND_SIZE,
+    DOCK_BOTTOM,
+    FAB_SIZE,
+} from "@/lib/theme"
 
 type Props = {
     onFocus: () => void
@@ -59,23 +66,18 @@ export default function ProductInput({ onFocus, onBlur }: Props) {
                     <View style={styles.previewContainer}>
                         <Image source={{ uri: previewUrl }} resizeMode="cover" style={styles.previewImage} />
 
-                        <GlassView
-                            style={styles.closeButtonGlass}
-                            glassEffectStyle="regular"
-                            isInteractive
-                            colorScheme={appearance}
-                        >
+                        <LiquidGlassView style={styles.closeButtonGlass} isInteractive>
                             <PressableScale onPress={removeImage} style={styles.closeButton}>
                                 <X size={15} strokeWidth={2.5} color={vars.textColor} />
                             </PressableScale>
-                        </GlassView>
+                        </LiquidGlassView>
                     </View>
                 ) : (
                     <ImageInput type="list" onPick={onPickFile} onFocus={onFocus} onBlur={onBlur} />
                 )}
             </View>
 
-            <GlassView style={styles.glassView} glassEffectStyle="regular" isInteractive colorScheme={appearance}>
+            <LiquidGlassView style={styles.glassView} isInteractive>
                 <View style={styles.inputRow}>
                     <TextInput
                         onFocus={onFocus}
@@ -83,7 +85,7 @@ export default function ProductInput({ onFocus, onBlur }: Props) {
                         ref={inputRef}
                         keyboardAppearance={appearance}
                         placeholder="Type here..."
-                        placeholderTextColor="#999"
+                        placeholderTextColor={vars.tertiaryTextColor}
                         value={productName}
                         onChangeText={setProductName}
                         returnKeyType="done"
@@ -110,12 +112,12 @@ export default function ProductInput({ onFocus, onBlur }: Props) {
                             {states.loading ? (
                                 <ActivityIndicator size="small" color="#fff" />
                             ) : (
-                                <SendIcon size={20} color="#fff" />
+                                <SendIcon size={16} color="#fff" />
                             )}
                         </PressableScale>
                     </View>
                 </View>
-            </GlassView>
+            </LiquidGlassView>
         </View>
     )
 }
@@ -125,26 +127,26 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 10,
-        paddingBottom: 40,
+        paddingBottom: DOCK_BOTTOM,
         gap: 8,
     },
     imageContainer: {
-        width: 58,
-        height: 58,
+        width: FAB_SIZE,
+        height: FAB_SIZE,
         position: "relative",
         zIndex: 100,
         overflow: "visible",
     },
     previewContainer: {
-        width: 58,
-        height: 58,
+        width: FAB_SIZE,
+        height: FAB_SIZE,
         borderRadius: BORDER_RADIUS_L,
         overflow: "visible",
         position: "relative",
     },
     previewImage: {
-        width: 58,
-        height: 58,
+        width: FAB_SIZE,
+        height: FAB_SIZE,
         borderRadius: BORDER_RADIUS_L,
     },
     closeButtonGlass: {
@@ -166,38 +168,44 @@ const styles = StyleSheet.create({
     },
     glassView: {
         flex: 1,
-        minHeight: 56,
+        minHeight: COMPOSER_MIN_HEIGHT,
         maxHeight: 120,
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         paddingLeft: 16,
         paddingRight: 6,
-        paddingVertical: 6,
+        paddingVertical: 4,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     inputRow: {
         flexDirection: "row",
         alignItems: "flex-end",
-        minHeight: 44,
+        minHeight: 36,
     },
     textInput: {
         flex: 1,
-        minHeight: 42,
+        minHeight: 34,
         maxHeight: 100,
-        paddingVertical: 9,
+        paddingVertical: 7,
         paddingHorizontal: 2,
         fontSize: 16,
         fontWeight: "400",
     },
     sendWrapper: {
-        width: 42,
-        height: 42,
+        width: COMPOSER_SEND_SIZE,
+        height: COMPOSER_SEND_SIZE,
         alignItems: "center",
         justifyContent: "center",
         marginLeft: 6,
     },
     sendButton: {
-        width: 42,
-        height: 42,
+        width: COMPOSER_SEND_SIZE,
+        height: COMPOSER_SEND_SIZE,
         borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",
         justifyContent: "center",

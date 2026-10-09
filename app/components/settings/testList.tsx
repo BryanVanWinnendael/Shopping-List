@@ -6,11 +6,11 @@ import { createTestProduct, deleteProduct } from "@/lib/firebase"
 import uuid from "react-native-uuid"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import useThemes from "@/hooks/themes/useThemes"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function TestList() {
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
     const { user } = useSettingsStore()
     const { products } = useProductsListStore()
 
@@ -47,7 +47,6 @@ export default function TestList() {
                     {
                         backgroundColor: vars.secondaryBackgroundColor,
                         borderColor: vars.secondaryBorderColor,
-                        borderWidth: 1,
                     },
                 ]}
             >
@@ -63,12 +62,7 @@ export default function TestList() {
                         Test Add List
                     </Text>
 
-                    <GlassView
-                        glassEffectStyle="regular"
-                        isInteractive
-                        colorScheme={appearance}
-                        style={styles.buttonGlass}
-                    >
+                    <LiquidGlassView style={styles.buttonGlass} isInteractive>
                         <PressableScale onPress={handleAddTestList} style={styles.button}>
                             <Text
                                 style={[
@@ -81,7 +75,7 @@ export default function TestList() {
                                 Add Test Items
                             </Text>
                         </PressableScale>
-                    </GlassView>
+                    </LiquidGlassView>
                 </View>
             </View>
 
@@ -91,7 +85,6 @@ export default function TestList() {
                     {
                         backgroundColor: vars.secondaryBackgroundColor,
                         borderColor: vars.secondaryBorderColor,
-                        borderWidth: 1,
                     },
                 ]}
             >
@@ -107,12 +100,7 @@ export default function TestList() {
                         Test Remove List
                     </Text>
 
-                    <GlassView
-                        glassEffectStyle="regular"
-                        isInteractive
-                        colorScheme={appearance}
-                        style={styles.buttonGlass}
-                    >
+                    <LiquidGlassView style={styles.buttonGlass} isInteractive>
                         <PressableScale onPress={handleRemoveTestList} style={styles.button}>
                             <Text
                                 style={[
@@ -125,7 +113,7 @@ export default function TestList() {
                                 Remove All Items
                             </Text>
                         </PressableScale>
-                    </GlassView>
+                    </LiquidGlassView>
                 </View>
             </View>
         </>
@@ -138,6 +126,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         marginHorizontal: 8,
         paddingBottom: 16,
+        borderWidth: 1,
         overflow: "hidden",
     },
     row: {
@@ -154,7 +143,13 @@ const styles = StyleSheet.create({
         minWidth: 58,
         height: 36,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     button: {
         minWidth: 58,

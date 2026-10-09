@@ -2,7 +2,7 @@ import { memo } from "react"
 import { StyleSheet, Text, View } from "react-native"
 import { Link } from "expo-router"
 import { Image } from "expo-image"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
@@ -13,7 +13,7 @@ type Props = {
 }
 
 function Recipe({ recipe, variant = "list" }: Props) {
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
 
     return (
         <Link
@@ -33,12 +33,7 @@ function Recipe({ recipe, variant = "list" }: Props) {
                     />
 
                     <View style={styles.overlay}>
-                        <GlassView
-                            colorScheme={appearance}
-                            glassEffectStyle="regular"
-                            isInteractive
-                            style={styles.titleGlass}
-                        >
+                        <LiquidGlassView style={styles.titleGlass} isInteractive>
                             <Text
                                 style={[styles.title, { color: vars.textColor }]}
                                 numberOfLines={2}
@@ -46,7 +41,7 @@ function Recipe({ recipe, variant = "list" }: Props) {
                             >
                                 {recipe.title}
                             </Text>
-                        </GlassView>
+                        </LiquidGlassView>
                     </View>
                 </View>
             </Link.Trigger>
@@ -92,6 +87,12 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: BORDER_RADIUS_FULL,
         marginBottom: 6,
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     title: {
         fontSize: 16,

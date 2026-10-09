@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur"
 import { RefObject } from "react"
-import { Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 
 import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import UpdateCategoryList from "@/components/products-list/categories/updateCategoryList"
@@ -25,42 +25,39 @@ export default function BottomSheet({ sheetRef, close, updateCategory }: Props) 
             onClose={close}
             backgroundMode="adaptive"
         >
-            <View style={{ flex: 1 }}>
-                <View
-                    style={{
-                        position: "absolute",
-                        top: -40,
-                        left: 0,
-                        right: 0,
-                        height: 88,
-                        zIndex: 10,
-                        overflow: "hidden",
-                    }}
-                >
-                    <BlurView
-                        intensity={10}
-                        tint={appearance}
-                        style={{
-                            flex: 1,
-                            paddingHorizontal: 20,
-                            paddingTop: 48,
-                            paddingBottom: 10,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                fontSize: 22,
-                                fontWeight: "700",
-                                color: vars.textColor,
-                            }}
-                        >
-                            Select Category
-                        </Text>
+            <View style={styles.container}>
+                <View style={styles.headerWrap}>
+                    <BlurView intensity={10} tint={appearance} style={styles.blur}>
+                        <Text style={[styles.title, { color: vars.textColor }]}>Select Category</Text>
                     </BlurView>
                 </View>
-
                 <UpdateCategoryList updateCategory={updateCategory} />
             </View>
         </AppBottomSheet>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    headerWrap: {
+        position: "absolute",
+        top: -40,
+        left: 0,
+        right: 0,
+        height: 88,
+        zIndex: 10,
+        overflow: "hidden",
+    },
+    blur: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 48,
+        paddingBottom: 10,
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: "700",
+    },
+})

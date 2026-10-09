@@ -12,13 +12,13 @@ import Animated, {
 } from "react-native-reanimated"
 import * as Haptics from "expo-haptics"
 import { BlurView } from "expo-blur"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
 import { User } from "@/types"
 import useThemes from "@/hooks/themes/useThemes"
 import { X } from "lucide-react-native"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M, SHEET_CTA_HEIGHT } from "@/lib/theme"
 
 type Props = {
     user: User
@@ -124,7 +124,7 @@ export default function UserColor({ user }: Props) {
                 {user}
             </Text>
 
-            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.buttonGlass}>
+            <LiquidGlassView style={styles.buttonGlass} isInteractive>
                 <PressableScale onPress={openModal} style={styles.button}>
                     <View
                         style={[
@@ -146,7 +146,7 @@ export default function UserColor({ user }: Props) {
                         Edit
                     </Text>
                 </PressableScale>
-            </GlassView>
+            </LiquidGlassView>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
                 <BlurView intensity={24} tint={appearance} style={styles.modalOverlay}>
@@ -155,40 +155,28 @@ export default function UserColor({ user }: Props) {
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalContent}>
+                        <LiquidGlassView style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
-                                    <Text
-                                        style={{
-                                            color: vars.textColor,
-                                            fontSize: 24,
-                                            fontWeight: "700",
-                                        }}
-                                    >
-                                        User Color
-                                    </Text>
+                                    <Text style={[styles.modalTitle, { color: vars.textColor }]}>User Color</Text>
 
                                     <Text
-                                        style={{
-                                            color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                            marginTop: 4,
-                                            fontSize: 14,
-                                        }}
+                                        style={[
+                                            styles.modalSubtitle,
+                                            {
+                                                color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                            },
+                                        ]}
                                     >
                                         Customize color for {user}
                                     </Text>
                                 </View>
 
-                                <GlassView
-                                    glassEffectStyle="regular"
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    style={styles.closeGlass}
-                                >
+                                <LiquidGlassView style={styles.closeGlass} isInteractive>
                                     <PressableScale onPress={closeModal} style={styles.closeButton}>
                                         <X size={17} strokeWidth={2} color={vars.textColor} />
                                     </PressableScale>
-                                </GlassView>
+                                </LiquidGlassView>
                             </View>
 
                             <View style={styles.colorPickerContainer}>
@@ -208,31 +196,13 @@ export default function UserColor({ user }: Props) {
                             </View>
 
                             <View style={styles.actions}>
-                                <GlassView
-                                    glassEffectStyle="regular"
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    style={styles.secondaryGlass}
-                                >
+                                <LiquidGlassView style={styles.secondaryGlass} isInteractive>
                                     <PressableScale onPress={resetToDefault} style={styles.secondaryButton}>
-                                        <Text
-                                            style={{
-                                                color: vars.textColor,
-                                                fontSize: 14,
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            Reset
-                                        </Text>
+                                        <Text style={[styles.resetText, { color: vars.textColor }]}>Reset</Text>
                                     </PressableScale>
-                                </GlassView>
+                                </LiquidGlassView>
 
-                                <GlassView
-                                    glassEffectStyle="regular"
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    style={styles.primaryGlass}
-                                >
+                                <LiquidGlassView style={styles.primaryGlass} isInteractive>
                                     <PressableScale
                                         onPress={closeModal}
                                         style={[
@@ -244,9 +214,9 @@ export default function UserColor({ user }: Props) {
                                     >
                                         <Text style={styles.doneText}>Done</Text>
                                     </PressableScale>
-                                </GlassView>
+                                </LiquidGlassView>
                             </View>
-                        </GlassView>
+                        </LiquidGlassView>
                     </Animated.View>
                 </BlurView>
             </Modal>
@@ -268,7 +238,13 @@ const styles = StyleSheet.create({
         height: 36,
         minWidth: 62,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     button: {
         height: 36,
@@ -302,19 +278,39 @@ const styles = StyleSheet.create({
     modalContent: {
         width: "100%",
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         padding: 22,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     modalHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
     },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: "700",
+    },
+    modalSubtitle: {
+        marginTop: 4,
+        fontSize: 14,
+    },
     closeGlass: {
         width: 36,
         height: 36,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     closeButton: {
         width: 36,
@@ -349,26 +345,42 @@ const styles = StyleSheet.create({
     },
     secondaryGlass: {
         flex: 1,
-        minHeight: 48,
+        minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     secondaryButton: {
         flex: 1,
-        minHeight: 48,
+        minHeight: SHEET_CTA_HEIGHT,
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: 14,
     },
+    resetText: {
+        fontSize: 14,
+        fontWeight: "600",
+    },
     primaryGlass: {
         flex: 1,
-        minHeight: 48,
+        minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     primaryButton: {
         flex: 1,
-        minHeight: 48,
+        minHeight: SHEET_CTA_HEIGHT,
         alignItems: "center",
         justifyContent: "center",
         borderRadius: BORDER_RADIUS_M,
@@ -376,6 +388,6 @@ const styles = StyleSheet.create({
     doneText: {
         color: "#fff",
         fontWeight: "700",
-        fontSize: 15,
+        fontSize: 16,
     },
 })

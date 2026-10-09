@@ -118,14 +118,8 @@ export default function AddButton({ product, mode }: Props) {
                         },
                     ]}
                 >
-                    {isAdded && <Check size={14} color="#34C759" style={{ marginRight: 6 }} />}
-
-                    <Text
-                        style={{
-                            color: isAdded ? "#34C759" : vars.textColor,
-                            fontWeight: "600",
-                        }}
-                    >
+                    {isAdded && <Check size={14} color="#34C759" style={styles.checkIcon} />}
+                    <Text style={[styles.label, { color: isAdded ? "#34C759" : vars.textColor }]}>
                         {isAdded ? "Added" : mode === "image" ? "Add image" : "Add text"}
                     </Text>
                 </View>
@@ -146,5 +140,11 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+    },
+    checkIcon: {
+        marginRight: 6,
+    },
+    label: {
+        fontWeight: "600",
     },
 })

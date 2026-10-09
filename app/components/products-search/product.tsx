@@ -21,17 +21,14 @@ export default function Product({ product }: Props) {
             ]}
         >
             <View style={styles.innerCard}>
-                <CustomImage style={{ borderRadius: BORDER_RADIUS_M }} url={product.image} height={60} width={60} />
-
+                <CustomImage style={styles.image} url={product.image} height={60} width={60} />
                 <View style={styles.info}>
                     <Text style={[styles.productName, { color: vars.textColor, fontSize: vars.textSize }]}>
                         {product.name}
                     </Text>
-
                     <Text style={[styles.brandName, { color: actions.getLabelColor(), fontSize: vars.labelSize }]}>
                         {product.brand}
                     </Text>
-
                     <View style={styles.categoryContainer}>
                         <CategoryIcon category={product.category} size={25} svgSizeSmaller={12} />
                         <Text
@@ -67,6 +64,9 @@ const styles = StyleSheet.create({
     innerCard: {
         flexDirection: "row",
         alignItems: "center",
+    },
+    image: {
+        borderRadius: BORDER_RADIUS_M,
     },
     buttons: {
         marginTop: 8,

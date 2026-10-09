@@ -1,6 +1,6 @@
 import { COUNTRIES, HEADER_HEIGHT } from "@/lib/constants"
 import { useMemo, useState } from "react"
-import { FlatList, Modal, Pressable, Text, TextInput, View } from "react-native"
+import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native"
 import { Country } from "@/types/recipes"
 import useThemes from "@/hooks/themes/useThemes"
 import { PressableScale } from "pressto"
@@ -26,44 +26,32 @@ export default function CountryInput({ value, onChange }: Props) {
         <>
             <PressableScale
                 onPress={() => setVisible(true)}
-                style={{
-                    backgroundColor: vars.secondaryBackgroundColor,
-                    borderWidth: 1,
-                    borderColor: vars.borderColor,
-                    borderRadius: BORDER_RADIUS_M,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                }}
+                style={[
+                    styles.trigger,
+                    {
+                        backgroundColor: vars.secondaryBackgroundColor,
+                        borderColor: vars.borderColor,
+                    },
+                ]}
             >
-                <Text style={{ fontSize: 20 }}>{value?.flag ?? "🌍"}</Text>
-                <Text style={{ fontSize: 16, color: vars.textColor }}>{value?.name ?? "Select country"}</Text>
+                <Text style={styles.flag}>{value?.flag ?? "🌍"}</Text>
+                <Text style={[styles.triggerText, { color: vars.textColor }]}>{value?.name ?? "Select country"}</Text>
             </PressableScale>
 
             <Modal visible={visible} animationType="slide">
-                <View
-                    style={{
-                        flex: 1,
-                        padding: 16,
-                        paddingTop: HEADER_HEIGHT,
-                        backgroundColor: vars.backgroundColor,
-                    }}
-                >
+                <View style={[styles.modal, { backgroundColor: vars.backgroundColor }]}>
                     <TextInput
                         placeholder="Search country"
                         value={query}
                         onChangeText={setQuery}
-                        style={{
-                            color: vars.textColor,
-                            padding: 12,
-                            borderRadius: BORDER_RADIUS_M,
-                            borderWidth: 1,
-                            borderColor: vars.borderColor,
-                            marginBottom: 12,
-                            backgroundColor: vars.secondaryBackgroundColor,
-                        }}
+                        style={[
+                            styles.searchInput,
+                            {
+                                color: vars.textColor,
+                                borderColor: vars.borderColor,
+                                backgroundColor: vars.secondaryBackgroundColor,
+                            },
+                        ]}
                         placeholderTextColor={vars.tertiaryTextColor}
                         keyboardAppearance={appearance}
                     />
@@ -78,14 +66,9 @@ export default function CountryInput({ value, onChange }: Props) {
                                     setVisible(false)
                                     setQuery("")
                                 }}
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    paddingVertical: 12,
-                                    gap: 12,
-                                }}
+                                style={styles.row}
                             >
-                                <Text style={{ fontSize: 16, color: vars.textColor }}>None</Text>
+                                <Text style={[styles.rowText, { color: vars.textColor }]}>None</Text>
                             </Pressable>
                         }
                         renderItem={({ item }) => (
@@ -95,32 +78,72 @@ export default function CountryInput({ value, onChange }: Props) {
                                     setVisible(false)
                                     setQuery("")
                                 }}
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    paddingVertical: 12,
-                                    gap: 12,
-                                }}
+                                style={styles.row}
                             >
-                                <Text style={{ fontSize: 22 }}>{item.flag}</Text>
-                                <Text style={{ fontSize: 16, color: vars.textColor }}>{item.name}</Text>
+                                <Text style={styles.rowFlag}>{item.flag}</Text>
+                                <Text style={[styles.rowText, { color: vars.textColor }]}>{item.name}</Text>
                             </PressableScale>
                         )}
                     />
 
                     <PressableScale
                         onPress={() => setVisible(false)}
-                        style={{
-                            padding: 16,
-                            alignItems: "center",
-                            borderRadius: BORDER_RADIUS_L,
-                            backgroundColor: vars.accentColor,
-                        }}
+                        style={[styles.closeButton, { backgroundColor: vars.accentColor }]}
                     >
-                        <Text style={{ fontWeight: "600", color: "#fff" }}>Close</Text>
+                        <Text style={styles.closeText}>Close</Text>
                     </PressableScale>
                 </View>
             </Modal>
         </>
     )
 }
+
+const styles = StyleSheet.create({
+    trigger: {
+        borderWidth: 1,
+        borderRadius: BORDER_RADIUS_M,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    flag: {
+        fontSize: 20,
+    },
+    triggerText: {
+        fontSize: 16,
+    },
+    modal: {
+        flex: 1,
+        padding: 16,
+        paddingTop: HEADER_HEIGHT,
+    },
+    searchInput: {
+        padding: 12,
+        borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
+        marginBottom: 12,
+    },
+    row: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
+        gap: 12,
+    },
+    rowFlag: {
+        fontSize: 22,
+    },
+    rowText: {
+        fontSize: 16,
+    },
+    closeButton: {
+        padding: 16,
+        alignItems: "center",
+        borderRadius: BORDER_RADIUS_L,
+    },
+    closeText: {
+        fontWeight: "600",
+        color: "#fff",
+    },
+})

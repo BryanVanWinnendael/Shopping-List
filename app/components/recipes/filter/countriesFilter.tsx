@@ -48,13 +48,7 @@ export default function CountriesFilter() {
                 ]}
                 onPress={toggleDropdown}
             >
-                <Text
-                    style={{
-                        color: vars.textColor,
-                    }}
-                >
-                    {activeFilter.country || "Any"}
-                </Text>
+                <Text style={{ color: vars.textColor }}>{activeFilter.country || "Any"}</Text>
                 <ChevronDown size={18} color={vars.textColor} />
             </PressableScale>
 
@@ -69,23 +63,16 @@ export default function CountriesFilter() {
                     },
                 ]}
             >
-                <View
-                    style={{
-                        flex: 1,
-                        borderRadius: BORDER_RADIUS_L,
-                    }}
-                >
-                    <View>
-                        {states.countries.map((country) => (
-                            <PressableScale
-                                key={country}
-                                onPress={() => handleSelect(country)}
-                                style={[styles.option, { backgroundColor: vars.backgroundColor }]}
-                            >
-                                <Text style={{ color: vars.textColor }}>{country}</Text>
-                            </PressableScale>
-                        ))}
-                    </View>
+                <View style={styles.dropdownInner}>
+                    {states.countries.map((country) => (
+                        <PressableScale
+                            key={country}
+                            onPress={() => handleSelect(country)}
+                            style={[styles.option, { backgroundColor: vars.backgroundColor }]}
+                        >
+                            <Text style={{ color: vars.textColor }}>{country}</Text>
+                        </PressableScale>
+                    ))}
                 </View>
             </Animated.View>
         </View>
@@ -110,6 +97,10 @@ const styles = StyleSheet.create({
         overflow: "hidden",
         borderRadius: BORDER_RADIUS_L,
         marginTop: 4,
+    },
+    dropdownInner: {
+        flex: 1,
+        borderRadius: BORDER_RADIUS_L,
     },
     option: {
         paddingHorizontal: 12,

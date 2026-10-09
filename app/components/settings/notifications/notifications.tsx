@@ -1,7 +1,6 @@
-import React from "react"
 import { StyleSheet, Text, View } from "react-native"
 import { Bell, BellRing } from "lucide-react-native"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 
 import Accordion from "@/components/accordion"
 import SettingRow from "@/components/settings/notifications/settingsRow"
@@ -11,7 +10,7 @@ import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function Notifications() {
-    const { vars, theme, appearance } = useThemes()
+    const { vars, theme } = useThemes()
     const { states, actions } = useNotifications()
 
     return (
@@ -21,18 +20,12 @@ export default function Notifications() {
                 {
                     backgroundColor: vars.secondaryBackgroundColor,
                     borderColor: vars.secondaryBorderColor,
-                    borderWidth: 1,
                 },
             ]}
         >
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
-                    <GlassView
-                        glassEffectStyle="regular"
-                        colorScheme={appearance}
-                        isInteractive={false}
-                        style={styles.iconGlass}
-                    >
+                    <LiquidGlassView style={styles.iconGlass}>
                         <View style={styles.iconWrapper}>
                             {states.masterEnabled ? (
                                 <BellRing size={18} strokeWidth={2} color={vars.accentColor} />
@@ -40,7 +33,7 @@ export default function Notifications() {
                                 <Bell size={18} strokeWidth={2} color={vars.accentColor} />
                             )}
                         </View>
-                    </GlassView>
+                    </LiquidGlassView>
 
                     <View style={styles.textContainer}>
                         <Text
@@ -108,6 +101,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 8,
         paddingHorizontal: 18,
         paddingTop: 18,
+        borderWidth: 1,
         overflow: "hidden",
     },
     header: {
@@ -129,7 +123,13 @@ const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     iconWrapper: {
         width: 42,

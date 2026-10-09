@@ -12,14 +12,14 @@ import Animated, {
 } from "react-native-reanimated"
 import * as Haptics from "expo-haptics"
 import { BlurView } from "expo-blur"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import CategoryIcon from "@/components/categoryIcon"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
 import useThemes from "@/hooks/themes/useThemes"
 import { DEFAULT_FONT_SIZE, MAX_FONT_SIZE, MIN_FONT_SIZE } from "@/lib/constants"
 import { Type, X } from "lucide-react-native"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M, SHEET_CTA_HEIGHT } from "@/lib/theme"
 
 export default function FontSize() {
     const { vars, theme, appearance } = useThemes()
@@ -88,22 +88,16 @@ export default function FontSize() {
                 {
                     backgroundColor: vars.secondaryBackgroundColor,
                     borderColor: vars.secondaryBorderColor,
-                    borderWidth: 1,
                 },
             ]}
         >
             <View style={styles.row}>
                 <View style={styles.titleContainer}>
-                    <GlassView
-                        glassEffectStyle="regular"
-                        isInteractive={false}
-                        colorScheme={appearance}
-                        style={styles.iconGlass}
-                    >
+                    <LiquidGlassView style={styles.iconGlass}>
                         <View style={styles.iconWrapper}>
                             <Type size={18} strokeWidth={2} color={vars.accentColor} />
                         </View>
-                    </GlassView>
+                    </LiquidGlassView>
 
                     <View>
                         <Text
@@ -118,30 +112,23 @@ export default function FontSize() {
                         </Text>
 
                         <Text
-                            style={{
-                                color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                marginTop: 2,
-                                fontSize: 13,
-                            }}
+                            style={[
+                                styles.subtitle,
+                                {
+                                    color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                },
+                            ]}
                         >
                             Customize product text size
                         </Text>
                     </View>
                 </View>
 
-                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.editGlass}>
+                <LiquidGlassView style={styles.editGlass} isInteractive>
                     <PressableScale onPress={openModal} style={styles.editButton}>
-                        <Text
-                            style={{
-                                color: vars.textColor,
-                                fontSize: 13,
-                                fontWeight: "600",
-                            }}
-                        >
-                            Edit
-                        </Text>
+                        <Text style={[styles.editText, { color: vars.textColor }]}>Edit</Text>
                     </PressableScale>
-                </GlassView>
+                </LiquidGlassView>
             </View>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
@@ -151,40 +138,28 @@ export default function FontSize() {
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalContent}>
+                        <LiquidGlassView style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
-                                    <Text
-                                        style={{
-                                            color: vars.textColor,
-                                            fontSize: 24,
-                                            fontWeight: "700",
-                                        }}
-                                    >
-                                        Font Size
-                                    </Text>
+                                    <Text style={[styles.modalTitle, { color: vars.textColor }]}>Font Size</Text>
 
                                     <Text
-                                        style={{
-                                            color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                            marginTop: 4,
-                                            fontSize: 14,
-                                        }}
+                                        style={[
+                                            styles.modalSubtitle,
+                                            {
+                                                color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                            },
+                                        ]}
                                     >
                                         Customize product text size
                                     </Text>
                                 </View>
 
-                                <GlassView
-                                    glassEffectStyle="regular"
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    style={styles.closeGlass}
-                                >
+                                <LiquidGlassView style={styles.closeGlass} isInteractive>
                                     <PressableScale onPress={closeModal} style={styles.closeButton}>
                                         <X size={17} strokeWidth={2} color={vars.textColor} />
                                     </PressableScale>
-                                </GlassView>
+                                </LiquidGlassView>
                             </View>
 
                             <View style={styles.sliderContainer}>
@@ -208,11 +183,7 @@ export default function FontSize() {
                                 />
                             </View>
 
-                            <GlassView
-                                glassEffectStyle="regular"
-                                colorScheme={appearance}
-                                style={styles.previewContainer}
-                            >
+                            <LiquidGlassView style={styles.previewContainer}>
                                 <View style={styles.previewRow}>
                                     <View style={styles.previewIcon}>
                                         <CategoryIcon category="remaining" />
@@ -227,10 +198,13 @@ export default function FontSize() {
                                         ]}
                                     >
                                         <Text
-                                            style={{
-                                                fontSize: getTextSize,
-                                                color: vars.textColor,
-                                            }}
+                                            style={[
+                                                styles.previewText,
+                                                {
+                                                    fontSize: getTextSize,
+                                                    color: vars.textColor,
+                                                },
+                                            ]}
                                             numberOfLines={1}
                                             adjustsFontSizeToFit
                                         >
@@ -238,45 +212,28 @@ export default function FontSize() {
                                         </Text>
 
                                         <Text
-                                            style={{
-                                                fontSize: getLabelSize,
-                                                color: theme === "light" ? "#9ca3af" : "#50555C",
-                                                marginTop: 8,
-                                                textAlign: "right",
-                                            }}
+                                            style={[
+                                                styles.previewAddedBy,
+                                                {
+                                                    fontSize: getLabelSize,
+                                                    color: theme === "light" ? "#9ca3af" : "#50555C",
+                                                },
+                                            ]}
                                         >
                                             added by
                                         </Text>
                                     </View>
                                 </View>
-                            </GlassView>
+                            </LiquidGlassView>
 
                             <View style={styles.actions}>
-                                <GlassView
-                                    glassEffectStyle="regular"
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    style={styles.secondaryGlass}
-                                >
+                                <LiquidGlassView style={styles.secondaryGlass} isInteractive>
                                     <PressableScale onPress={resetFontSize} style={styles.secondaryButton}>
-                                        <Text
-                                            style={{
-                                                color: vars.textColor,
-                                                fontSize: 14,
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            Reset
-                                        </Text>
+                                        <Text style={[styles.resetText, { color: vars.textColor }]}>Reset</Text>
                                     </PressableScale>
-                                </GlassView>
+                                </LiquidGlassView>
 
-                                <GlassView
-                                    glassEffectStyle="regular"
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    style={styles.primaryGlass}
-                                >
+                                <LiquidGlassView style={styles.primaryGlass} isInteractive>
                                     <PressableScale
                                         onPress={applyFontSize}
                                         style={[
@@ -288,9 +245,9 @@ export default function FontSize() {
                                     >
                                         <Text style={styles.doneText}>Done</Text>
                                     </PressableScale>
-                                </GlassView>
+                                </LiquidGlassView>
                             </View>
-                        </GlassView>
+                        </LiquidGlassView>
                     </Animated.View>
                 </BlurView>
             </Modal>
@@ -304,6 +261,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 18,
         paddingVertical: 18,
         marginHorizontal: 8,
+        borderWidth: 1,
         overflow: "hidden",
     },
     row: {
@@ -322,7 +280,13 @@ const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     iconWrapper: {
         width: 42,
@@ -335,11 +299,25 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         fontSize: 18,
     },
+    subtitle: {
+        marginTop: 2,
+        fontSize: 13,
+    },
+    editText: {
+        fontSize: 13,
+        fontWeight: "600",
+    },
     editGlass: {
         height: 36,
         minWidth: 58,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     editButton: {
         height: 36,
@@ -362,19 +340,39 @@ const styles = StyleSheet.create({
     modalContent: {
         width: "100%",
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         padding: 22,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     modalHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
     },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: "700",
+    },
+    modalSubtitle: {
+        marginTop: 4,
+        fontSize: 14,
+    },
     closeGlass: {
         width: 36,
         height: 36,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     closeButton: {
         width: 36,
@@ -392,9 +390,15 @@ const styles = StyleSheet.create({
     previewContainer: {
         minHeight: 110,
         borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
         paddingHorizontal: 12,
         marginTop: 24,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     previewRow: {
         flexDirection: "row",
@@ -413,6 +417,11 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         justifyContent: "center",
     },
+    previewText: {},
+    previewAddedBy: {
+        marginTop: 8,
+        textAlign: "right",
+    },
     actions: {
         flexDirection: "row",
         gap: 10,
@@ -420,26 +429,42 @@ const styles = StyleSheet.create({
     },
     secondaryGlass: {
         flex: 1,
-        minHeight: 48,
+        minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     secondaryButton: {
         flex: 1,
-        minHeight: 48,
+        minHeight: SHEET_CTA_HEIGHT,
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: 14,
     },
+    resetText: {
+        fontSize: 14,
+        fontWeight: "600",
+    },
     primaryGlass: {
         flex: 1,
-        minHeight: 48,
+        minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     primaryButton: {
         flex: 1,
-        minHeight: 48,
+        minHeight: SHEET_CTA_HEIGHT,
         alignItems: "center",
         justifyContent: "center",
         borderRadius: BORDER_RADIUS_M,

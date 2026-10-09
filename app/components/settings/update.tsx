@@ -10,12 +10,12 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated"
 import { BlurView } from "expo-blur"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import updates from "@/assets/updates.json"
 import { PressableScale } from "pressto"
 import useThemes from "@/hooks/themes/useThemes"
 import { Sparkles, X } from "lucide-react-native"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, SHEET_CTA_HEIGHT } from "@/lib/theme"
 
 export default function Update() {
     const { vars, theme, appearance } = useThemes()
@@ -67,22 +67,16 @@ export default function Update() {
                 {
                     backgroundColor: vars.secondaryBackgroundColor,
                     borderColor: vars.secondaryBorderColor,
-                    borderWidth: 1,
                 },
             ]}
         >
             <View style={styles.row}>
                 <View style={styles.titleContainer}>
-                    <GlassView
-                        glassEffectStyle="regular"
-                        isInteractive={false}
-                        colorScheme={appearance}
-                        style={styles.iconGlass}
-                    >
+                    <LiquidGlassView style={styles.iconGlass}>
                         <View style={styles.iconWrapper}>
                             <Sparkles size={18} strokeWidth={2} color={vars.accentColor} />
                         </View>
-                    </GlassView>
+                    </LiquidGlassView>
 
                     <View>
                         <Text
@@ -97,30 +91,23 @@ export default function Update() {
                         </Text>
 
                         <Text
-                            style={{
-                                color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                marginTop: 2,
-                                fontSize: 13,
-                            }}
+                            style={[
+                                styles.subtitle,
+                                {
+                                    color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                },
+                            ]}
                         >
                             Latest app improvements and updates
                         </Text>
                     </View>
                 </View>
 
-                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.readGlass}>
+                <LiquidGlassView style={styles.readGlass} isInteractive>
                     <PressableScale onPress={openModal} style={styles.readButton}>
-                        <Text
-                            style={{
-                                color: vars.textColor,
-                                fontSize: 14,
-                                fontWeight: "600",
-                            }}
-                        >
-                            Read
-                        </Text>
+                        <Text style={[styles.readText, { color: vars.textColor }]}>Read</Text>
                     </PressableScale>
-                </GlassView>
+                </LiquidGlassView>
             </View>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
@@ -130,150 +117,79 @@ export default function Update() {
                         exiting={FadeOut.duration(120)}
                         style={[styles.animatedModal, animatedStyle]}
                     >
-                        <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.modalContent}>
+                        <LiquidGlassView style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <View>
-                                    <Text
-                                        style={{
-                                            color: vars.textColor,
-                                            fontSize: 24,
-                                            fontWeight: "700",
-                                        }}
-                                    >
-                                        Release Notes
-                                    </Text>
+                                    <Text style={[styles.modalTitle, { color: vars.textColor }]}>Release Notes</Text>
 
                                     <Text
-                                        style={{
-                                            color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                            marginTop: 4,
-                                            fontSize: 14,
-                                        }}
+                                        style={[
+                                            styles.modalSubtitle,
+                                            {
+                                                color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                            },
+                                        ]}
                                     >
                                         Latest app improvements and updates
                                     </Text>
                                 </View>
 
-                                <GlassView
-                                    glassEffectStyle="regular"
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    style={styles.closeGlass}
-                                >
+                                <LiquidGlassView style={styles.closeGlass} isInteractive>
                                     <PressableScale onPress={closeModal} style={styles.closeButton}>
                                         <X size={18} strokeWidth={2} color={vars.textColor} />
                                     </PressableScale>
-                                </GlassView>
+                                </LiquidGlassView>
                             </View>
 
                             <ScrollView
-                                style={{
-                                    marginTop: 20,
-                                }}
-                                contentContainerStyle={{
-                                    paddingBottom: 10,
-                                    gap: 24,
-                                }}
+                                style={styles.scrollView}
+                                contentContainerStyle={styles.scrollContent}
                                 showsVerticalScrollIndicator={false}
                             >
                                 {updates.map((update, index) => (
                                     <View key={index}>
-                                        <View
-                                            style={{
-                                                flexDirection: "row",
-                                                alignItems: "center",
-                                                marginBottom: 12,
-                                            }}
-                                        >
-                                            <View
-                                                style={{
-                                                    flexDirection: "row",
-                                                    alignItems: "center",
-                                                    gap: 8,
-                                                    flexWrap: "wrap",
-                                                }}
-                                            >
+                                        <View style={styles.metaRow}>
+                                            <View style={styles.metaBadges}>
                                                 <View
-                                                    style={{
-                                                        backgroundColor: `${vars.accentColor}20`,
-                                                        paddingHorizontal: 12,
-                                                        paddingVertical: 6,
-                                                        borderRadius: BORDER_RADIUS_FULL,
-                                                    }}
+                                                    style={[
+                                                        styles.dateBadge,
+                                                        {
+                                                            backgroundColor: `${vars.accentColor}20`,
+                                                        },
+                                                    ]}
                                                 >
-                                                    <Text
-                                                        style={{
-                                                            color: vars.accentColor,
-                                                            fontWeight: "700",
-                                                            fontSize: 13,
-                                                        }}
-                                                    >
+                                                    <Text style={[styles.dateText, { color: vars.accentColor }]}>
                                                         {update.date}
                                                     </Text>
                                                 </View>
 
                                                 {update.version && (
-                                                    <GlassView
-                                                        glassEffectStyle="regular"
-                                                        colorScheme={appearance}
-                                                        style={{
-                                                            borderRadius: BORDER_RADIUS_FULL,
-                                                            overflow: "hidden",
-                                                        }}
-                                                    >
-                                                        <View
-                                                            style={{
-                                                                paddingHorizontal: 10,
-                                                                paddingVertical: 6,
-                                                            }}
-                                                        >
+                                                    <LiquidGlassView style={styles.versionGlass}>
+                                                        <View style={styles.versionInner}>
                                                             <Text
-                                                                style={{
-                                                                    color: vars.textColor,
-                                                                    fontWeight: "600",
-                                                                    fontSize: 12,
-                                                                }}
+                                                                style={[styles.versionText, { color: vars.textColor }]}
                                                             >
                                                                 v{update.version}
                                                             </Text>
                                                         </View>
-                                                    </GlassView>
+                                                    </LiquidGlassView>
                                                 )}
                                             </View>
                                         </View>
 
-                                        <View
-                                            style={{
-                                                gap: 12,
-                                            }}
-                                        >
+                                        <View style={styles.pointsList}>
                                             {update.text.map((point, idx) => (
-                                                <View
-                                                    key={idx}
-                                                    style={{
-                                                        flexDirection: "row",
-                                                        alignItems: "flex-start",
-                                                    }}
-                                                >
+                                                <View key={idx} style={styles.pointRow}>
                                                     <View
-                                                        style={{
-                                                            width: 8,
-                                                            height: 8,
-                                                            borderRadius: BORDER_RADIUS_FULL,
-                                                            backgroundColor: vars.accentColor,
-                                                            marginTop: 8,
-                                                            marginRight: 12,
-                                                        }}
+                                                        style={[
+                                                            styles.dot,
+                                                            {
+                                                                backgroundColor: vars.accentColor,
+                                                            },
+                                                        ]}
                                                     />
 
-                                                    <Text
-                                                        style={{
-                                                            flex: 1,
-                                                            color: vars.textColor,
-                                                            fontSize: 16,
-                                                            lineHeight: 24,
-                                                        }}
-                                                    >
+                                                    <Text style={[styles.pointText, { color: vars.textColor }]}>
                                                         {point}
                                                     </Text>
                                                 </View>
@@ -283,12 +199,7 @@ export default function Update() {
                                 ))}
                             </ScrollView>
 
-                            <GlassView
-                                glassEffectStyle="regular"
-                                isInteractive
-                                colorScheme={appearance}
-                                style={styles.doneGlass}
-                            >
+                            <LiquidGlassView style={styles.doneGlass} isInteractive>
                                 <PressableScale
                                     onPress={closeModal}
                                     style={[
@@ -300,8 +211,8 @@ export default function Update() {
                                 >
                                     <Text style={styles.doneText}>Done</Text>
                                 </PressableScale>
-                            </GlassView>
-                        </GlassView>
+                            </LiquidGlassView>
+                        </LiquidGlassView>
                     </Animated.View>
                 </BlurView>
             </Modal>
@@ -315,6 +226,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 18,
         paddingVertical: 18,
         marginHorizontal: 8,
+        borderWidth: 1,
         overflow: "hidden",
     },
     row: {
@@ -333,11 +245,21 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         fontSize: 18,
     },
+    subtitle: {
+        marginTop: 2,
+        fontSize: 13,
+    },
     iconGlass: {
         width: 42,
         height: 42,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     iconWrapper: {
         width: 42,
@@ -350,7 +272,13 @@ const styles = StyleSheet.create({
         height: 40,
         minWidth: 64,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     readButton: {
         height: 40,
@@ -358,6 +286,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         alignItems: "center",
         justifyContent: "center",
+    },
+    readText: {
+        fontSize: 14,
+        fontWeight: "600",
     },
     modalOverlay: {
         flex: 1,
@@ -374,19 +306,39 @@ const styles = StyleSheet.create({
         width: "100%",
         maxHeight: "90%",
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         padding: 22,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     modalHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
     },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: "700",
+    },
+    modalSubtitle: {
+        marginTop: 4,
+        fontSize: 14,
+    },
     closeGlass: {
         width: 40,
         height: 40,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     closeButton: {
         width: 40,
@@ -394,14 +346,84 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+    scrollView: {
+        marginTop: 20,
+    },
+    scrollContent: {
+        paddingBottom: 10,
+        gap: 24,
+    },
+    metaRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    metaBadges: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap",
+    },
+    dateBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: BORDER_RADIUS_FULL,
+    },
+    dateText: {
+        fontWeight: "700",
+        fontSize: 13,
+    },
+    versionGlass: {
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    versionInner: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+    },
+    versionText: {
+        fontWeight: "600",
+        fontSize: 12,
+    },
+    pointsList: {
+        gap: 12,
+    },
+    pointRow: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+    },
+    dot: {
+        width: 8,
+        height: 8,
+        borderRadius: BORDER_RADIUS_FULL,
+        marginTop: 8,
+        marginRight: 12,
+    },
+    pointText: {
+        flex: 1,
+        fontSize: 16,
+        lineHeight: 24,
+    },
     doneGlass: {
         marginTop: 24,
-        minHeight: 54,
+        minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     doneButton: {
-        minHeight: 54,
+        minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_L,
         alignItems: "center",
         justifyContent: "center",

@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { StyleSheet, TextInput, View } from "react-native"
 import { PressableScale } from "pressto"
-import { GlassView } from "expo-glass-effect"
 import useThemes from "@/hooks/themes/useThemes"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, COMPOSER_MIN_HEIGHT, COMPOSER_SEND_SIZE } from "@/lib/theme"
 import { Product } from "@/types/list"
 import { SendIcon } from "lucide-react-native"
 
@@ -27,14 +27,14 @@ export default function ProductInput({ product, value, updateName, updateProduct
 
     return (
         <View style={styles.container}>
-            <GlassView style={styles.glassView} glassEffectStyle="regular" isInteractive colorScheme={appearance}>
+            <LiquidGlassView style={styles.glassView} isInteractive>
                 <View style={styles.inputRow}>
                     <TextInput
                         autoFocus
                         value={text}
                         onChangeText={handleChange}
                         placeholder="Edit product..."
-                        placeholderTextColor="#999"
+                        placeholderTextColor={vars.tertiaryTextColor}
                         keyboardAppearance={appearance}
                         returnKeyType="done"
                         onSubmitEditing={updateProduct}
@@ -47,10 +47,10 @@ export default function ProductInput({ product, value, updateName, updateProduct
                         accessibilityLabel="Save product"
                         style={[styles.sendButton, { backgroundColor: vars.accentColor }]}
                     >
-                        <SendIcon size={20} color="#fff" />
+                        <SendIcon size={16} color="#fff" />
                     </PressableScale>
                 </View>
-            </GlassView>
+            </LiquidGlassView>
         </View>
     )
 }
@@ -62,31 +62,37 @@ const styles = StyleSheet.create({
     },
     glassView: {
         flex: 1,
-        minHeight: 58,
-        maxHeight: 130,
+        minHeight: COMPOSER_MIN_HEIGHT,
+        maxHeight: 120,
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         paddingLeft: 16,
         paddingRight: 6,
-        paddingVertical: 6,
+        paddingVertical: 4,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     inputRow: {
         flexDirection: "row",
         alignItems: "flex-end",
-        minHeight: 44,
+        minHeight: 36,
     },
     textInput: {
         flex: 1,
-        minHeight: 42,
+        minHeight: 34,
         maxHeight: 100,
-        paddingVertical: 9,
+        paddingVertical: 7,
         paddingHorizontal: 2,
         fontSize: 16,
         fontWeight: "400",
     },
     sendButton: {
-        width: 42,
-        height: 42,
+        width: COMPOSER_SEND_SIZE,
+        height: COMPOSER_SEND_SIZE,
         marginLeft: 6,
         borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",

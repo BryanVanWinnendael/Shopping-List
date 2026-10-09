@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { PressableScale } from "pressto"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function ClearStorage() {
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
 
     const handleClearStorage = async () => {
         await AsyncStorage.clear()
@@ -19,14 +19,13 @@ export default function ClearStorage() {
                 {
                     backgroundColor: vars.secondaryBackgroundColor,
                     borderColor: vars.secondaryBorderColor,
-                    borderWidth: 1,
                 },
             ]}
         >
             <View style={styles.row}>
                 <Text style={[styles.title, { color: vars.textColor }]}>Clear Storage</Text>
 
-                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.buttonGlass}>
+                <LiquidGlassView style={styles.buttonGlass} isInteractive>
                     <PressableScale onPress={handleClearStorage} style={styles.button}>
                         <Text
                             style={[
@@ -39,7 +38,7 @@ export default function ClearStorage() {
                             Clear
                         </Text>
                     </PressableScale>
-                </GlassView>
+                </LiquidGlassView>
             </View>
         </View>
     )
@@ -51,6 +50,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingBottom: 16,
         marginHorizontal: 8,
+        borderWidth: 1,
         overflow: "hidden",
     },
     row: {
@@ -67,7 +67,13 @@ const styles = StyleSheet.create({
         minWidth: 64,
         height: 40,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     button: {
         minWidth: 64,

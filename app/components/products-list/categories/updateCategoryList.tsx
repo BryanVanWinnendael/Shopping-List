@@ -1,5 +1,5 @@
 import { CATEGORY_ORDER } from "@/lib/constants"
-import { FlatList, Text, View } from "react-native"
+import { FlatList, StyleSheet, Text, View } from "react-native"
 import { PressableScale } from "pressto"
 
 import CategoryIcon from "@/components/categoryIcon"
@@ -16,55 +16,65 @@ export default function UpdateCategoryList({ updateCategory }: Props) {
 
     return (
         <FlatList
-            style={{ flex: 1 }}
+            style={styles.list}
             data={CATEGORY_ORDER}
             keyExtractor={(item) => item}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-                paddingHorizontal: 20,
-                paddingTop: 64,
-                paddingBottom: 20,
-            }}
-            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+            contentContainerStyle={styles.listContent}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
             renderItem={({ item: category }) => (
                 <PressableScale
                     onPress={() => updateCategory(category)}
-                    style={{
-                        minHeight: 58,
-                        paddingHorizontal: 14,
-                        paddingVertical: 10,
-                        borderRadius: BORDER_RADIUS_M,
-                        borderWidth: 1,
-                        borderColor: vars.secondaryBorderColor,
-                        backgroundColor: vars.secondaryBackgroundColor,
-                        flexDirection: "row",
-                        alignItems: "center",
-                    }}
+                    style={[
+                        styles.row,
+                        {
+                            borderColor: vars.secondaryBorderColor,
+                            backgroundColor: vars.secondaryBackgroundColor,
+                        },
+                    ]}
                 >
-                    <View
-                        style={{
-                            width: 38,
-                            height: 38,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            marginRight: 12,
-                        }}
-                    >
+                    <View style={styles.iconContainer}>
                         <CategoryIcon category={category} />
                     </View>
 
-                    <Text
-                        style={{
-                            flex: 1,
-                            color: vars.textColor,
-                            fontSize: 16,
-                            fontWeight: "600",
-                        }}
-                    >
-                        {category}
-                    </Text>
+                    <Text style={[styles.label, { color: vars.textColor }]}>{category}</Text>
                 </PressableScale>
             )}
         />
     )
 }
+
+const styles = StyleSheet.create({
+    list: {
+        flex: 1,
+    },
+    listContent: {
+        paddingHorizontal: 20,
+        paddingTop: 64,
+        paddingBottom: 20,
+    },
+    separator: {
+        height: 8,
+    },
+    row: {
+        minHeight: 58,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    iconContainer: {
+        width: 38,
+        height: 38,
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 12,
+    },
+    label: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: "600",
+    },
+})

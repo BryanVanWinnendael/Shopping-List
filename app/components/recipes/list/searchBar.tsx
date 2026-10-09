@@ -1,7 +1,7 @@
 import { useEffect } from "react"
-import { TextInput, useWindowDimensions } from "react-native"
+import { StyleSheet, TextInput, useWindowDimensions } from "react-native"
 import { Search, X } from "lucide-react-native"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import Animated, {
     FadeIn,
     FadeOut,
@@ -13,7 +13,16 @@ import Animated, {
 import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
-import { BORDER_RADIUS_L } from "@/lib/theme"
+import {
+    BAR_FONT_SIZE,
+    BAR_HEIGHT,
+    BAR_PADDING_H,
+    BORDER_RADIUS_L,
+    DOCK_BOTTOM,
+    DOCK_SIDE,
+    FAB_SIZE,
+    SEARCH_BAR_RIGHT_DOUBLE,
+} from "@/lib/theme"
 
 type Props = {
     value: string
@@ -23,13 +32,13 @@ type Props = {
 }
 
 const AnimatedView = Animated.createAnimatedComponent(Animated.View)
-const AnimatedGlassView = Animated.createAnimatedComponent(GlassView)
+const AnimatedGlassView = Animated.createAnimatedComponent(LiquidGlassView)
 
 export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }: Props) {
     const { vars, appearance } = useThemes()
     const { width } = useWindowDimensions()
 
-    const right = useSharedValue(140)
+    const right = useSharedValue(SEARCH_BAR_RIGHT_DOUBLE)
     const scale = useSharedValue(1)
     const borderRadius = useSharedValue(BORDER_RADIUS_L)
 
@@ -50,37 +59,20 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
     }))
 
     useEffect(() => {
-        right.value = withTiming(filterExpanded ? width - 72 : 140, { duration: 250 })
+        right.value = withTiming(filterExpanded ? width - 72 : SEARCH_BAR_RIGHT_DOUBLE, { duration: 250 })
 
         borderRadius.value = withTiming(filterExpanded ? 24 : BORDER_RADIUS_L, { duration: 250 })
     }, [filterExpanded, width])
 
     return (
-        <AnimatedView
-            style={[
-                {
-                    position: "absolute",
-                    bottom: 24,
-                    left: 24,
-                    right: 140,
-                    zIndex: 10,
-                },
-                containerStyle,
-                animatedStyle,
-            ]}
-        >
+        <AnimatedView style={[styles.container, containerStyle, animatedStyle]}>
             <AnimatedGlassView
-                glassEffectStyle="regular"
                 isInteractive
-                colorScheme={appearance}
                 style={[
+                    styles.glass,
                     {
-                        flexDirection: "row",
-                        alignItems: "center",
                         justifyContent: filterExpanded ? "center" : undefined,
                         paddingHorizontal: filterExpanded ? 0 : 16,
-                        height: 48,
-                        overflow: "hidden",
                     },
                     glassStyle,
                 ]}
@@ -92,18 +84,9 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                         }
                     }}
                     hitSlop={10}
-                    style={
-                        filterExpanded
-                            ? {
-                                  width: 48,
-                                  height: 48,
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                              }
-                            : undefined
-                    }
+                    style={filterExpanded ? styles.iconButton : undefined}
                 >
-                    <Search size={20} strokeWidth={2} color={vars.textColor} />
+                    <Search size={18} strokeWidth={2} color={vars.textColor} />
                 </PressableScale>
 
                 {!filterExpanded && (
@@ -115,26 +98,14 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                             placeholder="Search recipes..."
                             placeholderTextColor={vars.tertiaryTextColor}
                             returnKeyType="search"
-                            style={{
-                                flex: 1,
-                                marginLeft: 10,
-                                fontSize: 17,
-                                color: vars.textColor,
-                            }}
+                            style={[styles.input, { color: vars.textColor }]}
                             keyboardAppearance={appearance}
                         />
 
                         {value.length > 0 && (
                             <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(120)}>
-                                <PressableScale
-                                    onPress={() => updateQuery("")}
-                                    hitSlop={10}
-                                    style={{
-                                        padding: 4,
-                                        marginLeft: 6,
-                                    }}
-                                >
-                                    <X size={18} strokeWidth={2} color={vars.textColor} />
+                                <PressableScale onPress={() => updateQuery("")} hitSlop={10} style={styles.clearButton}>
+                                    <X size={16} strokeWidth={2} color={vars.textColor} />
                                 </PressableScale>
                             </Animated.View>
                         )}
@@ -144,3 +115,40 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
         </AnimatedView>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        position: "absolute",
+        bottom: DOCK_BOTTOM,
+        left: DOCK_SIDE,
+        right: SEARCH_BAR_RIGHT_DOUBLE,
+        zIndex: 10,
+    },
+    glass: {
+        flexDirection: "row",
+        alignItems: "center",
+        height: BAR_HEIGHT,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    iconButton: {
+        width: FAB_SIZE,
+        height: FAB_SIZE,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    input: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: BAR_FONT_SIZE,
+    },
+    clearButton: {
+        padding: 4,
+        marginLeft: 6,
+    },
+})

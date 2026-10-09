@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 
 import { Product } from "@/types/list"
 import CategoryIcon from "@/components/categoryIcon"
@@ -12,10 +12,10 @@ type Props = {
 }
 
 export default function ProductPreview({ product }: Props) {
-    const { vars, actions, appearance } = useThemes()
+    const { vars, actions } = useThemes()
 
     return (
-        <GlassView colorScheme={appearance} glassEffectStyle="regular" style={styles.container}>
+        <LiquidGlassView style={styles.container}>
             {product.url && <CustomImage url={product.url} style={styles.image} />}
 
             {!product.url && (
@@ -25,30 +25,17 @@ export default function ProductPreview({ product }: Props) {
             )}
 
             <View style={styles.textContainer}>
-                <Text
-                    style={{
-                        fontSize: vars.textSize,
-                        flexWrap: "wrap",
-                        color: vars.textColor,
-                        fontWeight: "500",
-                    }}
-                >
+                <Text style={[styles.productName, { fontSize: vars.textSize, color: vars.textColor }]}>
                     {product.name}
                 </Text>
 
                 <Text
-                    style={{
-                        fontSize: vars.labelSize,
-                        color: actions.getLabelColor(product.user),
-                        marginTop: 8,
-                        textAlign: "right",
-                        fontWeight: "500",
-                    }}
+                    style={[styles.addedBy, { fontSize: vars.labelSize, color: actions.getLabelColor(product.user) }]}
                 >
                     added by {product.user}
                 </Text>
             </View>
-        </GlassView>
+        </LiquidGlassView>
     )
 }
 
@@ -62,6 +49,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderRadius: BORDER_RADIUS_L,
         overflow: "hidden",
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     iconContainer: {
         width: 48,
@@ -70,6 +63,15 @@ const styles = StyleSheet.create({
     },
     textContainer: {
         flex: 1,
+    },
+    productName: {
+        flexWrap: "wrap",
+        fontWeight: "500",
+    },
+    addedBy: {
+        marginTop: 8,
+        textAlign: "right",
+        fontWeight: "500",
     },
     image: {
         width: 90,

@@ -1,8 +1,8 @@
 import { CategoriesColors, Theme } from "@/types"
 import Svg, { Circle, Defs, G, Line, Path, Polyline, Rect } from "react-native-svg"
-import { View } from "react-native"
+import { View, StyleSheet } from "react-native"
 import { ReactNode } from "react"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
 import { BORDER_RADIUS_M } from "@/lib/theme"
@@ -61,39 +61,35 @@ const Wrapper = ({
     theme: Theme
     children: ReactNode
 }) => {
-    let backgroundColor
-    if (theme == "light") {
-        backgroundColor = backgroundColors[category].light
-    } else {
-        backgroundColor = backgroundColors[category].dark
-    }
+    const backgroundColor =
+        backgroundColors[category]?.[theme === "light" ? "light" : "dark"] ??
+        backgroundColors.remaining[theme === "light" ? "light" : "dark"]
 
     return (
-        <View
-            style={{
-                width: size,
-                height: size,
-                borderRadius: BORDER_RADIUS_M,
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor,
-            }}
-        >
-            <GlassView
-                glassEffectStyle="clear"
-                style={{
-                    width: size,
-                    height: size,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    borderRadius: BORDER_RADIUS_M,
-                }}
+        <View style={[styles.wrapper, { width: size, height: size, backgroundColor }]}>
+            <LiquidGlassView
+                effectStyle="clear"
+                tintColor="transparent"
+                style={[styles.glass, { width: size, height: size, backgroundColor: "transparent" }]}
             >
                 {children}
-            </GlassView>
+            </LiquidGlassView>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    wrapper: {
+        borderRadius: BORDER_RADIUS_M,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    glass: {
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: BORDER_RADIUS_M,
+    },
+})
 
 export default function CategoryIcon({ category, size = 48, svgSizeSmaller = null }: Props) {
     const { theme } = useThemes()

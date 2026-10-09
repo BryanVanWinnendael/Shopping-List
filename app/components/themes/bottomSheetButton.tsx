@@ -12,7 +12,7 @@ export default function BottomSheetButton({ open }: Props) {
     const { theme } = useThemes()
 
     return (
-        <View style={{ marginLeft: 16 }}>
+        <View style={styles.wrapper}>
             <PressableScale onPress={open} style={styles.iconButton}>
                 {theme === "light" ? <Sun size={20} color="black" /> : <Moon size={20} color="white" />}
             </PressableScale>
@@ -21,24 +21,11 @@ export default function BottomSheetButton({ open }: Props) {
 }
 
 const styles = StyleSheet.create({
+    wrapper: {
+        marginLeft: 16,
+    },
     iconButton: {
         padding: 8,
         borderRadius: BORDER_RADIUS_FULL,
-    },
-    sheetContent: {
-        flex: 1,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-    },
-    sheetTitle: {
-        fontSize: 18,
-        fontWeight: "bold",
-        marginBottom: 12,
-    },
-    option: {
-        paddingVertical: 12,
-    },
-    optionText: {
-        fontSize: 16,
     },
 })

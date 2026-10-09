@@ -1,4 +1,4 @@
-import { ActivityIndicator, View } from "react-native"
+import { ActivityIndicator, StyleSheet, View } from "react-native"
 import { router } from "expo-router"
 import { useSharedValue } from "react-native-reanimated"
 import RecipeContent from "@/components/recipes/details/content"
@@ -33,34 +33,39 @@ export default function DetailsScreen({ recipe, setRecipe, open }: Props) {
     }
 
     return (
-        <View
-            style={{
-                flex: 1,
-                backgroundColor: vars.backgroundColor,
-            }}
-        >
-            <>
-                {recipe.title ? (
-                    <View style={{ flex: 1 }}>
-                        <Background recipe={recipe} scrollY={scrollY} />
+        <View style={[styles.container, { backgroundColor: vars.backgroundColor }]}>
+            {recipe.title ? (
+                <View style={styles.content}>
+                    <Background recipe={recipe} scrollY={scrollY} />
 
-                        <RecipeContent recipe={recipe} open={open} scrollY={scrollY} />
-                    </View>
-                ) : (
-                    <ActivityIndicator style={{ marginTop: 50 }} color={vars.textColor} />
-                )}
+                    <RecipeContent recipe={recipe} open={open} scrollY={scrollY} />
+                </View>
+            ) : (
+                <ActivityIndicator style={styles.loader} color={vars.textColor} />
+            )}
 
-                <BottomSheet
-                    recipe={recipe}
-                    bottomSheetRef={editRecipeFormRefs.bottomSheetRef}
-                    close={editRecipeFormActions.close}
-                    deleteRecipe={deleteRecipe}
-                    updateRecipeDetails={setRecipe}
-                    deleteLoading={deleteRecipeStates.loading}
-                />
+            <BottomSheet
+                recipe={recipe}
+                bottomSheetRef={editRecipeFormRefs.bottomSheetRef}
+                close={editRecipeFormActions.close}
+                deleteRecipe={deleteRecipe}
+                updateRecipeDetails={setRecipe}
+                deleteLoading={deleteRecipeStates.loading}
+            />
 
-                <Buttons recipe={recipe} open={editRecipeFormActions.open} />
-            </>
+            <Buttons recipe={recipe} open={editRecipeFormActions.open} />
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    content: {
+        flex: 1,
+    },
+    loader: {
+        marginTop: 50,
+    },
+})

@@ -9,11 +9,11 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { Grid2X2, List } from "lucide-react-native"
 
 import useThemes from "@/hooks/themes/useThemes"
-import { BORDER_RADIUS_L } from "@/lib/theme"
+import { BORDER_RADIUS_FULL, DOCK_BOTTOM, DOCK_SIDE, FAB_ICON_SIZE, FAB_SIZE } from "@/lib/theme"
 
 type Style = "grid" | "list"
 
@@ -31,15 +31,15 @@ const ICONS = {
 }
 
 const EXPANDED_WIDTH = 110
-const COLLAPSED_WIDTH = 48
+const COLLAPSED_WIDTH = FAB_SIZE
 const SEGMENT_WIDTH = EXPANDED_WIDTH / OPTIONS.length
-const ICON_SIZE = 22
+const ICON_SIZE = FAB_ICON_SIZE
 
 const CONTENT_FADE_IN = FadeIn.duration(150)
 const CONTENT_FADE_OUT = FadeOut.duration(150)
 
 export default function StyleButton({ value, setStyle, collapsed }: Props) {
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
 
     const selectedIndex = OPTIONS.indexOf(value)
 
@@ -85,7 +85,7 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
     return (
         <View style={styles.wrapper}>
             <Animated.View style={containerStyle}>
-                <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.container}>
+                <LiquidGlassView style={styles.container} isInteractive>
                     {collapsed ? (
                         <Animated.View
                             key="collapsed"
@@ -128,7 +128,7 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
                             })}
                         </Animated.View>
                     )}
-                </GlassView>
+                </LiquidGlassView>
             </Animated.View>
         </View>
     )
@@ -137,16 +137,22 @@ export default function StyleButton({ value, setStyle, collapsed }: Props) {
 const styles = StyleSheet.create({
     wrapper: {
         position: "absolute",
-        bottom: 24,
-        right: 24,
+        bottom: DOCK_BOTTOM,
+        right: DOCK_SIDE,
     },
     container: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: BORDER_RADIUS_L,
-        height: 48,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        height: FAB_SIZE,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 3,
     },
     expandedContent: {
         flex: 1,
@@ -159,7 +165,7 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: SEGMENT_WIDTH,
-        borderRadius: BORDER_RADIUS_L,
+        borderRadius: BORDER_RADIUS_FULL,
     },
     button: {
         flex: 1,

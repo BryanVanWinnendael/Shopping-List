@@ -36,7 +36,7 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
             ]}
         >
             <CategoryIcon category={cronProduct.category} />
-            <Text style={[styles.title, { color: vars.textColor, flex: 1 }]}>{cronProduct.product}</Text>
+            <Text style={[styles.title, { color: vars.textColor }]}>{cronProduct.product}</Text>
             <PressableScale onPress={() => deleteCronProduct(cronProduct.id)}>
                 <Trash size={20} color={vars.textColor} />
             </PressableScale>
@@ -45,23 +45,11 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
 
     return (
         <View style={styles.container}>
-            <View style={{ width: "100%" }}>
-                <View style={{ height: HEADER_HEIGHT }} />
-                <View
-                    style={{
-                        backgroundColor: `${vars.accentColor}33`,
-                        borderRadius: BORDER_RADIUS_L,
-                        padding: 12,
-                        marginHorizontal: 8,
-                        marginBottom: 16,
-                        marginTop: 10,
-                        flexDirection: "row",
-                        gap: 12,
-                        alignItems: "center",
-                    }}
-                >
+            <View style={styles.headerWrap}>
+                <View style={styles.headerSpacer} />
+                <View style={[styles.infoBox, { backgroundColor: `${vars.accentColor}33` }]}>
                     <Info color={vars.accentColor} />
-                    <Text style={{ fontSize: 15, color: vars.accentColor }}>
+                    <Text style={[styles.infoText, { color: vars.accentColor }]}>
                         Items in this list get automatically added every Friday to the shopping list.
                     </Text>
                 </View>
@@ -69,10 +57,7 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
 
             <FlatList
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                    paddingBottom: HEADER_HEIGHT + 85,
-                    paddingHorizontal: 12,
-                }}
+                contentContainerStyle={styles.content}
                 data={cronProducts}
                 renderItem={({ item }) => renderItem(item)}
                 keyExtractor={(_, index) => String(index)}
@@ -101,6 +86,29 @@ const styles = StyleSheet.create({
         flex: 1,
         width: "100%",
     },
+    headerWrap: {
+        width: "100%",
+    },
+    headerSpacer: {
+        height: HEADER_HEIGHT,
+    },
+    infoBox: {
+        borderRadius: BORDER_RADIUS_L,
+        padding: 12,
+        marginHorizontal: 8,
+        marginBottom: 16,
+        marginTop: 10,
+        flexDirection: "row",
+        gap: 12,
+        alignItems: "center",
+    },
+    infoText: {
+        fontSize: 15,
+    },
+    content: {
+        paddingBottom: HEADER_HEIGHT + 85,
+        paddingHorizontal: 12,
+    },
     emptyContainer: {
         flex: 1,
         justifyContent: "center",
@@ -118,6 +126,7 @@ const styles = StyleSheet.create({
         marginVertical: 6,
     },
     title: {
+        flex: 1,
         fontWeight: "600",
         fontSize: 16,
     },

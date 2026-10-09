@@ -12,14 +12,14 @@ import {
 import { useGlobalSearchParams } from "expo-router"
 import { SendIcon } from "lucide-react-native"
 import { BlurView } from "expo-blur"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { PressableScale } from "pressto"
 import Markdown from "react-native-markdown-display"
 import useThemes from "@/hooks/themes/useThemes"
 import { getAiContext } from "@/lib/ai/context"
 import { chat } from "@/lib/ai/chat"
 import { loadLocalModel } from "@/lib/ai/settings"
-import { BORDER_RADIUS_L } from "@/lib/theme"
+import { BORDER_RADIUS_L, COMPOSER_MIN_HEIGHT, COMPOSER_SEND_SIZE, DOCK_BOTTOM } from "@/lib/theme"
 import { AIProvider } from "@/types/ai"
 import { Image } from "expo-image"
 import AssistantIcon from "@/assets/assistant.png"
@@ -255,17 +255,12 @@ export default function ChatView({ pathname, provider }: Props) {
                 />
 
                 <View style={styles.composerOverlay}>
-                    <GlassView
-                        style={styles.glassInput}
-                        glassEffectStyle="regular"
-                        isInteractive
-                        colorScheme={appearance}
-                    >
+                    <LiquidGlassView style={styles.glassInput} isInteractive>
                         <TextInput
                             value={input}
                             onChangeText={setInput}
                             placeholder={`Ask about ${pageTitle.toLowerCase()}…`}
-                            placeholderTextColor="#999"
+                            placeholderTextColor={vars.tertiaryTextColor}
                             keyboardAppearance={appearance}
                             style={[styles.input, { color: vars.textColor }]}
                             multiline
@@ -283,10 +278,10 @@ export default function ChatView({ pathname, provider }: Props) {
                             {sending ? (
                                 <ActivityIndicator size="small" color="#fff" />
                             ) : (
-                                <SendIcon size={20} color="#fff" />
+                                <SendIcon size={16} color="#fff" />
                             )}
                         </PressableScale>
-                    </GlassView>
+                    </LiquidGlassView>
                 </View>
             </KeyboardAvoidingView>
         </View>
@@ -398,31 +393,37 @@ const styles = StyleSheet.create({
         zIndex: 20,
         elevation: 20,
         paddingHorizontal: 16,
-        paddingBottom: 14,
+        paddingBottom: DOCK_BOTTOM,
     },
     glassInput: {
-        minHeight: 56,
+        minHeight: COMPOSER_MIN_HEIGHT,
         maxHeight: 120,
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         paddingLeft: 16,
         paddingRight: 6,
-        paddingVertical: 6,
+        paddingVertical: 4,
         flexDirection: "row",
         alignItems: "flex-end",
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     input: {
         flex: 1,
-        minHeight: 42,
+        minHeight: 34,
         maxHeight: 100,
-        paddingVertical: 9,
+        paddingVertical: 7,
         paddingHorizontal: 2,
         fontSize: 16,
         fontWeight: "400",
     },
     send: {
-        width: 42,
-        height: 42,
+        width: COMPOSER_SEND_SIZE,
+        height: COMPOSER_SEND_SIZE,
         borderRadius: 21,
         alignItems: "center",
         justifyContent: "center",

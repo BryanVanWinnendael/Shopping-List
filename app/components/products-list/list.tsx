@@ -1,5 +1,5 @@
 import { useRef } from "react"
-import { FlatList, NativeScrollEvent, NativeSyntheticEvent } from "react-native"
+import { FlatList, NativeScrollEvent, NativeSyntheticEvent, StyleSheet } from "react-native"
 import { Product as ProductType } from "@/types/list"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import Product from "@/components/products-list/product"
@@ -40,10 +40,7 @@ export default function List({
             data={productsList}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-                paddingTop: HEADER_HEIGHT,
-                paddingBottom: HEADER_HEIGHT + 85,
-            }}
+            contentContainerStyle={styles.contentContainer}
             renderItem={({ item }) => (
                 <Product
                     product={item}
@@ -57,3 +54,10 @@ export default function List({
         />
     )
 }
+
+const styles = StyleSheet.create({
+    contentContainer: {
+        paddingTop: HEADER_HEIGHT,
+        paddingBottom: HEADER_HEIGHT + 85,
+    },
+})

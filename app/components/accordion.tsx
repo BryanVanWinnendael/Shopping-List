@@ -1,5 +1,5 @@
 import { ReactNode } from "react"
-import { StyleProp, View, ViewStyle } from "react-native"
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native"
 import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withTiming } from "react-native-reanimated"
 
 type Props = {
@@ -19,13 +19,9 @@ export default function Accordion({ expanded, children, duration = 400, style }:
     }))
 
     return (
-        <Animated.View style={[animatedStyle, { overflow: "hidden" }, style]}>
+        <Animated.View style={[animatedStyle, styles.hidden, style]}>
             <View
-                style={{
-                    position: "absolute",
-                    width: "100%",
-                    paddingBottom: 20,
-                }}
+                style={styles.content}
                 onLayout={(e) => {
                     contentHeight.value = e.nativeEvent.layout.height
                 }}
@@ -35,3 +31,14 @@ export default function Accordion({ expanded, children, duration = 400, style }:
         </Animated.View>
     )
 }
+
+const styles = StyleSheet.create({
+    hidden: {
+        overflow: "hidden",
+    },
+    content: {
+        position: "absolute",
+        width: "100%",
+        paddingBottom: 20,
+    },
+})

@@ -1,4 +1,4 @@
-import { ActivityIndicator, Text, View } from "react-native"
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
 import { BlurView } from "expo-blur"
 import { CheckCircle2 } from "lucide-react-native"
@@ -18,33 +18,13 @@ export default function Success({ text1, text2 }: Props) {
         <BlurView
             intensity={70}
             tint={appearance}
-            style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-
-                paddingVertical: 10,
-                paddingHorizontal: 14,
-
-                borderRadius: BORDER_RADIUS_FULL,
-                overflow: "hidden",
-
-                backgroundColor: vars.backgroundColor,
-                borderWidth: 1,
-                borderColor: vars.borderColor,
-
-                alignSelf: "center",
-            }}
+            style={[styles.container, { backgroundColor: vars.backgroundColor, borderColor: vars.borderColor }]}
         >
             <View
-                style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: BORDER_RADIUS_FULL,
-                    backgroundColor: isLoading ? `${vars.accentColor}20` : "rgba(34, 197, 94, 0.15)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
+                style={[
+                    styles.iconWrap,
+                    { backgroundColor: isLoading ? `${vars.accentColor}20` : "rgba(34, 197, 94, 0.15)" },
+                ]}
             >
                 {isLoading ? (
                     <ActivityIndicator size="small" color={vars.accentColor} />
@@ -52,28 +32,12 @@ export default function Success({ text1, text2 }: Props) {
                     <CheckCircle2 size={16} color="#22c55e" />
                 )}
             </View>
-
-            <View style={{ flexShrink: 1 }}>
-                <Text
-                    style={{
-                        color: vars.textColor,
-                        fontWeight: "600",
-                        fontSize: 14,
-                    }}
-                    numberOfLines={1}
-                >
+            <View style={styles.textWrap}>
+                <Text style={[styles.title, { color: vars.textColor }]} numberOfLines={1}>
                     {text1}
                 </Text>
-
                 {!!text2 && (
-                    <Text
-                        style={{
-                            color: vars.textColor,
-                            fontSize: 12,
-                            marginTop: 2,
-                        }}
-                        numberOfLines={2}
-                    >
+                    <Text style={[styles.subtitle, { color: vars.textColor }]} numberOfLines={2}>
                         {text2}
                     </Text>
                 )}
@@ -81,3 +45,35 @@ export default function Success({ text1, text2 }: Props) {
         </BlurView>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        borderRadius: BORDER_RADIUS_FULL,
+        overflow: "hidden",
+        borderWidth: 1,
+        alignSelf: "center",
+    },
+    iconWrap: {
+        width: 28,
+        height: 28,
+        borderRadius: BORDER_RADIUS_FULL,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    textWrap: {
+        flexShrink: 1,
+    },
+    title: {
+        fontWeight: "600",
+        fontSize: 14,
+    },
+    subtitle: {
+        fontSize: 12,
+        marginTop: 2,
+    },
+})

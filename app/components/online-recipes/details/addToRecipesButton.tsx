@@ -3,13 +3,13 @@ import { ActivityIndicator, Alert, StyleSheet } from "react-native"
 import { router } from "expo-router"
 import Toast from "react-native-toast-message"
 import { PressableScale } from "pressto"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { BookmarkPlus } from "lucide-react-native"
 
 import useThemes from "@/hooks/themes/useThemes"
 import useOnlineRecipeDetails from "@/hooks/recipes/useOnlineRecipeDetails"
 import { delay } from "@/lib/utils"
-import { BORDER_RADIUS_FULL } from "@/lib/theme"
+import { BORDER_RADIUS_FULL, FAB_ICON_SIZE, FAB_SIZE } from "@/lib/theme"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
 }
 
 export default function AddToRecipesButton({ recipe }: Props) {
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
     const { actions, states } = useOnlineRecipeDetails()
 
     const saveRecipe = useCallback(async () => {
@@ -64,13 +64,13 @@ export default function AddToRecipesButton({ recipe }: Props) {
             accessibilityState={{ busy: states.loading, disabled: states.loading }}
             style={styles.button}
         >
-            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.glass}>
+            <LiquidGlassView style={styles.glass} isInteractive>
                 {states.loading ? (
                     <ActivityIndicator color={vars.textColor} />
                 ) : (
-                    <BookmarkPlus size={20} color={vars.textColor} />
+                    <BookmarkPlus size={FAB_ICON_SIZE} color={vars.textColor} />
                 )}
-            </GlassView>
+            </LiquidGlassView>
         </PressableScale>
     )
 }
@@ -79,15 +79,21 @@ const styles = StyleSheet.create({
     button: {
         justifyContent: "center",
         alignItems: "center",
-        width: 48,
-        height: 48,
+        width: FAB_SIZE,
+        height: FAB_SIZE,
     },
     glass: {
-        width: 48,
-        height: 48,
+        width: FAB_SIZE,
+        height: FAB_SIZE,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
         justifyContent: "center",
         alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
 })

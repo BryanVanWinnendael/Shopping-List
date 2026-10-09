@@ -1,53 +1,55 @@
 import { PressableScale } from "pressto"
 import { Plus } from "lucide-react-native"
-import { GlassView } from "expo-glass-effect"
-import { View } from "react-native"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+import { StyleSheet, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
-import { BORDER_RADIUS_FULL } from "@/lib/theme"
+import { BORDER_RADIUS_FULL, DOCK_BOTTOM, DOCK_SIDE, FAB_ICON_SIZE, FAB_SIZE } from "@/lib/theme"
 
 type Props = {
     onPress: () => void
 }
 
 export default function BottomSheetButton({ onPress }: Props) {
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
 
     return (
-        <View
-            style={{
-                position: "absolute",
-                bottom: 26,
-                right: 20,
-                height: 48,
-                width: 48,
-                zIndex: 1,
-            }}
-        >
-            <GlassView
-                glassEffectStyle="regular"
-                isInteractive
-                colorScheme={appearance}
-                style={{
-                    height: 48,
-                    width: 48,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    overflow: "hidden",
-                    borderRadius: BORDER_RADIUS_FULL,
-                }}
-            >
-                <PressableScale
-                    onPress={onPress}
-                    style={{
-                        width: 48,
-                        height: 48,
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
-                    <Plus size={24} strokeWidth={2} color={vars.textColor} />
+        <View style={styles.container}>
+            <LiquidGlassView style={styles.glass} isInteractive>
+                <PressableScale onPress={onPress} style={styles.button}>
+                    <Plus size={FAB_ICON_SIZE} strokeWidth={2} color={vars.textColor} />
                 </PressableScale>
-            </GlassView>
+            </LiquidGlassView>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        position: "absolute",
+        bottom: DOCK_BOTTOM,
+        right: DOCK_SIDE,
+        height: FAB_SIZE,
+        width: FAB_SIZE,
+        zIndex: 1,
+    },
+    glass: {
+        height: FAB_SIZE,
+        width: FAB_SIZE,
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden",
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 3,
+    },
+    button: {
+        width: FAB_SIZE,
+        height: FAB_SIZE,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+})

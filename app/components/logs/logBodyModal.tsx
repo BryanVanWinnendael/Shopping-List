@@ -3,7 +3,7 @@ import { Modal, ScrollView, StyleSheet, Text, View } from "react-native"
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated"
 import { PressableScale } from "pressto"
 import { X } from "lucide-react-native"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 
@@ -32,7 +32,7 @@ function formatBody(body: string | null) {
 }
 
 export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
 
     const scale = useSharedValue(HIDDEN_SCALE)
     const opacity = useSharedValue(0)
@@ -78,9 +78,9 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
 
     return (
         <Modal visible={body !== null} transparent animationType="none" onRequestClose={close}>
-            <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.overlay}>
+            <LiquidGlassView style={styles.overlay}>
                 <Animated.View style={[styles.animatedModal, animatedStyle]}>
-                    <GlassView glassEffectStyle="regular" colorScheme={appearance} style={styles.content}>
+                    <LiquidGlassView style={styles.content}>
                         <View style={styles.header}>
                             <View style={styles.headerText}>
                                 <Text style={[styles.title, { color: vars.textColor }]}>{title}</Text>
@@ -89,12 +89,7 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
                                 </Text>
                             </View>
 
-                            <GlassView
-                                glassEffectStyle="regular"
-                                isInteractive
-                                colorScheme={appearance}
-                                style={styles.closeGlass}
-                            >
+                            <LiquidGlassView style={styles.closeGlass} isInteractive>
                                 <PressableScale
                                     onPress={close}
                                     accessibilityRole="button"
@@ -103,7 +98,7 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
                                 >
                                     <X size={18} strokeWidth={2} color={vars.textColor} />
                                 </PressableScale>
-                            </GlassView>
+                            </LiquidGlassView>
                         </View>
 
                         <ScrollView
@@ -126,12 +121,7 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
                             </View>
                         </ScrollView>
 
-                        <GlassView
-                            glassEffectStyle="regular"
-                            isInteractive
-                            colorScheme={appearance}
-                            style={styles.doneGlass}
-                        >
+                        <LiquidGlassView style={styles.doneGlass} isInteractive>
                             <PressableScale
                                 onPress={close}
                                 accessibilityRole="button"
@@ -140,10 +130,10 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
                             >
                                 <Text style={styles.doneText}>Done</Text>
                             </PressableScale>
-                        </GlassView>
-                    </GlassView>
+                        </LiquidGlassView>
+                    </LiquidGlassView>
                 </Animated.View>
-            </GlassView>
+            </LiquidGlassView>
         </Modal>
     )
 }
@@ -154,6 +144,12 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 16,
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     animatedModal: {
         width: "100%",
@@ -166,6 +162,12 @@ const styles = StyleSheet.create({
         borderRadius: BORDER_RADIUS_L,
         padding: 22,
         overflow: "hidden",
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     header: {
         flexDirection: "row",
@@ -186,6 +188,12 @@ const styles = StyleSheet.create({
     closeGlass: {
         borderRadius: BORDER_RADIUS_FULL,
         overflow: "hidden",
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     closeButton: {
         width: 40,
@@ -213,6 +221,12 @@ const styles = StyleSheet.create({
         marginTop: 14,
         borderRadius: BORDER_RADIUS_L,
         overflow: "hidden",
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     doneButton: {
         borderRadius: BORDER_RADIUS_L,

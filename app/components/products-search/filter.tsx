@@ -1,4 +1,4 @@
-import { ScrollView, Text, View } from "react-native"
+import { ScrollView, StyleSheet, Text, View } from "react-native"
 import { useState } from "react"
 import { PressableScale } from "pressto"
 
@@ -44,23 +44,13 @@ export default function Filter({ selected, onApply }: Props) {
     }
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={styles.container}>
             <ScrollView
-                style={{ flex: 1 }}
-                contentContainerStyle={{
-                    paddingHorizontal: 20,
-                    paddingTop: 64,
-                    paddingBottom: 74,
-                }}
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                <View
-                    style={{
-                        flexDirection: "row",
-                        flexWrap: "wrap",
-                        gap: 8,
-                    }}
-                >
+                <View style={styles.chipsWrap}>
                     {FILTER_CATEGORIES.map(({ label, value }) => {
                         const active = localSelected.includes(value)
 
@@ -68,21 +58,22 @@ export default function Filter({ selected, onApply }: Props) {
                             <PressableScale
                                 key={value}
                                 onPress={() => toggleCategory(value)}
-                                style={{
-                                    paddingHorizontal: 14,
-                                    paddingVertical: 10,
-                                    borderRadius: BORDER_RADIUS_L,
-                                    borderWidth: 1,
-                                    borderColor: active ? aColor : vars.borderColor,
-                                    backgroundColor: active ? aColor : vars.backgroundColor,
-                                }}
+                                style={[
+                                    styles.chip,
+                                    {
+                                        borderColor: active ? aColor : vars.borderColor,
+                                        backgroundColor: active ? aColor : vars.backgroundColor,
+                                    },
+                                ]}
                             >
                                 <Text
-                                    style={{
-                                        color: active ? "#fff" : vars.textColor,
-                                        fontSize: 14,
-                                        fontWeight: active ? "600" : "500",
-                                    }}
+                                    style={[
+                                        styles.chipLabel,
+                                        {
+                                            color: active ? "#fff" : vars.textColor,
+                                            fontWeight: active ? "600" : "500",
+                                        },
+                                    ]}
                                 >
                                     {label}
                                 </Text>
@@ -92,46 +83,67 @@ export default function Filter({ selected, onApply }: Props) {
                 </View>
             </ScrollView>
 
-            <View
-                style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    paddingHorizontal: 20,
-                    paddingTop: 8,
-                    paddingBottom: 8,
-                    backgroundColor: "transparent",
-                }}
-            >
-                <PressableScale
-                    onPress={clearAll}
-                    style={{
-                        minHeight: 50,
-                        borderRadius: BORDER_RADIUS_L,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: aColor,
-                        shadowOffset: {
-                            width: 0,
-                            height: 4,
-                        },
-                        shadowOpacity: 0.16,
-                        shadowRadius: 8,
-                        elevation: 4,
-                    }}
-                >
-                    <Text
-                        style={{
-                            color: "#fff",
-                            fontWeight: "700",
-                            fontSize: 15,
-                        }}
-                    >
-                        Clear Filters
-                    </Text>
+            <View style={styles.footer}>
+                <PressableScale onPress={clearAll} style={[styles.clearButton, { backgroundColor: aColor }]}>
+                    <Text style={styles.clearText}>Clear Filters</Text>
                 </PressableScale>
             </View>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 64,
+        paddingBottom: 74,
+    },
+    chipsWrap: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 8,
+    },
+    chip: {
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
+    },
+    chipLabel: {
+        fontSize: 14,
+    },
+    footer: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        paddingHorizontal: 20,
+        paddingTop: 8,
+        paddingBottom: 8,
+        backgroundColor: "transparent",
+    },
+    clearButton: {
+        minHeight: 50,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+        justifyContent: "center",
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.16,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    clearText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 15,
+    },
+})

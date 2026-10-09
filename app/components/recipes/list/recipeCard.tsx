@@ -6,7 +6,7 @@ import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import useThemes from "@/hooks/themes/useThemes"
 import { Image } from "expo-image"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { EyeOff, Globe } from "lucide-react-native"
 import { Recipe } from "@/types/generated/models/recipe"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
@@ -20,7 +20,7 @@ type Props = {
 
 export default function RecipeCard({ recipe, toggleFavorite }: Props) {
     const { actions } = useDeleteRecipe()
-    const { vars, appearance } = useThemes()
+    const { vars } = useThemes()
     const { favoriteRecipes } = useRecipesStore()
     const { user } = useSettingsStore()
 
@@ -67,12 +67,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                         )}
 
                         <View pointerEvents="box-none" style={styles.overlay}>
-                            <GlassView
-                                colorScheme={appearance}
-                                glassEffectStyle="regular"
-                                isInteractive
-                                style={styles.titleGlass}
-                            >
+                            <LiquidGlassView style={styles.titleGlass} isInteractive>
                                 <Text
                                     style={[
                                         styles.recipeTitle,
@@ -85,16 +80,11 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                                 >
                                     {recipe.title}
                                 </Text>
-                            </GlassView>
+                            </LiquidGlassView>
 
                             <View style={styles.chipsRow}>
                                 {recipe.mealType && recipe.mealType !== "Any" && (
-                                    <GlassView
-                                        colorScheme={appearance}
-                                        glassEffectStyle="regular"
-                                        isInteractive
-                                        style={styles.chipGlass}
-                                    >
+                                    <LiquidGlassView style={styles.chipGlass} isInteractive>
                                         <Text
                                             style={[
                                                 styles.chipText,
@@ -105,16 +95,11 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                                         >
                                             {MEALS[recipe.mealType]} {recipe.mealType}
                                         </Text>
-                                    </GlassView>
+                                    </LiquidGlassView>
                                 )}
 
                                 {recipe.country && (
-                                    <GlassView
-                                        colorScheme={appearance}
-                                        glassEffectStyle="regular"
-                                        isInteractive
-                                        style={styles.chipGlass}
-                                    >
+                                    <LiquidGlassView style={styles.chipGlass} isInteractive>
                                         <Text
                                             style={[
                                                 styles.chipText,
@@ -125,16 +110,11 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                                         >
                                             {recipe.country}
                                         </Text>
-                                    </GlassView>
+                                    </LiquidGlassView>
                                 )}
 
                                 {Number(recipe.time) > 0 && (
-                                    <GlassView
-                                        colorScheme={appearance}
-                                        glassEffectStyle="regular"
-                                        isInteractive
-                                        style={styles.chipGlass}
-                                    >
+                                    <LiquidGlassView style={styles.chipGlass} isInteractive>
                                         <Text
                                             style={[
                                                 styles.chipText,
@@ -145,16 +125,11 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                                         >
                                             ⏱ {recipe.time} min
                                         </Text>
-                                    </GlassView>
+                                    </LiquidGlassView>
                                 )}
 
                                 {Number(recipe.persons) > 0 && (
-                                    <GlassView
-                                        colorScheme={appearance}
-                                        glassEffectStyle="regular"
-                                        isInteractive
-                                        style={styles.chipGlass}
-                                    >
+                                    <LiquidGlassView style={styles.chipGlass} isInteractive>
                                         <Text
                                             style={[
                                                 styles.chipText,
@@ -165,32 +140,22 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                                         >
                                             👥 {recipe.persons} Persons
                                         </Text>
-                                    </GlassView>
+                                    </LiquidGlassView>
                                 )}
                             </View>
                         </View>
 
                         <View pointerEvents="box-none" style={styles.savedIndicators}>
                             {recipe.isSaved && (
-                                <GlassView
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    glassEffectStyle="regular"
-                                    style={styles.savedGlass}
-                                >
+                                <LiquidGlassView style={styles.savedGlass} isInteractive>
                                     <Globe size={18} strokeWidth={2.2} color={vars.textColor} />
-                                </GlassView>
+                                </LiquidGlassView>
                             )}
 
                             {!recipe.public && (
-                                <GlassView
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    glassEffectStyle="regular"
-                                    style={styles.savedGlass}
-                                >
+                                <LiquidGlassView style={styles.savedGlass} isInteractive>
                                     <EyeOff size={18} strokeWidth={2.2} color={vars.textColor} />
-                                </GlassView>
+                                </LiquidGlassView>
                             )}
                         </View>
                     </View>
@@ -242,12 +207,7 @@ export default function RecipeCard({ recipe, toggleFavorite }: Props) {
                 )}
             </Link.Menu>
 
-            <Link.Preview
-                style={{
-                    width: 300,
-                    height: 220,
-                }}
-            >
+            <Link.Preview style={styles.preview}>
                 <View style={styles.previewCard}>
                     {recipe.banner ? (
                         <Image
@@ -307,6 +267,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 13,
         paddingVertical: 8,
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     recipeTitle: {
         fontSize: 17,
@@ -325,6 +291,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 11,
         paddingVertical: 7,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     chipText: {
         fontSize: 12,
@@ -347,6 +319,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     previewCard: {
         width: "100%",
@@ -357,5 +335,9 @@ const styles = StyleSheet.create({
     previewImage: {
         width: "100%",
         height: "100%",
+    },
+    preview: {
+        width: 300,
+        height: 220,
     },
 })

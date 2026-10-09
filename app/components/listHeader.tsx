@@ -19,6 +19,57 @@ type ListHeaderProps = {
     maxWidth: number
 }
 
+const DOT_BOUNCE_HEIGHT = -6
+const DOT_STEP_DURATION = 300
+
+const hitBottomHaptic = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
+}
+
+function useDotAnimation(isSearching: boolean, delay = 0) {
+    const dot = useSharedValue(0)
+
+    useEffect(() => {
+        if (isSearching) {
+            dot.value = withDelay(
+                delay,
+                withRepeat(
+                    withSequence(
+                        withTiming(DOT_BOUNCE_HEIGHT, {
+                            duration: DOT_STEP_DURATION,
+                            easing: Easing.inOut(Easing.ease),
+                        }),
+                        withTiming(
+                            0,
+                            {
+                                duration: DOT_STEP_DURATION,
+                                easing: Easing.inOut(Easing.ease),
+                            },
+                            () => {
+                                scheduleOnRN(hitBottomHaptic)
+                            }
+                        ),
+                        withTiming(0, {
+                            duration: DOT_STEP_DURATION,
+                        })
+                    ),
+                    -1
+                )
+            )
+        } else {
+            dot.value = 0
+        }
+    }, [isSearching, delay, dot])
+
+    return useAnimatedStyle(() => ({
+        transform: [
+            {
+                translateY: dot.value,
+            },
+        ],
+    }))
+}
+
 export default function ListHeader({ maxWidth }: ListHeaderProps) {
     const { vars } = useThemes()
     const { query } = useProductsSearchStore()
@@ -57,53 +108,9 @@ export default function ListHeader({ maxWidth }: ListHeaderProps) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
     }
 
-    const createDotAnimation = (delay = 0) => {
-        const dot = useSharedValue(0)
-
-        useEffect(() => {
-            if (isSearching) {
-                dot.value = withDelay(
-                    delay,
-                    withRepeat(
-                        withSequence(
-                            withTiming(-6, {
-                                duration: 300,
-                                easing: Easing.inOut(Easing.ease),
-                            }),
-                            withTiming(
-                                0,
-                                {
-                                    duration: 300,
-                                    easing: Easing.inOut(Easing.ease),
-                                },
-                                () => {
-                                    scheduleOnRN(hitBottomHaptic)
-                                }
-                            ),
-                            withTiming(0, {
-                                duration: 300,
-                            })
-                        ),
-                        -1
-                    )
-                )
-            } else {
-                dot.value = 0
-            }
-        }, [isSearching])
-
-        return useAnimatedStyle(() => ({
-            transform: [
-                {
-                    translateY: dot.value,
-                },
-            ],
-        }))
-    }
-
-    const dot1Style = createDotAnimation(0)
-    const dot2Style = createDotAnimation(150)
-    const dot3Style = createDotAnimation(300)
+    const dot1Style = useDotAnimation(isSearching, 0)
+    const dot2Style = useDotAnimation(isSearching, 150)
+    const dot3Style = useDotAnimation(isSearching, 300)
 
     return (
         <View

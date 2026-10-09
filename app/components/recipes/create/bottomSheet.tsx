@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur"
-import { Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import { RefObject } from "react"
 import Form from "@/components/recipes/create/form"
 import useThemes from "@/hooks/themes/useThemes"
@@ -22,37 +22,10 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
             onClose={onClose}
             backgroundMode="adaptive"
         >
-            <View style={{ flex: 1 }}>
-                <View
-                    style={{
-                        position: "absolute",
-                        top: -40,
-                        left: 0,
-                        right: 0,
-                        height: 88,
-                        zIndex: 10,
-                        overflow: "hidden",
-                    }}
-                >
-                    <BlurView
-                        intensity={10}
-                        tint={appearance}
-                        style={{
-                            flex: 1,
-                            paddingHorizontal: 20,
-                            paddingTop: 48,
-                            paddingBottom: 10,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                fontSize: 22,
-                                fontWeight: "700",
-                                color: vars.textColor,
-                            }}
-                        >
-                            Create a Recipe
-                        </Text>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <BlurView intensity={10} tint={appearance} style={styles.blur}>
+                        <Text style={[styles.title, { color: vars.textColor }]}>Create a Recipe</Text>
                     </BlurView>
                 </View>
 
@@ -61,3 +34,28 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
         </AppBottomSheet>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    header: {
+        position: "absolute",
+        top: -40,
+        left: 0,
+        right: 0,
+        height: 88,
+        zIndex: 10,
+        overflow: "hidden",
+    },
+    blur: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 48,
+        paddingBottom: 10,
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: "700",
+    },
+})

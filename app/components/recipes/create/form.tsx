@@ -4,6 +4,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    StyleSheet,
     Text,
     TextInput,
     View,
@@ -21,11 +22,19 @@ import useThemes from "@/hooks/themes/useThemes"
 import Toast from "react-native-toast-message"
 import Instruction from "@/components/recipes/create/instruction"
 import { delay } from "@/lib/utils"
-import { GlassView } from "expo-glass-effect"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M, SHEET_CTA_HEIGHT } from "@/lib/theme"
 
 type Props = {
     onClose: () => void
+}
+
+const SUBMIT_DELAY_MS = 2000
+
+const parseNumericField = (value: string) => {
+    if (value.trim() === "") return 0
+    const parsed = Number(value)
+    return Number.isNaN(parsed) ? 0 : parsed
 }
 
 export default function Form({ onClose }: Props) {
@@ -54,7 +63,7 @@ export default function Form({ onClose }: Props) {
 
         const response = await addRecipeActions.createRecipe(createRecipeRequest)
 
-        await delay(2000)
+        await delay(SUBMIT_DELAY_MS)
 
         addRecipeActions.setLoading(false)
 
@@ -74,23 +83,16 @@ export default function Form({ onClose }: Props) {
         }
     }
 
-    const inputStyle = {
-        color: vars.textColor,
-        backgroundColor: vars.secondaryBackgroundColor,
-        borderWidth: 1,
-        borderColor: vars.borderColor,
-        borderRadius: BORDER_RADIUS_M,
-        paddingHorizontal: 14,
-        paddingVertical: 11,
-        fontSize: 16,
-    }
+    const dynamicInputStyle = [
+        styles.input,
+        {
+            color: vars.textColor,
+            backgroundColor: vars.secondaryBackgroundColor,
+            borderColor: vars.borderColor,
+        },
+    ]
 
-    const labelStyle = {
-        color: vars.textColor,
-        fontWeight: "600" as const,
-        fontSize: 15,
-        marginBottom: 9,
-    }
+    const dynamicLabelStyle = [styles.label, { color: vars.textColor }]
 
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -102,14 +104,14 @@ export default function Form({ onClose }: Props) {
                 automaticallyAdjustKeyboardInsets
             >
                 <View style={styles.titleSection}>
-                    <Text style={labelStyle}>
-                        Title <Text style={{ color: "#AA4A44" }}>*</Text>
+                    <Text style={dynamicLabelStyle}>
+                        Title <Text style={styles.required}>*</Text>
                     </Text>
 
                     <TextInput
                         value={addRecipeFormStates.title}
                         onChangeText={addRecipeFormActions.setTitle}
-                        style={inputStyle}
+                        style={dynamicInputStyle}
                         placeholder="Recipe title"
                         placeholderTextColor={vars.tertiaryTextColor}
                         keyboardAppearance={appearance}
@@ -118,15 +120,9 @@ export default function Form({ onClose }: Props) {
 
                 <View style={styles.rowSection}>
                     <View style={styles.labelBlock}>
-                        <Text style={labelStyle}>Public</Text>
+                        <Text style={dynamicLabelStyle}>Public</Text>
 
-                        <Text
-                            style={{
-                                color: vars.tertiaryTextColor,
-                                fontSize: 13,
-                                marginTop: -5,
-                            }}
-                        >
+                        <Text style={[styles.hint, { color: vars.tertiaryTextColor }]}>
                             Make this recipe visible to others
                         </Text>
                     </View>
@@ -138,7 +134,7 @@ export default function Form({ onClose }: Props) {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={labelStyle}>Banner</Text>
+                    <Text style={dynamicLabelStyle}>Banner</Text>
 
                     {addRecipeFormStates.banner ? (
                         <View style={styles.bannerContainer}>
@@ -150,19 +146,14 @@ export default function Form({ onClose }: Props) {
                             />
 
                             <View style={styles.bannerClose}>
-                                <GlassView
-                                    glassEffectStyle="regular"
-                                    isInteractive
-                                    colorScheme={appearance}
-                                    style={styles.closeGlass}
-                                >
+                                <LiquidGlassView style={styles.closeGlass} isInteractive>
                                     <PressableScale
                                         onPress={() => addRecipeFormActions.setBannerImage(null, null)}
                                         style={styles.closeButton}
                                     >
                                         <X size={17} strokeWidth={2} color={vars.textColor} />
                                     </PressableScale>
-                                </GlassView>
+                                </LiquidGlassView>
                             </View>
                         </View>
                     ) : (
@@ -171,12 +162,12 @@ export default function Form({ onClose }: Props) {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={labelStyle}>Source URL</Text>
+                    <Text style={dynamicLabelStyle}>Source URL</Text>
 
                     <TextInput
                         value={addRecipeFormStates.source}
                         onChangeText={addRecipeFormActions.setSource}
-                        style={inputStyle}
+                        style={dynamicInputStyle}
                         placeholder="https://..."
                         placeholderTextColor={vars.tertiaryTextColor}
                         autoCapitalize="none"
@@ -186,13 +177,13 @@ export default function Form({ onClose }: Props) {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={labelStyle}>Meal Type</Text>
+                    <Text style={dynamicLabelStyle}>Meal Type</Text>
 
                     <MealTypeSegment value={addRecipeFormStates.mealType} onChange={addRecipeFormActions.setMealType} />
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={labelStyle}>Country</Text>
+                    <Text style={dynamicLabelStyle}>Country</Text>
 
                     <CountryInput
                         value={addRecipeFormStates.countryObject}
@@ -201,14 +192,14 @@ export default function Form({ onClose }: Props) {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={labelStyle}>Time</Text>
+                    <Text style={dynamicLabelStyle}>Time</Text>
 
                     <TextInput
                         value={String(addRecipeFormStates.time)}
-                        onChangeText={(value) => addRecipeFormActions.setTime(Number(value))}
+                        onChangeText={(value) => addRecipeFormActions.setTime(parseNumericField(value))}
                         keyboardType="numeric"
                         returnKeyType="done"
-                        style={inputStyle}
+                        style={dynamicInputStyle}
                         placeholder="e.g. 45 minutes"
                         placeholderTextColor={vars.tertiaryTextColor}
                         keyboardAppearance={appearance}
@@ -216,14 +207,14 @@ export default function Form({ onClose }: Props) {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={labelStyle}>Persons</Text>
+                    <Text style={dynamicLabelStyle}>Persons</Text>
 
                     <TextInput
                         value={String(addRecipeFormStates.persons)}
-                        onChangeText={(value) => addRecipeFormActions.setPersons(Number(value))}
+                        onChangeText={(value) => addRecipeFormActions.setPersons(parseNumericField(value))}
                         keyboardType="numeric"
                         returnKeyType="done"
-                        style={inputStyle}
+                        style={dynamicInputStyle}
                         placeholder="e.g. 4"
                         placeholderTextColor={vars.tertiaryTextColor}
                         keyboardAppearance={appearance}
@@ -231,9 +222,9 @@ export default function Form({ onClose }: Props) {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={labelStyle}>Ingredients</Text>
+                    <Text style={dynamicLabelStyle}>Ingredients</Text>
 
-                    <View style={{ gap: 10 }}>
+                    <View style={styles.stack}>
                         {addRecipeFormStates.ingredients.map((ingredient, i) => (
                             <Ingredient
                                 key={i}
@@ -255,21 +246,14 @@ export default function Form({ onClose }: Props) {
                             },
                         ]}
                     >
-                        <Text
-                            style={{
-                                color: vars.textColor,
-                                fontWeight: "600",
-                            }}
-                        >
-                            + Add Ingredient
-                        </Text>
+                        <Text style={[styles.addButtonText, { color: vars.textColor }]}>+ Add Ingredient</Text>
                     </PressableScale>
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={labelStyle}>Instructions</Text>
+                    <Text style={dynamicLabelStyle}>Instructions</Text>
 
-                    <View style={{ gap: 10 }}>
+                    <View style={styles.stack}>
                         {addRecipeFormStates.instructions.map((instruction, i) => (
                             <Instruction
                                 key={i}
@@ -291,34 +275,17 @@ export default function Form({ onClose }: Props) {
                             },
                         ]}
                     >
-                        <Text
-                            style={{
-                                color: vars.textColor,
-                                fontWeight: "600",
-                            }}
-                        >
-                            + Add Instruction
-                        </Text>
+                        <Text style={[styles.addButtonText, { color: vars.textColor }]}>+ Add Instruction</Text>
                     </PressableScale>
                 </View>
             </ScrollView>
 
             <View style={styles.createButtonContainer}>
-                <GlassView
-                    glassEffectStyle="regular"
-                    isInteractive={!addRecipeStates.loading}
-                    colorScheme={appearance}
-                    style={styles.createGlass}
-                >
+                <LiquidGlassView style={styles.createGlass} isInteractive={!addRecipeStates.loading}>
                     <PressableScale
                         enabled={!addRecipeStates.loading}
                         onPress={createRecipe}
-                        style={[
-                            styles.createButton,
-                            {
-                                backgroundColor: `${vars.accentColor}E6`,
-                            },
-                        ]}
+                        style={[styles.createButton, { backgroundColor: `${vars.accentColor}E6` }]}
                     >
                         {addRecipeStates.loading ? (
                             <ActivityIndicator color="#fff" />
@@ -326,50 +293,65 @@ export default function Form({ onClose }: Props) {
                             <Text style={styles.createButtonText}>Create Recipe</Text>
                         )}
                     </PressableScale>
-                </GlassView>
+                </LiquidGlassView>
             </View>
         </KeyboardAvoidingView>
     )
 }
 
-const styles = {
+const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-
     scrollView: {
         flex: 1,
     },
-
     scrollContent: {
         paddingHorizontal: 20,
         paddingTop: 64,
         paddingBottom: 80,
     },
-
     titleSection: {
         marginBottom: 22,
     },
-
     section: {
         marginBottom: 24,
     },
-
     rowSection: {
         minHeight: 52,
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        justifyContent: "space-between" as const,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         marginBottom: 24,
     },
-
     labelBlock: {
         flex: 1,
         marginRight: 16,
     },
-
+    input: {
+        borderWidth: 1,
+        borderRadius: BORDER_RADIUS_M,
+        paddingHorizontal: 14,
+        paddingVertical: 11,
+        fontSize: 16,
+    },
+    label: {
+        fontWeight: "600",
+        fontSize: 15,
+        marginBottom: 9,
+    },
+    required: {
+        color: "#AA4A44",
+    },
+    hint: {
+        fontSize: 13,
+        marginTop: -5,
+    },
+    stack: {
+        gap: 10,
+    },
     bannerContainer: {
-        position: "relative" as const,
+        position: "relative",
         width: 140,
         height: 140,
     },
@@ -379,7 +361,7 @@ const styles = {
         borderRadius: BORDER_RADIUS_M,
     },
     bannerClose: {
-        position: "absolute" as const,
+        position: "absolute",
         top: -8,
         right: -8,
         zIndex: 1,
@@ -388,25 +370,34 @@ const styles = {
         width: 28,
         height: 28,
         borderRadius: BORDER_RADIUS_FULL,
-        justifyContent: "center" as const,
-        alignItems: "center" as const,
-        overflow: "hidden" as const,
+        borderWidth: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     closeButton: {
         width: 28,
         height: 28,
-        justifyContent: "center" as const,
-        alignItems: "center" as const,
+        justifyContent: "center",
+        alignItems: "center",
     },
     addButton: {
         marginTop: 12,
         paddingVertical: 12,
         borderWidth: 1,
         borderRadius: BORDER_RADIUS_L,
-        alignItems: "center" as const,
+        alignItems: "center",
+    },
+    addButtonText: {
+        fontWeight: "600",
     },
     createButtonContainer: {
-        position: "absolute" as const,
+        position: "absolute",
         left: 0,
         right: 0,
         bottom: 0,
@@ -416,19 +407,24 @@ const styles = {
         backgroundColor: "transparent",
     },
     createGlass: {
-        minHeight: 54,
+        minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_L,
-        overflow: "hidden" as const,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     createButton: {
-        minHeight: 54,
-        alignItems: "center" as const,
-        justifyContent: "center" as const,
+        minHeight: SHEET_CTA_HEIGHT,
+        alignItems: "center",
+        justifyContent: "center",
     },
-
     createButtonText: {
         color: "#fff",
-        fontWeight: "700" as const,
+        fontWeight: "700",
         fontSize: 16,
     },
-}
+})

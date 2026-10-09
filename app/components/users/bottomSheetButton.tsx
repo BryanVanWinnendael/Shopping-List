@@ -14,14 +14,7 @@ export default function BottomSheetButton({ open }: Props) {
 
     return (
         <PressableScale style={[styles.button, { backgroundColor: vars.secondaryBackgroundColor }]} onPress={open}>
-            <Text
-                style={{
-                    color: theme === "light" ? "#5C5C5C" : "#88888C",
-                    fontSize: 16,
-                }}
-            >
-                {user || "None"}
-            </Text>
+            <Text style={[styles.label, { color: theme === "light" ? "#5C5C5C" : "#88888C" }]}>{user || "None"}</Text>
         </PressableScale>
     )
 }
@@ -33,20 +26,7 @@ const styles = StyleSheet.create({
         borderRadius: BORDER_RADIUS_M,
         margin: 16,
     },
-    sheetContainer: {
-        flex: 1,
-        paddingHorizontal: 10,
-        paddingVertical: 12,
-    },
-    sheetTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        marginBottom: 12,
-    },
-    userOptionContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingVertical: 12,
+    label: {
+        fontSize: 16,
     },
 })

@@ -1,3 +1,4 @@
+import { StyleSheet } from "react-native"
 import { MEAL_TYPES } from "@/lib/constants"
 import useThemes from "@/hooks/themes/useThemes"
 import { MealType } from "@/types/generated/models/meal_type"
@@ -20,10 +21,14 @@ export default function MealTypeSegment({ value, onChange }: Props) {
             onChange={(_, nextValue) => {
                 onChange(nextValue as MealType)
             }}
-            style={{
-                width: "100%",
-                height: 48,
-            }}
+            style={styles.segment}
         />
     )
 }
+
+const styles = StyleSheet.create({
+    segment: {
+        width: "100%",
+        height: 48,
+    },
+})

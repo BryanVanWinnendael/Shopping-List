@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from "react"
 import useThemes from "@/hooks/themes/useThemes"
 import { type CameraType, CameraView, useCameraPermissions } from "expo-camera"
 import { Camera, ImagePlus, RotateCcw, X } from "lucide-react-native"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
-import { GlassView } from "expo-glass-effect"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, FAB_SIZE } from "@/lib/theme"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 
 type Props = {
     onPick: (uri: string, image: ImagePicker.ImagePickerAsset) => void
@@ -19,7 +19,7 @@ type Props = {
 const FIFTEEN_MB = 15 * 1024 * 1024
 
 export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = () => {} }: Props) {
-    const { vars, appearance, theme } = useThemes()
+    const { vars, theme } = useThemes()
 
     const [permission, requestPermission] = useCameraPermissions()
 
@@ -176,13 +176,7 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
                             },
                         ]}
                     >
-                        <GlassView
-                            key={theme}
-                            style={styles.menu}
-                            glassEffectStyle="regular"
-                            isInteractive
-                            colorScheme={appearance}
-                        >
+                        <LiquidGlassView key={theme} style={styles.menu} isInteractive>
                             <PressableScale onPress={openCamera} style={styles.menuItem}>
                                 <View
                                     style={[
@@ -230,7 +224,7 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
                                     Choose Photo
                                 </Text>
                             </PressableScale>
-                        </GlassView>
+                        </LiquidGlassView>
                     </Animated.View>
                 </>
             )}
@@ -249,27 +243,17 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
                         animateShutter
                     />
 
-                    <GlassView
-                        style={styles.cameraCloseGlass}
-                        glassEffectStyle="regular"
-                        isInteractive
-                        colorScheme={appearance}
-                    >
+                    <LiquidGlassView style={styles.cameraCloseGlass} isInteractive>
                         <PressableScale onPress={() => setCameraVisible(false)} style={styles.cameraControl}>
                             <X size={20} color="#fff" strokeWidth={2} />
                         </PressableScale>
-                    </GlassView>
+                    </LiquidGlassView>
 
-                    <GlassView
-                        style={styles.cameraFlipGlass}
-                        glassEffectStyle="regular"
-                        isInteractive
-                        colorScheme={appearance}
-                    >
+                    <LiquidGlassView style={styles.cameraFlipGlass} isInteractive>
                         <PressableScale onPress={flipCamera} style={styles.cameraControl}>
                             <RotateCcw size={19} color="#fff" strokeWidth={2} />
                         </PressableScale>
-                    </GlassView>
+                    </LiquidGlassView>
 
                     <View style={styles.cameraBottom}>
                         <Pressable onPress={takePhoto} style={styles.shutterOuter}>
@@ -284,11 +268,11 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
     if (type === "list") {
         return (
             <View style={styles.listContainer}>
-                <GlassView style={styles.listGlass} glassEffectStyle="regular" isInteractive colorScheme={appearance}>
+                <LiquidGlassView style={styles.listGlass} isInteractive>
                     <PressableScale onPress={openMenu} style={styles.listButton}>
-                        <ImagePlus size={21} color={vars.textColor} strokeWidth={2} />
+                        <ImagePlus size={20} color={vars.textColor} strokeWidth={2} />
                     </PressableScale>
-                </GlassView>
+                </LiquidGlassView>
 
                 {renderMenu()}
                 {renderCamera()}
@@ -335,17 +319,23 @@ export default function ImageInput({ onPick, type, onFocus = () => {}, onBlur = 
 
 const styles = StyleSheet.create({
     listContainer: {
-        width: 54,
-        height: 54,
+        width: FAB_SIZE,
+        height: FAB_SIZE,
         position: "relative",
         zIndex: 100,
         overflow: "visible",
     },
     listGlass: {
-        width: 54,
-        height: 54,
+        width: FAB_SIZE,
+        height: FAB_SIZE,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     listButton: {
         width: "100%",
@@ -370,6 +360,12 @@ const styles = StyleSheet.create({
         borderRadius: BORDER_RADIUS_L,
         padding: 6,
         overflow: "hidden",
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     menuItem: {
         height: 54,
@@ -423,7 +419,13 @@ const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     cameraFlipGlass: {
         position: "absolute",
@@ -432,7 +434,13 @@ const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     cameraControl: {
         width: "100%",

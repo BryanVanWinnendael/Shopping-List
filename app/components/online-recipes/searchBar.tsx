@@ -9,11 +9,20 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
-import { BORDER_RADIUS_L } from "@/lib/theme"
+import {
+    BAR_FONT_SIZE,
+    BAR_HEIGHT,
+    BAR_PADDING_H,
+    BORDER_RADIUS_L,
+    DOCK_BOTTOM,
+    DOCK_GAP,
+    DOCK_SIDE,
+    FAB_SIZE,
+} from "@/lib/theme"
 
 type Props = {
     value: string
@@ -23,8 +32,8 @@ type Props = {
     onBlur: () => void
 }
 
-const RIGHT_COLLAPSED = 146 // leaves room for the style button
-const RIGHT_FOCUSED = 80 // the style button shrinks, so the bar can grow
+const RIGHT_COLLAPSED = DOCK_SIDE + 110 + DOCK_GAP // leaves room for the expanded style button
+const RIGHT_FOCUSED = DOCK_SIDE + FAB_SIZE + DOCK_GAP // the style button shrinks, so the bar can grow
 
 const CLEAR_FADE_IN = FadeIn.duration(120)
 const CLEAR_FADE_OUT = FadeOut.duration(120)
@@ -52,8 +61,8 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
 
     return (
         <Animated.View style={[styles.container, animatedStyle]}>
-            <GlassView glassEffectStyle="regular" isInteractive colorScheme={appearance} style={styles.glass}>
-                <Search size={20} color={vars.textColor} />
+            <LiquidGlassView style={styles.glass} isInteractive>
+                <Search size={18} color={vars.textColor} />
 
                 <TextInput
                     value={value}
@@ -61,7 +70,7 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                     onFocus={onFocus}
                     onBlur={onBlur}
                     placeholder="Search recipes..."
-                    placeholderTextColor="gray"
+                    placeholderTextColor={vars.tertiaryTextColor}
                     returnKeyType="search"
                     keyboardAppearance={appearance}
                     style={[styles.input, { color: vars.textColor }]}
@@ -76,11 +85,11 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                             accessibilityLabel="Clear search"
                             style={styles.clearButton}
                         >
-                            <X size={18} color={vars.textColor} />
+                            <X size={16} color={vars.textColor} />
                         </PressableScale>
                     </Animated.View>
                 )}
-            </GlassView>
+            </LiquidGlassView>
         </Animated.View>
     )
 }
@@ -88,22 +97,28 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
-        bottom: 24,
-        left: 24,
+        bottom: DOCK_BOTTOM,
+        left: DOCK_SIDE,
         zIndex: 1,
     },
     glass: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 16,
-        height: 48,
+        paddingHorizontal: BAR_PADDING_H,
+        height: BAR_HEIGHT,
         borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     input: {
         flex: 1,
         marginLeft: 10,
-        fontSize: 17,
+        fontSize: BAR_FONT_SIZE,
     },
     clearButton: {
         padding: 4,

@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur"
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from "react-native"
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
 import { RefObject, useRef } from "react"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import MealTypeSegment from "@/components/recipes/mealTypeSegment"
@@ -44,57 +44,26 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
             backgroundMode="adaptive"
         >
             <KeyboardAvoidingView
-                style={{ flex: 1 }}
+                style={styles.container}
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
                 keyboardVerticalOffset={0}
             >
-                <View style={{ flex: 1 }}>
-                    <View
-                        style={{
-                            position: "absolute",
-                            top: -40,
-                            left: 0,
-                            right: 0,
-                            height: 88,
-                            zIndex: 10,
-                            overflow: "hidden",
-                        }}
-                    >
-                        <BlurView
-                            intensity={10}
-                            tint={appearance}
-                            style={{
-                                flex: 1,
-                                paddingHorizontal: 20,
-                                paddingTop: 48,
-                                paddingBottom: 10,
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    fontSize: 22,
-                                    fontWeight: "700",
-                                    color: vars.textColor,
-                                }}
-                            >
-                                Filter Recipes
-                            </Text>
+                <View style={styles.inner}>
+                    <View style={styles.header}>
+                        <BlurView intensity={10} tint={appearance} style={styles.blur}>
+                            <Text style={[styles.headerTitle, { color: vars.textColor }]}>Filter Recipes</Text>
                         </BlurView>
                     </View>
 
                     <ScrollView
                         ref={scrollViewRef}
-                        style={{ flex: 1 }}
-                        contentContainerStyle={{
-                            paddingHorizontal: 20,
-                            paddingTop: 64,
-                            paddingBottom: 100,
-                        }}
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
                         keyboardDismissMode="interactive"
                     >
-                        <View style={{ gap: 22 }}>
+                        <View style={styles.fields}>
                             <Field label="Meal Type">
                                 <MealTypeSegment
                                     value={activeFilter.mealType}
@@ -107,37 +76,11 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                             </Field>
 
                             <View>
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                    }}
-                                >
-                                    <View
-                                        style={{
-                                            flex: 1,
-                                            paddingRight: 16,
-                                        }}
-                                    >
-                                        <Text
-                                            style={{
-                                                fontSize: 16,
-                                                fontWeight: "600",
-                                                color: vars.textColor,
-                                            }}
-                                        >
-                                            Public
-                                        </Text>
+                                <View style={styles.switchRow}>
+                                    <View style={styles.switchTextBlock}>
+                                        <Text style={[styles.switchTitle, { color: vars.textColor }]}>Public</Text>
 
-                                        <Text
-                                            style={{
-                                                marginTop: 3,
-                                                fontSize: 13,
-                                                lineHeight: 18,
-                                                color: vars.tertiaryTextColor,
-                                            }}
-                                        >
+                                        <Text style={[styles.switchSubtitle, { color: vars.tertiaryTextColor }]}>
                                             Turn off to show only private recipes. When enabled, all recipes will be
                                             shown.
                                         </Text>
@@ -155,36 +98,15 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                             </View>
 
                             <View>
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                    }}
-                                >
-                                    <View
-                                        style={{
-                                            flex: 1,
-                                            paddingRight: 16,
-                                        }}
-                                    >
-                                        <Text
-                                            style={{
-                                                fontSize: 16,
-                                                fontWeight: "600",
-                                                color: vars.textColor,
-                                            }}
-                                        >
-                                            Saved
-                                        </Text>
+                                <View style={styles.switchRow}>
+                                    <View style={styles.switchTextBlock}>
+                                        <Text style={[styles.switchTitle, { color: vars.textColor }]}>Saved</Text>
 
                                         <Text
-                                            style={{
-                                                marginTop: 3,
-                                                fontSize: 13,
-                                                lineHeight: 18,
-                                                color: theme === "light" ? "#6b7280" : "#8b9199",
-                                            }}
+                                            style={[
+                                                styles.switchSubtitle,
+                                                { color: theme === "light" ? "#6b7280" : "#8b9199" },
+                                            ]}
                                         >
                                             Only show recipes you saved from the online recipe section.
                                         </Text>
@@ -224,35 +146,21 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                                             })
                                         }
                                         keyboardAppearance={appearance}
-                                        style={{
-                                            borderWidth: 1,
-                                            borderColor: vars.borderColor,
-                                            borderRadius: BORDER_RADIUS_M,
-                                            paddingHorizontal: 14,
-                                            paddingVertical: 12,
-                                            backgroundColor: vars.backgroundColor,
-                                            color: vars.textColor,
-                                            fontSize: 16,
-                                        }}
+                                        style={[
+                                            styles.timeInput,
+                                            {
+                                                borderColor: vars.borderColor,
+                                                backgroundColor: vars.backgroundColor,
+                                                color: vars.textColor,
+                                            },
+                                        ]}
                                     />
                                 </Field>
                             </View>
                         </View>
                     </ScrollView>
 
-                    {/* Floating Clear button */}
-                    <View
-                        style={{
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            paddingHorizontal: 20,
-                            paddingTop: 10,
-                            paddingBottom: 10,
-                            backgroundColor: "transparent",
-                        }}
-                    >
+                    <View style={styles.clearWrapper}>
                         <PressableScale
                             onPress={() =>
                                 setActiveFilter({
@@ -263,30 +171,9 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                                     time: null,
                                 })
                             }
-                            style={{
-                                minHeight: 54,
-                                borderRadius: BORDER_RADIUS_L,
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: vars.accentColor,
-                                shadowOffset: {
-                                    width: 0,
-                                    height: 5,
-                                },
-                                shadowOpacity: 0.18,
-                                shadowRadius: 10,
-                                elevation: 5,
-                            }}
+                            style={[styles.clearButton, { backgroundColor: vars.accentColor }]}
                         >
-                            <Text
-                                style={{
-                                    color: "#fff",
-                                    fontWeight: "700",
-                                    fontSize: 16,
-                                }}
-                            >
-                                Clear Filters
-                            </Text>
+                            <Text style={styles.clearText}>Clear Filters</Text>
                         </PressableScale>
                     </View>
                 </View>
@@ -294,3 +181,95 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
         </AppBottomSheet>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    inner: {
+        flex: 1,
+    },
+    header: {
+        position: "absolute",
+        top: -40,
+        left: 0,
+        right: 0,
+        height: 88,
+        zIndex: 10,
+        overflow: "hidden",
+    },
+    blur: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 48,
+        paddingBottom: 10,
+    },
+    headerTitle: {
+        fontSize: 22,
+        fontWeight: "700",
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 64,
+        paddingBottom: 100,
+    },
+    fields: {
+        gap: 22,
+    },
+    switchRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+    switchTextBlock: {
+        flex: 1,
+        paddingRight: 16,
+    },
+    switchTitle: {
+        fontSize: 16,
+        fontWeight: "600",
+    },
+    switchSubtitle: {
+        marginTop: 3,
+        fontSize: 13,
+        lineHeight: 18,
+    },
+    timeInput: {
+        borderWidth: 1,
+        borderRadius: BORDER_RADIUS_M,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        fontSize: 16,
+    },
+    clearWrapper: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
+        backgroundColor: "transparent",
+    },
+    clearButton: {
+        minHeight: 54,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+        justifyContent: "center",
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    clearText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 16,
+    },
+})

@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from "react-native"
+import { RefObject } from "react"
+import { FlatList, StyleSheet, Text, View } from "react-native"
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler"
 import * as Haptics from "expo-haptics"
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
 import { scheduleOnRN } from "react-native-worklets"
 import { Product as ProductType } from "@/types/list"
@@ -20,9 +20,14 @@ const OVER_SWIPE_DISTANCE = 120
 const ACTION_SIZE = 56
 const ICON_SIZE = 22
 
+const SHOW_SEARCH_DELAY = 1000
+const OPEN_SHEET_DELAY = 3000
+const LONG_PRESS_DURATION = 2000
+const PRESS_RESET_DURATION = 150
+
 type Props = {
     product: ProductType
-    scrollRef: any
+    scrollRef: RefObject<FlatList | null>
     openEditProductModal: (product: ProductType) => void
     openSearchProductsBottomSheet: () => void
     setQuery: (query: string | null) => void
@@ -38,7 +43,6 @@ export default function Product({
     searchProduct,
 }: Props) {
     const { vars, actions: themesActions } = useThemes()
-    const { theme } = useSettingsStore()
     const { actions: productsListActions } = useProductsList()
 
     const offsetX = useSharedValue(0)
@@ -48,7 +52,48 @@ export default function Product({
     const longPressProgress = useSharedValue(0)
     const searchingDelay = useSharedValue(0)
     const openSheetDelay = useSharedValue(0)
-    const longPressTriggered = useSharedValue(false)
+
+    const handlePressIn = () => {
+        if (product.type === "image") return
+        pressed.value = true
+
+        // Restart staged press timers: show search hint, open sheet, trigger search.
+        searchingDelay.value = 0
+        openSheetDelay.value = 0
+
+        searchingDelay.value = withTiming(1, { duration: SHOW_SEARCH_DELAY }, (finished) => {
+            if (finished) {
+                scheduleOnRN(setQuery, product.name)
+            }
+        })
+
+        openSheetDelay.value = withTiming(1, { duration: OPEN_SHEET_DELAY }, (finished) => {
+            if (finished) {
+                scheduleOnRN(openSearchProductsBottomSheet)
+            }
+        })
+
+        longPressProgress.value = withTiming(1, { duration: LONG_PRESS_DURATION }, (finished) => {
+            if (finished) scheduleOnRN(searchProduct, product.name, product.category)
+        })
+    }
+
+    const handlePressOut = () => {
+        pressed.value = false
+
+        searchingDelay.value = 0
+        openSheetDelay.value = 0
+
+        scheduleOnRN(setQuery, null)
+
+        longPressProgress.value = withTiming(0, { duration: PRESS_RESET_DURATION })
+    }
+
+    const handleEditPress = () => {
+        offsetX.value = withTiming(0, { duration: PRESS_RESET_DURATION }, (finished) => {
+            if (finished) scheduleOnRN(openEditProductModal, product)
+        })
+    }
 
     const panGesture = Gesture.Pan()
         .activeOffsetX([-10, 10])
@@ -75,7 +120,7 @@ export default function Product({
                 offsetX.value = withTiming(0, { duration: 200 })
             }
         })
-        .simultaneousWithExternalGesture(scrollRef)
+        .simultaneousWithExternalGesture(scrollRef as any)
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: offsetX.value }],
@@ -114,144 +159,82 @@ export default function Product({
     })
 
     return (
-        <>
-            <GestureHandlerRootView>
-                <View style={styles.wrapper}>
-                    <View style={styles.deleteBackground}>
-                        <View
-                            style={[
-                                styles.editIconWrapper,
-                                {
-                                    width: ACTION_SIZE,
-                                    height: ACTION_SIZE,
-                                    borderWidth: 1,
-                                    backgroundColor: vars.secondaryBackgroundColor,
-                                    borderColor: vars.secondaryBorderColor,
-                                    borderRadius: ACTION_SIZE / 2,
-                                },
-                            ]}
-                        >
-                            <PressableScale
-                                onPress={() =>
-                                    (offsetX.value = withTiming(0, { duration: 150 }, (finished) => {
-                                        if (finished) scheduleOnRN(openEditProductModal, product)
-                                    }))
-                                }
-                            >
-                                <Pencil size={ICON_SIZE} color={vars.textColor} />
-                            </PressableScale>
-                        </View>
-
-                        <Animated.View style={[styles.deleteBackgroundInner, deleteBackgroundStyle]}>
-                            <PressableScale
-                                onPress={() => productsListActions.deleteProduct(product)}
-                                style={[
-                                    styles.deleteIconWrapper,
-                                    {
-                                        width: ACTION_SIZE,
-                                        height: ACTION_SIZE,
-                                        borderRadius: ACTION_SIZE / 2,
-                                        backgroundColor: "#EF4444",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    },
-                                ]}
-                            >
-                                <Trash size={ICON_SIZE} color="white" />
-                            </PressableScale>
-                        </Animated.View>
+        <GestureHandlerRootView>
+            <View style={styles.wrapper}>
+                <View style={styles.deleteBackground}>
+                    <View
+                        style={[
+                            styles.editIconWrapper,
+                            {
+                                backgroundColor: vars.secondaryBackgroundColor,
+                                borderColor: vars.secondaryBorderColor,
+                            },
+                        ]}
+                    >
+                        <PressableScale onPress={handleEditPress}>
+                            <Pencil size={ICON_SIZE} color={vars.textColor} />
+                        </PressableScale>
                     </View>
 
-                    <GestureDetector gesture={panGesture}>
-                        <Animated.View style={[styles.container, animatedStyle, backgroundAnimatedStyle]}>
-                            <PressableScale
-                                style={{ flex: 1, flexDirection: "row", gap: 8 }}
-                                onPressIn={() => {
-                                    if (product.type === "image") return
-                                    pressed.value = true
-                                    longPressTriggered.value = false
+                    <Animated.View style={[styles.deleteBackgroundInner, deleteBackgroundStyle]}>
+                        <PressableScale
+                            onPress={() => productsListActions.deleteProduct(product)}
+                            style={styles.deleteIconWrapper}
+                        >
+                            <Trash size={ICON_SIZE} color="white" />
+                        </PressableScale>
+                    </Animated.View>
+                </View>
 
-                                    searchingDelay.value = 0
-                                    openSheetDelay.value = 0
+                <GestureDetector gesture={panGesture}>
+                    <Animated.View style={[styles.container, animatedStyle, backgroundAnimatedStyle]}>
+                        <PressableScale
+                            style={styles.pressableContent}
+                            onPressIn={handlePressIn}
+                            onPressOut={handlePressOut}
+                        >
+                            {product.url && (
+                                <CustomImage style={styles.productImage} url={product.url} height={100} width={90} />
+                            )}
 
-                                    searchingDelay.value = withTiming(1, { duration: 1000 }, (finished) => {
-                                        if (finished) {
-                                            scheduleOnRN(setQuery, product.name)
-                                        }
-                                    })
+                            {!product.url && (
+                                <View style={styles.iconContainer}>
+                                    <CategoryIcon category={product.category} />
+                                </View>
+                            )}
 
-                                    openSheetDelay.value = withTiming(1, { duration: 3000 }, (finished) => {
-                                        if (finished) {
-                                            scheduleOnRN(openSearchProductsBottomSheet)
-                                        }
-                                    })
-
-                                    longPressProgress.value = withTiming(1, { duration: 2000 }, (finished) => {
-                                        if (finished) scheduleOnRN(searchProduct, product.name, product.category)
-                                    })
-                                }}
-                                onPressOut={() => {
-                                    pressed.value = false
-
-                                    searchingDelay.value = 0
-                                    openSheetDelay.value = 0
-
-                                    scheduleOnRN(setQuery, null)
-
-                                    if (!longPressTriggered.value) {
-                                        longPressProgress.value = withTiming(0, { duration: 150 })
-                                    }
-                                }}
-                            >
-                                {product.url && (
-                                    <CustomImage
-                                        style={{ borderRadius: 14 }}
-                                        url={product.url}
-                                        height={100}
-                                        width={90}
-                                    />
-                                )}
-
-                                {!product.url && (
-                                    <View style={styles.iconContainer}>
-                                        <CategoryIcon category={product.category} />
-                                    </View>
-                                )}
-
-                                <View style={[styles.textContainer, { borderColor: vars.borderColor }]}>
-                                    <View style={{ height: vars.textSize * 1.4, overflow: "hidden" }}>
-                                        <Text
-                                            style={[
-                                                {
-                                                    position: "absolute",
-                                                    fontSize: vars.textSize,
-                                                    color: theme === "light" ? "black" : "white",
-                                                    fontWeight: "500",
-                                                },
-                                            ]}
-                                        >
-                                            {product.name}
-                                        </Text>
-                                    </View>
-
+                            <View style={[styles.textContainer, { borderColor: vars.borderColor }]}>
+                                <View style={[styles.productNameWrapper, { height: vars.textSize * 1.4 }]}>
                                     <Text
-                                        style={{
-                                            fontSize: vars.labelSize,
-                                            color: themesActions.getLabelColor(product.user),
-                                            marginTop: 8,
-                                            textAlign: "right",
-                                            fontWeight: "500",
-                                        }}
+                                        style={[
+                                            styles.productName,
+                                            {
+                                                fontSize: vars.textSize,
+                                                color: vars.textColor,
+                                            },
+                                        ]}
                                     >
-                                        added by {product.user}
+                                        {product.name}
                                     </Text>
                                 </View>
-                            </PressableScale>
-                        </Animated.View>
-                    </GestureDetector>
-                </View>
-            </GestureHandlerRootView>
-        </>
+
+                                <Text
+                                    style={[
+                                        styles.addedBy,
+                                        {
+                                            fontSize: vars.labelSize,
+                                            color: themesActions.getLabelColor(product.user),
+                                        },
+                                    ]}
+                                >
+                                    added by {product.user}
+                                </Text>
+                            </View>
+                        </PressableScale>
+                    </Animated.View>
+                </GestureDetector>
+            </View>
+        </GestureHandlerRootView>
     )
 }
 
@@ -268,6 +251,14 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderRadius: BORDER_RADIUS_L,
     },
+    pressableContent: {
+        flex: 1,
+        flexDirection: "row",
+        gap: 8,
+    },
+    productImage: {
+        borderRadius: 14,
+    },
     iconContainer: {
         width: 48,
         alignItems: "center",
@@ -279,6 +270,18 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         justifyContent: "space-between",
         paddingVertical: 4,
+    },
+    productNameWrapper: {
+        overflow: "hidden",
+    },
+    productName: {
+        position: "absolute",
+        fontWeight: "500",
+    },
+    addedBy: {
+        marginTop: 8,
+        textAlign: "right",
+        fontWeight: "500",
     },
     deleteBackground: {
         ...StyleSheet.absoluteFill,
@@ -300,10 +303,16 @@ const styles = StyleSheet.create({
     deleteIconWrapper: {
         width: ACTION_SIZE,
         height: ACTION_SIZE,
+        borderRadius: ACTION_SIZE / 2,
+        backgroundColor: "#EF4444",
         justifyContent: "center",
         alignItems: "center",
     },
     editIconWrapper: {
+        width: ACTION_SIZE,
+        height: ACTION_SIZE,
+        borderWidth: 1,
+        borderRadius: ACTION_SIZE / 2,
         justifyContent: "center",
         alignItems: "center",
     },

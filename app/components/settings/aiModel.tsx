@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native"
 import { Bot, Cloud, Cpu, Trash2 } from "lucide-react-native"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import Accordion from "@/components/accordion"
 import CustomSwitch from "@/components/customSwitch"
 import useThemes from "@/hooks/themes/useThemes"
@@ -39,7 +39,7 @@ const getProviderLabel = (provider: AIProvider | null) => {
 }
 
 export default function AiModel() {
-    const { vars, theme, appearance } = useThemes()
+    const { vars, theme } = useThemes()
     const { provider, setProvider } = useAiContextStore()
 
     const [downloadingModel, setDownloadingModel] = useState(false)
@@ -222,16 +222,11 @@ export default function AiModel() {
         >
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
-                    <GlassView
-                        glassEffectStyle="regular"
-                        colorScheme={appearance}
-                        isInteractive={false}
-                        style={styles.iconGlass}
-                    >
+                    <LiquidGlassView style={styles.iconGlass}>
                         <View style={styles.iconWrapper}>
                             <Bot size={18} strokeWidth={2} color={vars.accentColor} />
                         </View>
-                    </GlassView>
+                    </LiquidGlassView>
 
                     <View style={styles.textContainer}>
                         <Text
@@ -532,7 +527,13 @@ const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
         overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
 
     iconWrapper: {

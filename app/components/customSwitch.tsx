@@ -1,6 +1,4 @@
-import React from "react"
 import { StyleSheet, Switch, View } from "react-native"
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import useThemes from "@/hooks/themes/useThemes"
 
 type Props = {
@@ -11,7 +9,6 @@ type Props = {
 
 export default function CustomSwitch({ value, onChange, disabled = false }: Props) {
     const { vars } = useThemes()
-    const { newUI } = useSettingsStore()
 
     return (
         <View style={styles.container}>

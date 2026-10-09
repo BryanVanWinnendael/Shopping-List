@@ -6,13 +6,21 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
-import { TextInput } from "react-native"
+import { StyleSheet, TextInput } from "react-native"
 import { Search, X } from "lucide-react-native"
-import { GlassView } from "expo-glass-effect"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
-import { BORDER_RADIUS_L } from "@/lib/theme"
+import {
+    BAR_FONT_SIZE,
+    BAR_HEIGHT,
+    BAR_PADDING_H,
+    BORDER_RADIUS_L,
+    DOCK_BOTTOM,
+    DOCK_SIDE,
+    SEARCH_BAR_RIGHT,
+} from "@/lib/theme"
 
 type Props = {
     value: string
@@ -41,33 +49,9 @@ export function SearchBar({ value, updateQuery }: Props) {
     }))
 
     return (
-        <AnimatedView
-            style={[
-                {
-                    position: "absolute",
-                    bottom: 24,
-                    left: 24,
-                    right: 88,
-                    zIndex: 1,
-                },
-                animatedStyle,
-            ]}
-        >
-            <GlassView
-                glassEffectStyle="regular"
-                isInteractive
-                colorScheme={appearance}
-                style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 16,
-                    height: 48,
-                    borderRadius: BORDER_RADIUS_L,
-                    overflow: "hidden",
-                }}
-            >
-                <Search size={20} color={vars.textColor} />
-
+        <AnimatedView style={[styles.container, animatedStyle]}>
+            <LiquidGlassView style={styles.glass} isInteractive>
+                <Search size={18} color={vars.textColor} />
                 <TextInput
                     value={value}
                     onChangeText={updateQuery}
@@ -75,30 +59,50 @@ export function SearchBar({ value, updateQuery }: Props) {
                     placeholder="Search products..."
                     placeholderTextColor={vars.tertiaryTextColor}
                     returnKeyType="search"
-                    style={{
-                        flex: 1,
-                        marginLeft: 10,
-                        fontSize: 17,
-                        color: vars.textColor,
-                    }}
+                    style={[styles.input, { color: vars.textColor }]}
                     keyboardAppearance={appearance}
                 />
-
                 {value.length > 0 && (
                     <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(120)}>
-                        <PressableScale
-                            onPress={clear}
-                            hitSlop={10}
-                            style={{
-                                padding: 4,
-                                marginLeft: 6,
-                            }}
-                        >
-                            <X size={18} color={vars.textColor} />
+                        <PressableScale onPress={clear} hitSlop={10} style={styles.clearButton}>
+                            <X size={16} color={vars.textColor} />
                         </PressableScale>
                     </Animated.View>
                 )}
-            </GlassView>
+            </LiquidGlassView>
         </AnimatedView>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        position: "absolute",
+        bottom: DOCK_BOTTOM,
+        left: DOCK_SIDE,
+        right: SEARCH_BAR_RIGHT,
+        zIndex: 1,
+    },
+    glass: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: BAR_PADDING_H,
+        height: BAR_HEIGHT,
+        borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    input: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: BAR_FONT_SIZE,
+    },
+    clearButton: {
+        padding: 4,
+        marginLeft: 6,
+    },
+})

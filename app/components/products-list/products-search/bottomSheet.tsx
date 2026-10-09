@@ -1,4 +1,4 @@
-import { FlatList, Text, View } from "react-native"
+import { FlatList, StyleSheet, Text, View } from "react-native"
 import { RefObject } from "react"
 import ExpoBottomSheet from "@expo/ui/community/bottom-sheet"
 import Product from "@/components/products-search/product"
@@ -25,50 +25,14 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
             onClose={onClose}
             backgroundMode="adaptive"
         >
-            <View
-                style={{
-                    flex: 1,
-                    paddingHorizontal: 12,
-                }}
-            >
-                <View
-                    style={{
-                        position: "absolute",
-                        top: -40,
-                        left: 0,
-                        right: 0,
-                        height: 88,
-                        zIndex: 10,
-                        overflow: "hidden",
-                    }}
-                >
-                    <BlurView
-                        intensity={10}
-                        tint={appearance}
-                        style={{
-                            flex: 1,
-                            paddingHorizontal: 20,
-                            paddingTop: 48,
-                            paddingBottom: 5,
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                        }}
-                    >
-                        <Text
-                            style={{
-                                marginBottom: 10,
-                                color: vars.tertiaryTextColor,
-                            }}
-                        >
+            <View style={styles.container}>
+                <View style={styles.headerWrapper}>
+                    <BlurView intensity={10} tint={appearance} style={styles.blurContent}>
+                        <Text style={[styles.headerText, { color: vars.tertiaryTextColor }]}>
                             Found results: {states.total}
                         </Text>
 
-                        <Text
-                            style={{
-                                marginBottom: 10,
-                                color: vars.tertiaryTextColor,
-                            }}
-                        >
+                        <Text style={[styles.headerText, { color: vars.tertiaryTextColor }]}>
                             Last updated: {states.dateUpdated}
                         </Text>
                     </BlurView>
@@ -78,20 +42,12 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                     ref={refs.flatListRef}
                     data={states.products}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingTop: 64 }}
+                    contentContainerStyle={styles.listContent}
                     keyExtractor={(item, index) => item.pid + index}
                     renderItem={({ item }) => <Product product={item} />}
                     ListEmptyComponent={
                         states.products.length === 0 ? (
-                            <Text
-                                style={{
-                                    paddingLeft: 10,
-                                    marginTop: 10,
-                                    color: vars.textColor,
-                                }}
-                            >
-                                No results found
-                            </Text>
+                            <Text style={[styles.emptyText, { color: vars.textColor }]}>No results found</Text>
                         ) : null
                     }
                     onEndReached={actions.getNextPage}
@@ -101,3 +57,37 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
         </AppBottomSheet>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 12,
+    },
+    headerWrapper: {
+        position: "absolute",
+        top: -40,
+        left: 0,
+        right: 0,
+        height: 88,
+        zIndex: 10,
+        overflow: "hidden",
+    },
+    blurContent: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 48,
+        paddingBottom: 5,
+        flexDirection: "row",
+        justifyContent: "space-between",
+    },
+    headerText: {
+        marginBottom: 10,
+    },
+    listContent: {
+        paddingTop: 64,
+    },
+    emptyText: {
+        paddingLeft: 10,
+        marginTop: 10,
+    },
+})

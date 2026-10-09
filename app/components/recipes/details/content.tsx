@@ -59,7 +59,7 @@ export default function RecipeContent({ recipe, open, scrollY }: Props) {
                 <View>{recipe.instructions && <Instructions recipe={recipe} open={open} />}</View>
 
                 {recipe.source && (
-                    <PressableScale onPress={() => Linking.openURL(recipe.source!)} style={[styles.source]}>
+                    <PressableScale onPress={() => Linking.openURL(recipe.source!)} style={styles.source}>
                         <Text
                             style={[
                                 styles.sourceText,
