@@ -22,6 +22,10 @@ export default function IngredientsList({ recipe }: Props) {
 
     const selectedSet = useMemo(() => new Set(selected), [selected])
     const ingredients = recipe?.ingredients ?? []
+    const recipeRef = useMemo(
+        () => (recipe ? { id: recipe.id, title: recipe.title } : null),
+        [recipe?.id, recipe?.title]
+    )
 
     const allAdded = ingredients.length > 0 && selected.length === ingredients.length
 
@@ -33,14 +37,14 @@ export default function IngredientsList({ recipe }: Props) {
             if (!ingredient) return
 
             try {
-                await actions.createProduct(ingredient.product, ingredient.url)
+                await actions.createProduct(ingredient.product, ingredient.url, null, null, recipeRef)
 
                 setSelected((prev) => (prev.includes(index) ? prev : [...prev, index]))
             } catch (e) {
                 console.log(e)
             }
         },
-        [actions, ingredients, selectedSet]
+        [actions, ingredients, selectedSet, recipeRef]
     )
 
     const addAll = useCallback(async () => {
@@ -60,7 +64,7 @@ export default function IngredientsList({ recipe }: Props) {
                 missingIndexes.map(async (index) => {
                     const ingredient = ingredients[index]
 
-                    await actions.createProduct(ingredient.product, ingredient.url)
+                    await actions.createProduct(ingredient.product, ingredient.url, null, null, recipeRef)
                 })
             )
 
@@ -77,7 +81,7 @@ export default function IngredientsList({ recipe }: Props) {
                 text1: "Ingredients added successfully!",
             })
         }
-    }, [actions, ingredients, loadingAll, selectedSet])
+    }, [actions, ingredients, loadingAll, selectedSet, recipeRef])
 
     return (
         <View

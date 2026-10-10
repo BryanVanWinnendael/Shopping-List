@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react"
+import { memo, useCallback, useMemo, useState } from "react"
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
 import { Check, ShoppingBasket } from "lucide-react-native"
 import { PressableScale } from "pressto"
@@ -54,6 +54,7 @@ export default function IngredientsList({ recipe }: Props) {
     const [loadingAll, setLoadingAll] = useState(false)
 
     const ingredients = recipe.ingredients ?? []
+    const recipeRef = useMemo(() => ({ id: recipe.source, title: recipe.title }), [recipe.source, recipe.title])
     const allAdded = ingredients.length > 0 && added.size === ingredients.length
 
     const markAdded = (indexes: number[]) => setAdded((prev) => new Set([...prev, ...indexes]))
@@ -75,13 +76,13 @@ export default function IngredientsList({ recipe }: Props) {
             markAdded([index])
 
             try {
-                await actions.createProduct(ingredient)
+                await actions.createProduct(ingredient, null, null, null, recipeRef)
             } catch {
                 markRemoved(index)
                 Toast.show({ type: "error", text1: "Failed to add ingredient" })
             }
         },
-        [actions, ingredients, added]
+        [actions, ingredients, added, recipeRef]
     )
 
     const addAll = useCallback(async () => {
@@ -94,7 +95,9 @@ export default function IngredientsList({ recipe }: Props) {
         setLoadingAll(true)
 
         // allSettled, so one failure doesn't hide the ones that did succeed.
-        const results = await Promise.allSettled(pending.map((index) => actions.createProduct(ingredients[index])))
+        const results = await Promise.allSettled(
+            pending.map((index) => actions.createProduct(ingredients[index], null, null, null, recipeRef))
+        )
         const succeeded = pending.filter((_, n) => results[n].status === "fulfilled")
 
         markAdded(succeeded)
@@ -105,7 +108,7 @@ export default function IngredientsList({ recipe }: Props) {
         } else {
             Toast.show({ type: "error", text1: "Some ingredients couldn't be added" })
         }
-    }, [actions, ingredients, added, loadingAll])
+    }, [actions, ingredients, added, loadingAll, recipeRef])
 
     return (
         <View style={[styles.container, { backgroundColor: vars.secondaryBackgroundColor }]}>

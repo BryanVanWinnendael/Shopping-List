@@ -9,6 +9,10 @@ export interface Product {
     url?: string | null
     id: string
     category: Category
+    recipe?: {
+        id: string
+        title: string
+    } | null
 }
 
 export interface Products {
