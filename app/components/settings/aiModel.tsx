@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react"
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
-import { PressableScale } from "pressto"
-import { Bot, Cloud, Cpu, Trash2 } from "lucide-react-native"
+﻿import { useEffect, useState } from "react"
+import { StyleSheet, Text, View } from "react-native"
+import { Bot, Cloud, Cpu } from "lucide-react-native"
 import LiquidGlassView from "@/components/native/liquidGlassView"
 import Accordion from "@/components/accordion"
 import CustomSwitch from "@/components/customSwitch"
@@ -9,25 +8,9 @@ import useThemes from "@/hooks/themes/useThemes"
 import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 import { AIProvider } from "@/types/ai"
 import { useAiContextStore } from "@/stores/useAiContextStore"
-import {
-    AI_MODEL_ID,
-    LOCAL_MODELS,
-    TIER_LABELS,
-    deleteLocalModel,
-    downloadLocalModel,
-    formatModelSize,
-    getDownloadedModelIds,
-    getSelectedModelId,
-    isLocalModelDownloaded,
-    loadLocalModel,
-    setSelectedModelId,
-    supportsOnDeviceAI,
-} from "@/lib/ai/settings"
-import type { LocalModel } from "@/lib/ai/settings"
+import { supportsOnDeviceAI } from "@/lib/ai/settings"
+import { CLOUD_PROVIDERS } from "@/lib/ai/cloudProviders"
 import { formatTokens, loadTokenUsage, useTokenUsage } from "@/lib/ai/usage"
-import { logsClient } from "@/lib/logs"
-
-const getErrorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
 const getProviderLabel = (provider: AIProvider | null) => {
     switch (provider) {
@@ -36,9 +19,6 @@ const getProviderLabel = (provider: AIProvider | null) => {
 
         case "built-in":
             return "Built-in AI"
-
-        case "downloaded":
-            return "Downloaded model"
 
         case "disabled":
             return "Disabled"
@@ -52,52 +32,25 @@ export default function AiModel() {
     const { vars, theme } = useThemes()
     const { provider, setProvider } = useAiContextStore()
 
-    const [downloadProgress, setDownloadProgress] = useState(0)
-    const [downloadedIds, setDownloadedIds] = useState<string[]>([])
-    const [selectedModelId, setSelectedModelIdState] = useState<string>(AI_MODEL_ID)
-    const [busy, setBusy] = useState<{ id: string; kind: "download" | "load" | "delete" } | null>(null)
     const [supportsBuiltInAI, setSupportsBuiltInAI] = useState(false)
     const [checkingBuiltInSupport, setCheckingBuiltInSupport] = useState(true)
-    const busyRef = useRef(false)
 
-    const providerLabel = getProviderLabel(provider)
     const aiEnabled = provider !== "disabled"
     const expanded = provider !== "disabled"
-    const isBusy = busy !== null
     const subColor = theme === "light" ? "#6b7280" : "#9ca3af"
-    const activeModel = LOCAL_MODELS.find((model) => model.id === selectedModelId)
 
     useEffect(() => {
         let mounted = true
 
         const initialize = async () => {
             try {
-                const [supported, ids, selectedId] = await Promise.all([
-                    supportsOnDeviceAI(),
-                    getDownloadedModelIds(),
-                    getSelectedModelId(),
-                    loadTokenUsage(),
-                ])
+                const supported = await supportsOnDeviceAI()
 
-                if (!mounted) {
-                    return
+                if (mounted) {
+                    setSupportsBuiltInAI(supported)
                 }
-
-                // Native status is the source of truth; fall back to stored flags.
-                const verified = (
-                    await Promise.all(ids.map(async (id) => ((await isLocalModelDownloaded(id)) ? id : null)))
-                ).filter((id): id is string => id !== null)
-
-                if (!mounted) {
-                    return
-                }
-
-                setDownloadedIds(verified)
-                setSelectedModelIdState(selectedId)
-                setSupportsBuiltInAI(supported)
             } catch (error) {
                 if (mounted) {
-                    setDownloadedIds([])
                     setSupportsBuiltInAI(false)
                 }
             } finally {
@@ -108,6 +61,7 @@ export default function AiModel() {
         }
 
         initialize()
+        loadTokenUsage()
 
         return () => {
             mounted = false
@@ -115,10 +69,6 @@ export default function AiModel() {
     }, [])
 
     const handleToggle = async () => {
-        if (isBusy) {
-            return
-        }
-
         if (aiEnabled) {
             await setProvider("disabled")
             return
@@ -127,119 +77,30 @@ export default function AiModel() {
         await setProvider(null)
     }
 
-    const selectModel = async (model: LocalModel) => {
-        if (busyRef.current || isBusy) {
-            return
-        }
-
-        const downloaded = downloadedIds.includes(model.id)
-
-        busyRef.current = true
-        setBusy({ id: model.id, kind: downloaded ? "load" : "download" })
-        setDownloadProgress(0)
-
-        try {
-            if (!downloaded) {
-                await downloadLocalModel(model.id, (progress) => setDownloadProgress(progress))
-                setDownloadedIds((ids) => [...ids, model.id])
-            }
-
-            await setSelectedModelId(model.id)
-            setSelectedModelIdState(model.id)
-            await loadLocalModel(model.id)
-            await setProvider("downloaded")
-        } catch (error) {
-            const message = getErrorMessage(error)
-            await logsClient.createLog(message, "GET", true)
-        } finally {
-            setBusy(null)
-            setDownloadProgress(0)
-            busyRef.current = false
-        }
-    }
-
-    const deleteModel = async (model: LocalModel) => {
-        if (busyRef.current || isBusy) {
-            return
-        }
-
-        busyRef.current = true
-        setBusy({ id: model.id, kind: "delete" })
-
-        try {
-            if (provider === "downloaded" && selectedModelId === model.id) {
-                const { unloadModel } = await import("expo-ai-kit")
-                await unloadModel()
-                await setProvider(null)
-            }
-
-            await deleteLocalModel(model.id)
-            setDownloadedIds((ids) => ids.filter((id) => id !== model.id))
-        } catch (error) {
-            const message = getErrorMessage(error)
-            await logsClient.createLog(message, "GET", true)
-        } finally {
-            setBusy(null)
-            busyRef.current = false
-        }
-    }
-
-    const deselectModel = async () => {
-        if (busyRef.current || isBusy) {
-            return
-        }
-
-        busyRef.current = true
-
-        try {
-            const { unloadModel } = await import("expo-ai-kit")
-            await unloadModel()
-            await setProvider(null)
-        } catch (error) {
-            const message = getErrorMessage(error)
-            await logsClient.createLog(message, "GET", true)
-        } finally {
-            busyRef.current = false
-        }
-    }
-
     const handleSelectProvider = async (selectedProvider: AIProvider, enabled: boolean) => {
-        if (busyRef.current || isBusy || checkingBuiltInSupport) {
-            return
-        }
-
         if (enabled === (provider === selectedProvider)) {
             return
         }
 
-        busyRef.current = true
-
-        try {
-            // Turning the current provider off.
-            if (!enabled) {
-                if (provider === selectedProvider) {
-                    if (provider === "downloaded") {
-                        const { unloadModel } = await import("expo-ai-kit")
-                        await unloadModel()
-                    }
-
-                    await setProvider(null)
-                }
-
-                return
-            }
-
-            // Switching away from the downloaded model should unload it.
-            if (provider === "downloaded" && selectedProvider !== "downloaded") {
-                const { unloadModel } = await import("expo-ai-kit")
-                await unloadModel()
-            }
-
+        if (enabled) {
             await setProvider(selectedProvider)
-        } finally {
-            busyRef.current = false
+        } else {
+            await setProvider(null)
         }
     }
+
+    const builtInDescription = checkingBuiltInSupport
+        ? "Checking device support..."
+        : supportsBuiltInAI
+          ? "Use the AI model provided by the device."
+          : "Built-in AI is not supported on this device."
+
+    // Name the providers we can actually reach, so the row reflects reality
+    // rather than assuming every service is wired up.
+    const hasCloudKey = CLOUD_PROVIDERS.some((entry) => entry.apiKey)
+    const cloudDescription = hasCloudKey
+        ? "Free cloud AI with automatic fallback when one is busy."
+        : "No cloud provider key found. Add GROQ_API_KEY or OPENROUTER_API_KEY."
 
     return (
         <View
@@ -280,45 +141,30 @@ export default function AiModel() {
                             ]}
                             numberOfLines={1}
                         >
-                            {busy
-                                ? busy.kind === "download"
-                                    ? "Downloading AI model..."
-                                    : busy.kind === "load"
-                                      ? "Loading AI model..."
-                                      : "Deleting AI model..."
-                                : provider === "disabled"
-                                  ? "AI features are disabled"
-                                  : provider === "downloaded" && activeModel
-                                    ? `Using ${activeModel.name}`
-                                    : provider
-                                      ? `Using ${providerLabel}`
-                                      : "Choose an AI model"}
+                            {provider === "disabled"
+                                ? "AI features are disabled"
+                                : provider
+                                  ? `Using ${getProviderLabel(provider)}`
+                                  : "Choose an AI"}
                         </Text>
                     </View>
                 </View>
 
-                <CustomSwitch value={aiEnabled} onChange={handleToggle} disabled={isBusy} />
+                <CustomSwitch value={aiEnabled} onChange={handleToggle} />
             </View>
 
             <Accordion expanded={expanded} style={styles.accordion}>
                 <View style={styles.settingsList}>
-                    <Text
-                        style={[
-                            styles.sectionDescription,
-                            {
-                                color: theme === "light" ? "#6b7280" : "#9ca3af",
-                            },
-                        ]}
-                    >
-                        Choose which AI model the assistant should use.
+                    <Text style={[styles.sectionDescription, { color: subColor }]}>
+                        Choose which AI the assistant should use.
                     </Text>
 
                     <ProviderOption
                         icon={<Cloud size={18} color={vars.accentColor} />}
                         title="Cloud AI"
-                        description="Use the online AI service."
+                        description={cloudDescription}
                         selected={provider === "cloud"}
-                        disabled={isBusy || checkingBuiltInSupport}
+                        disabled={checkingBuiltInSupport}
                         onPress={(enabled) => handleSelectProvider("cloud", enabled)}
                         footer={<TokenUsage />}
                     />
@@ -326,36 +172,11 @@ export default function AiModel() {
                     <ProviderOption
                         icon={<Cpu size={18} color={vars.accentColor} />}
                         title="Built-in AI"
-                        description={
-                            checkingBuiltInSupport
-                                ? "Checking device support..."
-                                : !supportsBuiltInAI
-                                  ? "Built-in AI is not supported on this device."
-                                  : "Use the AI model provided by the device."
-                        }
+                        description={builtInDescription}
                         selected={provider === "built-in"}
-                        disabled={checkingBuiltInSupport || isBusy || !supportsBuiltInAI}
+                        disabled={checkingBuiltInSupport || !supportsBuiltInAI}
                         onPress={(enabled) => handleSelectProvider("built-in", enabled)}
                     />
-
-                    <Text style={[styles.sectionDescription, { color: subColor }]}>
-                        On-device models run privately without internet.
-                    </Text>
-
-                    {LOCAL_MODELS.map((model) => (
-                        <ModelRow
-                            key={model.id}
-                            model={model}
-                            downloaded={downloadedIds.includes(model.id)}
-                            active={provider === "downloaded" && selectedModelId === model.id}
-                            busy={busy?.id === model.id ? busy.kind : null}
-                            progress={downloadProgress}
-                            disabled={isBusy}
-                            onSelect={() => selectModel(model)}
-                            onDeselect={deselectModel}
-                            onDelete={() => deleteModel(model)}
-                        />
-                    ))}
                 </View>
             </Accordion>
         </View>
@@ -386,122 +207,18 @@ function TokenUsage() {
                         {formatTokens(used)} of {formatTokens(window.limit)} tokens used
                     </Text>
                     <Text style={[styles.usageSub, { color: subColor }]}>
-                        {window.reset ? `Resets in ${window.reset} • ` : ""}
+                        {window.reset ? `Resets in ${window.reset} - ` : ""}
                         {formatTokens(totalTokens)} lifetime tokens
                     </Text>
                 </>
             ) : totalTokens > 0 ? (
                 <Text style={[styles.usageSub, { color: subColor }]}>
-                    {formatTokens(totalTokens)} lifetime tokens • window usage appears after your next chat
+                    {formatTokens(totalTokens)} lifetime tokens - window usage appears after your next chat
                 </Text>
             ) : (
                 <Text style={[styles.usageSub, { color: subColor }]}>
                     Token usage appears here after your first chat.
                 </Text>
-            )}
-        </View>
-    )
-}
-
-function ModelRow({
-    model,
-    downloaded,
-    active,
-    busy,
-    progress,
-    disabled,
-    onSelect,
-    onDeselect,
-    onDelete,
-}: {
-    model: LocalModel
-    downloaded: boolean
-    active: boolean
-    busy: "download" | "load" | "delete" | null
-    progress: number
-    disabled: boolean
-    onSelect: () => void
-    onDeselect: () => void
-    onDelete: () => void
-}) {
-    const { vars, theme } = useThemes()
-    const subColor = theme === "light" ? "#6b7280" : "#9ca3af"
-
-    const status =
-        busy === "download"
-            ? `Downloading... ${Math.round(progress * 100)}%`
-            : busy === "load"
-              ? "Loading into memory..."
-              : busy === "delete"
-                ? "Deleting..."
-                : downloaded
-                  ? active
-                      ? "In use • Stored on this device"
-                      : "Stored on this device"
-                  : `${formatModelSize(model.sizeBytes)} • ${model.blurb}`
-
-    return (
-        <View
-            style={[
-                styles.option,
-                {
-                    backgroundColor: active ? `${vars.accentColor}12` : vars.backgroundColor,
-                    borderColor: active ? vars.accentColor : vars.secondaryBorderColor,
-                    opacity: disabled && !busy ? 0.5 : 1,
-                },
-            ]}
-        >
-            <View style={styles.optionIcon}>
-                {busy ? (
-                    <ActivityIndicator size="small" color={vars.accentColor} />
-                ) : (
-                    <Bot size={18} color={vars.accentColor} />
-                )}
-            </View>
-
-            <View style={styles.optionText}>
-                <View style={styles.modelTitleRow}>
-                    <Text style={[styles.optionTitle, { color: vars.textColor }]} numberOfLines={1}>
-                        {model.name}
-                    </Text>
-                    <View style={[styles.tierPill, { backgroundColor: `${vars.accentColor}1f` }]}>
-                        <Text style={[styles.tierText, { color: vars.accentColor }]}>{TIER_LABELS[model.tier]}</Text>
-                    </View>
-                </View>
-
-                <Text style={[styles.optionDescription, { color: subColor }]} numberOfLines={2}>
-                    {status}
-                </Text>
-
-                {busy === "download" && (
-                    <View style={[styles.progressTrack, { backgroundColor: vars.secondaryBorderColor }]}>
-                        <View
-                            style={[
-                                styles.progressFill,
-                                { backgroundColor: vars.accentColor, width: `${Math.round(progress * 100)}%` },
-                            ]}
-                        />
-                    </View>
-                )}
-            </View>
-
-            {active ? (
-                <CustomSwitch value onChange={() => onDeselect()} disabled={disabled} />
-            ) : (
-                <View style={styles.modelActions}>
-                    {!busy && (
-                        <PressableScale onPress={onSelect} enabled={!disabled} style={styles.modelButton}>
-                            <Text style={[styles.modelButtonText, { color: vars.accentColor }]}>
-                                {downloaded ? "Use" : "Get"}
-                            </Text>
-                        </PressableScale>
-                    )}
-                    {downloaded && (
-                        <PressableScale onPress={onDelete} enabled={!disabled} hitSlop={8} style={styles.modelButton}>
-                            <Trash2 size={16} color={vars.secondaryTextColor} />
-                        </PressableScale>
-                    )}
-                </View>
             )}
         </View>
     )
@@ -702,39 +419,6 @@ const styles = StyleSheet.create({
 
     optionTitle: {
         fontSize: 15,
-        fontWeight: "600",
-    },
-
-    modelTitleRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-
-    tierPill: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: BORDER_RADIUS_FULL,
-    },
-
-    tierText: {
-        fontSize: 11,
-        fontWeight: "700",
-    },
-
-    modelActions: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-    },
-
-    modelButton: {
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-    },
-
-    modelButtonText: {
-        fontSize: 14,
         fontWeight: "600",
     },
 

@@ -204,19 +204,17 @@ export default function Product({
                             )}
 
                             <View style={[styles.textContainer, { borderColor: vars.borderColor }]}>
-                                <View style={[styles.productNameWrapper, { height: vars.textSize * 1.4 }]}>
-                                    <Text
-                                        style={[
-                                            styles.productName,
-                                            {
-                                                fontSize: vars.textSize,
-                                                color: vars.textColor,
-                                            },
-                                        ]}
-                                    >
-                                        {product.name}
-                                    </Text>
-                                </View>
+                                <Text
+                                    style={[
+                                        styles.productName,
+                                        {
+                                            fontSize: vars.textSize,
+                                            color: vars.textColor,
+                                        },
+                                    ]}
+                                >
+                                    {product.name}
+                                </Text>
 
                                 <Text
                                     style={[
@@ -271,12 +269,9 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingVertical: 4,
     },
-    productNameWrapper: {
-        overflow: "hidden",
-    },
     productName: {
-        position: "absolute",
         fontWeight: "500",
+        flexWrap: "wrap",
     },
     addedBy: {
         marginTop: 8,

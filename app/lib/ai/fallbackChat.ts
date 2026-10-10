@@ -1,41 +1,32 @@
 import { createSystemPrompt } from "./prompt"
+import { getCloudChain, type CloudTarget } from "./cloudProviders"
 import { recordTokenUsage } from "./usage"
 import { ChatOptions } from "@/types/ai"
-
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-
-const PRIMARY_MODEL = "openai/gpt-oss-20b"
-const FALLBACK_MODEL = "openai/gpt-oss-120b"
 
 type GroqMessage = {
     role: "system" | "user" | "assistant"
     content: string
 }
 
-class GroqError extends Error {
+class CloudError extends Error {
     status: number
-    model: string
+    target: CloudTarget
 
-    constructor(status: number, model: string, message: string) {
+    constructor(status: number, target: CloudTarget, message: string) {
         super(message)
-        this.name = "GroqError"
+        this.name = "CloudError"
         this.status = status
-        this.model = model
+        this.target = target
     }
 }
 
-async function requestGroq({ model, messages }: { model: string; messages: GroqMessage[] }) {
-    const apiKey = process.env.GROQ_API_KEY
-
-    if (!apiKey) {
-        throw new Error("Groq API key is not configured")
-    }
-
-    const response = await fetch(GROQ_URL, {
+async function requestCloud({ model, provider, apiKey }: CloudTarget, messages: GroqMessage[]) {
+    const response = await fetch(`${provider.baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
+            ...provider.extraHeaders,
         },
         body: JSON.stringify({
             model,
@@ -48,26 +39,27 @@ async function requestGroq({ model, messages }: { model: string; messages: GroqM
     if (!response.ok) {
         const errorText = await response.text()
 
-        console.error(`Groq request failed (${model}, ${response.status})`, errorText)
+        console.error(`${provider.name} request failed (${model}, ${response.status})`, errorText)
 
-        throw new GroqError(response.status, model, `Groq request failed (${response.status}): ${errorText}`)
+        throw new CloudError(
+            response.status,
+            { provider, apiKey, model },
+            `${provider.name} request failed (${response.status}): ${errorText}`
+        )
     }
 
     const data = await response.json()
 
-    // Meter every cloud call: lifetime totals persist locally, and Groq's
-    // rate-limit headers give the remaining window when present.
-    void recordTokenUsage(model, data?.usage, response.headers)
+    // Meter every cloud call: lifetime totals persist locally, and the
+    // provider's rate-limit headers expose the remaining window when present.
+    void recordTokenUsage(`${provider.id}:${model}`, data?.usage, response.headers)
 
     return data
 }
 
-export async function completeFallbackChat({ page, pathname, messages, context }: ChatOptions): Promise<string> {
-    const groqMessages: GroqMessage[] = messages.map(({ role, content }) => ({
-        role,
-        content,
-    }))
+const extractContent = (data: any) => data?.choices?.[0]?.message?.content?.trim()
 
+export async function completeFallbackChat({ page, pathname, messages, context }: ChatOptions): Promise<string> {
     const systemMessage: GroqMessage = {
         role: "system",
         content: createSystemPrompt({
@@ -77,55 +69,41 @@ export async function completeFallbackChat({ page, pathname, messages, context }
         }),
     }
 
-    const requestMessages: GroqMessage[] = [systemMessage, ...groqMessages]
+    const requestMessages: GroqMessage[] = [systemMessage, ...messages.map(({ role, content }) => ({ role, content }))]
 
-    // --------------------------------------------------
-    // 1. Primary model
-    // --------------------------------------------------
+    const chain = getCloudChain()
 
-    try {
-        const data = await requestGroq({
-            model: PRIMARY_MODEL,
-            messages: requestMessages,
-        })
-
-        const content = data?.choices?.[0]?.message?.content
-
-        if (content?.trim()) {
-            return content.trim()
-        }
-
-        console.error(`${PRIMARY_MODEL} returned an empty response.`, data)
-
-        throw new Error(`${PRIMARY_MODEL} returned an empty response`)
-    } catch (error) {
-        // Only fall back when the primary model is
-        // actually rate limited.
-        if (!(error instanceof GroqError) || error.status !== 429) {
-            console.error(`${PRIMARY_MODEL} failed. Not falling back.`, error)
-
-            throw error
-        }
-
-        console.warn(`${PRIMARY_MODEL} is rate limited. ` + `Falling back to ${FALLBACK_MODEL}.`)
+    if (chain.length === 0) {
+        throw new Error("No cloud AI provider is configured")
     }
 
-    // --------------------------------------------------
-    // 2. Fallback model
-    // --------------------------------------------------
+    // Walk the chain, falling through when a provider is out of quota or
+    // returns nothing usable. The first good answer wins.
+    let lastError: unknown = null
 
-    const fallbackData = await requestGroq({
-        model: FALLBACK_MODEL,
-        messages: requestMessages,
-    })
+    for (const target of chain) {
+        try {
+            const data = await requestCloud(target, requestMessages)
+            const content = extractContent(data)
 
-    const fallbackContent = fallbackData?.choices?.[0]?.message?.content
+            if (content) {
+                return content
+            }
 
-    if (!fallbackContent?.trim()) {
-        console.error(`${FALLBACK_MODEL} returned an empty response.`, fallbackData)
+            console.error(`${target.provider.name} (${target.model}) returned an empty response.`, data)
+        } catch (error) {
+            lastError = error
 
-        throw new Error(`${FALLBACK_MODEL} returned an empty response`)
+            // Rate limits and missing keys are worth retrying elsewhere;
+            // anything else is a real failure worth surfacing.
+            if (error instanceof CloudError && error.status !== 429 && error.status !== 402 && error.status !== 403) {
+                console.error(`${target.provider.name} failed. Not falling back.`, error)
+                throw error
+            }
+
+            console.warn(`${target.provider.name} (${target.model}) unavailable, trying next provider.`)
+        }
     }
 
-    return fallbackContent.trim()
+    throw lastError instanceof Error ? lastError : new Error("All cloud AI providers are unavailable")
 }

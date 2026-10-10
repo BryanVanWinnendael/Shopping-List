@@ -18,7 +18,6 @@ import Markdown from "react-native-markdown-display"
 import useThemes from "@/hooks/themes/useThemes"
 import { getAiContext } from "@/lib/ai/context"
 import { chat } from "@/lib/ai/chat"
-import { loadLocalModel } from "@/lib/ai/settings"
 import { BORDER_RADIUS_L, COMPOSER_MIN_HEIGHT, COMPOSER_SEND_SIZE, DOCK_BOTTOM } from "@/lib/theme"
 import { AIProvider } from "@/types/ai"
 import { Image } from "expo-image"
@@ -51,7 +50,6 @@ const RECIPE_DETAIL_REGEX = /^\/recipes\/[^/]+$/
 const PROVIDER_LABELS: Record<AIProvider, string> = {
     cloud: "Cloud AI",
     "built-in": "Built-in AI",
-    downloaded: "Downloaded model",
     disabled: "AI",
 }
 
@@ -167,11 +165,6 @@ export default function ChatView({ pathname, provider }: Props) {
         const context = getAiContext(pathname)
 
         try {
-            // The downloaded model isn't in memory after an app restart. This loads it once and is a no-op afterwards.
-            if (provider === "downloaded") {
-                await loadLocalModel()
-            }
-
             const reply = await chat({
                 page: pageTitle,
                 pathname,

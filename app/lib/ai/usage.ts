@@ -92,13 +92,25 @@ export async function recordTokenUsage(model: string, usage?: { total_tokens?: n
     if (headers) {
         const limit = parseHeaderInt(headers, "x-ratelimit-limit-tokens")
         const remaining = parseHeaderInt(headers, "x-ratelimit-remaining-tokens")
-        const reset = headers.get("x-ratelimit-reset-tokens") ?? undefined
+        // Header values come straight off the wire, so strip anything that
+        // is not plain readable text before showing it in the UI.
+        const reset = headers
+            .get("x-ratelimit-reset-tokens")
+            ?.replace(/[^0-9a-zA-Z.]/g, "")
+            .slice(0, 12)
 
         if (limit !== undefined && remaining !== undefined) {
             nextWindow = { limit, remaining, reset }
         } else if (reset && nextWindow) {
             nextWindow = { ...nextWindow, reset }
         }
+    }
+
+    // Providers that don't expose rate-limit headers (most of OpenRouter's
+    // free endpoints, for one) still need a usable figure, so fall back to
+    // subtracting from the last known window.
+    if (nextWindow && total > 0 && !headers?.get("x-ratelimit-limit-tokens")) {
+        nextWindow = { ...nextWindow, remaining: Math.max(0, nextWindow.remaining - total) }
     }
 
     state = {

@@ -7,13 +7,6 @@ import ProviderSetup from "./providerSetup"
 import useThemes from "@/hooks/themes/useThemes"
 import { useAiContextStore } from "@/stores/useAiContextStore"
 import { AIProvider } from "@/types/ai"
-import {
-    downloadLocalModel,
-    getSelectedModelId,
-    isLocalModelDownloaded,
-    loadLocalModel,
-    setSelectedModelId,
-} from "@/lib/ai/settings"
 import { logsClient } from "@/lib/logs"
 
 type Props = {
@@ -21,8 +14,6 @@ type Props = {
     sheetRef: RefObject<BottomSheetRef | null>
     onClose: () => void
 }
-
-type Status = "idle" | "downloading" | "loading"
 
 const SNAP_POINTS = ["55%", "75%", "100%"]
 
@@ -38,12 +29,8 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
     const setProvider = useAiContextStore((state) => state.setProvider)
 
     const [checking, setChecking] = useState(true)
-    const [status, setStatus] = useState<Status>("idle")
-    const [downloadProgress, setDownloadProgress] = useState(0)
+    const [switching, setSwitching] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    const isDownloading = status === "downloading"
-    const isBusy = status !== "idle"
 
     useEffect(() => {
         let mounted = true
@@ -59,58 +46,17 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
         }
     }, [loadProvider])
 
-    // Load the chosen model into memory (once per launch), then select it.
-    const activateDownloadedModel = async (modelId?: string) => {
-        setStatus("loading")
-
-        try {
-            await loadLocalModel(modelId)
-            await setProvider("downloaded")
-        } catch (error) {
-            await logError(error)
-        } finally {
-            setStatus("idle")
-        }
-    }
-
-    const downloadAndActivate = async (modelId?: string) => {
-        setStatus("downloading")
-        setDownloadProgress(0)
+    const handleProviderSelected = async (selectedProvider: AIProvider) => {
+        setSwitching(true)
         setError(null)
 
         try {
-            await downloadLocalModel(modelId, setDownloadProgress)
-        } catch (error) {
-            await logError(error)
-            setError("Model download failed. Check your connection and try again.")
-            setStatus("idle")
-            return
-        }
-
-        // A load failure must not undo a successful download.
-        await activateDownloadedModel(modelId)
-    }
-
-    const handleProviderSelected = async (selectedProvider: AIProvider, modelId?: string) => {
-        if (selectedProvider !== "downloaded") {
             await setProvider(selectedProvider)
-            return
-        }
-
-        // The picker chose a model, so remember it as the one to download and run.
-        if (modelId) {
-            await setSelectedModelId(modelId)
-        }
-
-        // Check at tap time. The model may have been downloaded or deleted in Settings
-        // since this sheet mounted, so a value cached on mount could be stale.
-        const id = modelId ?? (await getSelectedModelId())
-        const downloaded = await isLocalModelDownloaded(id).catch(() => false)
-
-        if (downloaded) {
-            await activateDownloadedModel(id)
-        } else {
-            await downloadAndActivate(id)
+        } catch (selectError) {
+            await logError(selectError)
+            setError("Could not switch the AI model. Please try again.")
+        } finally {
+            setSwitching(false)
         }
     }
 
@@ -123,22 +69,12 @@ export default function AiChatBottomSheet({ pathname, sheetRef, onClose }: Props
             onClose={onClose}
             backgroundMode="adaptive"
         >
-            {checking ? (
+            {checking || switching ? (
                 <View style={styles.center}>
                     <ActivityIndicator size="small" />
-                    <Text style={[styles.text, { color: vars.textColor }]}>Checking AI setup…</Text>
-                </View>
-            ) : isBusy ? (
-                <View style={styles.center}>
-                    <ActivityIndicator size="large" />
                     <Text style={[styles.text, { color: vars.textColor }]}>
-                        {isDownloading ? "Downloading AI model…" : "Loading AI model…"}
+                        {checking ? "Checking AI setup…" : "Switching AI model…"}
                     </Text>
-                    {isDownloading && (
-                        <Text style={[styles.progress, { color: vars.textColor }]}>
-                            {Math.round(downloadProgress * 100)}%
-                        </Text>
-                    )}
                 </View>
             ) : provider === null ? (
                 <>
@@ -167,9 +103,5 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 14,
         fontWeight: "500",
-    },
-    progress: {
-        fontSize: 13,
-        fontWeight: "600",
     },
 })

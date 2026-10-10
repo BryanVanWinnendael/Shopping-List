@@ -9,7 +9,7 @@ import { Product as SearchProduct } from "@/types/generated/models/product"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import { useWeeklyStore } from "@/stores/useWeeklyStore"
-import { clearAIProvider, getAIProvider, restoreDownloadedModel, setAIProvider } from "@/lib/ai/settings"
+import { clearAIProvider, getAIProvider, setAIProvider } from "@/lib/ai/settings"
 import { AIProvider } from "@/types/ai"
 
 export type SearchSnapshot = {
@@ -92,10 +92,6 @@ export const useAiContextStore = create<AiContextState>((set) => ({
         set({
             provider,
         })
-
-        if (provider === "downloaded") {
-            await restoreDownloadedModel(set)
-        }
     },
 
     setProvider: async (provider) => {

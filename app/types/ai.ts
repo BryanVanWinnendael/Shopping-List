@@ -17,4 +17,4 @@ export type ChatOptions = {
     onDownloadProgress?: (progress: number) => void
 }
 
-export type AIProvider = "cloud" | "built-in" | "downloaded" | "disabled"
+export type AIProvider = "cloud" | "built-in" | "disabled"
