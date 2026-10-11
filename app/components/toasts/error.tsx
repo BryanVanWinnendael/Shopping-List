@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native"
+import { BlurView } from "expo-blur"
 import useThemes from "@/hooks/themes/useThemes"
-import LiquidGlassView from "@/components/native/liquidGlassView"
 import { XCircle } from "lucide-react-native"
 import { BORDER_RADIUS_FULL } from "@/lib/theme"
 
@@ -12,17 +12,19 @@ type Props = {
 export default function Error({ text1, text2 }: Props) {
     const { vars, appearance } = useThemes()
 
-    const isLight = appearance === "light"
-
     return (
-        <LiquidGlassView
-            isInteractive={false}
-            tintColor={isLight ? "rgba(239,68,68,0.28)" : undefined}
-            style={[styles.container, { borderColor: "rgba(239,68,68,0.45)" }]}
+        <BlurView
+            intensity={60}
+            tint={appearance}
+            style={[
+                styles.container,
+                {
+                    backgroundColor: appearance === "light" ? "rgba(255,255,255,0.85)" : "rgba(24,24,24,0.85)",
+                    borderColor: vars.secondaryBorderColor,
+                },
+            ]}
         >
-            <View style={styles.iconWrap}>
-                <XCircle size={18} color="#ef4444" />
-            </View>
+            <XCircle size={16} color="#ef4444" />
             <View style={styles.textWrap}>
                 <Text style={[styles.title, { color: vars.textColor }]} numberOfLines={1}>
                     {text1}
@@ -33,7 +35,7 @@ export default function Error({ text1, text2 }: Props) {
                     </Text>
                 )}
             </View>
-        </LiquidGlassView>
+        </BlurView>
     )
 }
 
@@ -41,38 +43,29 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
-        paddingVertical: 10,
+        gap: 8,
+        paddingVertical: 8,
         paddingHorizontal: 14,
-        paddingRight: 18,
         borderRadius: BORDER_RADIUS_FULL,
         overflow: "hidden",
         borderWidth: 1,
         alignSelf: "center",
         maxWidth: "92%",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 4,
-    },
-    iconWrap: {
-        width: 30,
-        height: 30,
-        borderRadius: BORDER_RADIUS_FULL,
-        backgroundColor: "rgba(239,68,68,0.16)",
-        alignItems: "center",
-        justifyContent: "center",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     textWrap: {
         flexShrink: 1,
     },
     title: {
         fontWeight: "600",
-        fontSize: 14,
+        fontSize: 13,
     },
     subtitle: {
         fontSize: 12,
-        marginTop: 2,
+        marginTop: 1,
     },
 })

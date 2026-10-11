@@ -27,7 +27,7 @@ export const BORDER_RADIUS_FULL = 999
 // Shared dock metrics: floating search bars, composer inputs and FABs sit on
 // the same grid on every screen (home, recipes, online recipes, search,
 // weekly, logs) so they look identical across pages.
-export const BAR_HEIGHT = 44
+export const BAR_HEIGHT = 48
 export const FAB_SIZE = 44
 export const FAB_ICON_SIZE = 20
 export const DOCK_BOTTOM = 24
