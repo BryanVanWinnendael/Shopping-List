@@ -11,6 +11,7 @@ import {
     COMPOSER_MIN_HEIGHT,
     COMPOSER_SEND_SIZE,
     DOCK_BOTTOM,
+    DOCK_SIDE,
 } from "@/lib/theme"
 
 type Props = {
@@ -76,7 +77,7 @@ export default function Input({ createCronProduct, setProduct, product, loading 
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 10,
+        paddingHorizontal: DOCK_SIDE,
         paddingBottom: DOCK_BOTTOM,
     },
     glassView: {

@@ -16,6 +16,8 @@ import {
     COMPOSER_MIN_HEIGHT,
     COMPOSER_SEND_SIZE,
     DOCK_BOTTOM,
+    DOCK_GAP,
+    DOCK_SIDE,
     FAB_SIZE,
 } from "@/lib/theme"
 
@@ -128,9 +130,9 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 10,
+        paddingHorizontal: DOCK_SIDE,
         paddingBottom: DOCK_BOTTOM,
-        gap: 8,
+        gap: DOCK_GAP,
     },
     imageContainer: {
         width: FAB_SIZE,

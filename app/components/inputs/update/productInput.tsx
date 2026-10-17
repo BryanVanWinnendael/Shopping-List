@@ -10,6 +10,7 @@ import {
     BORDER_RADIUS_L,
     COMPOSER_MIN_HEIGHT,
     COMPOSER_SEND_SIZE,
+    DOCK_SIDE,
 } from "@/lib/theme"
 import { Product } from "@/types/list"
 import { SendIcon } from "lucide-react-native"
@@ -64,7 +65,7 @@ export default function ProductInput({ product, value, updateName, updateProduct
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 10,
+        paddingHorizontal: DOCK_SIDE,
         paddingBottom: 16,
     },
     glassView: {
