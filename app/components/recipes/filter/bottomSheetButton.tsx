@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react"
-import { StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native"
 import LiquidGlassView from "@/components/native/liquidGlassView"
 import { ChevronDown, ListFilter } from "lucide-react-native"
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated"
@@ -25,15 +25,23 @@ type Props = {
     setExpanded: (expanded: boolean) => void
 }
 
+// Horizontal space taken once expanded: left margin + search circle + gap on the
+// left of this bar, and the create FAB + gap on its right.
+const RESERVED = DOCK_SIDE * 2 + FAB_SIZE * 2 + DOCK_GAP * 2
+const MIN_EXPANDED_WIDTH = 160
+
 export default function BottomSheetButton({ onPress, onExpandedChange, expanded, setExpanded }: Props) {
     const { vars } = useThemes()
     const { states } = useRecipesFilter()
     const { setFilter } = useRecipesStore()
+    const { width } = useWindowDimensions()
 
-    const width = useSharedValue(FAB_SIZE)
+    const expandedWidth = Math.max(MIN_EXPANDED_WIDTH, width - RESERVED)
+
+    const barWidth = useSharedValue(FAB_SIZE)
 
     const animatedStyle = useAnimatedStyle(() => ({
-        width: width.value,
+        width: barWidth.value,
     }))
 
     const toggle = useCallback(() => {
@@ -45,15 +53,18 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
 
     useEffect(() => {
         if (expanded) {
-            width.value = withSequence(withTiming(240, { duration: 180 }), withTiming(230, { duration: 220 }))
+            barWidth.value = withSequence(
+                withTiming(expandedWidth + 8, { duration: 180 }),
+                withTiming(expandedWidth, { duration: 220 })
+            )
 
             setFilter(true)
         } else {
-            width.value = withTiming(FAB_SIZE, { duration: 180 })
+            barWidth.value = withTiming(FAB_SIZE, { duration: 180 })
 
             setFilter(false)
         }
-    }, [expanded, setFilter])
+    }, [expanded, expandedWidth, setFilter, barWidth])
 
     return (
         <Animated.View style={[styles.container, animatedStyle]}>
@@ -69,7 +80,13 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
                 >
                     {expanded && (
                         <PressableScale onPress={onPress} style={styles.labelButton}>
-                            <Text style={[styles.filteredBy, { color: vars.textColor }]}>Filtered by</Text>
+                            <Text
+                                style={[styles.filteredBy, { color: vars.textColor }]}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
+                                Filtered by
+                            </Text>
 
                             <View style={styles.labelRow}>
                                 <Text
@@ -137,7 +154,7 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
     },
     labelButton: {
-        width: 160,
+        flex: 1,
         paddingHorizontal: 12,
         justifyContent: "center",
     },

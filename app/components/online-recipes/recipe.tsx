@@ -1,10 +1,13 @@
 import { memo } from "react"
 import { StyleSheet, Text, View } from "react-native"
 import { Link } from "expo-router"
+import * as Haptics from "expo-haptics"
 import { Image } from "expo-image"
+import { Pin } from "lucide-react-native"
 import LiquidGlassView from "@/components/native/liquidGlassView"
 import useThemes from "@/hooks/themes/useThemes"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
+import { useViewLaterStore } from "@/stores/useViewLaterStore"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, FAB_ICON_SIZE } from "@/lib/theme"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 
 type Props = {
@@ -14,6 +17,9 @@ type Props = {
 
 function Recipe({ recipe, variant = "list" }: Props) {
     const { vars } = useThemes()
+    const { recipes: viewLater, toggleViewLater } = useViewLaterStore()
+
+    const isPinned = viewLater.some((item) => item.url === recipe.url)
 
     return (
         <Link
@@ -32,6 +38,14 @@ function Recipe({ recipe, variant = "list" }: Props) {
                         transition={250}
                     />
 
+                    {isPinned && (
+                        <View pointerEvents="none" style={styles.pin}>
+                            <LiquidGlassView style={styles.pinGlass} isInteractive>
+                                <Pin size={FAB_ICON_SIZE} strokeWidth={2.2} color={vars.textColor} />
+                            </LiquidGlassView>
+                        </View>
+                    )}
+
                     <View style={styles.overlay}>
                         <LiquidGlassView style={styles.titleGlass} isInteractive>
                             <Text
@@ -45,6 +59,18 @@ function Recipe({ recipe, variant = "list" }: Props) {
                     </View>
                 </View>
             </Link.Trigger>
+
+            <Link.Menu>
+                <Link.MenuAction
+                    title={isPinned ? "Remove from view later" : "View later"}
+                    icon={isPinned ? "pin.slash" : "pin"}
+                    onPress={async () => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+
+                        await toggleViewLater(recipe)
+                    }}
+                />
+            </Link.Menu>
 
             <Link.Preview style={styles.preview}>
                 <Image source={recipe.image} style={styles.previewImage} contentFit="cover" />
@@ -73,6 +99,25 @@ const styles = StyleSheet.create({
     },
     gridImage: {
         height: 140,
+    },
+    pin: {
+        position: "absolute",
+        top: 12,
+        right: 12,
+    },
+    pinGlass: {
+        width: FAB_ICON_SIZE + 20,
+        height: FAB_ICON_SIZE + 20,
+        borderRadius: BORDER_RADIUS_FULL,
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        borderWidth: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     overlay: {
         position: "absolute",

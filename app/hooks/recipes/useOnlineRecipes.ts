@@ -1,10 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { onlineRecipesClient } from "@/lib/online-recipes"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 import { useHeaderStore } from "@/stores/useHeaderStore"
+import { useViewLaterStore } from "@/stores/useViewLaterStore"
+
+// View-later recipes float to the top, keeping their original order.
+const pinFirst = (recipes: OnlineRecipe[], pinnedUrls: string[]) => {
+    if (!pinnedUrls.length) return recipes
+
+    const pinned = new Set(pinnedUrls)
+
+    return [
+        ...recipes.filter((recipe) => pinned.has(recipe.url)),
+        ...recipes.filter((recipe) => !pinned.has(recipe.url)),
+    ]
+}
 
 export default function useOnlineRecipes() {
     const { setHeaderText } = useHeaderStore()
+    const viewLater = useViewLaterStore((state) => state.recipes)
 
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const loadingRef = useRef(false)
@@ -120,9 +134,12 @@ export default function useOnlineRecipes() {
         getPage(0)
     }, [getPage])
 
+    const pinnedUrls = useMemo(() => viewLater.map((recipe) => recipe.url), [viewLater])
+    const orderedRecipes = useMemo(() => pinFirst(recipes, pinnedUrls), [recipes, pinnedUrls])
+
     return {
         states: {
-            recipes,
+            recipes: orderedRecipes,
             page,
             maxPages,
             totalRecipes,

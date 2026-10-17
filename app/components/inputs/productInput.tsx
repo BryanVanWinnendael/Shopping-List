@@ -9,6 +9,8 @@ import ImageInput from "@/components/inputs/imageInput"
 import useThemes from "@/hooks/themes/useThemes"
 import LiquidGlassView from "@/components/native/liquidGlassView"
 import {
+    BAR_FONT_SIZE,
+    BAR_PADDING_H,
     BORDER_RADIUS_FULL,
     BORDER_RADIUS_L,
     COMPOSER_MIN_HEIGHT,
@@ -172,9 +174,10 @@ const styles = StyleSheet.create({
         maxHeight: 120,
         borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,
-        paddingLeft: 16,
-        paddingRight: 6,
+        paddingLeft: BAR_PADDING_H,
+        paddingRight: 8,
         paddingVertical: 4,
+        justifyContent: "center",
         overflow: "hidden",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
@@ -185,15 +188,15 @@ const styles = StyleSheet.create({
     inputRow: {
         flexDirection: "row",
         alignItems: "flex-end",
-        minHeight: 36,
+        minHeight: 40,
     },
     textInput: {
         flex: 1,
-        minHeight: 34,
-        maxHeight: 100,
-        paddingVertical: 7,
+        minHeight: 40,
+        maxHeight: 110,
+        paddingVertical: 8,
         paddingHorizontal: 2,
-        fontSize: 16,
+        fontSize: BAR_FONT_SIZE,
         fontWeight: "400",
     },
     sendWrapper: {
@@ -201,7 +204,7 @@ const styles = StyleSheet.create({
         height: COMPOSER_SEND_SIZE,
         alignItems: "center",
         justifyContent: "center",
-        marginLeft: 6,
+        marginLeft: 8,
     },
     sendButton: {
         width: COMPOSER_SEND_SIZE,

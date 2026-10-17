@@ -3,7 +3,14 @@ import { StyleSheet, TextInput, View } from "react-native"
 import { PressableScale } from "pressto"
 import useThemes from "@/hooks/themes/useThemes"
 import LiquidGlassView from "@/components/native/liquidGlassView"
-import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, COMPOSER_MIN_HEIGHT, COMPOSER_SEND_SIZE } from "@/lib/theme"
+import {
+    BAR_FONT_SIZE,
+    BAR_PADDING_H,
+    BORDER_RADIUS_FULL,
+    BORDER_RADIUS_L,
+    COMPOSER_MIN_HEIGHT,
+    COMPOSER_SEND_SIZE,
+} from "@/lib/theme"
 import { Product } from "@/types/list"
 import { SendIcon } from "lucide-react-native"
 
@@ -66,9 +73,10 @@ const styles = StyleSheet.create({
         maxHeight: 120,
         borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,
-        paddingLeft: 16,
-        paddingRight: 6,
+        paddingLeft: BAR_PADDING_H,
+        paddingRight: 8,
         paddingVertical: 4,
+        justifyContent: "center",
         overflow: "hidden",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
@@ -79,21 +87,21 @@ const styles = StyleSheet.create({
     inputRow: {
         flexDirection: "row",
         alignItems: "flex-end",
-        minHeight: 36,
+        minHeight: 40,
     },
     textInput: {
         flex: 1,
-        minHeight: 34,
-        maxHeight: 100,
-        paddingVertical: 7,
+        minHeight: 40,
+        maxHeight: 110,
+        paddingVertical: 8,
         paddingHorizontal: 2,
-        fontSize: 16,
+        fontSize: BAR_FONT_SIZE,
         fontWeight: "400",
     },
     sendButton: {
         width: COMPOSER_SEND_SIZE,
         height: COMPOSER_SEND_SIZE,
-        marginLeft: 6,
+        marginLeft: 8,
         borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",
         justifyContent: "center",

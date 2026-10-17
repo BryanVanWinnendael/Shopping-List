@@ -21,7 +21,14 @@ import { chat } from "@/lib/ai/chat"
 import { getCapabilitiesReply, isCapabilitiesQuestion } from "@/lib/ai/capabilities"
 import { formatTokens, loadTokenUsage, useTokenUsage } from "@/lib/ai/usage"
 import { CloudError } from "@/lib/ai/fallbackChat"
-import { BORDER_RADIUS_L, COMPOSER_MIN_HEIGHT, COMPOSER_SEND_SIZE, DOCK_BOTTOM } from "@/lib/theme"
+import {
+    BAR_FONT_SIZE,
+    BAR_PADDING_H,
+    BORDER_RADIUS_L,
+    COMPOSER_MIN_HEIGHT,
+    COMPOSER_SEND_SIZE,
+    DOCK_BOTTOM,
+} from "@/lib/theme"
 import { AIProvider } from "@/types/ai"
 import { Image } from "expo-image"
 import AssistantIcon from "@/assets/assistant.png"
@@ -523,8 +530,8 @@ const styles = StyleSheet.create({
         maxHeight: 120,
         borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,
-        paddingLeft: 16,
-        paddingRight: 6,
+        paddingLeft: BAR_PADDING_H,
+        paddingRight: 8,
         paddingVertical: 4,
         flexDirection: "row",
         alignItems: "flex-end",
@@ -537,19 +544,19 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        minHeight: 34,
-        maxHeight: 100,
-        paddingVertical: 7,
+        minHeight: 40,
+        maxHeight: 110,
+        paddingVertical: 8,
         paddingHorizontal: 2,
-        fontSize: 16,
+        fontSize: BAR_FONT_SIZE,
         fontWeight: "400",
     },
     send: {
         width: COMPOSER_SEND_SIZE,
         height: COMPOSER_SEND_SIZE,
-        borderRadius: 21,
+        borderRadius: COMPOSER_SEND_SIZE / 2,
         alignItems: "center",
         justifyContent: "center",
-        marginLeft: 6,
+        marginLeft: 8,
     },
 })

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import { httpRequest } from "./httpHelper"
 import Toast from "react-native-toast-message"
 import {
@@ -5,8 +6,26 @@ import {
     GetOnlineRecipesResponse,
     SearchOnlineRecipesResponse,
 } from "@/types/generated/contracts/recipes"
+import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 
 const ONLINE_RECIPES_PATH = "/recipes/online"
+const VIEW_LATER_KEY = "app_onlineRecipeViewLater"
+
+export const getViewLaterRecipes = async (): Promise<OnlineRecipe[]> => {
+    try {
+        const stored = await AsyncStorage.getItem(VIEW_LATER_KEY)
+
+        if (!stored) return []
+
+        return JSON.parse(stored) as OnlineRecipe[]
+    } catch {
+        return []
+    }
+}
+
+export const setViewLaterRecipes = async (recipes: OnlineRecipe[]) => {
+    await AsyncStorage.setItem(VIEW_LATER_KEY, JSON.stringify(recipes))
+}
 
 const getOnlineRecipes = async (page: number): Promise<GetOnlineRecipesResponse | null> => {
     try {

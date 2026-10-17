@@ -13,12 +13,14 @@ import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
 import {
+    BAR_CLEAR_ICON_SIZE,
     BAR_FONT_SIZE,
     BAR_HEIGHT,
     BAR_PADDING_H,
     BORDER_RADIUS_L,
     DOCK_BOTTOM,
     DOCK_SIDE,
+    FAB_ICON_SIZE,
     SEARCH_BAR_RIGHT,
 } from "@/lib/theme"
 
@@ -51,7 +53,7 @@ export function SearchBar({ value, updateQuery }: Props) {
     return (
         <AnimatedView style={[styles.container, animatedStyle]}>
             <LiquidGlassView style={styles.glass} isInteractive>
-                <Search size={18} color={vars.textColor} />
+                <Search size={FAB_ICON_SIZE} color={vars.textColor} />
                 <TextInput
                     value={value}
                     onChangeText={updateQuery}
@@ -65,7 +67,7 @@ export function SearchBar({ value, updateQuery }: Props) {
                 {value.length > 0 && (
                     <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(120)}>
                         <PressableScale onPress={clear} hitSlop={10} style={styles.clearButton}>
-                            <X size={16} color={vars.textColor} />
+                            <X size={BAR_CLEAR_ICON_SIZE} color={vars.textColor} />
                         </PressableScale>
                     </Animated.View>
                 )}

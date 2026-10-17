@@ -12,7 +12,8 @@ type Props = {
     variant?: "list" | "grid"
 }
 
-const keyExtractor = (item: OnlineRecipe, index: number) => `${item.title}-${index}`
+// Keyed by url so pinning a recipe (which reorders the list) reuses the same rows.
+const keyExtractor = (item: OnlineRecipe) => item.url
 
 export function List({ results, onEndReached, loading, variant = "list" }: Props) {
     const isGrid = variant === "grid"
@@ -57,7 +58,7 @@ function InitialSkeleton() {
 const styles = StyleSheet.create({
     content: {
         paddingTop: HEADER_HEIGHT,
-        paddingBottom: HEADER_HEIGHT + 60,
+        paddingBottom: HEADER_HEIGHT + 85,
     },
     gridRow: {
         gap: 12,

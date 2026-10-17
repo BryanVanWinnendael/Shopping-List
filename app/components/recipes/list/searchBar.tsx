@@ -14,11 +14,14 @@ import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
 import {
+    BAR_CLEAR_ICON_SIZE,
     BAR_FONT_SIZE,
     BAR_HEIGHT,
+    BAR_PADDING_H,
     BORDER_RADIUS_L,
     DOCK_BOTTOM,
     DOCK_SIDE,
+    FAB_ICON_SIZE,
     FAB_SIZE,
     SEARCH_BAR_RIGHT_DOUBLE,
 } from "@/lib/theme"
@@ -30,6 +33,9 @@ type Props = {
     onSearchPress: () => void
 }
 
+// Collapsed to a single FAB-sized circle on the left, clear of the expanded
+// filter bar (which stops DOCK_GAP short of it). Animating width instead of the
+// right offset keeps the circle exactly FAB_SIZE on every screen width.
 const AnimatedView = Animated.createAnimatedComponent(Animated.View)
 const AnimatedGlassView = Animated.createAnimatedComponent(LiquidGlassView)
 
@@ -37,7 +43,9 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
     const { vars, appearance } = useThemes()
     const { width } = useWindowDimensions()
 
-    const right = useSharedValue(SEARCH_BAR_RIGHT_DOUBLE)
+    const expandedWidth = width - SEARCH_BAR_RIGHT_DOUBLE - DOCK_SIDE
+
+    const barWidth = useSharedValue(expandedWidth)
     const scale = useSharedValue(1)
     const borderRadius = useSharedValue(BORDER_RADIUS_L)
 
@@ -50,7 +58,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
     }))
 
     const containerStyle = useAnimatedStyle(() => ({
-        right: right.value,
+        width: barWidth.value,
     }))
 
     const glassStyle = useAnimatedStyle(() => ({
@@ -58,10 +66,10 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
     }))
 
     useEffect(() => {
-        right.value = withTiming(filterExpanded ? width - 72 : SEARCH_BAR_RIGHT_DOUBLE, { duration: 250 })
+        barWidth.value = withTiming(filterExpanded ? FAB_SIZE : expandedWidth, { duration: 250 })
 
-        borderRadius.value = withTiming(filterExpanded ? 24 : BORDER_RADIUS_L, { duration: 250 })
-    }, [filterExpanded, width])
+        borderRadius.value = withTiming(filterExpanded ? FAB_SIZE / 2 : BORDER_RADIUS_L, { duration: 250 })
+    }, [filterExpanded, expandedWidth, barWidth, borderRadius])
 
     return (
         <AnimatedView style={[styles.container, containerStyle, animatedStyle]}>
@@ -71,7 +79,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                     styles.glass,
                     {
                         justifyContent: filterExpanded ? "center" : undefined,
-                        paddingHorizontal: filterExpanded ? 0 : 16,
+                        paddingHorizontal: filterExpanded ? 0 : BAR_PADDING_H,
                     },
                     glassStyle,
                 ]}
@@ -85,7 +93,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                     hitSlop={10}
                     style={filterExpanded ? styles.iconButton : undefined}
                 >
-                    <Search size={18} strokeWidth={2} color={vars.textColor} />
+                    <Search size={FAB_ICON_SIZE} strokeWidth={2} color={vars.textColor} />
                 </PressableScale>
 
                 {!filterExpanded && (
@@ -104,7 +112,7 @@ export function SearchBar({ value, updateQuery, filterExpanded, onSearchPress }:
                         {value.length > 0 && (
                             <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(120)}>
                                 <PressableScale onPress={() => updateQuery("")} hitSlop={10} style={styles.clearButton}>
-                                    <X size={16} strokeWidth={2} color={vars.textColor} />
+                                    <X size={BAR_CLEAR_ICON_SIZE} strokeWidth={2} color={vars.textColor} />
                                 </PressableScale>
                             </Animated.View>
                         )}
@@ -120,13 +128,14 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: DOCK_BOTTOM,
         left: DOCK_SIDE,
-        right: SEARCH_BAR_RIGHT_DOUBLE,
         zIndex: 10,
     },
     glass: {
         flexDirection: "row",
         alignItems: "center",
+        paddingHorizontal: BAR_PADDING_H,
         height: BAR_HEIGHT,
+        borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,
         overflow: "hidden",
         shadowColor: "#000",
@@ -147,7 +156,7 @@ const styles = StyleSheet.create({
         fontSize: BAR_FONT_SIZE,
     },
     clearButton: {
-        padding: 4,
+        padding: 5,
         marginLeft: 6,
     },
 })
