@@ -36,8 +36,8 @@ export default function Instruction({ instruction, index, onUpdate, onRemove }: 
                 style={[
                     styles.input,
                     {
-                        backgroundColor: vars.backgroundColor,
-                        borderColor: vars.borderColor,
+                        backgroundColor: vars.secondaryBackgroundColor,
+                        borderColor: vars.secondaryBorderColor,
                         color: vars.textColor,
                     },
                 ]}

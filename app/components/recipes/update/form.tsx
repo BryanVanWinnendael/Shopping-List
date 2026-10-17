@@ -82,8 +82,8 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
         styles.input,
         {
             color: vars.textColor,
-            backgroundColor: vars.backgroundColor,
-            borderColor: vars.borderColor,
+            backgroundColor: vars.secondaryBackgroundColor,
+            borderColor: vars.secondaryBorderColor,
         },
     ]
 
@@ -238,8 +238,8 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         style={[
                             styles.addButton,
                             {
-                                backgroundColor: vars.backgroundColor,
-                                borderColor: vars.borderColor,
+                                backgroundColor: vars.secondaryBackgroundColor,
+                                borderColor: vars.secondaryBorderColor,
                             },
                         ]}
                     >
@@ -267,8 +267,8 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                         style={[
                             styles.addButton,
                             {
-                                backgroundColor: vars.backgroundColor,
-                                borderColor: vars.borderColor,
+                                backgroundColor: vars.secondaryBackgroundColor,
+                                borderColor: vars.secondaryBorderColor,
                             },
                         ]}
                     >

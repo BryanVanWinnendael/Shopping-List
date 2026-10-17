@@ -45,7 +45,7 @@ function ProviderOption({ title, description, badge, selected, disabled = false,
                                         ? {
                                               backgroundColor: vars.secondaryBackgroundColor,
                                               borderWidth: 1,
-                                              borderColor: vars.borderColor,
+                                              borderColor: vars.secondaryBorderColor,
                                           }
                                         : { backgroundColor: vars.accentColor },
                                 ]}

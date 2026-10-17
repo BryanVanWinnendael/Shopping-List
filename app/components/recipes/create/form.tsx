@@ -80,7 +80,7 @@ export default function Form({ onClose }: Props) {
         {
             color: vars.textColor,
             backgroundColor: vars.secondaryBackgroundColor,
-            borderColor: vars.borderColor,
+            borderColor: vars.secondaryBorderColor,
         },
     ]
 
@@ -234,7 +234,7 @@ export default function Form({ onClose }: Props) {
                             styles.addButton,
                             {
                                 backgroundColor: vars.secondaryBackgroundColor,
-                                borderColor: vars.borderColor,
+                                borderColor: vars.secondaryBorderColor,
                             },
                         ]}
                     >
@@ -263,7 +263,7 @@ export default function Form({ onClose }: Props) {
                             styles.addButton,
                             {
                                 backgroundColor: vars.secondaryBackgroundColor,
-                                borderColor: vars.borderColor,
+                                borderColor: vars.secondaryBorderColor,
                             },
                         ]}
                     >

@@ -37,8 +37,8 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove }: Pr
                 style={[
                     styles.productInput,
                     {
-                        backgroundColor: vars.backgroundColor,
-                        borderColor: vars.borderColor,
+                        backgroundColor: vars.secondaryBackgroundColor,
+                        borderColor: vars.secondaryBorderColor,
                         color: vars.textColor,
                     },
                 ]}

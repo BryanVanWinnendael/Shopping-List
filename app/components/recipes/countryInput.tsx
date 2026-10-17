@@ -30,7 +30,7 @@ export default function CountryInput({ value, onChange }: Props) {
                     styles.trigger,
                     {
                         backgroundColor: vars.secondaryBackgroundColor,
-                        borderColor: vars.borderColor,
+                        borderColor: vars.secondaryBorderColor,
                     },
                 ]}
             >
@@ -48,7 +48,7 @@ export default function CountryInput({ value, onChange }: Props) {
                             styles.searchInput,
                             {
                                 color: vars.textColor,
-                                borderColor: vars.borderColor,
+                                borderColor: vars.secondaryBorderColor,
                                 backgroundColor: vars.secondaryBackgroundColor,
                             },
                         ]}

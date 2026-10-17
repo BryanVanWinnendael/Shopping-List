@@ -40,8 +40,8 @@ export default function Ingredient({ ingredient, index, onUpdate, onRemove, onRe
                 style={[
                     styles.productInput,
                     {
-                        backgroundColor: vars.backgroundColor,
-                        borderColor: vars.borderColor,
+                        backgroundColor: vars.secondaryBackgroundColor,
+                        borderColor: vars.secondaryBorderColor,
                         color: vars.textColor,
                     },
                 ]}

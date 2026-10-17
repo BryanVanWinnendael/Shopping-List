@@ -120,7 +120,7 @@ export default function IngredientsList({ recipe }: Props) {
                         styles.addAllButton,
                         {
                             backgroundColor: allAdded ? `${vars.accentColor}14` : vars.backgroundColor,
-                            borderColor: vars.borderColor,
+                            borderColor: vars.secondaryBorderColor,
                             opacity: loadingAll ? 0.6 : 1,
                         },
                     ]}
