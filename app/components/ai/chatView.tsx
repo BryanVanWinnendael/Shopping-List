@@ -10,7 +10,7 @@ import {
     View,
 } from "react-native"
 import { useGlobalSearchParams } from "expo-router"
-import { SendIcon } from "lucide-react-native"
+import { RotateCcw, SendIcon } from "lucide-react-native"
 import { BlurView } from "expo-blur"
 import LiquidGlassView from "@/components/native/liquidGlassView"
 import { PressableScale } from "pressto"
@@ -18,6 +18,9 @@ import Markdown from "react-native-markdown-display"
 import useThemes from "@/hooks/themes/useThemes"
 import { getAiContext } from "@/lib/ai/context"
 import { chat } from "@/lib/ai/chat"
+import { getCapabilitiesReply, isCapabilitiesQuestion } from "@/lib/ai/capabilities"
+import { formatTokens, loadTokenUsage, useTokenUsage } from "@/lib/ai/usage"
+import { CloudError } from "@/lib/ai/fallbackChat"
 import { BORDER_RADIUS_L, COMPOSER_MIN_HEIGHT, COMPOSER_SEND_SIZE, DOCK_BOTTOM } from "@/lib/theme"
 import { AIProvider } from "@/types/ai"
 import { Image } from "expo-image"
@@ -32,6 +35,34 @@ type Message = {
     id: string
     role: "assistant" | "user"
     content: string
+    failed?: boolean
+    error?: string
+}
+
+const friendlyError = (error: unknown) => {
+    if (error instanceof CloudError) {
+        const name = error.target.provider.name
+
+        if (error.status === 401 || error.status === 403) {
+            return `${name} rejected the API key. Check it in Settings.`
+        }
+
+        if (error.status === 402) {
+            return `${name} is out of credit. It will try the next provider.`
+        }
+
+        if (error.status === 429) {
+            return `${name} is rate limited. Wait a moment and resend.`
+        }
+
+        return `${name} failed (${error.status}). Resend to try again.`
+    }
+
+    if (error instanceof Error && error.message === "No cloud AI provider is configured") {
+        return "No cloud key set. Add one in Settings under AI Assistant."
+    }
+
+    return "Couldn't reach the AI. Resend to try again."
 }
 
 const PAGE_TITLES: Record<string, string> = {
@@ -41,7 +72,6 @@ const PAGE_TITLES: Record<string, string> = {
     "/searchProducts": "Search Products",
     "/weekly": "Weekly List",
     "/weeklyCategories": "Weekly Categories",
-    "/logs": "Logs",
     "/settings": "Settings",
 }
 
@@ -65,7 +95,13 @@ function getPageTitle(pathname: string, recipeTitle?: string) {
     return PAGE_TITLES[pathname] ?? "Current page"
 }
 
-const MessageBubble = memo(function MessageBubble({ message }: { message: Message }) {
+const MessageBubble = memo(function MessageBubble({
+    message,
+    onResend,
+}: {
+    message: Message
+    onResend: (id: string, content: string) => void
+}) {
     const { vars } = useThemes()
     const mine = message.role === "user"
 
@@ -93,17 +129,34 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Messag
     )
 
     return (
-        <View
-            style={[
-                styles.message,
-                mine ? styles.messageMine : styles.messageTheirs,
-                { backgroundColor: mine ? vars.accentColor : vars.secondaryBackgroundColor },
-            ]}
-        >
-            {mine ? (
-                <Text style={[styles.messageText, styles.messageTextMine]}>{message.content}</Text>
-            ) : (
-                <Markdown style={markdownStyles}>{message.content}</Markdown>
+        <View style={[styles.messageWrap, mine ? styles.messageMine : styles.messageTheirs]}>
+            <View
+                style={[
+                    styles.message,
+                    mine ? styles.messageMine : styles.messageTheirs,
+                    { backgroundColor: mine ? vars.accentColor : vars.secondaryBackgroundColor },
+                ]}
+            >
+                {mine ? (
+                    <Text style={[styles.messageText, styles.messageTextMine]}>{message.content}</Text>
+                ) : (
+                    <Markdown style={markdownStyles}>{message.content}</Markdown>
+                )}
+            </View>
+
+            {mine && message.failed && (
+                <>
+                    {!!message.error && <Text style={[styles.errorText, { color: "#ef4444" }]}>{message.error}</Text>}
+                    <PressableScale
+                        onPress={() => onResend(message.id, message.content)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Resend message"
+                        style={styles.resend}
+                    >
+                        <RotateCcw size={13} color={vars.accentColor} />
+                        <Text style={[styles.resendText, { color: vars.accentColor }]}>Tap to resend</Text>
+                    </PressableScale>
+                </>
             )}
         </View>
     )
@@ -119,12 +172,25 @@ export default function ChatView({ pathname, provider }: Props) {
     const [input, setInput] = useState("")
     const [sending, setSending] = useState(false)
     const [downloadProgress, setDownloadProgress] = useState<number | null>(null)
+    const [stage, setStage] = useState<string | null>(null)
 
     const listRef = useRef<FlatList<Message>>(null)
     const idCounter = useRef(0)
+    const messagesRef = useRef<Message[]>([])
+    const sendingRef = useRef(false)
+
+    messagesRef.current = messages
+    sendingRef.current = sending
 
     const pageTitle = useMemo(() => getPageTitle(pathname, recipeTitle), [pathname, recipeTitle])
     const canSend = !!input.trim() && !sending
+
+    const { totalTokens, window } = useTokenUsage()
+    const usageSummary = window
+        ? `${formatTokens(Math.max(0, window.limit - window.remaining))}/${formatTokens(window.limit)}`
+        : totalTokens > 0
+          ? `${formatTokens(totalTokens)} lifetime`
+          : ""
 
     // Counter-based ids can't collide the way Date.now() can for two messages in the same millisecond.
     const createId = (prefix: string) => `${prefix}-${++idCounter.current}`
@@ -140,7 +206,11 @@ export default function ChatView({ pathname, provider }: Props) {
         setInput("")
     }, [pathname, pageTitle, recipeTitle])
 
-    // Scroll to the newest message, and to the "Thinking…" indicator when it appears.
+    useEffect(() => {
+        loadTokenUsage()
+    }, [])
+
+    // Scroll to the newest message, and to the thinking indicator when it appears.
     useEffect(() => {
         if (!messages.length) return
 
@@ -149,53 +219,90 @@ export default function ChatView({ pathname, provider }: Props) {
         })
     }, [messages.length, sending])
 
-    const send = async () => {
-        const content = input.trim()
+    const sendContent = useCallback(
+        async (content: string, retryId?: string) => {
+            if (!content || sendingRef.current) return
 
-        if (!content || sending) return
+            const messageId = retryId ?? createId("user")
 
-        const userMessage: Message = { id: createId("user"), role: "user", content }
+            if (retryId) {
+                setMessages((current) =>
+                    current.map((message) =>
+                        message.id === retryId ? { ...message, failed: false, error: undefined } : message
+                    )
+                )
+            } else {
+                setInput("")
+                setMessages((current) => [...current, { id: messageId, role: "user", content }])
+            }
 
-        setInput("")
-        setMessages((current) => [...current, userMessage])
-        setSending(true)
-        setDownloadProgress(null)
+            // Capability questions get the curated list instantly, no model call.
+            if (!retryId && isCapabilitiesQuestion(content)) {
+                setMessages((current) => [
+                    ...current,
+                    { id: createId("assistant"), role: "assistant", content: getCapabilitiesReply(pageTitle) },
+                ])
+                return
+            }
 
-        // Read the context when the user sends, so it contains the latest app data.
-        const context = getAiContext(pathname)
+            // The failed message is already in history on retry; only append on first send.
+            const history = retryId
+                ? [...messagesRef.current]
+                : [...messagesRef.current, { id: messageId, role: "user" as const, content }]
 
-        try {
-            const reply = await chat({
-                page: pageTitle,
-                pathname,
-                messages: [...messages, userMessage],
-                context,
-                provider,
-                onDownloadProgress: setDownloadProgress,
-            })
-
-            setMessages((current) => [
-                ...current,
-                { id: createId("assistant"), role: "assistant", content: reply || "I couldn't generate a response." },
-            ])
-        } catch (error) {
-            console.error("AI chat failed:", error)
-
-            setMessages((current) => [
-                ...current,
-                {
-                    id: createId("error"),
-                    role: "assistant",
-                    content: "I couldn't generate a response. Please try again.",
-                },
-            ])
-        } finally {
-            setSending(false)
+            setSending(true)
+            setStage("Thinking…")
             setDownloadProgress(null)
-        }
+
+            // Read the context when the user sends, so it contains the latest app data.
+            const context = getAiContext(pathname)
+
+            try {
+                const reply = await chat({
+                    page: pageTitle,
+                    pathname,
+                    messages: history,
+                    context,
+                    provider,
+                    onDownloadProgress: setDownloadProgress,
+                    onStage: setStage,
+                })
+
+                setMessages((current) => [
+                    ...current,
+                    {
+                        id: createId("assistant"),
+                        role: "assistant",
+                        content: reply || "I couldn't generate a response.",
+                    },
+                ])
+            } catch (error) {
+                console.error("AI chat failed:", error)
+
+                setMessages((current) =>
+                    current.map((message) =>
+                        message.id === messageId ? { ...message, failed: true, error: friendlyError(error) } : message
+                    )
+                )
+            } finally {
+                setSending(false)
+                setDownloadProgress(null)
+                setStage(null)
+            }
+        },
+        [pageTitle, pathname, provider]
+    )
+
+    const send = async () => {
+        await sendContent(input.trim())
     }
 
-    const renderItem = useCallback(({ item }: { item: Message }) => <MessageBubble message={item} />, [])
+    const resend = useCallback((id: string, content: string) => sendContent(content, id), [sendContent])
+
+    const renderItem = useCallback(
+        ({ item }: { item: Message }) => <MessageBubble message={item} onResend={resend} />,
+        [resend]
+    )
 
     return (
         <View style={styles.container}>
@@ -208,6 +315,7 @@ export default function ChatView({ pathname, provider }: Props) {
                             <Text style={[styles.title, { color: vars.textColor }]}>Assistant</Text>
                             <Text style={[styles.context, { color: vars.textColor }]} numberOfLines={1}>
                                 {PROVIDER_LABELS[provider]}
+                                {usageSummary ? ` · ${usageSummary}` : ""}
                             </Text>
                         </View>
                     </View>
@@ -235,7 +343,7 @@ export default function ChatView({ pathname, provider }: Props) {
                                     <ActivityIndicator color={vars.accentColor} size="small" />
                                     <Text style={[styles.thinkingText, { color: vars.textColor }]}>
                                         {downloadProgress === null
-                                            ? "Thinking…"
+                                            ? (stage ?? "Thinking…")
                                             : `Downloading the offline model… ${downloadProgress}%`}
                                     </Text>
                                 </View>
@@ -345,11 +453,34 @@ const styles = StyleSheet.create({
         paddingHorizontal: 13,
         paddingVertical: 10,
     },
+    messageWrap: {
+        maxWidth: "85%",
+    },
     messageMine: {
         alignSelf: "flex-end",
     },
     messageTheirs: {
         alignSelf: "flex-start",
+    },
+    resend: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-end",
+        gap: 4,
+        marginTop: 4,
+        paddingVertical: 4,
+        paddingHorizontal: 2,
+    },
+    resendText: {
+        fontSize: 12,
+        fontWeight: "600",
+    },
+    errorText: {
+        fontSize: 12,
+        alignSelf: "flex-end",
+        textAlign: "right",
+        marginTop: 4,
+        maxWidth: "85%",
     },
     messageText: {
         fontSize: 15,

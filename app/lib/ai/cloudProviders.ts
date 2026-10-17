@@ -46,11 +46,13 @@ export type CloudTarget = {
  * Only providers with a configured key are included, and only their first
  * two models — enough for a fallback without hammering rate limits.
  */
+const cleanKey = (key: string | undefined) => key?.trim().replace(/^["']|["']$/g, "") || undefined
+
 export function getCloudChain(): CloudTarget[] {
     const chain: CloudTarget[] = []
 
     for (const provider of CLOUD_PROVIDERS) {
-        const apiKey = provider.apiKey
+        const apiKey = cleanKey(provider.apiKey)
 
         if (!apiKey) continue
 

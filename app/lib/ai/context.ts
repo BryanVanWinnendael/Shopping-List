@@ -2,24 +2,27 @@ import { useAiContextStore } from "@/stores/useAiContextStore"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { ChatContext } from "@/types/ai"
 
-// Cap list snapshots so on-device models stay within their context window.
+// Cap list snapshots so requests stay far under per-minute token budgets
+// and on-device models stay within their context window.
 const MAX_ITEMS = 100
 
 export function getAiContext(pathname: string): ChatContext {
-    const { products, recipes, recipe, weeklyProducts, onlineRecipes, onlineRecipe, searchSnapshot, logSummary } =
+    const { products, recipes, recipe, weeklyProducts, onlineRecipes, onlineRecipe, searchSnapshot } =
         useAiContextStore.getState()
 
     if (pathname === "/") {
+        const items = products ? Object.values(products) : []
+
         return {
             type: "shopping-list",
-            products,
+            items: items.slice(0, MAX_ITEMS * 2).map((item) => item.name),
         }
     }
 
     if (pathname === "/recipes") {
         return {
             type: "recipes",
-            recipes,
+            items: (recipes ?? []).slice(0, MAX_ITEMS * 2).map((item) => ({ id: item.id, title: item.title })),
         }
     }
 
@@ -60,14 +63,6 @@ export function getAiContext(pathname: string): ChatContext {
             items: (searchSnapshot?.products ?? [])
                 .slice(0, MAX_ITEMS)
                 .map((item) => ({ name: item.name, brand: item.brand, category: item.category })),
-        }
-    }
-
-    if (pathname === "/logs") {
-        return {
-            type: "logs",
-            total: logSummary?.total ?? 0,
-            recentTraceIds: logSummary?.recentTraceIds ?? [],
         }
     }
 

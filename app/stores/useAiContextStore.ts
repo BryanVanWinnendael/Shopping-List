@@ -17,11 +17,6 @@ export type SearchSnapshot = {
     products: SearchProduct[]
 }
 
-export type LogSummary = {
-    total: number
-    recentTraceIds: string[]
-}
-
 export type AiContextState = {
     products: Products | null
 
@@ -42,9 +37,6 @@ export type AiContextState = {
     searchSnapshot: SearchSnapshot | null
     setSearchSnapshot: (snapshot: SearchSnapshot) => void
 
-    logSummary: LogSummary | null
-    setLogSummary: (summary: LogSummary) => void
-
     provider: AIProvider | null
     loadProvider: () => Promise<void>
     setProvider: (provider: AIProvider | null) => Promise<void>
@@ -59,7 +51,6 @@ export const useAiContextStore = create<AiContextState>((set) => ({
     onlineRecipes: [],
     onlineRecipe: null,
     searchSnapshot: null,
-    logSummary: null,
     provider: null,
 
     setRecipes: (recipes) => {
@@ -80,10 +71,6 @@ export const useAiContextStore = create<AiContextState>((set) => ({
 
     setSearchSnapshot: (snapshot) => {
         set({ searchSnapshot: snapshot })
-    },
-
-    setLogSummary: (summary) => {
-        set({ logSummary: summary })
     },
 
     loadProvider: async () => {

@@ -15,6 +15,7 @@ export type ChatOptions = {
     context: ChatContext
     provider: AIProvider
     onDownloadProgress?: (progress: number) => void
+    onStage?: (stage: string | null) => void
 }
 
 export type AIProvider = "cloud" | "built-in" | "disabled"

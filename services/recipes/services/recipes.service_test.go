@@ -556,12 +556,22 @@ func TestFilterRecipes(t *testing.T) {
 			{Id: "3", Title: "Unknown"},
 		}
 
+		// public=true means "all": public + private (+ nil treated as private for compat with frontend)
 		result := filterRecipes(recipes, models.RecipeFilter{
 			Public: &public,
 		})
 
-		if len(result) != 1 || result[0].Id != "1" {
-			t.Fatalf("expected public recipe, got %+v", result)
+		if len(result) != 3 {
+			t.Fatalf("expected all recipes when public=true, got %+v", result)
+		}
+
+		// public=false means "private only": excludes public recipes
+		result = filterRecipes(recipes, models.RecipeFilter{
+			Public: &private,
+		})
+
+		if len(result) != 2 || result[0].Id != "2" || result[1].Id != "3" {
+			t.Fatalf("expected private recipes when public=false, got %+v", result)
 		}
 	})
 
