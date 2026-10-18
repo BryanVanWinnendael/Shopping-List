@@ -7,16 +7,10 @@ import {
     SearchOnlineRecipesResponse,
 } from "@/types/generated/contracts/recipes"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
+import { OnlineRecipeFilter } from "@/types/generated/models/online_recipe_filter"
 
 const ONLINE_RECIPES_PATH = "/recipes/online"
 const VIEW_LATER_KEY = "app_onlineRecipeViewLater"
-
-export type OnlineRecipeFilter = {
-    kitchens: string[]
-    courses: string[]
-    dishes: string[]
-    specials: string[]
-}
 
 // Empty groups are left out so the backend can tell "not filtered" from "filtered
 // with nothing selected".

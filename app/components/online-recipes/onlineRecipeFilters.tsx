@@ -4,7 +4,6 @@ import { BlurView } from "expo-blur"
 import { Check, ChevronDown, ChevronUp, ListFilter, Search } from "lucide-react-native"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { PressableScale } from "pressto"
-
 import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import LiquidGlassView from "@/components/native/liquidGlassView"
 import useThemes from "@/hooks/themes/useThemes"
@@ -20,7 +19,7 @@ import {
     FAB_SIZE,
     SHEET_CTA_HEIGHT,
 } from "@/lib/theme"
-import { OnlineRecipeFilter } from "@/lib/online-recipes"
+import { OnlineRecipeFilter } from "@/types/generated/models/online_recipe_filter"
 
 type FilterGroup = keyof OnlineRecipeFilter
 

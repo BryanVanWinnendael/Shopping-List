@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { OnlineRecipeFilter, onlineRecipesClient } from "@/lib/online-recipes"
+import { onlineRecipesClient } from "@/lib/online-recipes"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 import { useHeaderStore } from "@/stores/useHeaderStore"
 import { useViewLaterStore } from "@/stores/useViewLaterStore"
+import { OnlineRecipeFilter } from "@/types/generated/models/online_recipe_filter"
 
 // View-later recipes float to the top, keeping their original order.
 const pinFirst = (recipes: OnlineRecipe[], pinnedUrls: string[]) => {
