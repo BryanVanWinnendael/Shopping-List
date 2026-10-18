@@ -163,13 +163,6 @@ const styles = StyleSheet.create({
         borderRadius: BORDER_RADIUS_L,
         alignItems: "center",
         justifyContent: "center",
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.16,
-        shadowRadius: 8,
-        elevation: 4,
     },
     applyText: {
         color: "#fff",

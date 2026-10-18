@@ -236,19 +236,17 @@ export default function AColor() {
                                     </PressableScale>
                                 </LiquidGlassView>
 
-                                <LiquidGlassView style={styles.primaryGlass} isInteractive>
-                                    <PressableScale
-                                        onPress={closeModal}
-                                        style={[
-                                            styles.primaryButton,
-                                            {
-                                                backgroundColor: `${aColor}E6`,
-                                            },
-                                        ]}
-                                    >
-                                        <Text style={styles.primaryText}>Done</Text>
-                                    </PressableScale>
-                                </LiquidGlassView>
+                                <PressableScale
+                                    onPress={closeModal}
+                                    style={[
+                                        styles.primaryButton,
+                                        {
+                                            backgroundColor: aColor,
+                                        },
+                                    ]}
+                                >
+                                    <Text style={styles.primaryText}>Done</Text>
+                                </PressableScale>
                             </View>
                         </LiquidGlassView>
                     </Animated.View>
@@ -458,22 +456,17 @@ const styles = StyleSheet.create({
     resetText: {
         fontWeight: "600",
     },
-    primaryGlass: {
+    primaryButton: {
         flex: 1,
         minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_M,
-        borderWidth: 1,
-        overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
         elevation: 2,
-    },
-    primaryButton: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
     },
     primaryText: {
         color: "#fff",

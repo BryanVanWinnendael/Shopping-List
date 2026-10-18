@@ -274,19 +274,17 @@ export default function Form({ onClose }: Props) {
 
             <View style={styles.createButtonContainer}>
                 <FormError message={error} onDismiss={() => setError(null)} />
-                <LiquidGlassView style={styles.createGlass} isInteractive={!addRecipeStates.loading}>
-                    <PressableScale
-                        enabled={!addRecipeStates.loading}
-                        onPress={createRecipe}
-                        style={[styles.createButton, { backgroundColor: `${vars.accentColor}E6` }]}
-                    >
-                        {addRecipeStates.loading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.createButtonText}>Create Recipe</Text>
-                        )}
-                    </PressableScale>
-                </LiquidGlassView>
+                <PressableScale
+                    enabled={!addRecipeStates.loading}
+                    onPress={createRecipe}
+                    style={[styles.createButton, { backgroundColor: vars.accentColor }]}
+                >
+                    {addRecipeStates.loading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.createButtonText}>Create Recipe</Text>
+                    )}
+                </PressableScale>
             </View>
         </KeyboardAvoidingView>
     )
@@ -399,21 +397,16 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         backgroundColor: "transparent",
     },
-    createGlass: {
+    createButton: {
         minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_L,
-        borderWidth: 1,
-        overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
         elevation: 2,
-    },
-    createButton: {
-        minHeight: SHEET_CTA_HEIGHT,
-        alignItems: "center",
-        justifyContent: "center",
     },
     createButtonText: {
         color: "#fff",

@@ -233,19 +233,17 @@ export default function FontSize() {
                                     </PressableScale>
                                 </LiquidGlassView>
 
-                                <LiquidGlassView style={styles.primaryGlass} isInteractive>
-                                    <PressableScale
-                                        onPress={applyFontSize}
-                                        style={[
-                                            styles.primaryButton,
-                                            {
-                                                backgroundColor: `${vars.accentColor}E6`,
-                                            },
-                                        ]}
-                                    >
-                                        <Text style={styles.doneText}>Done</Text>
-                                    </PressableScale>
-                                </LiquidGlassView>
+                                <PressableScale
+                                    onPress={applyFontSize}
+                                    style={[
+                                        styles.primaryButton,
+                                        {
+                                            backgroundColor: vars.accentColor,
+                                        },
+                                    ]}
+                                >
+                                    <Text style={styles.doneText}>Done</Text>
+                                </PressableScale>
                             </View>
                         </LiquidGlassView>
                     </Animated.View>
@@ -450,24 +448,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "600",
     },
-    primaryGlass: {
-        flex: 1,
-        minHeight: SHEET_CTA_HEIGHT,
-        borderRadius: BORDER_RADIUS_M,
-        borderWidth: 1,
-        overflow: "hidden",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        elevation: 2,
-    },
     primaryButton: {
         flex: 1,
         minHeight: SHEET_CTA_HEIGHT,
         alignItems: "center",
         justifyContent: "center",
         borderRadius: BORDER_RADIUS_M,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     doneText: {
         color: "#fff",

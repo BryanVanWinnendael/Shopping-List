@@ -279,19 +279,17 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
 
             <View style={styles.updateButtonContainer}>
                 <FormError message={error} onDismiss={() => setError(null)} />
-                <LiquidGlassView style={styles.updateGlass} isInteractive={!editStates.loading}>
-                    <PressableScale
-                        enabled={!editStates.loading}
-                        onPress={updateRecipe}
-                        style={[styles.updateButton, { backgroundColor: `${vars.accentColor}E6` }]}
-                    >
-                        {editStates.loading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.updateButtonText}>Update Recipe</Text>
-                        )}
-                    </PressableScale>
-                </LiquidGlassView>
+                <PressableScale
+                    enabled={!editStates.loading}
+                    onPress={updateRecipe}
+                    style={[styles.updateButton, { backgroundColor: vars.accentColor }]}
+                >
+                    {editStates.loading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.updateButtonText}>Update Recipe</Text>
+                    )}
+                </PressableScale>
             </View>
         </KeyboardAvoidingView>
     )
@@ -404,21 +402,16 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         backgroundColor: "transparent",
     },
-    updateGlass: {
+    updateButton: {
         minHeight: SHEET_CTA_HEIGHT,
         borderRadius: BORDER_RADIUS_L,
-        borderWidth: 1,
-        overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
         elevation: 2,
-    },
-    updateButton: {
-        minHeight: SHEET_CTA_HEIGHT,
-        alignItems: "center",
-        justifyContent: "center",
     },
     updateButtonText: {
         color: "#fff",

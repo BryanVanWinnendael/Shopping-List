@@ -121,16 +121,14 @@ export default function LogBodyModal({ body, title = "Body", onClose }: Props) {
                             </View>
                         </ScrollView>
 
-                        <LiquidGlassView style={styles.doneGlass} isInteractive>
-                            <PressableScale
-                                onPress={close}
-                                accessibilityRole="button"
-                                accessibilityLabel="Done"
-                                style={[styles.doneButton, { backgroundColor: `${vars.accentColor}E6` }]}
-                            >
-                                <Text style={styles.doneText}>Done</Text>
-                            </PressableScale>
-                        </LiquidGlassView>
+                        <PressableScale
+                            onPress={close}
+                            accessibilityRole="button"
+                            accessibilityLabel="Done"
+                            style={[styles.doneButton, { backgroundColor: vars.accentColor }]}
+                        >
+                            <Text style={styles.doneText}>Done</Text>
+                        </PressableScale>
                     </LiquidGlassView>
                 </Animated.View>
             </LiquidGlassView>
@@ -217,21 +215,16 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 20,
     },
-    doneGlass: {
+    doneButton: {
         marginTop: 14,
         borderRadius: BORDER_RADIUS_L,
-        overflow: "hidden",
-        borderWidth: 1,
+        paddingVertical: 14,
+        alignItems: "center",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
         elevation: 2,
-    },
-    doneButton: {
-        borderRadius: BORDER_RADIUS_L,
-        paddingVertical: 14,
-        alignItems: "center",
     },
     doneText: {
         color: "#fff",

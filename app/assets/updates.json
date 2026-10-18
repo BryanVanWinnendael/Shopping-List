@@ -1,5 +1,18 @@
 [
     {
+        "version": "3.0.0",
+        "date": "18/10/2026",
+        "text": [
+            "New AI Assistant that can add products to your shopping list for you, shake your screen to activate",
+            "Products added from a recipe are now grouped under the recipe name in your shopping list",
+            "Added filters to the online recipes page",
+            "Added a filter to the recipes page to narrow your recipes you saved from the online recipe section",
+            "Pin online recipes to view later",
+            "Images are now zoomable",
+            "Refreshed the UI across the app"
+        ]
+    },
+    {
         "version": "2.5.0",
         "date": "25/07/2026",
         "text": [
