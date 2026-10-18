@@ -42,8 +42,8 @@ export default function CountriesFilter() {
                 style={[
                     styles.selector,
                     {
-                        borderColor: vars.borderColor,
-                        backgroundColor: vars.backgroundColor,
+                        borderColor: vars.secondaryBorderColor,
+                        backgroundColor: vars.secondaryBackgroundColor,
                     },
                 ]}
                 onPress={toggleDropdown}

@@ -33,7 +33,7 @@ export default function SearchProducts() {
             <View style={[styles.container, { backgroundColor: vars.backgroundColor }]}>
                 <SearchBar value={states.query} updateQuery={actions.updateQuery} />
 
-                <FilterButton open={actions.open} />
+                <FilterButton open={actions.open} count={states.selectedCategories.length} />
 
                 <List results={states.results} loading={states.loading} getNextPage={actions.getNextPage} />
             </View>
@@ -53,7 +53,11 @@ export default function SearchProducts() {
                         </BlurView>
                     </View>
 
-                    <Filter selected={states.selectedCategories} onApply={actions.applyFilters} />
+                    <Filter
+                        selected={states.selectedCategories}
+                        onApply={actions.applyFilters}
+                        onClose={actions.close}
+                    />
                 </View>
             </AppBottomSheet>
         </>

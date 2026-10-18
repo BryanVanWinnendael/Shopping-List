@@ -150,7 +150,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                                             styles.timeInput,
                                             {
                                                 borderColor: vars.borderColor,
-                                                backgroundColor: vars.backgroundColor,
+                                                backgroundColor: vars.secondaryBackgroundColor,
                                                 color: vars.textColor,
                                             },
                                         ]}
@@ -160,7 +160,7 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                         </View>
                     </ScrollView>
 
-                    <View style={styles.clearWrapper}>
+                    <View style={styles.footer}>
                         <PressableScale
                             onPress={() =>
                                 setActiveFilter({
@@ -171,9 +171,20 @@ export default function BottomSheet({ sheetRef, onClose }: Props) {
                                     time: null,
                                 })
                             }
-                            style={[styles.clearButton, { backgroundColor: vars.accentColor }]}
+                            accessibilityRole="button"
+                            accessibilityLabel="Clear filters"
+                            style={[styles.clearButton, { backgroundColor: vars.secondaryBorderColor }]}
                         >
-                            <Text style={styles.clearText}>Clear Filters</Text>
+                            <Text style={[styles.clearText, { color: vars.textColor }]}>Clear Filters</Text>
+                        </PressableScale>
+
+                        <PressableScale
+                            onPress={onClose}
+                            accessibilityRole="button"
+                            accessibilityLabel="Show results"
+                            style={[styles.applyButton, { backgroundColor: vars.accentColor }]}
+                        >
+                            <Text style={styles.applyText}>Show results</Text>
                         </PressableScale>
                     </View>
                 </View>
@@ -244,17 +255,32 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         fontSize: 16,
     },
-    clearWrapper: {
+    footer: {
         position: "absolute",
         left: 0,
         right: 0,
         bottom: 0,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
         paddingHorizontal: 20,
         paddingTop: 10,
         paddingBottom: 10,
         backgroundColor: "transparent",
     },
     clearButton: {
+        minHeight: 54,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 20,
+    },
+    clearText: {
+        fontWeight: "600",
+        fontSize: 16,
+    },
+    applyButton: {
+        flex: 1,
         minHeight: 54,
         borderRadius: BORDER_RADIUS_L,
         alignItems: "center",
@@ -267,7 +293,7 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 5,
     },
-    clearText: {
+    applyText: {
         color: "#fff",
         fontWeight: "700",
         fontSize: 16,

@@ -100,7 +100,7 @@ export default function AiModel() {
     const hasCloudKey = CLOUD_PROVIDERS.some((entry) => entry.apiKey)
     const cloudDescription = hasCloudKey
         ? "Free cloud AI with automatic fallback when one is busy."
-        : "No cloud provider key found. Add GROQ_API_KEY or OPENROUTER_API_KEY."
+        : "No cloud provider key found."
 
     return (
         <View

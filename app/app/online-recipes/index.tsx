@@ -5,6 +5,7 @@ import useOnlineRecipes from "@/hooks/recipes/useOnlineRecipes"
 import { List } from "@/components/online-recipes/list"
 import StyleButton from "@/components/online-recipes/styleButton"
 import SearchBar from "@/components/online-recipes/searchBar"
+import OnlineRecipeFilters from "@/components/online-recipes/onlineRecipeFilters"
 import { useAiContextStore } from "@/stores/useAiContextStore"
 
 export default function OnlineRecipes() {
@@ -36,6 +37,8 @@ export default function OnlineRecipes() {
             />
 
             <StyleButton value={states.style} setStyle={actions.setStyle} collapsed={searchFocused} />
+
+            <OnlineRecipeFilters filter={states.filter} onApply={actions.setFilters} />
         </View>
     )
 }

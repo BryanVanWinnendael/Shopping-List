@@ -80,3 +80,16 @@ type RecipeFilter struct {
 	Time     *int
 	IsSaved  *bool
 }
+
+// OnlineRecipeFilter holds the 15gram filters for the online recipe endpoints.
+// Every group is a multi-select and maps to one repeated param, e.g. kitchen[]=x.
+type OnlineRecipeFilter struct {
+	Kitchens []string
+	Courses  []string
+	Dishes   []string
+	Specials []string
+}
+
+func (f OnlineRecipeFilter) Active() bool {
+	return len(f.Kitchens) > 0 || len(f.Courses) > 0 || len(f.Dishes) > 0 || len(f.Specials) > 0
+}

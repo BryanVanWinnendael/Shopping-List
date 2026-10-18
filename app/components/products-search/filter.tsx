@@ -11,6 +11,7 @@ import { BORDER_RADIUS_L } from "@/lib/theme"
 type Props = {
     selected: Category[]
     onApply: (categories: Category[]) => void
+    onClose: () => void
 }
 
 type FilterCategory = {
@@ -22,7 +23,7 @@ const FILTER_CATEGORIES: FilterCategory[] = CATEGORY_ORDER.filter((c) => c !== "
     c === "meat" ? { label: "Meat / Fish", value: "meat" } : { label: c, value: c }
 )
 
-export default function Filter({ selected, onApply }: Props) {
+export default function Filter({ selected, onApply, onClose }: Props) {
     const { vars } = useThemes()
     const { aColor } = useSettingsStore()
 
@@ -61,8 +62,8 @@ export default function Filter({ selected, onApply }: Props) {
                                 style={[
                                     styles.chip,
                                     {
-                                        borderColor: active ? aColor : vars.borderColor,
-                                        backgroundColor: active ? aColor : vars.backgroundColor,
+                                        borderColor: active ? aColor : vars.secondaryBorderColor,
+                                        backgroundColor: active ? aColor : vars.secondaryBackgroundColor,
                                     },
                                 ]}
                             >
@@ -84,8 +85,22 @@ export default function Filter({ selected, onApply }: Props) {
             </ScrollView>
 
             <View style={styles.footer}>
-                <PressableScale onPress={clearAll} style={[styles.clearButton, { backgroundColor: aColor }]}>
-                    <Text style={styles.clearText}>Clear Filters</Text>
+                <PressableScale
+                    onPress={clearAll}
+                    accessibilityRole="button"
+                    accessibilityLabel="Clear filters"
+                    style={[styles.clearButton, { backgroundColor: vars.secondaryBackgroundColor }]}
+                >
+                    <Text style={[styles.clearText, { color: vars.textColor }]}>Clear Filters</Text>
+                </PressableScale>
+
+                <PressableScale
+                    onPress={onClose}
+                    accessibilityRole="button"
+                    accessibilityLabel="Show results"
+                    style={[styles.applyButton, { backgroundColor: aColor }]}
+                >
+                    <Text style={styles.applyText}>Show results</Text>
                 </PressableScale>
             </View>
         </View>
@@ -123,12 +138,27 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
         paddingHorizontal: 20,
         paddingTop: 8,
         paddingBottom: 8,
         backgroundColor: "transparent",
     },
     clearButton: {
+        minHeight: 50,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 20,
+    },
+    clearText: {
+        fontWeight: "600",
+        fontSize: 15,
+    },
+    applyButton: {
+        flex: 1,
         minHeight: 50,
         borderRadius: BORDER_RADIUS_L,
         alignItems: "center",
@@ -141,7 +171,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 4,
     },
-    clearText: {
+    applyText: {
         color: "#fff",
         fontWeight: "700",
         fontSize: 15,

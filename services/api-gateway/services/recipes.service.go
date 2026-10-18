@@ -179,12 +179,14 @@ func (rs *RecipesService) GetDistinctCountries(ctx context.Context) (*contracts.
 	return &response, nil
 }
 
-func (rs *RecipesService) GetOnlineRecipes(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error) {
+func (rs *RecipesService) GetOnlineRecipes(ctx context.Context, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error) {
 	params := url.Values{}
 
 	if page != "" {
 		params.Set("page", page)
 	}
+
+	httphelper.AddOnlineRecipeFilter(params, filter)
 
 	requestUrl := fmt.Sprintf("%s/online-recipes?%s", rs.baseURL, params.Encode())
 
@@ -233,8 +235,17 @@ func (rs *RecipesService) GetOnlineRecipeDetails(ctx context.Context, recipeUrl 
 	return &response, nil
 }
 
-func (rs *RecipesService) SearchOnlineRecipes(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/online-recipes/search?query=%s&page=%s", rs.baseURL, query, page)
+func (rs *RecipesService) SearchOnlineRecipes(ctx context.Context, query string, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error) {
+	params := url.Values{}
+	params.Set("query", query)
+
+	if page != "" {
+		params.Set("page", page)
+	}
+
+	httphelper.AddOnlineRecipeFilter(params, filter)
+
+	requestUrl := fmt.Sprintf("%s/online-recipes/search?%s", rs.baseURL, params.Encode())
 
 	var response contracts.GetOnlineRecipesResponse
 

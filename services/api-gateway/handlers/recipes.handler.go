@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"shopping-list/api-gateway/response"
 	"shopping-list/shared/contracts"
+	httphelper "shopping-list/shared/http"
 	"shopping-list/shared/models"
 	"strconv"
 	"strings"
@@ -22,9 +23,9 @@ type RecipesService interface {
 	UpdateRecipe(ctx context.Context, id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUser(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountries(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
-	GetOnlineRecipes(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error)
+	GetOnlineRecipes(ctx context.Context, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error)
 	GetOnlineRecipeDetails(ctx context.Context, url string) (*contracts.GetOnlineRecipeDetailsResponse, error)
-	SearchOnlineRecipes(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error)
+	SearchOnlineRecipes(ctx context.Context, query string, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error)
 	GetBackup(ctx context.Context) (*http.Response, error)
 }
 
@@ -164,7 +165,7 @@ func (rh *RecipesHandler) GetOnlineRecipes(c echo.Context) error {
 		}
 	}
 
-	result, err := rh.RecipesService.GetOnlineRecipes(c.Request().Context(), pageStr)
+	result, err := rh.RecipesService.GetOnlineRecipes(c.Request().Context(), httphelper.ReadOnlineRecipeFilter(c), pageStr)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -189,11 +190,12 @@ func (rh *RecipesHandler) GetOnlineRecipeDetails(c echo.Context) error {
 }
 
 func (rh *RecipesHandler) SearchOnlineRecipes(c echo.Context) error {
+	filter := httphelper.ReadOnlineRecipeFilter(c)
 	query := c.QueryParam("query")
 
-	missingQueryParams := response.GetMissingQueryParams(c, "query")
-	if len(missingQueryParams) > 0 {
-		return response.Missing(c, response.SourceQuery, missingQueryParams...)
+	// A filter alone is a valid search: 15gram filters on /search?q=&kitchen[]=x.
+	if strings.TrimSpace(query) == "" && !filter.Active() {
+		return response.Missing(c, response.SourceQuery, "query")
 	}
 
 	pageStr := c.QueryParam("page")
@@ -204,7 +206,7 @@ func (rh *RecipesHandler) SearchOnlineRecipes(c echo.Context) error {
 		}
 	}
 
-	result, err := rh.RecipesService.SearchOnlineRecipes(c.Request().Context(), query, pageStr)
+	result, err := rh.RecipesService.SearchOnlineRecipes(c.Request().Context(), query, filter, pageStr)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

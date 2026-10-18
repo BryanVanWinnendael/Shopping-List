@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"shopping-list/shared/models"
+	"strings"
 	"testing"
 
 	"shopping-list/shared/contracts"
@@ -23,9 +24,9 @@ type MockRecipesService struct {
 	UpdateRecipeFunc           func(ctx context.Context, id string, req *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	GetRecipesByUserFunc       func(ctx context.Context, user string) (*contracts.GetRecipesByUserResponse, error)
 	GetDistinctCountriesFunc   func(ctx context.Context) (*contracts.GetDistinctCountriesResponse, error)
-	GetOnlineRecipesFunc       func(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error)
+	GetOnlineRecipesFunc       func(ctx context.Context, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error)
 	GetOnlineRecipeDetailsFunc func(ctx context.Context, url string) (*contracts.GetOnlineRecipeDetailsResponse, error)
-	SearchOnlineRecipesFunc    func(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error)
+	SearchOnlineRecipesFunc    func(ctx context.Context, query string, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error)
 	GetBackupFunc              func(ctx context.Context) (*http.Response, error)
 }
 
@@ -257,7 +258,7 @@ func TestGetOnlineRecipes(t *testing.T) {
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/online?page=1", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{
-			GetOnlineRecipesFunc: func(context.Context, string) (*contracts.GetOnlineRecipesResponse, error) {
+			GetOnlineRecipesFunc: func(context.Context, models.OnlineRecipeFilter, string) (*contracts.GetOnlineRecipesResponse, error) {
 				return nil, errors.New("failed")
 			},
 		})
@@ -629,12 +630,39 @@ func TestSearchOnlineRecipes(t *testing.T) {
 		}
 	})
 
+	t.Run("Given only kitchens, When SearchOnlineRecipes, Then returns 200 with an empty query", func(t *testing.T) {
+		// given
+		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=&kitchen%5B%5D=frans", nil)
+
+		handler := NewRecipesHandler(&MockRecipesService{
+			SearchOnlineRecipesFunc: func(ctx context.Context, query string, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error) {
+				if strings.TrimSpace(query) != "" {
+					t.Fatalf("expected an empty query, got %s", query)
+				}
+
+				if len(filter.Kitchens) != 1 || filter.Kitchens[0] != "frans" {
+					t.Fatalf("expected frans, got %v", filter.Kitchens)
+				}
+
+				return &contracts.GetOnlineRecipesResponse{}, nil
+			},
+		})
+
+		// when
+		_ = handler.SearchOnlineRecipes(c)
+
+		// then
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d", rec.Code)
+		}
+	})
+
 	t.Run("Given service error, When SearchOnlineRecipes, Then returns 500", func(t *testing.T) {
 		//given
 		c, rec := tests.SetupEcho(http.MethodGet, "/recipes/search?query=milk&page=1", nil)
 
 		handler := NewRecipesHandler(&MockRecipesService{
-			SearchOnlineRecipesFunc: func(context.Context, string, string) (*contracts.GetOnlineRecipesResponse, error) {
+			SearchOnlineRecipesFunc: func(context.Context, string, models.OnlineRecipeFilter, string) (*contracts.GetOnlineRecipesResponse, error) {
 				return nil, errors.New("failed")
 			},
 		})
@@ -841,9 +869,9 @@ func (m *MockRecipesService) GetDistinctCountries(ctx context.Context) (*contrac
 	return &contracts.GetDistinctCountriesResponse{}, nil
 }
 
-func (m *MockRecipesService) GetOnlineRecipes(ctx context.Context, page string) (*contracts.GetOnlineRecipesResponse, error) {
+func (m *MockRecipesService) GetOnlineRecipes(ctx context.Context, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error) {
 	if m.GetOnlineRecipesFunc != nil {
-		return m.GetOnlineRecipesFunc(ctx, page)
+		return m.GetOnlineRecipesFunc(ctx, filter, page)
 	}
 	return &contracts.GetOnlineRecipesResponse{}, nil
 }
@@ -855,9 +883,9 @@ func (m *MockRecipesService) GetOnlineRecipeDetails(ctx context.Context, url str
 	return &contracts.GetOnlineRecipeDetailsResponse{}, nil
 }
 
-func (m *MockRecipesService) SearchOnlineRecipes(ctx context.Context, query string, page string) (*contracts.GetOnlineRecipesResponse, error) {
+func (m *MockRecipesService) SearchOnlineRecipes(ctx context.Context, query string, filter models.OnlineRecipeFilter, page string) (*contracts.GetOnlineRecipesResponse, error) {
 	if m.SearchOnlineRecipesFunc != nil {
-		return m.SearchOnlineRecipesFunc(ctx, query, page)
+		return m.SearchOnlineRecipesFunc(ctx, query, filter, page)
 	}
 	return &contracts.GetOnlineRecipesResponse{}, nil
 }

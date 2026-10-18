@@ -46,33 +46,40 @@ export function useRecipesFilter() {
         await setActiveFilter(reset)
     }
 
-    const label = useMemo(() => {
-        if (!activeFilter) return "Filter"
+    // One entry per active filter, so the label and the FAB badge cannot drift apart.
+    const parts = useMemo(() => {
+        if (!activeFilter) return []
 
-        const parts: string[] = []
+        const next: string[] = []
 
         if (activeFilter.mealType !== "Any") {
-            parts.push(activeFilter.mealType)
+            next.push(activeFilter.mealType)
         }
 
         if (!activeFilter.public) {
-            parts.push("Private")
+            next.push("Private")
         }
 
         if (activeFilter.country && activeFilter.country !== "Any") {
-            parts.push(activeFilter.country)
+            next.push(activeFilter.country)
         }
 
         if (activeFilter.time) {
-            parts.push(`≤ ${activeFilter.time} min`)
+            next.push(`≤ ${activeFilter.time} min`)
         }
 
         if (activeFilter.isSaved) {
-            parts.push("Online Recipes")
+            next.push("Online Recipes")
         }
 
-        return parts.length ? parts.join(", ") : "All"
+        return next
     }, [activeFilter])
+
+    const label = useMemo(() => {
+        if (!activeFilter) return "Filter"
+
+        return parts.length ? parts.join(", ") : "All"
+    }, [activeFilter, parts])
 
     useEffect(() => {
         setMealType(activeFilter.mealType)
@@ -88,6 +95,7 @@ export function useRecipesFilter() {
             country,
             time,
             label,
+            count: parts.length,
         },
         actions: {
             setMealType,

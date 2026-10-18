@@ -2,7 +2,14 @@ import { useCallback, useEffect } from "react"
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native"
 import LiquidGlassView from "@/components/native/liquidGlassView"
 import { ChevronDown, ListFilter } from "lucide-react-native"
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated"
+import Animated, {
+    FadeIn,
+    FadeOut,
+    useAnimatedStyle,
+    useSharedValue,
+    withSequence,
+    withTiming,
+} from "react-native-reanimated"
 import { PressableScale } from "pressto"
 
 import { useRecipesFilter } from "@/hooks/recipes/useRecipesFilter"
@@ -122,6 +129,16 @@ export default function BottomSheetButton({ onPress, onExpandedChange, expanded,
                     </View>
                 </PressableScale>
             </LiquidGlassView>
+
+            {!expanded && states.count > 0 && (
+                <Animated.View
+                    entering={FadeIn.duration(120)}
+                    exiting={FadeOut.duration(120)}
+                    style={[styles.badge, { backgroundColor: vars.accentColor }]}
+                >
+                    <Text style={styles.badgeText}>{states.count}</Text>
+                </Animated.View>
+            )}
         </Animated.View>
     )
 }
@@ -179,5 +196,21 @@ const styles = StyleSheet.create({
     },
     icon: {
         transform: [{ translateX: 1 }],
+    },
+    badge: {
+        position: "absolute",
+        top: -4,
+        right: -4,
+        minWidth: 20,
+        height: 20,
+        borderRadius: BORDER_RADIUS_FULL,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 5,
+    },
+    badgeText: {
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: "700",
     },
 })

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { onlineRecipesClient } from "@/lib/online-recipes"
+import { OnlineRecipeFilter, onlineRecipesClient } from "@/lib/online-recipes"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 import { useHeaderStore } from "@/stores/useHeaderStore"
 import { useViewLaterStore } from "@/stores/useViewLaterStore"
@@ -33,6 +33,16 @@ export default function useOnlineRecipes() {
 
     const [query, setQuery] = useState("")
     const [isSearching, setIsSearching] = useState(false)
+    const [filter, setFilter] = useState<OnlineRecipeFilter>({
+        kitchens: [],
+        courses: [],
+        dishes: [],
+        specials: [],
+    })
+
+    // Read through a ref so getPage/search keep a stable identity: they run in the
+    // mount effect below, so depending on state here would refetch on every toggle.
+    const filterRef = useRef<OnlineRecipeFilter>(filter)
 
     const setLoadingState = (value: boolean) => {
         loadingRef.current = value
@@ -47,7 +57,7 @@ export default function useOnlineRecipes() {
             setLoadingState(true)
 
             try {
-                const response = await onlineRecipesClient.getOnlineRecipes(pageNumber)
+                const response = await onlineRecipesClient.getOnlineRecipes(filterRef.current, pageNumber)
 
                 if (response) {
                     setPage(response.page)
@@ -86,7 +96,7 @@ export default function useOnlineRecipes() {
             setQuery(q)
 
             try {
-                const response = await onlineRecipesClient.searchOnlineRecipes(q, pageNumber)
+                const response = await onlineRecipesClient.searchOnlineRecipes(q, filterRef.current, pageNumber)
 
                 if (response) {
                     setPage(response.page)
@@ -118,6 +128,21 @@ export default function useOnlineRecipes() {
         }
     }, [page, maxPages, isSearching, query, search, getPage])
 
+    // Reload from the first page so the current filters apply to the whole list.
+    const applyFilter = useCallback(
+        (next: OnlineRecipeFilter) => {
+            filterRef.current = next
+            setFilter(next)
+
+            if (isSearching) {
+                search(query, 1)
+            } else {
+                getPage(0)
+            }
+        },
+        [isSearching, query, search, getPage]
+    )
+
     const updateQuery = (q: string) => {
         setQuery(q)
 
@@ -147,12 +172,14 @@ export default function useOnlineRecipes() {
             style,
             query,
             isSearching,
+            filter,
         },
         actions: {
             getNextPage,
             setStyle,
             search,
             updateQuery,
+            setFilters: applyFilter,
         },
     }
 }
