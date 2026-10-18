@@ -36,6 +36,7 @@ export function List({ results, onEndReached, loading, variant = "list" }: Props
             renderItem={renderItem}
             numColumns={isGrid ? 2 : 1}
             columnWrapperStyle={isGrid ? styles.gridRow : undefined}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.content}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}

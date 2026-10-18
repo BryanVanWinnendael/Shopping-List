@@ -56,6 +56,7 @@ export default function List({ traces, loading, onEndReached, refreshing, onRefr
             onEndReachedThreshold={0.5}
             refreshing={refreshing}
             onRefresh={onRefresh}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.content}
             ListEmptyComponent={isInitialLoading ? <SkeletonRows /> : <EmptyState />}
             ListFooterComponent={loading && !isInitialLoading ? <ActivityIndicator style={styles.loader} /> : null}

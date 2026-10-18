@@ -59,6 +59,7 @@ export default function CountryInput({ value, onChange }: Props) {
                     <FlatList
                         data={filtered}
                         keyExtractor={(item) => item.name}
+                        showsVerticalScrollIndicator={false}
                         ListHeaderComponent={
                             <Pressable
                                 onPress={() => {

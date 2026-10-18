@@ -43,6 +43,7 @@ export default function RecipesList({ toggleFavorite, sections, getNextPage, ref
             refreshing={refreshing}
             onRefresh={refresh}
             renderItem={renderRecipe}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.content}
             ListEmptyComponent={isInitialLoading ? <InitialSkeleton /> : null}
             ListFooterComponent={

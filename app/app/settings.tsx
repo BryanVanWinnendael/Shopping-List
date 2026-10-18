@@ -22,6 +22,7 @@ export default function Settings() {
         <ScrollView
             style={[styles.container, { backgroundColor: vars.backgroundColor }]}
             contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
         >
             <Section title="System">
                 <Update />

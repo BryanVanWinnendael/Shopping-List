@@ -37,6 +37,7 @@ export function List({ results, loading, getNextPage }: Props) {
             }
             ListEmptyComponent={isInitialLoading ? <SkeletonRows /> : null}
             ListHeaderComponent={<View style={styles.header} />}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.content}
         />
     )
