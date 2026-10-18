@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
+import ListRefreshControl from "@/components/native/listRefreshControl"
 import { RecipeCardSkeleton } from "@/components/native/skeleton"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
 import { HEADER_HEIGHT } from "@/lib/constants"
@@ -40,8 +41,7 @@ export default function RecipesList({ toggleFavorite, sections, getNextPage, ref
             ListHeaderComponent={<View style={styles.headerSpacer} />}
             onEndReached={getNextPage}
             onEndReachedThreshold={0.5}
-            refreshing={refreshing}
-            onRefresh={refresh}
+            refreshControl={<ListRefreshControl refreshing={refreshing} onRefresh={refresh} />}
             renderItem={renderRecipe}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.content}

@@ -2,6 +2,7 @@ import { useCallback } from "react"
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native"
 import { ScrollText } from "lucide-react-native"
 import Log from "@/components/logs/log"
+import ListRefreshControl from "@/components/native/listRefreshControl"
 import { ProductRowSkeleton } from "@/components/native/skeleton"
 import useThemes from "@/hooks/themes/useThemes"
 import { Trace } from "@/types/generated/models/trace"
@@ -54,8 +55,7 @@ export default function List({ traces, loading, onEndReached, refreshing, onRefr
             keyExtractor={keyExtractor}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
-            refreshing={refreshing}
-            onRefresh={onRefresh}
+            refreshControl={<ListRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.content}
             ListEmptyComponent={isInitialLoading ? <SkeletonRows /> : <EmptyState />}

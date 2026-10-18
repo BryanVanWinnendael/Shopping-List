@@ -23,7 +23,9 @@ export default function OnlineRecipes() {
         <View style={[styles.container, { backgroundColor: vars.backgroundColor }]}>
             <List
                 loading={states.loading}
+                refreshing={states.refreshing}
                 onEndReached={actions.getNextPage}
+                onRefresh={actions.refresh}
                 results={states.recipes}
                 variant={states.style}
             />

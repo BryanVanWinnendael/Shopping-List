@@ -1,6 +1,7 @@
 import { useCallback } from "react"
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import Recipe from "@/components/online-recipes/recipe"
+import ListRefreshControl from "@/components/native/listRefreshControl"
 import { RecipeCardSkeleton } from "@/components/native/skeleton"
 import { HEADER_HEIGHT } from "@/lib/constants"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
@@ -8,14 +9,16 @@ import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 type Props = {
     results: OnlineRecipe[]
     onEndReached: () => void
+    onRefresh: () => void
     loading: boolean
+    refreshing: boolean
     variant?: "list" | "grid"
 }
 
 // Keyed by url so pinning a recipe (which reorders the list) reuses the same rows.
 const keyExtractor = (item: OnlineRecipe) => item.url
 
-export function List({ results, onEndReached, loading, variant = "list" }: Props) {
+export function List({ results, onEndReached, onRefresh, loading, refreshing, variant = "list" }: Props) {
     const isGrid = variant === "grid"
     const isInitialLoading = loading && results.length === 0
 
@@ -40,6 +43,7 @@ export function List({ results, onEndReached, loading, variant = "list" }: Props
             contentContainerStyle={styles.content}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
+            refreshControl={<ListRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             ListEmptyComponent={isInitialLoading ? <InitialSkeleton /> : null}
             ListFooterComponent={loading && !isInitialLoading ? <ActivityIndicator style={styles.loader} /> : null}
         />

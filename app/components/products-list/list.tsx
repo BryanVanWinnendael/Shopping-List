@@ -10,6 +10,10 @@ import { HEADER_HEIGHT } from "@/lib/constants"
 
 const SKELETON_ROWS = Array.from({ length: 7 }, (_, index) => index)
 
+// A recipe block keeps its position based on when its oldest product was added,
+// so deleting any other product in the group leaves the block where it is.
+const addedAt = (items: ProductType[]) => Math.min(...items.map((item) => item.date))
+
 type Props = {
     openSearchProductsBottomSheet: () => void
     openEditModal: () => void
@@ -58,7 +62,6 @@ export default function List({
         if (!products) return null
 
         const groups = new Map<string, ProductType[]>()
-        const order: string[] = []
         const ungrouped: ProductType[] = []
 
         for (const product of Object.values(products)) {
@@ -71,7 +74,6 @@ export default function List({
 
             if (!groups.has(recipeId)) {
                 groups.set(recipeId, [])
-                order.push(recipeId)
             }
 
             groups.get(recipeId)!.push(product)
@@ -80,7 +82,13 @@ export default function List({
         const toProductRow = (product: ProductType): Row => ({ kind: "product", key: product.id, product })
 
         // No recipe items: plain product rows, no headers.
-        if (order.length === 0) return ungrouped.map(toProductRow)
+        if (groups.size === 0) return ungrouped.map(toProductRow)
+
+        // Order the blocks by when each recipe was added, not by whichever of its
+        // products happens to sort first: that position comes from the product
+        // list's category sort, so deleting the anchoring product used to make the
+        // whole block jump elsewhere.
+        const orderedRecipes = [...groups.entries()].sort(([, a], [, b]) => addedAt(a) - addedAt(b))
 
         const result: Row[] = []
 
@@ -89,9 +97,7 @@ export default function List({
             result.push(...ungrouped.map(toProductRow))
         }
 
-        for (const recipeId of order) {
-            const items = groups.get(recipeId)!
-
+        for (const [recipeId, items] of orderedRecipes) {
             result.push({
                 kind: "header",
                 key: `header-${recipeId}`,

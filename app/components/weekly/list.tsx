@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native"
+import { FlatList, StyleSheet, Text, View } from "react-native"
 import { Info, Trash } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import CategoryIcon from "@/components/categoryIcon"
+import ListRefreshControl from "@/components/native/listRefreshControl"
 import { ProductRowSkeleton } from "@/components/native/skeleton"
 import useThemes from "@/hooks/themes/useThemes"
 import { CronProduct } from "@/types/generated/models/cron_product"
@@ -84,16 +85,7 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts,
                         </View>
                     )
                 }
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        tintColor={vars.textColor}
-                        colors={[vars.textColor]}
-                    />
-                }
+                refreshControl={<ListRefreshControl refreshing={refreshing} onRefresh={onRefresh} offset={0} />}
             />
         </View>
     )

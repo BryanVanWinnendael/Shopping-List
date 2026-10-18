@@ -35,7 +35,13 @@ export default function SearchProducts() {
 
                 <FilterButton open={actions.open} count={states.selectedCategories.length} />
 
-                <List results={states.results} loading={states.loading} getNextPage={actions.getNextPage} />
+                <List
+                    results={states.results}
+                    loading={states.loading}
+                    refreshing={states.refreshing}
+                    getNextPage={actions.getNextPage}
+                    onRefresh={actions.refresh}
+                />
             </View>
 
             <AppBottomSheet

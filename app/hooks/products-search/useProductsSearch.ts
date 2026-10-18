@@ -25,6 +25,7 @@ export function useProductsSearch() {
     const [query, setQuery] = useState("")
     const [results, setResults] = useState<ProductsSearchResponse>(EMPTY_RESULT)
     const [loading, setLoading] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
     const [selectedCategories, setSelectedCategories] = useState<Category[]>([])
 
     const bottomSheetRef = useRef<BottomSheetRef>(null)
@@ -83,6 +84,16 @@ export function useProductsSearch() {
         await getProducts(query, selectedCategories, results.page + 1, false)
     }
 
+    const refresh = useCallback(async () => {
+        setRefreshing(true)
+
+        try {
+            await getProducts(query, selectedCategories, 1, true)
+        } finally {
+            setRefreshing(false)
+        }
+    }, [query, selectedCategories, getProducts])
+
     useEffect(() => {
         getProducts("", [], 1, true)
     }, [getProducts])
@@ -92,12 +103,14 @@ export function useProductsSearch() {
             query,
             results,
             loading,
+            refreshing,
             selectedCategories,
         },
         actions: {
             updateQuery,
             applyFilters,
             getNextPage,
+            refresh,
             close,
             open,
         },

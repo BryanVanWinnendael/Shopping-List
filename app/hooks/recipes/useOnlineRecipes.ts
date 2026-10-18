@@ -30,6 +30,7 @@ export default function useOnlineRecipes() {
     const [totalRecipes, setTotalRecipes] = useState(0)
 
     const [loading, setLoading] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
     const [style, setStyle] = useState<"list" | "grid">("list")
 
     const [query, setQuery] = useState("")
@@ -156,6 +157,21 @@ export default function useOnlineRecipes() {
         }, 500)
     }
 
+    // Reload the first page of whatever is currently shown (search or browse).
+    const refresh = useCallback(async () => {
+        setRefreshing(true)
+
+        try {
+            if (isSearching) {
+                await search(query, 1)
+            } else {
+                await getPage(0)
+            }
+        } finally {
+            setRefreshing(false)
+        }
+    }, [isSearching, query, search, getPage])
+
     useEffect(() => {
         getPage(0)
     }, [getPage])
@@ -170,6 +186,7 @@ export default function useOnlineRecipes() {
             maxPages,
             totalRecipes,
             loading,
+            refreshing,
             style,
             query,
             isSearching,
@@ -177,6 +194,7 @@ export default function useOnlineRecipes() {
         },
         actions: {
             getNextPage,
+            refresh,
             setStyle,
             search,
             updateQuery,
