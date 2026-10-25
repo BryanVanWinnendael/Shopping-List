@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"shopping-list/shared/contracts"
+	"shopping-list/shared/models"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -11,8 +14,8 @@ import (
 type RecipeService interface {
 	CreateRecipe(request *contracts.CreateRecipeRequest) (*contracts.CreateRecipeResponse, error)
 	GetRecipe(id string) (*contracts.GetRecipeResponse, error)
-	GetRecipes(user string, page int) (*contracts.GetRecipesResponse, error)
-	SearchRecipes(user string, query string, page int) (*contracts.SearchRecipesResponse, error)
+	GetRecipes(user string, filter models.RecipeFilter, page int) (*contracts.GetRecipesResponse, error)
+	SearchRecipes(user string, filter models.RecipeFilter, page int) (*contracts.SearchRecipesResponse, error)
 	GetRecipesByUser(user string) (*contracts.GetRecipesByUserResponse, error)
 	UpdateRecipe(id string, request *contracts.UpdateRecipeRequest) (*contracts.UpdateRecipeResponse, error)
 	DeleteRecipe(id string) (*contracts.DeleteRecipeResponse, error)
@@ -49,7 +52,9 @@ func (rh *RecipeHandler) GetRecipes(c echo.Context) error {
 		page = 1
 	}
 
-	recipes, err := rh.RecipeService.GetRecipes(user, page)
+	filter := buildRecipeFilter(c)
+
+	recipes, err := rh.RecipeService.GetRecipes(user, filter, page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -116,17 +121,54 @@ func (rh *RecipeHandler) DeleteRecipe(c echo.Context) error {
 
 func (rh *RecipeHandler) SearchRecipes(c echo.Context) error {
 	user := c.QueryParam("user")
-	query := c.QueryParam("query")
 
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	recipes, err := rh.RecipeService.SearchRecipes(user, query, page)
+	filter := buildRecipeFilter(c)
+
+	recipes, err := rh.RecipeService.SearchRecipes(user, filter, page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, recipes)
+}
+
+func buildRecipeFilter(c echo.Context) models.RecipeFilter {
+	filter := models.RecipeFilter{
+		Query: strings.TrimSpace(c.QueryParam("query")),
+	}
+
+	if country := strings.TrimSpace(c.QueryParam("country")); country != "" {
+		filter.Country = &country
+	}
+
+	if mealType := strings.TrimSpace(c.QueryParam("mealType")); mealType != "" {
+		value := models.MealType(mealType)
+		filter.MealType = &value
+	}
+
+	if public := strings.TrimSpace(c.QueryParam("public")); public != "" {
+		fmt.Println("jee")
+		if value, err := strconv.ParseBool(public); err == nil {
+			filter.Public = &value
+		}
+	}
+
+	if time := strings.TrimSpace(c.QueryParam("time")); time != "" {
+		if value, err := strconv.Atoi(time); err == nil {
+			filter.Time = &value
+		}
+	}
+
+	if isSaved := strings.TrimSpace(c.QueryParam("isSaved")); isSaved != "" {
+		if value, err := strconv.ParseBool(isSaved); err == nil {
+			filter.IsSaved = &value
+		}
+	}
+
+	return filter
 }

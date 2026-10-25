@@ -1,7 +1,7 @@
-import useThemes from "@/hooks/themes/useThemes"
-import { Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import { PressableScale } from "pressto"
 import { Expand } from "lucide-react-native"
+import useThemes from "@/hooks/themes/useThemes"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
@@ -13,64 +13,52 @@ export default function Instructions({ recipe, open }: Props) {
     const { vars } = useThemes()
 
     return (
-        <>
-            <View style={{ marginTop: 24 }}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: 16,
-                    }}
-                >
-                    <Text
-                        style={{
-                            color: vars.textColor,
-                            fontSize: 22,
-                            fontWeight: "700",
-                        }}
-                    >
-                        Instructions
-                    </Text>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={[styles.title, { color: vars.textColor }]}>Instructions</Text>
 
-                    <PressableScale onPress={open}>
-                        <Expand size={20} color={vars.textColor} />
-                    </PressableScale>
-                </View>
-
-                {recipe.instructions?.map((instruction, index) => (
-                    <View
-                        key={index}
-                        style={{
-                            flexDirection: "row",
-                            marginBottom: 16,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: vars.accentColor,
-                                fontWeight: "700",
-                                marginRight: 12,
-                                minWidth: 24,
-                                fontSize: 16,
-                            }}
-                        >
-                            {index + 1}.
-                        </Text>
-
-                        <Text
-                            style={{
-                                color: vars.textColor,
-                                flex: 1,
-                                lineHeight: 22,
-                                fontSize: 16,
-                            }}
-                        >
-                            {instruction}
-                        </Text>
-                    </View>
-                ))}
+                <PressableScale onPress={open} accessibilityRole="button" accessibilityLabel="Expand instructions">
+                    <Expand size={20} color={vars.textColor} />
+                </PressableScale>
             </View>
-        </>
+
+            {recipe.instructions?.map((instruction, index) => (
+                <View key={`${index}-${instruction}`} style={styles.step}>
+                    <Text style={[styles.stepNumber, { color: vars.accentColor }]}>{index + 1}.</Text>
+                    <Text style={[styles.stepText, { color: vars.textColor }]}>{instruction}</Text>
+                </View>
+            ))}
+        </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        marginTop: 24,
+    },
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 16,
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: "700",
+    },
+    step: {
+        flexDirection: "row",
+        marginBottom: 16,
+    },
+    stepNumber: {
+        minWidth: 24,
+        marginRight: 12,
+        fontSize: 16,
+        fontWeight: "700",
+    },
+    stepText: {
+        flex: 1,
+        fontSize: 16,
+        lineHeight: 22,
+    },
+})

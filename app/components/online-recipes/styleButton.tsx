@@ -9,130 +9,150 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
-import { Ionicons } from "@expo/vector-icons"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+import { Grid2X2, List } from "lucide-react-native"
 
 import useThemes from "@/hooks/themes/useThemes"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { BORDER_RADIUS_FULL, DOCK_BOTTOM, DOCK_SIDE, FAB_ICON_SIZE, FAB_SIZE } from "@/lib/theme"
+
+type Style = "grid" | "list"
 
 type Props = {
-    value: "grid" | "list"
-    setStyle: (val: "grid" | "list") => void
+    value: Style
+    setStyle: (val: Style) => void
     collapsed: boolean
 }
 
-const OPTIONS: Array<"grid" | "list"> = ["grid", "list"]
+const OPTIONS: Style[] = ["grid", "list"]
+
+const ICONS = {
+    grid: Grid2X2,
+    list: List,
+}
 
 const EXPANDED_WIDTH = 110
-const COLLAPSED_WIDTH = 48
+const COLLAPSED_WIDTH = FAB_SIZE
 const SEGMENT_WIDTH = EXPANDED_WIDTH / OPTIONS.length
+const ICON_SIZE = FAB_ICON_SIZE
+
+const CONTENT_FADE_IN = FadeIn.duration(150)
+const CONTENT_FADE_OUT = FadeOut.duration(150)
 
 export default function StyleButton({ value, setStyle, collapsed }: Props) {
     const { vars } = useThemes()
 
-    const translateX = useSharedValue(0)
+    const selectedIndex = OPTIONS.indexOf(value)
+
+    // Start from the current state, so nothing animates on mount.
+    const translateX = useSharedValue(SEGMENT_WIDTH * selectedIndex)
+    const width = useSharedValue(collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH)
     const scale = useSharedValue(1)
 
     const prevValue = useRef(value)
 
-    const selectedIndex = OPTIONS.findIndex((o) => o === value)
+    const pulse = (inDuration: number, outDuration: number) => {
+        scale.value = withSequence(withTiming(1.03, { duration: inDuration }), withTiming(1, { duration: outDuration }))
+    }
 
     useEffect(() => {
         translateX.value = withTiming(SEGMENT_WIDTH * selectedIndex, { duration: 200 })
-    }, [selectedIndex])
+    }, [selectedIndex, translateX])
 
     useEffect(() => {
-        if (collapsed) {
-            scale.value = withSequence(withTiming(1.03, { duration: 120 }), withTiming(1, { duration: 180 }))
-        }
-    }, [collapsed])
+        width.value = withTiming(collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH, { duration: 250 })
+
+        if (collapsed) pulse(120, 180)
+    }, [collapsed, width])
 
     useEffect(() => {
-        if (prevValue.current !== value) {
-            scale.value = withSequence(withTiming(1.03, { duration: 100 }), withTiming(1, { duration: 150 }))
-            prevValue.current = value
-        }
+        if (prevValue.current === value) return
+
+        prevValue.current = value
+        pulse(100, 150)
     }, [value])
+
+    const containerStyle = useAnimatedStyle(() => ({
+        width: width.value,
+        transform: [{ scale: scale.value }],
+    }))
 
     const indicatorStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: translateX.value }],
     }))
 
-    const containerStyle = useAnimatedStyle(() => ({
-        width: withTiming(collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH, { duration: 250 }),
-        transform: [{ scale: scale.value }],
-    }))
+    const ActiveIcon = ICONS[value]
 
     return (
         <View style={styles.wrapper}>
-            <Animated.View style={[containerStyle, SHADOW_STYLE]}>
-                <GlassOrBlurView
-                    style={styles.container}
-                    backgroundColor={vars.secondaryBackgroundColor}
-                    borderColor={`${vars.secondaryBorderColor}50`}
-                >
+            <Animated.View style={containerStyle}>
+                <LiquidGlassView style={styles.container} isInteractive>
                     {collapsed ? (
                         <Animated.View
-                            entering={FadeIn.duration(150)}
-                            exiting={FadeOut.duration(150)}
+                            key="collapsed"
+                            entering={CONTENT_FADE_IN}
+                            exiting={CONTENT_FADE_OUT}
                             style={styles.activeIconContainer}
                         >
-                            <Ionicons name={value} size={22} color={vars.textColor} />
+                            <ActiveIcon size={ICON_SIZE} color={vars.textColor} />
                         </Animated.View>
                     ) : (
                         <Animated.View
-                            entering={FadeIn.duration(150)}
-                            exiting={FadeOut.duration(150)}
+                            key="expanded"
+                            entering={CONTENT_FADE_IN}
+                            exiting={CONTENT_FADE_OUT}
                             style={styles.expandedContent}
                         >
                             <Animated.View
-                                style={[
-                                    styles.indicator,
-                                    {
-                                        width: SEGMENT_WIDTH,
-                                        backgroundColor: vars.backgroundColor,
-                                    },
-                                    indicatorStyle,
-                                ]}
+                                style={[styles.indicator, { backgroundColor: vars.backgroundColor }, indicatorStyle]}
                             />
 
-                            <PressableScale onPress={() => setStyle("grid")} style={styles.button}>
-                                <Ionicons name="grid" size={22} color={value === "grid" ? vars.textColor : "gray"} />
-                            </PressableScale>
+                            {OPTIONS.map((option) => {
+                                const Icon = ICONS[option]
+                                const selected = option === value
 
-                            <PressableScale onPress={() => setStyle("list")} style={styles.button}>
-                                <Ionicons name="list" size={22} color={value === "list" ? vars.textColor : "gray"} />
-                            </PressableScale>
+                                return (
+                                    <PressableScale
+                                        key={option}
+                                        onPress={() => setStyle(option)}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`${option} view`}
+                                        accessibilityState={{ selected }}
+                                        style={styles.button}
+                                    >
+                                        <Icon
+                                            size={ICON_SIZE}
+                                            color={selected ? vars.textColor : vars.secondaryTextColor}
+                                        />
+                                    </PressableScale>
+                                )
+                            })}
                         </Animated.View>
                     )}
-                </GlassOrBlurView>
+                </LiquidGlassView>
             </Animated.View>
         </View>
     )
 }
+
 const styles = StyleSheet.create({
     wrapper: {
         position: "absolute",
-        bottom: 24,
-        right: 24,
+        bottom: DOCK_BOTTOM,
+        right: DOCK_SIDE,
     },
     container: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: 26,
-        height: 48,
-        overflow: "hidden",
+        borderRadius: BORDER_RADIUS_FULL,
         borderWidth: 1,
-
+        height: FAB_SIZE,
+        overflow: "hidden",
         shadowColor: "#000",
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        elevation: 6,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 3,
     },
     expandedContent: {
         flex: 1,
@@ -144,7 +164,8 @@ const styles = StyleSheet.create({
         left: 0,
         top: 0,
         bottom: 0,
-        borderRadius: 20,
+        width: SEGMENT_WIDTH,
+        borderRadius: BORDER_RADIUS_FULL,
     },
     button: {
         flex: 1,

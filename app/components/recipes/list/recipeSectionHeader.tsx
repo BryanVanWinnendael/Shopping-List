@@ -1,5 +1,6 @@
 import { StyleSheet, Text } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     title: string
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
         marginBottom: 16,
         alignSelf: "flex-start",
     },

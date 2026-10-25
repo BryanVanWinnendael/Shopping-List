@@ -1,5 +1,4 @@
-import { ScrollView, View } from "react-native"
-import { useHeaderHeight } from "@react-navigation/elements"
+import { ScrollView, StyleSheet } from "react-native"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import FontSize from "@/components/settings/fontSize"
 import AColor from "@/components/settings/aColor"
@@ -7,43 +6,46 @@ import UserColors from "@/components/settings/userColors"
 import ClearStorage from "@/components/settings/clearStorage"
 import Update from "@/components/settings/update"
 import Notifications from "@/components/settings/notifications/notifications"
-import NewUI from "@/components/settings/newUI"
 import TestList from "@/components/settings/testList"
-import { ADMIN_USERS_ARRAY, IS_DEV } from "@/lib/constants"
 import Section from "@/components/settings/section"
+import AiModel from "@/components/settings/aiModel"
 import useThemes from "@/hooks/themes/useThemes"
+import { ADMIN_USERS_ARRAY, HEADER_HEIGHT } from "@/lib/constants"
 
 export default function Settings() {
     const { vars } = useThemes()
-    const { user } = useSettingsStore()
-    const headerHeight = useHeaderHeight()
+    const user = useSettingsStore((state) => state.user)
+
+    const isAdmin = ADMIN_USERS_ARRAY.includes(user ?? "")
 
     return (
         <ScrollView
-            style={{ backgroundColor: vars.backgroundColor, flex: 1 }}
-            contentContainerStyle={{ paddingBottom: headerHeight }}
+            style={[styles.container, { backgroundColor: vars.backgroundColor }]}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
         >
-            <View style={{ height: headerHeight + 10 }} />
-
             <Section title="System">
                 <Update />
                 <Notifications />
             </Section>
 
             <Section title="Appearance">
-                <NewUI />
                 <AColor />
                 <UserColors />
                 <FontSize />
             </Section>
 
-            {ADMIN_USERS_ARRAY.includes(user ?? "") && (
+            <Section title="AI">
+                <AiModel />
+            </Section>
+
+            {isAdmin && (
                 <Section title="Admin settings">
                     <ClearStorage />
                 </Section>
             )}
 
-            {ADMIN_USERS_ARRAY.includes(user ?? "") && IS_DEV && (
+            {isAdmin && __DEV__ && (
                 <Section title="Dev settings">
                     <TestList />
                 </Section>
@@ -51,3 +53,13 @@ export default function Settings() {
         </ScrollView>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    content: {
+        paddingTop: HEADER_HEIGHT + 10,
+        paddingBottom: HEADER_HEIGHT,
+    },
+})

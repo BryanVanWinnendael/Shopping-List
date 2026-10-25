@@ -1,10 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { onlineRecipesClient } from "@/lib/online-recipes"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 import { useHeaderStore } from "@/stores/useHeaderStore"
+import { useViewLaterStore } from "@/stores/useViewLaterStore"
+import { OnlineRecipeFilter } from "@/types/generated/models/online_recipe_filter"
+
+// View-later recipes float to the top, keeping their original order.
+const pinFirst = (recipes: OnlineRecipe[], pinnedUrls: string[]) => {
+    if (!pinnedUrls.length) return recipes
+
+    const pinned = new Set(pinnedUrls)
+
+    return [
+        ...recipes.filter((recipe) => pinned.has(recipe.url)),
+        ...recipes.filter((recipe) => !pinned.has(recipe.url)),
+    ]
+}
 
 export default function useOnlineRecipes() {
     const { setHeaderText } = useHeaderStore()
+    const viewLater = useViewLaterStore((state) => state.recipes)
 
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const loadingRef = useRef(false)
@@ -15,10 +30,21 @@ export default function useOnlineRecipes() {
     const [totalRecipes, setTotalRecipes] = useState(0)
 
     const [loading, setLoading] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
     const [style, setStyle] = useState<"list" | "grid">("list")
 
     const [query, setQuery] = useState("")
     const [isSearching, setIsSearching] = useState(false)
+    const [filter, setFilter] = useState<OnlineRecipeFilter>({
+        kitchens: [],
+        courses: [],
+        dishes: [],
+        specials: [],
+    })
+
+    // Read through a ref so getPage/search keep a stable identity: they run in the
+    // mount effect below, so depending on state here would refetch on every toggle.
+    const filterRef = useRef<OnlineRecipeFilter>(filter)
 
     const setLoadingState = (value: boolean) => {
         loadingRef.current = value
@@ -33,7 +59,7 @@ export default function useOnlineRecipes() {
             setLoadingState(true)
 
             try {
-                const response = await onlineRecipesClient.getOnlineRecipes(pageNumber)
+                const response = await onlineRecipesClient.getOnlineRecipes(filterRef.current, pageNumber)
 
                 if (response) {
                     setPage(response.page)
@@ -72,7 +98,7 @@ export default function useOnlineRecipes() {
             setQuery(q)
 
             try {
-                const response = await onlineRecipesClient.searchOnlineRecipes(q, pageNumber)
+                const response = await onlineRecipesClient.searchOnlineRecipes(q, filterRef.current, pageNumber)
 
                 if (response) {
                     setPage(response.page)
@@ -104,6 +130,21 @@ export default function useOnlineRecipes() {
         }
     }, [page, maxPages, isSearching, query, search, getPage])
 
+    // Reload from the first page so the current filters apply to the whole list.
+    const applyFilter = useCallback(
+        (next: OnlineRecipeFilter) => {
+            filterRef.current = next
+            setFilter(next)
+
+            if (isSearching) {
+                search(query, 1)
+            } else {
+                getPage(0)
+            }
+        },
+        [isSearching, query, search, getPage]
+    )
+
     const updateQuery = (q: string) => {
         setQuery(q)
 
@@ -116,26 +157,48 @@ export default function useOnlineRecipes() {
         }, 500)
     }
 
+    // Reload the first page of whatever is currently shown (search or browse).
+    const refresh = useCallback(async () => {
+        setRefreshing(true)
+
+        try {
+            if (isSearching) {
+                await search(query, 1)
+            } else {
+                await getPage(0)
+            }
+        } finally {
+            setRefreshing(false)
+        }
+    }, [isSearching, query, search, getPage])
+
     useEffect(() => {
         getPage(0)
     }, [getPage])
 
+    const pinnedUrls = useMemo(() => viewLater.map((recipe) => recipe.url), [viewLater])
+    const orderedRecipes = useMemo(() => pinFirst(recipes, pinnedUrls), [recipes, pinnedUrls])
+
     return {
         states: {
-            recipes,
+            recipes: orderedRecipes,
             page,
             maxPages,
             totalRecipes,
             loading,
+            refreshing,
             style,
             query,
             isSearching,
+            filter,
         },
         actions: {
             getNextPage,
+            refresh,
             setStyle,
             search,
             updateQuery,
+            setFilters: applyFilter,
         },
     }
 }

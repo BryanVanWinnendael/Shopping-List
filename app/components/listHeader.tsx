@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native"
+import { StyleSheet, View } from "react-native"
 import Animated, {
     Easing,
     useAnimatedStyle,
@@ -15,117 +15,214 @@ import { scheduleOnRN } from "react-native-worklets"
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import useThemes from "@/hooks/themes/useThemes"
 
-export default function ListHeader() {
+type ListHeaderProps = {
+    maxWidth: number
+}
+
+const DOT_BOUNCE_HEIGHT = -6
+const DOT_STEP_DURATION = 300
+
+const hitBottomHaptic = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
+}
+
+function useDotAnimation(isSearching: boolean, delay = 0) {
+    const dot = useSharedValue(0)
+
+    useEffect(() => {
+        if (isSearching) {
+            dot.value = withDelay(
+                delay,
+                withRepeat(
+                    withSequence(
+                        withTiming(DOT_BOUNCE_HEIGHT, {
+                            duration: DOT_STEP_DURATION,
+                            easing: Easing.inOut(Easing.ease),
+                        }),
+                        withTiming(
+                            0,
+                            {
+                                duration: DOT_STEP_DURATION,
+                                easing: Easing.inOut(Easing.ease),
+                            },
+                            () => {
+                                scheduleOnRN(hitBottomHaptic)
+                            }
+                        ),
+                        withTiming(0, {
+                            duration: DOT_STEP_DURATION,
+                        })
+                    ),
+                    -1
+                )
+            )
+        } else {
+            dot.value = 0
+        }
+    }, [isSearching, delay, dot])
+
+    return useAnimatedStyle(() => ({
+        transform: [
+            {
+                translateY: dot.value,
+            },
+        ],
+    }))
+}
+
+export default function ListHeader({ maxWidth }: ListHeaderProps) {
     const { vars } = useThemes()
     const { query } = useProductsSearchStore()
     const { products } = useProductsListStore()
 
     const isSearching = !!query
     const totalProducts = products ? Object.keys(products).length : 0
+
     const progress = useSharedValue(isSearching ? 1 : 0)
 
     useEffect(() => {
-        progress.value = withTiming(isSearching ? 1 : 0, { duration: 300 })
+        progress.value = withTiming(isSearching ? 1 : 0, {
+            duration: 300,
+        })
     }, [isSearching])
 
     const countStyle = useAnimatedStyle(() => ({
         opacity: 1 - progress.value,
-        transform: [{ translateY: -10 * progress.value }],
+        transform: [
+            {
+                translateY: -10 * progress.value,
+            },
+        ],
     }))
 
     const searchingStyle = useAnimatedStyle(() => ({
         opacity: progress.value,
-        transform: [{ translateY: 10 * (1 - progress.value) }],
+        transform: [
+            {
+                translateY: 10 * (1 - progress.value),
+            },
+        ],
     }))
 
-    const hitBottomHaptic = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
-    }
-
-    const createDotAnimation = (delay = 0) => {
-        const dot = useSharedValue(0)
-
-        useEffect(() => {
-            if (isSearching) {
-                dot.value = withDelay(
-                    delay,
-                    withRepeat(
-                        withSequence(
-                            withTiming(-6, {
-                                duration: 300,
-                                easing: Easing.inOut(Easing.ease),
-                            }),
-                            withTiming(
-                                0,
-                                {
-                                    duration: 300,
-                                    easing: Easing.inOut(Easing.ease),
-                                },
-                                () => {
-                                    scheduleOnRN(hitBottomHaptic)
-                                }
-                            ),
-                            withTiming(0, { duration: 300 })
-                        ),
-                        -1
-                    )
-                )
-            } else {
-                dot.value = 0
-            }
-        }, [isSearching])
-
-        return useAnimatedStyle(() => ({
-            transform: [{ translateY: dot.value }],
-        }))
-    }
-
-    const dot1Style = createDotAnimation(0)
-    const dot2Style = createDotAnimation(150)
-    const dot3Style = createDotAnimation(300)
+    const dot1Style = useDotAnimation(isSearching, 0)
+    const dot2Style = useDotAnimation(isSearching, 150)
+    const dot3Style = useDotAnimation(isSearching, 300)
 
     return (
-        <>
-            <Animated.Text style={[styles.text, styles.textPosition, { color: vars.textColor }, countStyle]}>
+        <View
+            style={[
+                styles.container,
+                isSearching && {
+                    width: maxWidth,
+                    maxWidth,
+                },
+            ]}
+        >
+            {/* Product count */}
+            <Animated.Text
+                numberOfLines={1}
+                style={[
+                    styles.countText,
+                    {
+                        color: vars.textColor,
+                    },
+                    countStyle,
+                ]}
+            >
                 {totalProducts} {totalProducts === 1 ? "product" : "products"}
             </Animated.Text>
 
-            <Animated.View style={[styles.textRow, searchingStyle]}>
-                <Animated.Text style={[{ color: vars.textColor }, styles.text]}>Searching for </Animated.Text>
+            {/* Searching state */}
+            <Animated.View
+                style={[
+                    styles.searchingContainer,
+                    {
+                        width: maxWidth,
+                        maxWidth,
+                    },
+                    searchingStyle,
+                ]}
+                pointerEvents={isSearching ? "auto" : "none"}
+            >
                 <Animated.Text
-                    style={[{ color: vars.accentColor, maxWidth: 150 }, styles.text]}
                     numberOfLines={1}
-                    ellipsizeMode="tail"
+                    style={[styles.text, styles.searchingLabel, { color: vars.textColor }]}
                 >
-                    {query}{" "}
+                    Searching for
                 </Animated.Text>
 
-                <Animated.Text style={[styles.dot, dot1Style, { color: vars.textColor }]}>.</Animated.Text>
+                <Animated.Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={[styles.text, styles.queryText, { color: vars.accentColor }]}
+                >
+                    {query}
+                </Animated.Text>
+
+                <Animated.Text style={[styles.dot, styles.firstDot, dot1Style, { color: vars.textColor }]}>
+                    .
+                </Animated.Text>
                 <Animated.Text style={[styles.dot, dot2Style, { color: vars.textColor }]}>.</Animated.Text>
                 <Animated.Text style={[styles.dot, dot3Style, { color: vars.textColor }]}>.</Animated.Text>
             </Animated.View>
-        </>
+        </View>
     )
 }
 
 const styles = StyleSheet.create({
-    textPosition: {
-        position: "absolute",
-        top: -15,
+    container: {
+        height: 40,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "relative",
+        flexShrink: 0,
     },
+
+    countText: {
+        fontWeight: "600",
+        fontSize: 16,
+        includeFontPadding: false,
+        flexShrink: 0,
+        flexWrap: "nowrap",
+    },
+
+    searchingContainer: {
+        position: "absolute",
+        height: 40,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: 0,
+        overflow: "hidden",
+    },
+
     text: {
         fontWeight: "600",
         fontSize: 16,
+        includeFontPadding: false,
+        minWidth: 0,
     },
-    textRow: {
-        position: "absolute",
-        flexDirection: "row",
-        alignItems: "center",
-        top: -15,
+
+    searchingLabel: {
+        flexShrink: 0,
+        marginRight: 4,
     },
+
     dot: {
         fontSize: 16,
         fontWeight: "600",
         marginHorizontal: 1,
+        includeFontPadding: false,
+        flexShrink: 0,
+    },
+
+    firstDot: {
+        marginLeft: 2,
+    },
+
+    queryText: {
+        flexShrink: 1,
+        minWidth: 0,
+        marginRight: 2,
     },
 })

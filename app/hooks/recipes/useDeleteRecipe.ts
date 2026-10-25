@@ -4,11 +4,12 @@ import { useCallback, useState } from "react"
 import Toast from "react-native-toast-message"
 import { delay } from "@/lib/utils"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import { id } from "@gorhom/bottom-sheet/src/utilities/id"
 import { Alert } from "react-native"
+import { useHeaderStore } from "@/stores/useHeaderStore"
 
 export default function useDeleteRecipe() {
-    const { favoriteRecipes } = useRecipesStore()
+    const { favoriteRecipes, recipes, deleteRecipe: deleteRecipeFromStore } = useRecipesStore()
+    const { setHeaderText } = useHeaderStore()
 
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -52,6 +53,8 @@ export default function useDeleteRecipe() {
             await delay(2000)
 
             if (responseDeleteRecipe) {
+                deleteRecipeFromStore(id)
+                setHeaderText("recipes", `${recipes.length - 1} Recipes`)
                 Toast.show({
                     type: "success",
                     text1: "Recipe deleted successfully",
@@ -66,7 +69,7 @@ export default function useDeleteRecipe() {
             setLoading(false)
             return responseDeleteRecipe
         },
-        [favoriteRecipes, id]
+        [favoriteRecipes]
     )
 
     return {

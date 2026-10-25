@@ -6,8 +6,6 @@ export type User = (typeof USERS)[number] | "None"
 export type Theme = "light" | "dark" | "true dark"
 
 export type AColorUse = {
-    image: boolean
-    input: boolean
     header: boolean
 }
 

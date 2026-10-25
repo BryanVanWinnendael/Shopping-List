@@ -1,55 +1,93 @@
-import { FlatList, Text, View } from "react-native"
+import { FlatList, StyleSheet, Text, View } from "react-native"
 import { RefObject } from "react"
-import GorhomBottomSheet from "@gorhom/bottom-sheet"
-import CustomBottomSheet from "@/components/customBottomSheet"
+import ExpoBottomSheet from "@expo/ui/community/bottom-sheet"
 import Product from "@/components/products-search/product"
 import { useProductsSearchList } from "@/hooks/products-search/useProductsSearchList"
 import useThemes from "@/hooks/themes/useThemes"
+import AppBottomSheet from "@/components/native/bottom-sheet/appBottomSheet"
+import { BlurView } from "expo-blur"
 
 type Props = {
-    sheetRef: RefObject<GorhomBottomSheet | null>
+    sheetRef: RefObject<ExpoBottomSheet | null>
     onClose: () => void
 }
 
 export default function BottomSheet({ sheetRef, onClose }: Props) {
-    const { vars } = useThemes()
+    const { vars, appearance } = useThemes()
     const { states, refs, actions } = useProductsSearchList()
 
     return (
-        <CustomBottomSheet sheetRef={sheetRef} onClose={onClose}>
-            <View style={{ flex: 1, paddingBottom: 20, maxHeight: 670 }}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                    }}
-                >
-                    <Text style={{ marginBottom: 10, color: vars.textColor, opacity: 0.2 }}>
-                        Found results: {states.total}
-                    </Text>
+        <AppBottomSheet
+            ref={sheetRef}
+            index={-1}
+            snapPoints={["50%", "75%", "100%"]}
+            enablePanDownToClose
+            onClose={onClose}
+            backgroundMode="adaptive"
+        >
+            <View style={styles.container}>
+                <View style={styles.headerWrapper}>
+                    <BlurView intensity={10} tint={appearance} style={styles.blurContent}>
+                        <Text style={[styles.headerText, { color: vars.tertiaryTextColor }]}>
+                            Found results: {states.total}
+                        </Text>
 
-                    <Text style={{ marginBottom: 10, color: vars.textColor, opacity: 0.2 }}>
-                        Last updated: {states.dateUpdated}
-                    </Text>
+                        <Text style={[styles.headerText, { color: vars.tertiaryTextColor }]}>
+                            Last updated: {states.dateUpdated}
+                        </Text>
+                    </BlurView>
                 </View>
 
                 <FlatList
                     ref={refs.flatListRef}
                     data={states.products}
                     showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.listContent}
                     keyExtractor={(item, index) => item.pid + index}
                     renderItem={({ item }) => <Product product={item} />}
                     ListEmptyComponent={
                         states.products.length === 0 ? (
-                            <Text style={{ paddingLeft: 10, marginTop: 10, color: vars.textColor }}>
-                                No results found
-                            </Text>
+                            <Text style={[styles.emptyText, { color: vars.textColor }]}>No results found</Text>
                         ) : null
                     }
                     onEndReached={actions.getNextPage}
                     onEndReachedThreshold={0.5}
                 />
             </View>
-        </CustomBottomSheet>
+        </AppBottomSheet>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 12,
+    },
+    headerWrapper: {
+        position: "absolute",
+        top: -40,
+        left: 0,
+        right: 0,
+        height: 88,
+        zIndex: 10,
+        overflow: "hidden",
+    },
+    blurContent: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 48,
+        paddingBottom: 5,
+        flexDirection: "row",
+        justifyContent: "space-between",
+    },
+    headerText: {
+        marginBottom: 10,
+    },
+    listContent: {
+        paddingTop: 64,
+    },
+    emptyText: {
+        paddingLeft: 10,
+        marginTop: 10,
+    },
+})

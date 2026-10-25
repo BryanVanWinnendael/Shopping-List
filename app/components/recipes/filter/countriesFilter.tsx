@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { FlatList, StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
 import { ChevronDown } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import useThemes from "@/hooks/themes/useThemes"
 import useRecipesCountries from "@/hooks/recipes/useRecipesCountries"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function CountriesFilter() {
     const { vars } = useThemes()
@@ -47,13 +48,7 @@ export default function CountriesFilter() {
                 ]}
                 onPress={toggleDropdown}
             >
-                <Text
-                    style={{
-                        color: vars.textColor,
-                    }}
-                >
-                    {activeFilter.country || "Any"}
-                </Text>
+                <Text style={{ color: vars.textColor }}>{activeFilter.country || "Any"}</Text>
                 <ChevronDown size={18} color={vars.textColor} />
             </PressableScale>
 
@@ -62,35 +57,22 @@ export default function CountriesFilter() {
                     styles.dropdown,
                     animatedStyle,
                     {
-                        backgroundColor: vars.secondaryBackgroundColor,
+                        backgroundColor: vars.backgroundColor,
                         borderWidth: 1,
-                        borderColor: vars.secondaryBorderColor,
+                        borderColor: vars.borderColor,
                     },
                 ]}
             >
-                <View
-                    style={{
-                        flex: 1,
-                        borderRadius: 24,
-                    }}
-                >
-                    <FlatList
-                        data={states.countries}
-                        keyExtractor={(item) => item}
-                        renderItem={({ item }) => (
-                            <PressableScale
-                                onPress={() => handleSelect(item)}
-                                style={[
-                                    styles.option,
-                                    {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                    },
-                                ]}
-                            >
-                                <Text style={{ color: vars.textColor }}>{item}</Text>
-                            </PressableScale>
-                        )}
-                    />
+                <View style={styles.dropdownInner}>
+                    {states.countries.map((country) => (
+                        <PressableScale
+                            key={country}
+                            onPress={() => handleSelect(country)}
+                            style={[styles.option, { backgroundColor: vars.backgroundColor }]}
+                        >
+                            <Text style={{ color: vars.textColor }}>{country}</Text>
+                        </PressableScale>
+                    ))}
                 </View>
             </Animated.View>
         </View>
@@ -109,12 +91,16 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         height: 44,
         borderWidth: 1,
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
     },
     dropdown: {
         overflow: "hidden",
-        borderRadius: 8,
+        borderRadius: BORDER_RADIUS_L,
         marginTop: 4,
+    },
+    dropdownInner: {
+        flex: 1,
+        borderRadius: BORDER_RADIUS_L,
     },
     option: {
         paddingHorizontal: 12,

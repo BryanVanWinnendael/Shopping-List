@@ -1,21 +1,36 @@
 import { useState } from "react"
-import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native"
-import { useHeaderHeight } from "@react-navigation/elements"
+import { FlatList, StyleSheet, Text, View } from "react-native"
 import { Info, Trash } from "lucide-react-native"
 import { PressableScale } from "pressto"
 import CategoryIcon from "@/components/categoryIcon"
+import ListRefreshControl from "@/components/native/listRefreshControl"
+import { ProductRowSkeleton } from "@/components/native/skeleton"
 import useThemes from "@/hooks/themes/useThemes"
 import { CronProduct } from "@/types/generated/models/cron_product"
+import { HEADER_HEIGHT } from "@/lib/constants"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     deleteCronProduct: (id: string | null | undefined) => void
     cronProducts: CronProduct[]
     getCronProducts: () => Promise<void>
+    loading: boolean
 }
 
-export default function List({ deleteCronProduct, cronProducts, getCronProducts }: Props) {
+const SKELETON_ROWS = Array.from({ length: 7 }, (_, index) => index)
+
+function SkeletonRows() {
+    return (
+        <>
+            {SKELETON_ROWS.map((index) => (
+                <ProductRowSkeleton key={`skeleton-${index}`} index={index} />
+            ))}
+        </>
+    )
+}
+
+export default function List({ deleteCronProduct, cronProducts, getCronProducts, loading }: Props) {
     const { vars } = useThemes()
-    const headerHeight = useHeaderHeight()
 
     const [refreshing, setRefreshing] = useState(false)
 
@@ -36,7 +51,7 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
             ]}
         >
             <CategoryIcon category={cronProduct.category} />
-            <Text style={[styles.title, { color: vars.textColor, flex: 1 }]}>{cronProduct.product}</Text>
+            <Text style={[styles.title, { color: vars.textColor }]}>{cronProduct.product}</Text>
             <PressableScale onPress={() => deleteCronProduct(cronProduct.id)}>
                 <Trash size={20} color={vars.textColor} />
             </PressableScale>
@@ -45,23 +60,11 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
 
     return (
         <View style={styles.container}>
-            <View style={{ width: "100%" }}>
-                <View style={{ height: headerHeight }} />
-                <View
-                    style={{
-                        backgroundColor: `${vars.accentColor}33`,
-                        borderRadius: 20,
-                        padding: 12,
-                        marginHorizontal: 8,
-                        marginBottom: 16,
-                        marginTop: 10,
-                        flexDirection: "row",
-                        gap: 12,
-                        alignItems: "center",
-                    }}
-                >
+            <View style={styles.headerWrap}>
+                <View style={styles.headerSpacer} />
+                <View style={[styles.infoBox, { backgroundColor: `${vars.accentColor}33` }]}>
                     <Info color={vars.accentColor} />
-                    <Text style={{ fontSize: 15, color: vars.accentColor }}>
+                    <Text style={[styles.infoText, { color: vars.accentColor }]}>
                         Items in this list get automatically added every Friday to the shopping list.
                     </Text>
                 </View>
@@ -69,25 +72,20 @@ export default function List({ deleteCronProduct, cronProducts, getCronProducts 
 
             <FlatList
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.flatListContent}
+                contentContainerStyle={styles.content}
                 data={cronProducts}
                 renderItem={({ item }) => renderItem(item)}
                 keyExtractor={(_, index) => String(index)}
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Text style={{ color: vars.textColor }}>No weekly items found.</Text>
-                    </View>
+                    loading && cronProducts.length === 0 ? (
+                        <SkeletonRows />
+                    ) : (
+                        <View style={styles.emptyContainer}>
+                            <Text style={{ color: vars.textColor }}>No weekly items found.</Text>
+                        </View>
+                    )
                 }
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        tintColor={vars.textColor}
-                        colors={[vars.textColor]}
-                    />
-                }
+                refreshControl={<ListRefreshControl refreshing={refreshing} onRefresh={onRefresh} offset={0} />}
             />
         </View>
     )
@@ -98,9 +96,28 @@ const styles = StyleSheet.create({
         flex: 1,
         width: "100%",
     },
-    flatListContent: {
-        paddingHorizontal: 8,
-        paddingBottom: 16,
+    headerWrap: {
+        width: "100%",
+    },
+    headerSpacer: {
+        height: HEADER_HEIGHT,
+    },
+    infoBox: {
+        borderRadius: BORDER_RADIUS_L,
+        padding: 12,
+        marginHorizontal: 8,
+        marginBottom: 16,
+        marginTop: 10,
+        flexDirection: "row",
+        gap: 12,
+        alignItems: "center",
+    },
+    infoText: {
+        fontSize: 15,
+    },
+    content: {
+        paddingBottom: HEADER_HEIGHT + 85,
+        paddingHorizontal: 12,
     },
     emptyContainer: {
         flex: 1,
@@ -111,14 +128,15 @@ const styles = StyleSheet.create({
     renderItem: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 12,
-        paddingVertical: 14,
+        gap: 8,
+        paddingVertical: 12,
         paddingHorizontal: 12,
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,
         marginVertical: 6,
     },
     title: {
+        flex: 1,
         fontWeight: "600",
         fontSize: 16,
     },

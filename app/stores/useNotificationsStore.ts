@@ -11,7 +11,7 @@ type NotificationsState = {
     setSubscribedNotifications: (notifications: NotificationSettings) => void
 }
 
-export const useNotificationsStore = create<NotificationsState>((set) => ({
+export const useNotificationsStore = create<NotificationsState>((set, get) => ({
     notificationPushed: false,
     subscribedNotifications: {
         added: false,
@@ -21,6 +21,11 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
     },
 
     loadNotifications: async () => {
+        const current = get().subscribedNotifications
+        if (current.expoToken !== null) {
+            return
+        }
+
         const storedNotifications = await getSubscribedNotifications()
         if (storedNotifications !== null) {
             set({ subscribedNotifications: storedNotifications })

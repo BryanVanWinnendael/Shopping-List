@@ -16,4 +16,5 @@ export interface Recipe {
   mealType?: MealType | null
   country?: string | null
   persons?: number | null
+  isSaved?: boolean | null
 }

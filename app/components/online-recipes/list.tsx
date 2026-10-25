@@ -1,39 +1,78 @@
-import { ActivityIndicator, FlatList, View } from "react-native"
+import { useCallback } from "react"
+import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import Recipe from "@/components/online-recipes/recipe"
-import { useHeaderHeight } from "@react-navigation/elements"
+import ListRefreshControl from "@/components/native/listRefreshControl"
+import { RecipeCardSkeleton } from "@/components/native/skeleton"
+import { HEADER_HEIGHT } from "@/lib/constants"
 import { OnlineRecipe } from "@/types/generated/models/online_recipe"
 
 type Props = {
     results: OnlineRecipe[]
     onEndReached: () => void
+    onRefresh: () => void
     loading: boolean
+    refreshing: boolean
     variant?: "list" | "grid"
 }
 
-export function List({ results, onEndReached, loading, variant = "list" }: Props) {
-    const headerHeight = useHeaderHeight()
+// Keyed by url so pinning a recipe (which reorders the list) reuses the same rows.
+const keyExtractor = (item: OnlineRecipe) => item.url
 
+export function List({ results, onEndReached, onRefresh, loading, refreshing, variant = "list" }: Props) {
     const isGrid = variant === "grid"
+    const isInitialLoading = loading && results.length === 0
+
+    const renderItem = useCallback(
+        ({ item }: { item: OnlineRecipe }) => (
+            <View style={styles.cell}>
+                <Recipe recipe={item} variant={variant} />
+            </View>
+        ),
+        [variant]
+    )
 
     return (
         <FlatList
-            ListFooterComponent={loading ? <ActivityIndicator style={{ marginTop: 10 }} /> : null}
             key={variant}
             data={results}
-            keyExtractor={(item, index) => item.title + index}
-            renderItem={({ item }) => (
-                <View style={{ flex: 1 }}>
-                    <Recipe recipe={item} variant={variant} />
-                </View>
-            )}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
             numColumns={isGrid ? 2 : 1}
-            columnWrapperStyle={isGrid ? { gap: 12, paddingHorizontal: 12 } : undefined}
-            contentContainerStyle={{
-                paddingTop: headerHeight,
-                paddingBottom: headerHeight + 60,
-            }}
+            columnWrapperStyle={isGrid ? styles.gridRow : undefined}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.content}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
+            refreshControl={<ListRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            ListEmptyComponent={isInitialLoading ? <InitialSkeleton /> : null}
+            ListFooterComponent={loading && !isInitialLoading ? <ActivityIndicator style={styles.loader} /> : null}
         />
     )
 }
+
+function InitialSkeleton() {
+    return (
+        <View>
+            {[0, 1, 2, 3].map((index) => (
+                <RecipeCardSkeleton key={index} index={index} />
+            ))}
+        </View>
+    )
+}
+
+const styles = StyleSheet.create({
+    content: {
+        paddingTop: HEADER_HEIGHT,
+        paddingBottom: HEADER_HEIGHT + 85,
+    },
+    gridRow: {
+        gap: 12,
+        paddingHorizontal: 12,
+    },
+    cell: {
+        flex: 1,
+    },
+    loader: {
+        marginTop: 10,
+    },
+})

@@ -15,6 +15,7 @@ type CreateRecipeRequest struct {
 	MealType     *models.MealType    `json:"mealType,omitempty"`
 	Country      *string             `json:"country,omitempty"`
 	Persons      *int                `json:"persons,omitempty"`
+	IsSaved      *bool               `json:"isSaved,omitempty"`
 }
 
 type GetRecipeResponse models.Recipe

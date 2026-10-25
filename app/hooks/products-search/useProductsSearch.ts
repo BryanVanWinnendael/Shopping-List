@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { productsSearchClient } from "@/lib/product-search"
-import BottomSheet from "@gorhom/bottom-sheet"
 import { Category } from "@/types/generated/models/category"
 import { ProductsSearchResponse } from "@/types/generated/contracts/products-search"
 import { useHeaderStore } from "@/stores/useHeaderStore"
 import { DEBOUNCE_TIME } from "@/lib/constants"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 const EMPTY_RESULT: ProductsSearchResponse = {
     products: [],
@@ -25,9 +25,10 @@ export function useProductsSearch() {
     const [query, setQuery] = useState("")
     const [results, setResults] = useState<ProductsSearchResponse>(EMPTY_RESULT)
     const [loading, setLoading] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
     const [selectedCategories, setSelectedCategories] = useState<Category[]>([])
 
-    const bottomSheetRef = useRef<BottomSheet>(null)
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
 
     const open = useCallback(() => {
         bottomSheetRef.current?.expand()
@@ -83,8 +84,18 @@ export function useProductsSearch() {
         await getProducts(query, selectedCategories, results.page + 1, false)
     }
 
+    const refresh = useCallback(async () => {
+        setRefreshing(true)
+
+        try {
+            await getProducts(query, selectedCategories, 1, true)
+        } finally {
+            setRefreshing(false)
+        }
+    }, [query, selectedCategories, getProducts])
+
     useEffect(() => {
-        getProducts("", [])
+        getProducts("", [], 1, true)
     }, [getProducts])
 
     return {
@@ -92,12 +103,14 @@ export function useProductsSearch() {
             query,
             results,
             loading,
+            refreshing,
             selectedCategories,
         },
         actions: {
             updateQuery,
             applyFilters,
             getNextPage,
+            refresh,
             close,
             open,
         },

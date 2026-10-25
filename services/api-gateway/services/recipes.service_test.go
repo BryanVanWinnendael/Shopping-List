@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"shopping-list/shared/models"
 	"testing"
 
 	"shopping-list/shared/contracts"
@@ -215,8 +216,10 @@ func TestGetRecipes(t *testing.T) {
 
 		service := NewRecipesService(client, "http://test")
 
+		filters := models.RecipeFilter{}
+
 		// when
-		res, err := service.GetRecipes(context.Background(), "user", "1", "1")
+		res, err := service.GetRecipes(context.Background(), filters, "1", "1")
 
 		// then
 		if err != nil {
@@ -234,8 +237,10 @@ func TestGetRecipes(t *testing.T) {
 
 		service := NewRecipesService(client, "http://test")
 
+		filters := models.RecipeFilter{}
+
 		// when
-		res, err := service.GetRecipes(context.Background(), "user", "1", "1")
+		res, err := service.GetRecipes(context.Background(), filters, "user", "1")
 
 		// then
 		if err == nil {
@@ -255,8 +260,10 @@ func TestGetRecipes(t *testing.T) {
 
 		service := NewRecipesService(client, "http://test")
 
+		filters := models.RecipeFilter{}
+
 		// when
-		res, err := service.GetRecipes(context.Background(), "user", "1", "1")
+		res, err := service.GetRecipes(context.Background(), filters, "user", "1")
 
 		// then
 		if err == nil {
@@ -428,8 +435,10 @@ func TestSearchRecipes(t *testing.T) {
 
 		service := NewRecipesService(client, "http://test")
 
+		filters := models.RecipeFilter{Query: "pizza"}
+
 		// when
-		res, err := service.SearchRecipes(context.Background(), "user", "pizza", "1", "10")
+		res, err := service.SearchRecipes(context.Background(), filters, "user", "1")
 
 		// then
 		if err != nil {
@@ -447,8 +456,10 @@ func TestSearchRecipes(t *testing.T) {
 
 		service := NewRecipesService(client, "http://test")
 
+		filters := models.RecipeFilter{Query: "pizza"}
+
 		// when
-		res, err := service.SearchRecipes(context.Background(), "user", "pizza", "1", "10")
+		res, err := service.SearchRecipes(context.Background(), filters, "user", "1")
 
 		// then
 		if err == nil {
@@ -468,8 +479,10 @@ func TestSearchRecipes(t *testing.T) {
 
 		service := NewRecipesService(client, "http://test")
 
+		filters := models.RecipeFilter{Query: "pizza"}
+
 		// when
-		res, err := service.SearchRecipes(context.Background(), "user", "pizza", "1", "10")
+		res, err := service.SearchRecipes(context.Background(), filters, "user", "1")
 
 		// then
 		if err == nil {

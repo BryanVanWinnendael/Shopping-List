@@ -20,7 +20,7 @@ export function useProductsList() {
 
     const [loading, setLoading] = useState<boolean>(false)
 
-    const createText = async (product?: string | null, category?: Category | null) => {
+    const createText = async (product?: string | null, category?: Category | null, recipe?: Product["recipe"]) => {
         if (!user || !product) return
 
         const clean = product.trim().replace(/\.$/, "")
@@ -32,6 +32,7 @@ export function useProductsList() {
             user: user,
             date: Date.now(),
             category: category ?? "remaining",
+            recipe: recipe ?? null,
         } as Product
     }
 
@@ -39,7 +40,8 @@ export function useProductsList() {
     const createImage = async (
         product?: string | null,
         url?: string | null,
-        image?: ImagePicker.ImagePickerAsset | null
+        image?: ImagePicker.ImagePickerAsset | null,
+        recipe?: Product["recipe"]
     ) => {
         if (!user) return
 
@@ -66,6 +68,7 @@ export function useProductsList() {
             date: Date.now(),
             url: uploadUrl ?? url,
             category: "remaining",
+            recipe: recipe ?? null,
         } as Product
     }
 
@@ -73,15 +76,16 @@ export function useProductsList() {
         product?: string | null,
         url?: string | null,
         image?: ImagePicker.ImagePickerAsset | null,
-        category?: Category | null
+        category?: Category | null,
+        recipe?: Product["recipe"]
     ) => {
         setLoading(true)
 
         let newProduct
         if (url || image) {
-            newProduct = await createImage(product, url, image)
+            newProduct = await createImage(product, url, image, recipe)
         } else {
-            newProduct = await createText(product, category)
+            newProduct = await createText(product, category, recipe)
         }
 
         if (newProduct) {

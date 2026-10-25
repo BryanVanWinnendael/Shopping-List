@@ -1,262 +1,253 @@
-import { useCallback, useMemo, useState } from "react"
+import { memo, useCallback, useMemo, useState } from "react"
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native"
 import { Check, ShoppingBasket } from "lucide-react-native"
 import { PressableScale } from "pressto"
+import Toast from "react-native-toast-message"
 import { useProductsList } from "@/hooks/products-list/useProductsList"
 import useThemes from "@/hooks/themes/useThemes"
-import Toast from "react-native-toast-message"
+import { BORDER_RADIUS_L, BORDER_RADIUS_M } from "@/lib/theme"
 import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
     recipe: OnlineRecipeDetails
 }
 
+type RowProps = {
+    ingredient: string
+    index: number
+    added: boolean
+    onAdd: (index: number) => void
+}
+
+const IngredientRow = memo(function IngredientRow({ ingredient, index, added, onAdd }: RowProps) {
+    const { vars } = useThemes()
+
+    return (
+        <View
+            style={[styles.itemRow, { backgroundColor: vars.backgroundColor, borderColor: vars.secondaryBorderColor }]}
+        >
+            <View style={styles.itemContent}>
+                <Text style={[styles.itemText, { color: vars.textColor }]} numberOfLines={1}>
+                    {ingredient}
+                </Text>
+            </View>
+
+            <PressableScale
+                enabled={!added}
+                onPress={() => onAdd(index)}
+                accessibilityRole="button"
+                accessibilityLabel={added ? `${ingredient} added` : `Add ${ingredient}`}
+                style={[styles.itemButton, { backgroundColor: added ? `${vars.accentColor}12` : "transparent" }]}
+            >
+                {added && <Check size={15} strokeWidth={2.5} color={vars.accentColor} />}
+                <Text style={[styles.buttonText, { color: vars.accentColor }]}>{added ? "Added" : "Add"}</Text>
+            </PressableScale>
+        </View>
+    )
+})
+
 export default function IngredientsList({ recipe }: Props) {
     const { vars } = useThemes()
     const { actions } = useProductsList()
 
-    const [selected, setSelected] = useState<number[]>([])
+    const [added, setAdded] = useState<Set<number>>(new Set())
     const [loadingAll, setLoadingAll] = useState(false)
 
-    const ingredients = recipe?.ingredients ?? []
-    const selectedSet = useMemo(() => new Set(selected), [selected])
+    const ingredients = recipe.ingredients ?? []
+    const recipeRef = useMemo(() => ({ id: recipe.source, title: recipe.title }), [recipe.source, recipe.title])
+    const allAdded = ingredients.length > 0 && added.size === ingredients.length
 
-    const allAdded = ingredients.length > 0 && selected.length === ingredients.length
+    const markAdded = (indexes: number[]) => setAdded((prev) => new Set([...prev, ...indexes]))
 
-    const addSelectedItem = useCallback(
+    const markRemoved = (index: number) =>
+        setAdded((prev) => {
+            const next = new Set(prev)
+            next.delete(index)
+            return next
+        })
+
+    const addOne = useCallback(
         async (index: number) => {
-            if (selectedSet.has(index)) return
+            const ingredient = ingredients[index]
 
-            const product = ingredients[index]
-            if (!product) return
+            if (!ingredient || added.has(index)) return
 
-            setSelected((prev) => [...prev, index])
+            // Optimistic update, rolled back if adding fails.
+            markAdded([index])
 
             try {
-                await actions.createProduct(product)
-            } catch (e) {
-                setSelected((prev) => prev.filter((i) => i !== index))
+                await actions.createProduct(ingredient, null, null, null, recipeRef)
+            } catch {
+                markRemoved(index)
+                Toast.show({ type: "error", text1: "Failed to add ingredient" })
             }
         },
-        [actions, ingredients, selectedSet]
+        [actions, ingredients, added, recipeRef]
     )
 
     const addAll = useCallback(async () => {
-        if (!ingredients.length || loadingAll) return
+        if (loadingAll) return
 
-        Toast.show({
-            type: "success",
-            text1: "Adding all ingredients...",
-        })
+        const pending = ingredients.map((_, index) => index).filter((index) => !added.has(index))
+
+        if (!pending.length) return
 
         setLoadingAll(true)
 
-        try {
-            const indexesToAdd = ingredients.map((_, index) => index).filter((index) => !selectedSet.has(index))
+        // allSettled, so one failure doesn't hide the ones that did succeed.
+        const results = await Promise.allSettled(
+            pending.map((index) => actions.createProduct(ingredients[index], null, null, null, recipeRef))
+        )
+        const succeeded = pending.filter((_, n) => results[n].status === "fulfilled")
 
-            await Promise.all(
-                indexesToAdd.map(async (index) => {
-                    await actions.createProduct(ingredients[index])
-                })
-            )
+        markAdded(succeeded)
+        setLoadingAll(false)
 
-            setSelected((prev) => [...new Set([...prev, ...indexesToAdd])])
-        } finally {
-            setLoadingAll(false)
-
-            Toast.show({
-                type: "success",
-                text1: "Ingredients added successfully!",
-            })
+        if (succeeded.length === pending.length) {
+            Toast.show({ type: "success", text1: "Ingredients added successfully!" })
+        } else {
+            Toast.show({ type: "error", text1: "Some ingredients couldn't be added" })
         }
-    }, [actions, ingredients, loadingAll, selectedSet])
+    }, [actions, ingredients, added, loadingAll, recipeRef])
 
     return (
-        <View
-            style={[
-                styles.container,
-                {
-                    backgroundColor: vars.secondaryBackgroundColor,
-                    borderColor: vars.secondaryBorderColor,
-                },
-            ]}
-        >
+        <View style={[styles.container, { backgroundColor: vars.secondaryBackgroundColor }]}>
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
-                    <View style={[styles.iconWrapper, { backgroundColor: `${vars.accentColor}20` }]}>
-                        <ShoppingBasket size={18} color={vars.accentColor} />
+                    <View style={[styles.iconWrapper, { backgroundColor: `${vars.accentColor}18` }]}>
+                        <ShoppingBasket size={19} strokeWidth={2.2} color={vars.accentColor} />
                     </View>
 
                     <View style={styles.textBlock}>
                         <Text style={[styles.title, { color: vars.textColor }]}>Ingredients</Text>
-
-                        <Text style={[styles.subtitle]}>Add ingredients directly to the list</Text>
+                        <Text style={styles.subtitle}>Add ingredients to your shopping list</Text>
                     </View>
                 </View>
 
                 <PressableScale
                     onPress={addAll}
                     enabled={!allAdded && !loadingAll}
+                    accessibilityRole="button"
+                    accessibilityLabel="Add all ingredients"
                     style={[
                         styles.addAllButton,
                         {
-                            backgroundColor: allAdded ? "rgba(52,199,89,0.15)" : vars.backgroundColor,
-                            borderColor: vars.borderColor,
-                            opacity: loadingAll ? 0.7 : 1,
+                            backgroundColor: allAdded ? `${vars.accentColor}14` : vars.backgroundColor,
+                            borderColor: vars.secondaryBorderColor,
+                            opacity: loadingAll ? 0.6 : 1,
                         },
                     ]}
                 >
-                    {allAdded && <Check size={16} color="#34C759" style={{ marginRight: 6 }} />}
-
                     {loadingAll ? (
-                        <ActivityIndicator size="small" color={vars.textColor} />
+                        <ActivityIndicator size="small" color={vars.accentColor} />
                     ) : (
-                        <Text
-                            style={{
-                                color: allAdded ? "#34C759" : vars.textColor,
-                                fontWeight: "600",
-                                fontSize: 14,
-                            }}
-                        >
-                            {allAdded ? "Added All" : "Add All"}
-                        </Text>
+                        <>
+                            {allAdded && <Check size={15} strokeWidth={2.5} color={vars.accentColor} />}
+                            <Text style={[styles.buttonText, { color: allAdded ? vars.accentColor : vars.textColor }]}>
+                                {allAdded ? "Added" : "Add All"}
+                            </Text>
+                        </>
                     )}
                 </PressableScale>
             </View>
 
             <View style={styles.list}>
-                {ingredients.map((ingredient, index) => {
-                    const isSelected = selectedSet.has(index)
-
-                    return (
-                        <View
-                            key={`${ingredient}-${index}`}
-                            style={[
-                                styles.itemRow,
-                                {
-                                    backgroundColor: vars.backgroundColor,
-                                    borderColor: vars.secondaryBorderColor,
-                                },
-                            ]}
-                        >
-                            <View style={styles.itemContent}>
-                                <Text style={[styles.itemText, { color: vars.textColor }]} numberOfLines={1}>
-                                    {ingredient}
-                                </Text>
-                            </View>
-
-                            <PressableScale
-                                enabled={!isSelected}
-                                onPress={() => addSelectedItem(index)}
-                                style={[
-                                    styles.itemButton,
-                                    {
-                                        backgroundColor: isSelected
-                                            ? "rgba(52,199,89,0.15)"
-                                            : vars.secondaryBackgroundColor,
-                                        borderColor: vars.borderColor,
-                                    },
-                                ]}
-                            >
-                                {isSelected && <Check size={14} color="#34C759" style={{ marginRight: 4 }} />}
-
-                                <Text
-                                    style={{
-                                        fontSize: 13,
-                                        fontWeight: "600",
-                                        color: isSelected ? "#34C759" : vars.textColor,
-                                        textDecorationLine: isSelected ? "underline" : "none",
-                                    }}
-                                >
-                                    {isSelected ? "Added" : "Add"}
-                                </Text>
-                            </PressableScale>
-                        </View>
-                    )
-                })}
+                {ingredients.map((ingredient, index) => (
+                    <IngredientRow
+                        key={`${ingredient}-${index}`}
+                        ingredient={ingredient}
+                        index={index}
+                        added={added.has(index)}
+                        onAdd={addOne}
+                    />
+                ))}
             </View>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    textBlock: {
-        flex: 1,
-        paddingRight: 12,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: "700",
-        flexWrap: "wrap",
-    },
-    subtitle: {
-        fontSize: 13,
-        marginTop: 2,
-        flexWrap: "wrap",
-        color: "#9ca3af",
-    },
     container: {
-        borderRadius: 24,
-        padding: 16,
-        borderWidth: 1,
-        gap: 10,
+        borderRadius: BORDER_RADIUS_L,
+        padding: 14,
+        gap: 12,
     },
     header: {
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
+        justifyContent: "space-between",
     },
     titleContainer: {
+        flex: 1,
         flexDirection: "row",
         alignItems: "center",
-        flex: 1,
-        gap: 12,
+        gap: 11,
         paddingRight: 10,
     },
     iconWrapper: {
-        width: 42,
-        height: 42,
-        borderRadius: 999,
+        width: 40,
+        height: 40,
+        borderRadius: BORDER_RADIUS_M,
         justifyContent: "center",
         alignItems: "center",
     },
+    textBlock: {
+        flex: 1,
+    },
+    title: {
+        fontSize: 17,
+        fontWeight: "700",
+        letterSpacing: -0.2,
+    },
+    subtitle: {
+        marginTop: 2,
+        fontSize: 12.5,
+        color: "#8E8E93",
+    },
     addAllButton: {
+        minHeight: 34,
+        paddingHorizontal: 12,
+        borderRadius: BORDER_RADIUS_M,
+        borderWidth: StyleSheet.hairlineWidth,
         flexDirection: "row",
         alignItems: "center",
-        borderRadius: 999,
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-        borderWidth: 1,
+        justifyContent: "center",
+        gap: 5,
+    },
+    buttonText: {
+        fontSize: 13,
+        fontWeight: "600",
     },
     list: {
-        gap: 10,
-        marginTop: 6,
+        gap: 7,
     },
     itemRow: {
+        minHeight: 58,
+        borderRadius: BORDER_RADIUS_M,
+        paddingHorizontal: 10,
+        paddingVertical: 9,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: 12,
-        borderRadius: 18,
-        borderWidth: 1,
+        borderWidth: StyleSheet.hairlineWidth,
     },
     itemContent: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
         flex: 1,
+        justifyContent: "center",
+        paddingRight: 8,
     },
     itemText: {
         fontSize: 15,
         fontWeight: "500",
-        flex: 1,
+        letterSpacing: -0.1,
     },
     itemButton: {
+        minHeight: 32,
+        paddingHorizontal: 10,
+        borderRadius: BORDER_RADIUS_M,
         flexDirection: "row",
         alignItems: "center",
-        borderRadius: 999,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderWidth: 1,
+        justifyContent: "center",
+        gap: 4,
     },
 })

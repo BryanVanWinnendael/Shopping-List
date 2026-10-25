@@ -31,8 +31,8 @@ export default function Background({ recipe, scrollY }: Props) {
     })
 
     return (
-        <Animated.View pointerEvents="none" style={[styles.container, containerStyle]}>
-            <Animated.View pointerEvents="none" style={[styles.image, imageStyle]}>
+        <Animated.View style={[styles.container, containerStyle]}>
+            <Animated.View style={[styles.image, imageStyle]}>
                 {recipe.banner && <CustomImage url={recipe.banner} style={StyleSheet.absoluteFill} />}
             </Animated.View>
         </Animated.View>
@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         overflow: "hidden",
+        zIndex: 10,
     },
     image: {
         position: "absolute",

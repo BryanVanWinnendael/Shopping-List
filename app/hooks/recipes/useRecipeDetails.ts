@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useLocalSearchParams } from "expo-router"
 import { recipesClient } from "@/lib/recipes"
-import GorhomBottomSheet from "@gorhom/bottom-sheet"
 import { Recipe } from "@/types/generated/models/recipe"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
+import { useAiContextStore } from "@/stores/useAiContextStore"
 
 export function useRecipeDetails() {
     const { id } = useLocalSearchParams()
+    const { setRecipe: setRecipeContext } = useAiContextStore()
 
-    const sheetRef = useRef<GorhomBottomSheet>(null)
+    const sheetRef = useRef<BottomSheetRef>(null)
 
     const [recipe, setRecipe] = useState<Recipe>({
         banner: undefined,
@@ -32,6 +34,7 @@ export function useRecipeDetails() {
         const response = await recipesClient.getRecipe(id)
         if (response) {
             setRecipe(response)
+            setRecipeContext(response)
         }
     }, [id])
 

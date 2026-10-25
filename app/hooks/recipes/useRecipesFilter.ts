@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRecipesStore } from "@/stores/useRecipesStore"
-import BottomSheet from "@gorhom/bottom-sheet"
 import { MealType } from "@/types/generated/models/meal_type"
+import { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 
 export function useRecipesFilter() {
     const { activeFilter, updateFilter, setActiveFilter } = useRecipesStore()
 
-    const bottomSheetRef = useRef<BottomSheet>(null)
+    const bottomSheetRef = useRef<BottomSheetRef>(null)
 
     const [mealType, setMealType] = useState<MealType>("Any")
     const [isPublic, setIsPublic] = useState(true)
-    const [country, setCountry] = useState<string>("Any")
-    const [time, setTime] = useState<number | null>(null)
+    const [country, setCountry] = useState<string | undefined>("Any")
+    const [time, setTime] = useState<number | null | undefined>(null)
 
     const open = useCallback(() => {
         bottomSheetRef.current?.expand()
@@ -46,29 +46,40 @@ export function useRecipesFilter() {
         await setActiveFilter(reset)
     }
 
-    const label = useMemo(() => {
-        if (!activeFilter) return "Filter"
+    // One entry per active filter, so the label and the FAB badge cannot drift apart.
+    const parts = useMemo(() => {
+        if (!activeFilter) return []
 
-        const parts: string[] = []
+        const next: string[] = []
 
         if (activeFilter.mealType !== "Any") {
-            parts.push(activeFilter.mealType)
+            next.push(activeFilter.mealType)
         }
 
         if (!activeFilter.public) {
-            parts.push("My Recipes")
+            next.push("Private")
         }
 
         if (activeFilter.country && activeFilter.country !== "Any") {
-            parts.push(activeFilter.country)
+            next.push(activeFilter.country)
         }
 
         if (activeFilter.time) {
-            parts.push(`≤ ${activeFilter.time} min`)
+            next.push(`≤ ${activeFilter.time} min`)
         }
 
-        return parts.length ? parts.join(", ") : "All"
+        if (activeFilter.isSaved) {
+            next.push("Online Recipes")
+        }
+
+        return next
     }, [activeFilter])
+
+    const label = useMemo(() => {
+        if (!activeFilter) return "Filter"
+
+        return parts.length ? parts.join(", ") : "All"
+    }, [activeFilter, parts])
 
     useEffect(() => {
         setMealType(activeFilter.mealType)
@@ -84,6 +95,7 @@ export function useRecipesFilter() {
             country,
             time,
             label,
+            count: parts.length,
         },
         actions: {
             setMealType,

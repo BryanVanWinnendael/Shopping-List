@@ -19,6 +19,7 @@ type Recipe struct {
 	MealType     *MealType    `json:"mealType,omitempty"`
 	Country      *string      `json:"country,omitempty"`
 	Persons      *int         `json:"persons,omitempty"`
+	IsSaved      *bool        `json:"isSaved,omitempty"`
 }
 
 type RecipeSummary struct {
@@ -31,6 +32,7 @@ type RecipeSummary struct {
 	MealType *MealType `json:"mealType,omitempty"`
 	Country  *string   `json:"country,omitempty"`
 	Persons  *int      `json:"persons,omitempty"`
+	IsSaved  *bool     `json:"isSaved,omitempty"`
 }
 
 type MealType string
@@ -68,4 +70,26 @@ type Nutrition struct {
 	SaturatedFat  string `json:"saturatedFat,omitempty"`
 	Protein       string `json:"protein,omitempty"`
 	Fiber         string `json:"fiber,omitempty"`
+}
+
+type RecipeFilter struct {
+	Query    string    `json:"query"`
+	Country  *string   `json:"country,omitempty"`
+	MealType *MealType `json:"mealType,omitempty"`
+	Public   *bool     `json:"public,omitempty"`
+	Time     *int      `json:"time,omitempty"`
+	IsSaved  *bool     `json:"isSaved,omitempty"`
+}
+
+// OnlineRecipeFilter holds the 15gram filters for the online recipe endpoints.
+// Every group is a multi-select and maps to one repeated param, e.g. kitchen[]=x.
+type OnlineRecipeFilter struct {
+	Kitchens []string `json:"kitchens"`
+	Courses  []string `json:"courses"`
+	Dishes   []string `json:"dishes"`
+	Specials []string `json:"specials"`
+}
+
+func (f OnlineRecipeFilter) Active() bool {
+	return len(f.Kitchens) > 0 || len(f.Courses) > 0 || len(f.Dishes) > 0 || len(f.Specials) > 0
 }

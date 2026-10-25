@@ -1,5 +1,5 @@
-import { ReactNode } from "react"
-import { Text, View } from "react-native"
+import type { ReactNode } from "react"
+import { StyleSheet, Text, View } from "react-native"
 import useThemes from "@/hooks/themes/useThemes"
 
 type Props = {
@@ -11,21 +11,26 @@ export default function Section({ title, children }: Props) {
     const { vars } = useThemes()
 
     return (
-        <View style={{ marginBottom: 28 }}>
-            <Text
-                style={{
-                    marginHorizontal: 16,
-                    marginBottom: 10,
-                    fontSize: 14,
-                    fontWeight: "600",
-                    color: vars.textColor,
-                    opacity: 0.2,
-                }}
-            >
-                {title}
-            </Text>
+        <View style={styles.section}>
+            <Text style={[styles.heading, { color: vars.textColor }]}>{title}</Text>
 
-            <View style={{ gap: 12 }}>{children}</View>
+            <View style={styles.children}>{children}</View>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    section: {
+        marginBottom: 28,
+    },
+    heading: {
+        marginHorizontal: 16,
+        marginBottom: 10,
+        fontSize: 14,
+        fontWeight: "600",
+        opacity: 0.2,
+    },
+    children: {
+        gap: 12,
+    },
+})

@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { TextInput } from "react-native"
+import { StyleSheet, TextInput } from "react-native"
 import { Search, X } from "lucide-react-native"
 import Animated, {
     FadeIn,
@@ -9,11 +9,22 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+import { PressableScale } from "pressto"
 
 import useThemes from "@/hooks/themes/useThemes"
-import GlassOrBlurView from "@/components/glassOrBlurView"
-import { PressableScale } from "pressto"
-import { SHADOW_STYLE } from "@/lib/constants"
+import {
+    BAR_CLEAR_ICON_SIZE,
+    BAR_FONT_SIZE,
+    BAR_HEIGHT,
+    BAR_PADDING_H,
+    BORDER_RADIUS_L,
+    DOCK_BOTTOM,
+    DOCK_GAP,
+    DOCK_SIDE,
+    FAB_ICON_SIZE,
+    FAB_SIZE,
+} from "@/lib/theme"
 
 type Props = {
     value: string
@@ -23,55 +34,37 @@ type Props = {
     onBlur: () => void
 }
 
-const AnimatedView = Animated.createAnimatedComponent(Animated.View)
+const RIGHT_COLLAPSED = DOCK_SIDE + 110 + DOCK_GAP // leaves room for the expanded style button
+const RIGHT_FOCUSED = DOCK_SIDE + FAB_SIZE + DOCK_GAP // the style button shrinks, so the bar can grow
+
+const CLEAR_FADE_IN = FadeIn.duration(120)
+const CLEAR_FADE_OUT = FadeOut.duration(120)
 
 export default function SearchBar({ value, onChange, focused, onFocus, onBlur }: Props) {
-    const { vars, theme } = useThemes()
+    const { vars, appearance } = useThemes()
 
     const scale = useSharedValue(1)
+    const right = useSharedValue(focused ? RIGHT_FOCUSED : RIGHT_COLLAPSED)
 
     useEffect(() => {
+        right.value = withTiming(focused ? RIGHT_FOCUSED : RIGHT_COLLAPSED, { duration: 250 })
+
         if (focused) {
             scale.value = withSequence(withTiming(1.03, { duration: 120 }), withTiming(1, { duration: 180 }))
         }
-    }, [focused])
+    }, [focused, right, scale])
 
     const animatedStyle = useAnimatedStyle(() => ({
-        right: withTiming(focused ? 80 : 146, {
-            duration: 250,
-        }),
+        right: right.value,
         transform: [{ scale: scale.value }],
     }))
 
-    const clear = () => {
-        onChange("")
-    }
+    const clear = () => onChange("")
 
     return (
-        <AnimatedView
-            style={[
-                {
-                    position: "absolute",
-                    bottom: 24,
-                    left: 24,
-                    zIndex: 1,
-                },
-                animatedStyle,
-                SHADOW_STYLE,
-            ]}
-        >
-            <GlassOrBlurView
-                backgroundColor={vars.secondaryBackgroundColor}
-                borderColor={`${vars.secondaryBorderColor}50`}
-                style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 16,
-                    height: 48,
-                    borderRadius: 26,
-                }}
-            >
-                <Search size={20} color={vars.textColor} />
+        <Animated.View style={[styles.container, animatedStyle]}>
+            <LiquidGlassView style={styles.glass} isInteractive>
+                <Search size={FAB_ICON_SIZE} color={vars.textColor} />
 
                 <TextInput
                     value={value}
@@ -79,32 +72,58 @@ export default function SearchBar({ value, onChange, focused, onFocus, onBlur }:
                     onFocus={onFocus}
                     onBlur={onBlur}
                     placeholder="Search recipes..."
-                    placeholderTextColor="gray"
+                    placeholderTextColor={vars.tertiaryTextColor}
                     returnKeyType="search"
-                    style={{
-                        flex: 1,
-                        marginLeft: 10,
-                        color: vars.textColor,
-                        fontSize: 17,
-                    }}
-                    keyboardAppearance={theme === "light" ? "light" : "dark"}
+                    keyboardAppearance={appearance}
+                    style={[styles.input, { color: vars.textColor }]}
                 />
 
                 {value.length > 0 && (
-                    <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(120)}>
+                    <Animated.View entering={CLEAR_FADE_IN} exiting={CLEAR_FADE_OUT}>
                         <PressableScale
                             onPress={clear}
                             hitSlop={10}
-                            style={{
-                                padding: 4,
-                                marginLeft: 6,
-                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Clear search"
+                            style={styles.clearButton}
                         >
-                            <X size={18} color={vars.textColor} />
+                            <X size={BAR_CLEAR_ICON_SIZE} color={vars.textColor} />
                         </PressableScale>
                     </Animated.View>
                 )}
-            </GlassOrBlurView>
-        </AnimatedView>
+            </LiquidGlassView>
+        </Animated.View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        position: "absolute",
+        bottom: DOCK_BOTTOM,
+        left: DOCK_SIDE,
+        zIndex: 1,
+    },
+    glass: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: BAR_PADDING_H,
+        height: BAR_HEIGHT,
+        borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    input: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: BAR_FONT_SIZE,
+    },
+    clearButton: {
+        padding: 4,
+        marginLeft: 6,
+    },
+})

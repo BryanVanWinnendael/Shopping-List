@@ -11,16 +11,18 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated"
 import * as Haptics from "expo-haptics"
+import { BlurView } from "expo-blur"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import CategoryIcon from "@/components/categoryIcon"
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { DEFAULT_FONT_SIZE, MAX_FONT_SIZE, MIN_FONT_SIZE } from "@/lib/constants"
 import { Type, X } from "lucide-react-native"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M, SHEET_CTA_HEIGHT } from "@/lib/theme"
 
 export default function FontSize() {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
     const { fontSize, setFontSize } = useSettingsStore()
 
     const scale = useSharedValue(0.96)
@@ -34,6 +36,7 @@ export default function FontSize() {
 
     const resetFontSize = () => {
         scale.value = withSpring(1)
+
         setTempFontSize(DEFAULT_FONT_SIZE)
         setFontSize(DEFAULT_FONT_SIZE)
     }
@@ -85,226 +88,166 @@ export default function FontSize() {
                 {
                     backgroundColor: vars.secondaryBackgroundColor,
                     borderColor: vars.secondaryBorderColor,
-                    borderWidth: 1,
                 },
             ]}
         >
             <View style={styles.row}>
                 <View style={styles.titleContainer}>
-                    <View
-                        style={[
-                            styles.iconWrapper,
-                            {
-                                backgroundColor: `${vars.accentColor}20`,
-                            },
-                        ]}
-                    >
-                        <Type size={18} color={vars.accentColor} />
-                    </View>
+                    <LiquidGlassView style={styles.iconGlass}>
+                        <View style={styles.iconWrapper}>
+                            <Type size={18} strokeWidth={2} color={vars.accentColor} />
+                        </View>
+                    </LiquidGlassView>
 
                     <View>
-                        <Text style={[styles.title, { color: vars.textColor }]}>Font Size</Text>
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    color: vars.textColor,
+                                },
+                            ]}
+                        >
+                            Font Size
+                        </Text>
 
                         <Text
-                            style={{
-                                color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                marginTop: 2,
-                                fontSize: 13,
-                            }}
+                            style={[
+                                styles.subtitle,
+                                {
+                                    color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                },
+                            ]}
                         >
                             Customize product text size
                         </Text>
                     </View>
                 </View>
 
-                <PressableScale
-                    onPress={openModal}
-                    style={[
-                        styles.readButton,
-                        {
-                            backgroundColor: vars.backgroundColor,
-                            borderColor: vars.borderColor,
-                        },
-                    ]}
-                >
-                    <Text
-                        style={{
-                            color: vars.textColor,
-                            fontSize: 14,
-                            fontWeight: "600",
-                        }}
-                    >
-                        Edit
-                    </Text>
-                </PressableScale>
+                <LiquidGlassView style={styles.editGlass} isInteractive>
+                    <PressableScale onPress={openModal} style={styles.editButton}>
+                        <Text style={[styles.editText, { color: vars.textColor }]}>Edit</Text>
+                    </PressableScale>
+                </LiquidGlassView>
             </View>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
-                <GlassOrBlurView style={styles.modalOverlay}>
+                <BlurView intensity={24} tint={appearance} style={styles.modalOverlay}>
                     <Animated.View
                         entering={FadeIn.duration(180)}
                         exiting={FadeOut.duration(120)}
-                        style={[
-                            styles.modalContent,
-                            animatedStyle,
-                            {
-                                backgroundColor: vars.backgroundColor,
-                                borderColor: vars.borderColor,
-                            },
-                        ]}
+                        style={[styles.animatedModal, animatedStyle]}
                     >
-                        <View style={styles.modalHeader}>
-                            <View>
-                                <Text
-                                    style={{
-                                        color: vars.textColor,
-                                        fontSize: 24,
-                                        fontWeight: "700",
-                                    }}
-                                >
-                                    Font Size
-                                </Text>
+                        <LiquidGlassView style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <View>
+                                    <Text style={[styles.modalTitle, { color: vars.textColor }]}>Font Size</Text>
 
-                                <Text
-                                    style={{
-                                        color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                        marginTop: 4,
-                                        fontSize: 14,
-                                    }}
-                                >
-                                    Customize product text size
-                                </Text>
-                            </View>
-
-                            <PressableScale
-                                onPress={closeModal}
-                                style={[
-                                    styles.closeButton,
-                                    {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                        borderColor: vars.secondaryBorderColor,
-                                    },
-                                ]}
-                            >
-                                <X size={18} color={vars.textColor} />
-                            </PressableScale>
-                        </View>
-
-                        <View style={{ marginTop: 24 }}>
-                            <Slider
-                                style={styles.slider}
-                                minimumValue={MIN_FONT_SIZE}
-                                maximumValue={MAX_FONT_SIZE}
-                                maximumTrackTintColor={vars.secondaryBackgroundColor}
-                                step={1}
-                                value={tempFontSize}
-                                onValueChange={(val) => setTempFontSize(Math.round(val))}
-                                minimumTrackTintColor={vars.accentColor}
-                                onSlidingStart={() => {
-                                    scale.value = withSpring(1.02)
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                                }}
-                                onSlidingComplete={() => {
-                                    scale.value = withSpring(1)
-                                }}
-                            />
-                        </View>
-
-                        <View
-                            style={[
-                                styles.previewContainer,
-                                {
-                                    backgroundColor: vars.secondaryBackgroundColor,
-                                    marginTop: 24,
-                                },
-                            ]}
-                        >
-                            <View style={styles.previewRow}>
-                                <View style={styles.previewIcon}>
-                                    <CategoryIcon category="remaining" />
+                                    <Text
+                                        style={[
+                                            styles.modalSubtitle,
+                                            {
+                                                color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                            },
+                                        ]}
+                                    >
+                                        Customize product text size
+                                    </Text>
                                 </View>
 
-                                <View
+                                <LiquidGlassView style={styles.closeGlass} isInteractive>
+                                    <PressableScale onPress={closeModal} style={styles.closeButton}>
+                                        <X size={17} strokeWidth={2} color={vars.textColor} />
+                                    </PressableScale>
+                                </LiquidGlassView>
+                            </View>
+
+                            <View style={styles.sliderContainer}>
+                                <Slider
+                                    style={styles.slider}
+                                    minimumValue={MIN_FONT_SIZE}
+                                    maximumValue={MAX_FONT_SIZE}
+                                    maximumTrackTintColor={vars.secondaryBackgroundColor}
+                                    step={1}
+                                    value={tempFontSize}
+                                    onValueChange={(val) => setTempFontSize(Math.round(val))}
+                                    minimumTrackTintColor={vars.accentColor}
+                                    onSlidingStart={() => {
+                                        scale.value = withSpring(1.02)
+
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                                    }}
+                                    onSlidingComplete={() => {
+                                        scale.value = withSpring(1)
+                                    }}
+                                />
+                            </View>
+
+                            <LiquidGlassView style={styles.previewContainer}>
+                                <View style={styles.previewRow}>
+                                    <View style={styles.previewIcon}>
+                                        <CategoryIcon category="remaining" />
+                                    </View>
+
+                                    <View
+                                        style={[
+                                            styles.previewTextWrapper,
+                                            {
+                                                borderColor: vars.borderColor,
+                                            },
+                                        ]}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.previewText,
+                                                {
+                                                    fontSize: getTextSize,
+                                                    color: vars.textColor,
+                                                },
+                                            ]}
+                                            numberOfLines={1}
+                                            adjustsFontSizeToFit
+                                        >
+                                            Font size preview
+                                        </Text>
+
+                                        <Text
+                                            style={[
+                                                styles.previewAddedBy,
+                                                {
+                                                    fontSize: getLabelSize,
+                                                    color: theme === "light" ? "#9ca3af" : "#50555C",
+                                                },
+                                            ]}
+                                        >
+                                            added by
+                                        </Text>
+                                    </View>
+                                </View>
+                            </LiquidGlassView>
+
+                            <View style={styles.actions}>
+                                <LiquidGlassView style={styles.secondaryGlass} isInteractive>
+                                    <PressableScale onPress={resetFontSize} style={styles.secondaryButton}>
+                                        <Text style={[styles.resetText, { color: vars.textColor }]}>Reset</Text>
+                                    </PressableScale>
+                                </LiquidGlassView>
+
+                                <PressableScale
+                                    onPress={applyFontSize}
                                     style={[
-                                        styles.previewTextWrapper,
+                                        styles.primaryButton,
                                         {
-                                            borderColor: vars.borderColor,
+                                            backgroundColor: vars.accentColor,
                                         },
                                     ]}
                                 >
-                                    <Text
-                                        style={{
-                                            fontSize: getTextSize,
-                                            color: vars.textColor,
-                                        }}
-                                        numberOfLines={1}
-                                        adjustsFontSizeToFit
-                                    >
-                                        Font size preview
-                                    </Text>
-
-                                    <Text
-                                        style={{
-                                            fontSize: getLabelSize,
-                                            color: theme === "light" ? "#9ca3af" : "#50555C",
-                                            marginTop: 8,
-                                            textAlign: "right",
-                                        }}
-                                    >
-                                        added by
-                                    </Text>
-                                </View>
+                                    <Text style={styles.doneText}>Done</Text>
+                                </PressableScale>
                             </View>
-                        </View>
-
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                gap: 12,
-                                marginTop: 24,
-                            }}
-                        >
-                            <PressableScale
-                                onPress={resetFontSize}
-                                style={[
-                                    styles.secondaryButton,
-                                    {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                    },
-                                ]}
-                            >
-                                <Text
-                                    style={{
-                                        color: vars.textColor,
-                                        fontWeight: "600",
-                                    }}
-                                >
-                                    Reset
-                                </Text>
-                            </PressableScale>
-
-                            <PressableScale
-                                onPress={applyFontSize}
-                                style={[
-                                    styles.primaryButton,
-                                    {
-                                        backgroundColor: vars.accentColor,
-                                    },
-                                ]}
-                            >
-                                <Text
-                                    style={{
-                                        color: "#fff",
-                                        fontWeight: "700",
-                                        fontSize: 16,
-                                    }}
-                                >
-                                    Done
-                                </Text>
-                            </PressableScale>
-                        </View>
+                        </LiquidGlassView>
                     </Animated.View>
-                </GlassOrBlurView>
+                </BlurView>
             </Modal>
         </View>
     )
@@ -312,11 +255,12 @@ export default function FontSize() {
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
         paddingHorizontal: 18,
         paddingVertical: 18,
         marginHorizontal: 8,
         borderWidth: 1,
+        overflow: "hidden",
     },
     row: {
         flexDirection: "row",
@@ -330,10 +274,22 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingRight: 16,
     },
+    iconGlass: {
+        width: 42,
+        height: 42,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
     iconWrapper: {
         width: 42,
         height: 42,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         justifyContent: "center",
         alignItems: "center",
     },
@@ -341,37 +297,89 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         fontSize: 18,
     },
-    readButton: {
-        borderRadius: 999,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+    subtitle: {
+        marginTop: 2,
+        fontSize: 13,
+    },
+    editText: {
+        fontSize: 13,
+        fontWeight: "600",
+    },
+    editGlass: {
+        height: 36,
+        minWidth: 58,
+        borderRadius: BORDER_RADIUS_FULL,
         borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    editButton: {
+        height: 36,
+        minWidth: 58,
+        paddingHorizontal: 14,
+        alignItems: "center",
+        justifyContent: "center",
     },
     modalOverlay: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingHorizontal: 16,
+        paddingHorizontal: 12,
+    },
+    animatedModal: {
+        width: "100%",
+        maxWidth: 420,
+        maxHeight: "90%",
     },
     modalContent: {
         width: "100%",
-        maxWidth: 420,
-        borderRadius: 28,
+        borderRadius: BORDER_RADIUS_L,
         borderWidth: 1,
         padding: 22,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     modalHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
     },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: "700",
+    },
+    modalSubtitle: {
+        marginTop: 4,
+        fontSize: 14,
+    },
+    closeGlass: {
+        width: 36,
+        height: 36,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+    },
     closeButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 999,
+        width: 36,
+        height: 36,
         justifyContent: "center",
         alignItems: "center",
-        borderWidth: 1,
+    },
+    sliderContainer: {
+        marginTop: 24,
     },
     slider: {
         width: "100%",
@@ -379,8 +387,16 @@ const styles = StyleSheet.create({
     },
     previewContainer: {
         minHeight: 110,
-        borderRadius: 18,
+        borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
         paddingHorizontal: 12,
+        marginTop: 24,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     previewRow: {
         flexDirection: "row",
@@ -399,29 +415,54 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         justifyContent: "center",
     },
+    previewText: {},
+    previewAddedBy: {
+        marginTop: 8,
+        textAlign: "right",
+    },
     actions: {
         flexDirection: "row",
-        gap: 12,
-        marginTop: 24,
+        gap: 10,
+        marginTop: 20,
+    },
+    secondaryGlass: {
+        flex: 1,
+        minHeight: SHEET_CTA_HEIGHT,
+        borderRadius: BORDER_RADIUS_M,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     secondaryButton: {
         flex: 1,
-        borderRadius: 18,
-        paddingVertical: 14,
+        minHeight: SHEET_CTA_HEIGHT,
         alignItems: "center",
-    },
-    primaryButton: {
-        flex: 1,
-        borderRadius: 18,
-        paddingVertical: 14,
-        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 14,
     },
     resetText: {
         fontSize: 14,
         fontWeight: "600",
     },
+    primaryButton: {
+        flex: 1,
+        minHeight: SHEET_CTA_HEIGHT,
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: BORDER_RADIUS_M,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
     doneText: {
-        fontSize: 16,
+        color: "#fff",
         fontWeight: "700",
+        fontSize: 15,
     },
 })

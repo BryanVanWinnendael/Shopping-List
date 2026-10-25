@@ -9,16 +9,19 @@ import Animated, {
     withSpring,
     withTiming,
 } from "react-native-reanimated"
+import { BlurView } from "expo-blur"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import updates from "@/assets/updates.json"
 import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import useThemes from "@/hooks/themes/useThemes"
 import { Sparkles, X } from "lucide-react-native"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, SHEET_CTA_HEIGHT } from "@/lib/theme"
 
 export default function Update() {
-    const { vars, theme } = useThemes()
+    const { vars, theme, appearance } = useThemes()
 
     const [modalVisible, setModalVisible] = useState(false)
+
     const scale = useSharedValue(0.96)
     const opacity = useSharedValue(0)
 
@@ -69,233 +72,147 @@ export default function Update() {
         >
             <View style={styles.row}>
                 <View style={styles.titleContainer}>
-                    <View
-                        style={[
-                            styles.iconWrapper,
-                            {
-                                backgroundColor: `${vars.accentColor}20`,
-                            },
-                        ]}
-                    >
-                        <Sparkles size={18} color={vars.accentColor} />
-                    </View>
+                    <LiquidGlassView style={styles.iconGlass}>
+                        <View style={styles.iconWrapper}>
+                            <Sparkles size={18} strokeWidth={2} color={vars.accentColor} />
+                        </View>
+                    </LiquidGlassView>
 
                     <View>
-                        <Text style={[styles.title, { color: vars.textColor }]}>Release Notes</Text>
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    color: vars.textColor,
+                                },
+                            ]}
+                        >
+                            Release Notes
+                        </Text>
 
                         <Text
-                            style={{
-                                color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                marginTop: 2,
-                                fontSize: 13,
-                            }}
+                            style={[
+                                styles.subtitle,
+                                {
+                                    color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                },
+                            ]}
                         >
                             Latest app improvements and updates
                         </Text>
                     </View>
                 </View>
 
-                <PressableScale
-                    onPress={openModal}
-                    style={[
-                        styles.readButton,
-                        {
-                            backgroundColor: vars.backgroundColor,
-                            borderColor: vars.borderColor,
-                        },
-                    ]}
-                >
-                    <Text
-                        style={{
-                            color: vars.textColor,
-                            fontSize: 14,
-                            fontWeight: "600",
-                        }}
-                    >
-                        Read
-                    </Text>
-                </PressableScale>
+                <LiquidGlassView style={styles.readGlass} isInteractive>
+                    <PressableScale onPress={openModal} style={styles.readButton}>
+                        <Text style={[styles.readText, { color: vars.textColor }]}>Read</Text>
+                    </PressableScale>
+                </LiquidGlassView>
             </View>
 
             <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
-                <GlassOrBlurView style={styles.modalOverlay}>
+                <BlurView intensity={24} tint={appearance} style={styles.modalOverlay}>
                     <Animated.View
                         entering={FadeIn.duration(180)}
                         exiting={FadeOut.duration(120)}
-                        style={[
-                            styles.modalContent,
-                            animatedStyle,
-                            {
-                                backgroundColor: vars.backgroundColor,
-                                borderColor: vars.borderColor,
-                            },
-                        ]}
+                        style={[styles.animatedModal, animatedStyle]}
                     >
-                        <View style={styles.modalHeader}>
-                            <View>
-                                <Text
-                                    style={{
-                                        color: vars.textColor,
-                                        fontSize: 24,
-                                        fontWeight: "700",
-                                    }}
-                                >
-                                    Release Notes
-                                </Text>
+                        <LiquidGlassView style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <View>
+                                    <Text style={[styles.modalTitle, { color: vars.textColor }]}>Release Notes</Text>
 
-                                <Text
-                                    style={{
-                                        color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                        marginTop: 4,
-                                        fontSize: 14,
-                                    }}
-                                >
-                                    Latest app improvements and updates
-                                </Text>
+                                    <Text
+                                        style={[
+                                            styles.modalSubtitle,
+                                            {
+                                                color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                            },
+                                        ]}
+                                    >
+                                        Latest app improvements and updates
+                                    </Text>
+                                </View>
+
+                                <LiquidGlassView style={styles.closeGlass} isInteractive>
+                                    <PressableScale onPress={closeModal} style={styles.closeButton}>
+                                        <X size={18} strokeWidth={2} color={vars.textColor} />
+                                    </PressableScale>
+                                </LiquidGlassView>
                             </View>
+
+                            <ScrollView
+                                style={styles.scrollView}
+                                contentContainerStyle={styles.scrollContent}
+                                showsVerticalScrollIndicator={false}
+                            >
+                                {updates.map((update, index) => (
+                                    <View key={index}>
+                                        <View style={styles.metaRow}>
+                                            <View style={styles.metaBadges}>
+                                                <View
+                                                    style={[
+                                                        styles.dateBadge,
+                                                        {
+                                                            backgroundColor: `${vars.accentColor}20`,
+                                                        },
+                                                    ]}
+                                                >
+                                                    <Text style={[styles.dateText, { color: vars.accentColor }]}>
+                                                        {update.date}
+                                                    </Text>
+                                                </View>
+
+                                                {update.version && (
+                                                    <LiquidGlassView style={styles.versionGlass}>
+                                                        <View style={styles.versionInner}>
+                                                            <Text
+                                                                style={[styles.versionText, { color: vars.textColor }]}
+                                                            >
+                                                                v{update.version}
+                                                            </Text>
+                                                        </View>
+                                                    </LiquidGlassView>
+                                                )}
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.pointsList}>
+                                            {update.text.map((point, idx) => (
+                                                <View key={idx} style={styles.pointRow}>
+                                                    <View
+                                                        style={[
+                                                            styles.dot,
+                                                            {
+                                                                backgroundColor: vars.accentColor,
+                                                            },
+                                                        ]}
+                                                    />
+
+                                                    <Text style={[styles.pointText, { color: vars.textColor }]}>
+                                                        {point}
+                                                    </Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                ))}
+                            </ScrollView>
 
                             <PressableScale
                                 onPress={closeModal}
                                 style={[
-                                    styles.closeButton,
+                                    styles.doneButton,
                                     {
-                                        backgroundColor: vars.secondaryBackgroundColor,
-                                        borderColor: vars.secondaryBorderColor,
+                                        backgroundColor: vars.accentColor,
                                     },
                                 ]}
                             >
-                                <X size={18} color={vars.textColor} />
+                                <Text style={styles.doneText}>Done</Text>
                             </PressableScale>
-                        </View>
-
-                        <ScrollView
-                            style={{ marginTop: 20 }}
-                            contentContainerStyle={{
-                                paddingBottom: 10,
-                                gap: 24,
-                            }}
-                        >
-                            {updates.map((update, index) => (
-                                <View key={index}>
-                                    <View
-                                        style={{
-                                            flexDirection: "row",
-                                            alignItems: "center",
-                                            marginBottom: 12,
-                                        }}
-                                    >
-                                        <View
-                                            style={{
-                                                flexDirection: "row",
-                                                alignItems: "center",
-                                                marginBottom: 12,
-                                                gap: 8,
-                                                flexWrap: "wrap",
-                                            }}
-                                        >
-                                            <View
-                                                style={{
-                                                    backgroundColor: `${vars.accentColor}20`,
-                                                    paddingHorizontal: 12,
-                                                    paddingVertical: 6,
-                                                    borderRadius: 999,
-                                                }}
-                                            >
-                                                <Text
-                                                    style={{
-                                                        color: vars.accentColor,
-                                                        fontWeight: "700",
-                                                        fontSize: 13,
-                                                    }}
-                                                >
-                                                    {update.date}
-                                                </Text>
-                                            </View>
-
-                                            {update.version && (
-                                                <View
-                                                    style={{
-                                                        backgroundColor: vars.secondaryBackgroundColor,
-                                                        borderWidth: 1,
-                                                        borderColor: vars.secondaryBorderColor,
-                                                        paddingHorizontal: 10,
-                                                        paddingVertical: 6,
-                                                        borderRadius: 999,
-                                                    }}
-                                                >
-                                                    <Text
-                                                        style={{
-                                                            color: vars.textColor,
-                                                            fontWeight: "600",
-                                                            fontSize: 12,
-                                                        }}
-                                                    >
-                                                        v{update.version}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    </View>
-
-                                    <View style={{ gap: 12 }}>
-                                        {update.text.map((point, idx) => (
-                                            <View
-                                                key={idx}
-                                                style={{
-                                                    flexDirection: "row",
-                                                    alignItems: "flex-start",
-                                                }}
-                                            >
-                                                <View
-                                                    style={{
-                                                        width: 8,
-                                                        height: 8,
-                                                        borderRadius: 999,
-                                                        backgroundColor: vars.accentColor,
-                                                        marginTop: 8,
-                                                        marginRight: 12,
-                                                    }}
-                                                />
-
-                                                <Text
-                                                    style={{
-                                                        flex: 1,
-                                                        color: vars.textColor,
-                                                        fontSize: 16,
-                                                        lineHeight: 24,
-                                                    }}
-                                                >
-                                                    {point}
-                                                </Text>
-                                            </View>
-                                        ))}
-                                    </View>
-                                </View>
-                            ))}
-                        </ScrollView>
-
-                        <PressableScale
-                            onPress={closeModal}
-                            style={{
-                                marginTop: 24,
-                                backgroundColor: vars.accentColor,
-                                paddingVertical: 14,
-                                borderRadius: 18,
-                                alignItems: "center",
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: "#fff",
-                                    fontWeight: "700",
-                                    fontSize: 16,
-                                }}
-                            >
-                                Done
-                            </Text>
-                        </PressableScale>
+                        </LiquidGlassView>
                     </Animated.View>
-                </GlassOrBlurView>
+                </BlurView>
             </Modal>
         </View>
     )
@@ -303,53 +220,17 @@ export default function Update() {
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
         paddingHorizontal: 18,
         paddingVertical: 18,
         marginHorizontal: 8,
         borderWidth: 1,
+        overflow: "hidden",
     },
     row: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-    },
-    title: {
-        fontWeight: "700",
-        fontSize: 18,
-    },
-    readButton: {
-        borderRadius: 999,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderWidth: 1,
-    },
-    modalOverlay: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 16,
-    },
-    modalContent: {
-        width: "100%",
-        maxWidth: 420,
-        maxHeight: "80%",
-        borderRadius: 28,
-        borderWidth: 1,
-        padding: 22,
-    },
-    modalHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-    },
-    closeButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 999,
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
     },
     titleContainer: {
         flexDirection: "row",
@@ -358,11 +239,190 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingRight: 50,
     },
+    title: {
+        fontWeight: "700",
+        fontSize: 18,
+    },
+    subtitle: {
+        marginTop: 2,
+        fontSize: 13,
+    },
+    iconGlass: {
+        width: 42,
+        height: 42,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
     iconWrapper: {
         width: 42,
         height: 42,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         justifyContent: "center",
         alignItems: "center",
+    },
+    readGlass: {
+        height: 40,
+        minWidth: 64,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    readButton: {
+        height: 40,
+        minWidth: 64,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    readText: {
+        fontSize: 14,
+        fontWeight: "600",
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 16,
+    },
+    animatedModal: {
+        width: "100%",
+        maxWidth: 420,
+        maxHeight: "90%",
+    },
+    modalContent: {
+        width: "100%",
+        maxHeight: "90%",
+        borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
+        padding: 22,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    modalHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: "700",
+    },
+    modalSubtitle: {
+        marginTop: 4,
+        fontSize: 14,
+    },
+    closeGlass: {
+        width: 40,
+        height: 40,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    closeButton: {
+        width: 40,
+        height: 40,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    scrollView: {
+        marginTop: 20,
+    },
+    scrollContent: {
+        paddingBottom: 10,
+        gap: 24,
+    },
+    metaRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    metaBadges: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap",
+    },
+    dateBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: BORDER_RADIUS_FULL,
+    },
+    dateText: {
+        fontWeight: "700",
+        fontSize: 13,
+    },
+    versionGlass: {
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    versionInner: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+    },
+    versionText: {
+        fontWeight: "600",
+        fontSize: 12,
+    },
+    pointsList: {
+        gap: 12,
+    },
+    pointRow: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+    },
+    dot: {
+        width: 8,
+        height: 8,
+        borderRadius: BORDER_RADIUS_FULL,
+        marginTop: 8,
+        marginRight: 12,
+    },
+    pointText: {
+        flex: 1,
+        fontSize: 16,
+        lineHeight: 24,
+    },
+    doneButton: {
+        marginTop: 24,
+        minHeight: SHEET_CTA_HEIGHT,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+        justifyContent: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    doneText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 16,
     },
 })

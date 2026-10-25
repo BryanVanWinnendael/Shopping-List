@@ -139,6 +139,7 @@ export function useLogs() {
                 setTraces([])
                 setPage(1)
                 setHasNext(false)
+                setHeaderText("logs", "0 Logs")
             }
         } finally {
             setLoadingDelete(false)

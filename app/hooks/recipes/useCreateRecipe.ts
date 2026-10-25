@@ -4,9 +4,11 @@ import { useRecipesStore } from "@/stores/useRecipesStore"
 import { storageClient } from "@/lib/storage"
 import uuid from "react-native-uuid"
 import { CreateRecipeRequest, Ingredient } from "@/types/recipes"
+import { useHeaderStore } from "@/stores/useHeaderStore"
 
 export function useCreateRecipe() {
-    const { addRecipe } = useRecipesStore()
+    const { addRecipe, recipes } = useRecipesStore()
+    const { setHeaderText } = useHeaderStore()
 
     const [loading, setLoading] = useState(false)
 
@@ -61,6 +63,7 @@ export function useCreateRecipe() {
             time: request.time,
             user: request.user,
             persons: request.persons,
+            isSaved: request.isSaved,
         }
     }
 
@@ -71,6 +74,7 @@ export function useCreateRecipe() {
         const response = await recipesClient.createRecipe(mappedCreateRecipeRequest)
         if (response) {
             addRecipe(response)
+            setHeaderText("recipes", `${recipes.length + 1} Recipes`)
         }
 
         return response

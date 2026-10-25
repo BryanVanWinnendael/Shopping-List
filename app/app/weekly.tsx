@@ -14,6 +14,7 @@ export default function Weekly() {
                 getCronProducts={actions.getCronProducts}
                 deleteCronProduct={actions.deleteCronProduct}
                 cronProducts={states.cronProducts}
+                loading={states.loading}
             />
 
             <View pointerEvents="box-none" style={styles.inputOverlay}>
@@ -31,17 +32,9 @@ export default function Weekly() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        position: "relative",
     },
     inputOverlay: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        width: "100%",
-        height: "100%",
-        backgroundColor: "transparent",
-        display: "flex",
+        ...StyleSheet.absoluteFill,
         justifyContent: "flex-end",
     },
 })

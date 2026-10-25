@@ -3,15 +3,17 @@ package handlers
 import (
 	"net/http"
 	"shopping-list/shared/contracts"
+	httphelper "shopping-list/shared/http"
+	"shopping-list/shared/models"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
 
 type OnlineRecipeService interface {
-	GetRecipes(page int) (*contracts.GetOnlineRecipesResponse, error)
+	GetRecipes(filter models.OnlineRecipeFilter, page int) (*contracts.GetOnlineRecipesResponse, error)
 	GetRecipeDetails(url string) (*contracts.GetOnlineRecipeDetailsResponse, error)
-	SearchRecipes(query string, page int) (*contracts.GetOnlineRecipesResponse, error)
+	SearchRecipes(query string, filter models.OnlineRecipeFilter, page int) (*contracts.GetOnlineRecipesResponse, error)
 }
 
 type OnlineRecipeHandler struct {
@@ -28,7 +30,7 @@ func (orh *OnlineRecipeHandler) GetRecipes(c echo.Context) error {
 		page = 0
 	}
 
-	recipes, err := orh.RecipeService.GetRecipes(page)
+	recipes, err := orh.RecipeService.GetRecipes(httphelper.ReadOnlineRecipeFilter(c), page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -51,8 +53,10 @@ func (orh *OnlineRecipeHandler) GetRecipeDetails(c echo.Context) error {
 }
 
 func (orh *OnlineRecipeHandler) SearchRecipes(c echo.Context) error {
+	filter := httphelper.ReadOnlineRecipeFilter(c)
+
 	query := c.QueryParam("query")
-	if query == "" {
+	if query == "" && !filter.Active() {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "query query parameter is required",
 		})
@@ -63,7 +67,7 @@ func (orh *OnlineRecipeHandler) SearchRecipes(c echo.Context) error {
 		page = 1
 	}
 
-	recipes, err := orh.RecipeService.SearchRecipes(query, page)
+	recipes, err := orh.RecipeService.SearchRecipes(query, filter, page)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

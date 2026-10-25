@@ -6,10 +6,12 @@ import {
     TouchableWithoutFeedback,
     View,
 } from "react-native"
-import GlassOrBlurView from "@/components/glassOrBlurView"
+import { BlurView } from "expo-blur"
+
 import ProductPreview from "@/components/products-list/productPreview"
 import CloseButton from "@/components/inputs/update/closeButton"
 import ProductInput from "@/components/inputs/update/productInput"
+import useThemes from "@/hooks/themes/useThemes"
 import { Product } from "@/types/list"
 
 type Props = {
@@ -22,23 +24,17 @@ type Props = {
 }
 
 export function Modal({ isOpen, closeUpdateModal, product, name, updateName, updateProduct }: Props) {
+    const { appearance } = useThemes()
+
     return (
         <NativeModal transparent animationType="fade" visible={isOpen} onRequestClose={closeUpdateModal}>
             <TouchableWithoutFeedback onPress={closeUpdateModal}>
-                <GlassOrBlurView forceBlur blur={20} style={{ flex: 1 }}>
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === "ios" ? "padding" : "height"}
-                        style={{ flex: 1, width: "100%" }}
-                    >
+                <BlurView intensity={24} tint={appearance} style={styles.fill}>
+                    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.fill}>
                         <View style={styles.modalContent}>
                             <CloseButton close={closeUpdateModal} />
-                            <View
-                                style={{
-                                    flex: 1,
-                                    justifyContent: "space-between",
-                                    marginBottom: 10,
-                                }}
-                            >
+
+                            <View style={styles.content}>
                                 {product && <ProductPreview product={product} />}
 
                                 <ProductInput
@@ -50,18 +46,24 @@ export function Modal({ isOpen, closeUpdateModal, product, name, updateName, upd
                             </View>
                         </View>
                     </KeyboardAvoidingView>
-                </GlassOrBlurView>
+                </BlurView>
             </TouchableWithoutFeedback>
         </NativeModal>
     )
 }
 
 const styles = StyleSheet.create({
+    fill: {
+        flex: 1,
+    },
     modalContent: {
-        height: "100%",
-        width: "100%",
         flex: 1,
         paddingHorizontal: 12,
         paddingTop: 60,
+    },
+    content: {
+        flex: 1,
+        justifyContent: "space-between",
+        marginBottom: 10,
     },
 })

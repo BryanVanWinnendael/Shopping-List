@@ -1,11 +1,19 @@
-import GlassOrBlurView from "@/components/glassOrBlurView"
+import { useState } from "react"
 import { StyleSheet, TextInput, View } from "react-native"
 import { PressableScale } from "pressto"
-import Svg, { Path } from "react-native-svg"
-import { Product } from "@/types/list"
 import useThemes from "@/hooks/themes/useThemes"
-import { useSettingsStore } from "@/stores/useSettingsStore"
-import { SHADOW_STYLE_LIGHT } from "@/lib/constants"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+import {
+    BAR_FONT_SIZE,
+    BAR_PADDING_H,
+    BORDER_RADIUS_FULL,
+    BORDER_RADIUS_L,
+    COMPOSER_MIN_HEIGHT,
+    COMPOSER_SEND_SIZE,
+    DOCK_SIDE,
+} from "@/lib/theme"
+import { Product } from "@/types/list"
+import { SendIcon } from "lucide-react-native"
 
 type Props = {
     product: Product | null
@@ -15,69 +23,88 @@ type Props = {
 }
 
 export default function ProductInput({ product, value, updateName, updateProduct }: Props) {
-    const { vars } = useThemes()
-    const { theme, aColorUse } = useSettingsStore()
+    const { vars, appearance } = useThemes()
+
+    // Start from the edited value or the product name, then let the user change it freely (including clearing it).
+    const [text, setText] = useState(value || product?.name || "")
+
+    const handleChange = (next: string) => {
+        setText(next)
+        updateName(next)
+    }
 
     return (
-        <View style={[styles.glassView, SHADOW_STYLE_LIGHT]}>
-            <GlassOrBlurView
-                style={styles.glassView}
-                borderRadius={20}
-                backgroundColor={vars.secondaryBackgroundColor}
-                borderColor={vars.secondaryBackgroundColor}
-            >
-                <TextInput
-                    autoFocus
-                    value={value ? value : product?.name}
-                    onChangeText={updateName}
-                    placeholder="Edit product..."
-                    placeholderTextColor="#aaa"
-                    style={[styles.textInput, { color: vars.textColor }]}
-                    keyboardAppearance={theme === "light" ? "light" : "dark"}
-                />
+        <View style={styles.container}>
+            <LiquidGlassView style={styles.glassView} isInteractive>
+                <View style={styles.inputRow}>
+                    <TextInput
+                        autoFocus
+                        value={text}
+                        onChangeText={handleChange}
+                        placeholder="Edit product..."
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
+                        returnKeyType="done"
+                        onSubmitEditing={updateProduct}
+                        style={[styles.textInput, { color: vars.textColor }]}
+                    />
 
-                <PressableScale
-                    onPress={updateProduct}
-                    style={[
-                        styles.sendButton,
-                        {
-                            backgroundColor: aColorUse.input ? vars.accentColor : vars.secondaryBorderColor,
-                            borderColor: aColorUse.input
-                                ? `${vars.accentColor}50`
-                                : `${vars.secondaryBackgroundColor}50`,
-                        },
-                    ]}
-                >
-                    <Svg width="24" height="24" viewBox="0 0 25 25" fill="none">
-                        <Path
-                            d="M18.455 9.8834L7.063 4.1434C6.76535 3.96928 6.40109 3.95274 6.08888 4.09916C5.77667 4.24558 5.55647 4.53621 5.5 4.8764C5.5039 4.98942 5.53114 5.10041 5.58 5.2024L7.749 10.4424C7.85786 10.7903 7.91711 11.1519 7.925 11.5164C7.91714 11.8809 7.85789 12.2425 7.749 12.5904L5.58 17.8304C5.53114 17.9324 5.5039 18.0434 5.5 18.1564C5.55687 18.4961 5.77703 18.7862 6.0889 18.9323C6.40078 19.0785 6.76456 19.062 7.062 18.8884L18.455 13.1484C19.0903 12.8533 19.4967 12.2164 19.4967 11.5159C19.4967 10.8154 19.0903 10.1785 18.455 9.8834V9.8834Z"
-                            stroke={aColorUse.input ? "#fff" : vars.textColor}
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    </Svg>
-                </PressableScale>
-            </GlassOrBlurView>
+                    <PressableScale
+                        onPress={updateProduct}
+                        accessibilityRole="button"
+                        accessibilityLabel="Save product"
+                        style={[styles.sendButton, { backgroundColor: vars.accentColor }]}
+                    >
+                        <SendIcon size={16} color="#fff" />
+                    </PressableScale>
+                </View>
+            </LiquidGlassView>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    glassView: {
+    container: {
+        paddingHorizontal: DOCK_SIDE,
         paddingBottom: 16,
+    },
+    glassView: {
+        flex: 1,
+        minHeight: COMPOSER_MIN_HEIGHT,
+        maxHeight: 120,
+        borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
+        paddingLeft: BAR_PADDING_H,
+        paddingRight: 8,
         paddingVertical: 4,
-        paddingHorizontal: 16,
-        height: 120,
+        justifyContent: "center",
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    inputRow: {
+        flexDirection: "row",
+        alignItems: "flex-end",
+        minHeight: 40,
+    },
+    textInput: {
+        flex: 1,
+        minHeight: 40,
+        maxHeight: 110,
+        paddingVertical: 8,
+        paddingHorizontal: 2,
+        fontSize: BAR_FONT_SIZE,
+        fontWeight: "400",
     },
     sendButton: {
-        borderRadius: 50,
-        height: 40,
-        width: 60,
+        width: COMPOSER_SEND_SIZE,
+        height: COMPOSER_SEND_SIZE,
+        marginLeft: 8,
+        borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 23,
-        alignSelf: "flex-end",
     },
-    textInput: { flex: 1, height: 32 },
 })

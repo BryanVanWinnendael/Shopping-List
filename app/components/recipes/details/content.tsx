@@ -7,6 +7,7 @@ import { Recipe } from "@/types/generated/models/recipe"
 import { PressableScale } from "pressto"
 import { ChevronRight } from "lucide-react-native"
 import { MEALS } from "@/lib/constants"
+import { BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     recipe: Recipe
@@ -58,7 +59,7 @@ export default function RecipeContent({ recipe, open, scrollY }: Props) {
                 <View>{recipe.instructions && <Instructions recipe={recipe} open={open} />}</View>
 
                 {recipe.source && (
-                    <PressableScale onPress={() => Linking.openURL(recipe.source!)} style={[styles.source]}>
+                    <PressableScale onPress={() => Linking.openURL(recipe.source!)} style={styles.source}>
                         <Text
                             style={[
                                 styles.sourceText,
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 11,
         paddingVertical: 6,
-        borderRadius: 14,
+        borderRadius: BORDER_RADIUS_M,
     },
     metaText: {
         fontSize: 13,

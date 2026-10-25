@@ -1,9 +1,11 @@
 import { CATEGORY_ORDER } from "@/lib/constants"
 import { FlatList, StyleSheet, Text, View } from "react-native"
 import { PressableScale } from "pressto"
+
 import CategoryIcon from "@/components/categoryIcon"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
+import { BORDER_RADIUS_M } from "@/lib/theme"
 
 type Props = {
     updateCategory: (category: Category) => void
@@ -14,47 +16,65 @@ export default function UpdateCategoryList({ updateCategory }: Props) {
 
     return (
         <FlatList
-            style={{ height: 670 }}
+            style={styles.list}
             data={CATEGORY_ORDER}
             keyExtractor={(item) => item}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 30 }}
+            contentContainerStyle={styles.listContent}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
             renderItem={({ item: category }) => (
                 <PressableScale
                     onPress={() => updateCategory(category)}
                     style={[
-                        styles.card,
+                        styles.row,
                         {
-                            backgroundColor: vars.secondaryBackgroundColor,
                             borderColor: vars.secondaryBorderColor,
+                            backgroundColor: vars.secondaryBackgroundColor,
                         },
                     ]}
                 >
-                    <CategoryIcon category={category} />
-                    <Text
-                        style={{
-                            color: vars.textColor,
-                            fontWeight: "500",
-                            fontSize: 18,
-                        }}
-                    >
-                        {category}
-                    </Text>
+                    <View style={styles.iconContainer}>
+                        <CategoryIcon category={category} />
+                    </View>
+
+                    <Text style={[styles.label, { color: vars.textColor }]}>{category}</Text>
                 </PressableScale>
             )}
-            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         />
     )
 }
 
 const styles = StyleSheet.create({
-    card: {
+    list: {
+        flex: 1,
+    },
+    listContent: {
+        paddingHorizontal: 20,
+        paddingTop: 64,
+        paddingBottom: 20,
+    },
+    separator: {
+        height: 8,
+    },
+    row: {
+        minHeight: 58,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: BORDER_RADIUS_M,
         borderWidth: 1,
-        borderRadius: 20,
-        padding: 10,
-        overflow: "hidden",
-        alignItems: "center",
         flexDirection: "row",
-        gap: 5,
+        alignItems: "center",
+    },
+    iconContainer: {
+        width: 38,
+        height: 38,
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 12,
+    },
+    label: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: "600",
     },
 })

@@ -1,12 +1,13 @@
 import { useRef } from "react"
-import { ActivityIndicator, FlatList, View } from "react-native"
-import { useHeaderHeight } from "@react-navigation/elements"
+import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
 import RecipeSectionHeader from "@/components/recipes/list/recipeSectionHeader"
 import RecipeCard from "@/components/recipes/list/recipeCard"
+import ListRefreshControl from "@/components/native/listRefreshControl"
+import { RecipeCardSkeleton } from "@/components/native/skeleton"
 import { RecipeSummary } from "@/types/generated/models/recipe_summary"
+import { HEADER_HEIGHT } from "@/lib/constants"
 
 type Props = {
-    favoriteRecipes: RecipeSummary[]
     toggleFavorite: (recipe: RecipeSummary) => void
     sections: any[]
     getNextPage: () => void
@@ -15,18 +16,10 @@ type Props = {
     loading: boolean
 }
 
-export default function RecipesList({
-    favoriteRecipes,
-    toggleFavorite,
-    sections,
-    getNextPage,
-    refreshing,
-    refresh,
-    loading,
-}: Props) {
-    const headerHeight = useHeaderHeight()
-
+export default function RecipesList({ toggleFavorite, sections, getNextPage, refreshing, refresh, loading }: Props) {
     const flatListRef = useRef<FlatList>(null)
+
+    const isInitialLoading = loading && sections.length === 0
 
     const renderRecipe = ({ item }: any) => {
         if (!item) return null
@@ -35,7 +28,7 @@ export default function RecipesList({
             return <RecipeSectionHeader title={item.title} />
         }
 
-        return <RecipeCard recipe={item.recipe} favoriteRecipes={favoriteRecipes} toggleFavorite={toggleFavorite} />
+        return <RecipeCard recipe={item.recipe} toggleFavorite={toggleFavorite} />
     }
 
     return (
@@ -45,16 +38,39 @@ export default function RecipesList({
             keyExtractor={(item, index) =>
                 item.type === "section" ? `section-${item.title}-${index}` : `recipe-${item.recipe.id}`
             }
-            ListHeaderComponent={<View style={{ height: headerHeight }} />}
+            ListHeaderComponent={<View style={styles.headerSpacer} />}
             onEndReached={getNextPage}
             onEndReachedThreshold={0.5}
-            refreshing={refreshing}
-            onRefresh={refresh}
+            refreshControl={<ListRefreshControl refreshing={refreshing} onRefresh={refresh} />}
             renderItem={renderRecipe}
-            contentContainerStyle={{
-                paddingBottom: 90,
-            }}
-            ListFooterComponent={loading ? <ActivityIndicator style={{ marginTop: 10 }} /> : null}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.content}
+            ListEmptyComponent={isInitialLoading ? <InitialSkeleton /> : null}
+            ListFooterComponent={
+                loading && !isInitialLoading ? <ActivityIndicator style={styles.footerLoader} /> : null
+            }
         />
     )
 }
+
+function InitialSkeleton() {
+    return (
+        <View>
+            {[0, 1, 2, 3].map((index) => (
+                <RecipeCardSkeleton key={index} index={index} />
+            ))}
+        </View>
+    )
+}
+
+const styles = StyleSheet.create({
+    headerSpacer: {
+        height: HEADER_HEIGHT,
+    },
+    content: {
+        paddingBottom: 90,
+    },
+    footerLoader: {
+        marginTop: 10,
+    },
+})

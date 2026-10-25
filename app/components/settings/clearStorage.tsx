@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { PressableScale } from "pressto"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function ClearStorage() {
     const { vars } = useThemes()
@@ -17,19 +19,26 @@ export default function ClearStorage() {
                 {
                     backgroundColor: vars.secondaryBackgroundColor,
                     borderColor: vars.secondaryBorderColor,
-                    borderWidth: 1,
                 },
             ]}
         >
             <View style={styles.row}>
                 <Text style={[styles.title, { color: vars.textColor }]}>Clear Storage</Text>
 
-                <PressableScale
-                    style={[styles.button, { borderColor: vars.borderColor, backgroundColor: vars.backgroundColor }]}
-                    onPress={handleClearStorage}
-                >
-                    <Text style={[styles.buttonText, { color: vars.textColor }]}>Clear</Text>
-                </PressableScale>
+                <LiquidGlassView style={styles.buttonGlass} isInteractive>
+                    <PressableScale onPress={handleClearStorage} style={styles.button}>
+                        <Text
+                            style={[
+                                styles.buttonText,
+                                {
+                                    color: vars.textColor,
+                                },
+                            ]}
+                        >
+                            Clear
+                        </Text>
+                    </PressableScale>
+                </LiquidGlassView>
             </View>
         </View>
     )
@@ -37,10 +46,12 @@ export default function ClearStorage() {
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 20,
+        borderRadius: BORDER_RADIUS_L,
         paddingHorizontal: 16,
-        marginHorizontal: 8,
         paddingBottom: 16,
+        marginHorizontal: 8,
+        borderWidth: 1,
+        overflow: "hidden",
     },
     row: {
         flexDirection: "row",
@@ -52,15 +63,27 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 16,
     },
-    button: {
-        flexDirection: "row",
-        alignItems: "center",
+    buttonGlass: {
+        minWidth: 64,
+        height: 40,
+        borderRadius: BORDER_RADIUS_FULL,
         borderWidth: 1,
-        borderRadius: 24,
-        paddingVertical: 8,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    button: {
+        minWidth: 64,
+        height: 40,
+        alignItems: "center",
+        justifyContent: "center",
         paddingHorizontal: 12,
     },
     buttonText: {
         fontSize: 15,
+        fontWeight: "600",
     },
 })

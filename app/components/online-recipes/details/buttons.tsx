@@ -1,7 +1,8 @@
 import { StyleSheet, View } from "react-native"
 import BackButton from "@/components/recipes/details/backButton"
-import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 import AddToRecipesButton from "@/components/online-recipes/details/addToRecipesButton"
+import ViewLaterButton from "@/components/online-recipes/details/viewLaterButton"
+import { OnlineRecipeDetails } from "@/types/generated/models/online_recipe_details"
 
 type Props = {
     recipe: OnlineRecipeDetails | null
@@ -14,6 +15,7 @@ export default function Buttons({ recipe }: Props) {
 
             {recipe && (
                 <View style={styles.actions}>
+                    <ViewLaterButton recipe={recipe} />
                     <AddToRecipesButton recipe={recipe} />
                 </View>
             )}

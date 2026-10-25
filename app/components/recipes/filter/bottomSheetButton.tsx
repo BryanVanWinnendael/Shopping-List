@@ -1,21 +1,29 @@
-import { Text, View } from "react-native"
-import { useSettingsStore } from "@/stores/useSettingsStore"
+import { useCallback, useEffect } from "react"
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { ChevronDown, ListFilter } from "lucide-react-native"
-import { BlurView } from "expo-blur"
 import Animated, {
-    useAnimatedProps,
+    FadeIn,
+    FadeOut,
     useAnimatedStyle,
     useSharedValue,
     withSequence,
     withTiming,
 } from "react-native-reanimated"
 import { PressableScale } from "pressto"
-import GlassOrBlurView from "@/components/glassOrBlurView"
+
 import { useRecipesFilter } from "@/hooks/recipes/useRecipesFilter"
 import { useRecipesStore } from "@/stores/useRecipesStore"
 import useThemes from "@/hooks/themes/useThemes"
-import { useCallback, useEffect } from "react"
-import { SHADOW_STYLE } from "@/lib/constants"
+import {
+    BORDER_RADIUS_FULL,
+    BORDER_RADIUS_L,
+    DOCK_BOTTOM,
+    DOCK_GAP,
+    DOCK_SIDE,
+    FAB_ICON_SIZE,
+    FAB_SIZE,
+} from "@/lib/theme"
 
 type Props = {
     onPress: () => void
@@ -24,133 +32,185 @@ type Props = {
     setExpanded: (expanded: boolean) => void
 }
 
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
+// Horizontal space taken once expanded: left margin + search circle + gap on the
+// left of this bar, and the create FAB + gap on its right.
+const RESERVED = DOCK_SIDE * 2 + FAB_SIZE * 2 + DOCK_GAP * 2
+const MIN_EXPANDED_WIDTH = 160
 
 export default function BottomSheetButton({ onPress, onExpandedChange, expanded, setExpanded }: Props) {
-    const { vars, theme } = useThemes()
-    const { newUI } = useSettingsStore()
+    const { vars } = useThemes()
     const { states } = useRecipesFilter()
     const { setFilter } = useRecipesStore()
+    const { width } = useWindowDimensions()
 
-    const width = useSharedValue(48)
-    const blurIntensity = useSharedValue(50)
+    const expandedWidth = Math.max(MIN_EXPANDED_WIDTH, width - RESERVED)
 
-    const backgroundColorTint = theme === "light" ? "systemThickMaterialLight" : "systemThickMaterialDark"
+    const barWidth = useSharedValue(FAB_SIZE)
 
     const animatedStyle = useAnimatedStyle(() => ({
-        width: width.value,
-    }))
-
-    const animatedBlurProps = useAnimatedProps(() => ({
-        intensity: blurIntensity.value,
+        width: barWidth.value,
     }))
 
     const toggle = useCallback(() => {
-        setExpanded(!expanded)
-        onExpandedChange(!expanded)
-    }, [setExpanded, onExpandedChange, expanded])
+        const nextExpanded = !expanded
+
+        setExpanded(nextExpanded)
+        onExpandedChange(nextExpanded)
+    }, [expanded, setExpanded, onExpandedChange])
 
     useEffect(() => {
         if (expanded) {
-            width.value = withSequence(withTiming(240, { duration: 180 }), withTiming(220, { duration: 220 }))
-
-            blurIntensity.value = withSequence(withTiming(100, { duration: 180 }), withTiming(50, { duration: 300 }))
+            barWidth.value = withSequence(
+                withTiming(expandedWidth + 8, { duration: 180 }),
+                withTiming(expandedWidth, { duration: 220 })
+            )
 
             setFilter(true)
         } else {
-            width.value = withSequence(withTiming(48, { duration: 150 }), withTiming(48, { duration: 150 }))
-
-            blurIntensity.value = withSequence(withTiming(80, { duration: 100 }), withTiming(50, { duration: 150 }))
+            barWidth.value = withTiming(FAB_SIZE, { duration: 180 })
 
             setFilter(false)
         }
-    }, [expanded])
-
-    const Content = (
-        <PressableScale
-            onPress={toggle}
-            style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
-        >
-            {expanded && (
-                <PressableScale onPress={onPress} style={{ paddingRight: 10 }}>
-                    <Text style={{ color: vars.textColor }}>Filtered by</Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", maxWidth: 120 }}>
-                        <Text style={{ color: vars.accentColor }} numberOfLines={1}>
-                            {states.label}
-                        </Text>
-                        <ChevronDown color={vars.accentColor} size={16} />
-                    </View>
-                </PressableScale>
-            )}
-
-            <View
-                style={{
-                    justifyContent: "center",
-                    alignItems: "center",
-                    backgroundColor: expanded ? vars.accentColor : "transparent",
-                    padding: expanded ? 8 : 0,
-                    borderRadius: 20,
-                    paddingHorizontal: expanded ? 20 : 0,
-                }}
-            >
-                <ListFilter size={22} color={vars.textColor} style={{ transform: [{ translateX: 1 }] }} />
-            </View>
-        </PressableScale>
-    )
+    }, [expanded, expandedWidth, setFilter, barWidth])
 
     return (
-        <Animated.View
-            style={[
-                {
-                    position: "absolute",
-                    bottom: 26,
-                    right: 80,
-                    zIndex: 1,
-                },
-                animatedStyle,
-                SHADOW_STYLE,
-            ]}
-        >
-            <View
-                style={{
-                    borderRadius: 100,
-                    overflow: newUI ? "visible" : "hidden",
-                    borderWidth: newUI ? 0 : 1,
-                    borderColor: `${vars.secondaryBorderColor}50`,
-                }}
-            >
-                {newUI ? (
-                    <GlassOrBlurView
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "flex-end",
+        <Animated.View style={[styles.container, animatedStyle]}>
+            <LiquidGlassView style={styles.glass} isInteractive>
+                <PressableScale
+                    onPress={toggle}
+                    style={[
+                        styles.toggle,
+                        {
                             paddingHorizontal: expanded ? 6 : 14,
-                            height: 48,
-                            borderRadius: 100,
-                        }}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        borderColor={`${vars.secondaryBorderColor}50`}
+                        },
+                    ]}
+                >
+                    {expanded && (
+                        <PressableScale onPress={onPress} style={styles.labelButton}>
+                            <Text
+                                style={[styles.filteredBy, { color: vars.textColor }]}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
+                                Filtered by
+                            </Text>
+
+                            <View style={styles.labelRow}>
+                                <Text
+                                    style={[styles.labelText, { color: vars.accentColor }]}
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    {states.label}
+                                </Text>
+
+                                <ChevronDown color={vars.accentColor} size={16} strokeWidth={2.5} />
+                            </View>
+                        </PressableScale>
+                    )}
+
+                    <View
+                        style={[
+                            styles.iconWrapper,
+                            {
+                                width: expanded ? 52 : undefined,
+                                backgroundColor: expanded ? vars.accentColor : "transparent",
+                                paddingVertical: expanded ? 8 : 0,
+                                paddingHorizontal: expanded ? 16 : 0,
+                            },
+                        ]}
                     >
-                        {Content}
-                    </GlassOrBlurView>
-                ) : (
-                    <AnimatedBlurView
-                        animatedProps={animatedBlurProps}
-                        tint={backgroundColorTint}
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "flex-end",
-                            paddingHorizontal: expanded ? 6 : 14,
-                            height: 48,
-                            borderRadius: 100,
-                        }}
-                    >
-                        {Content}
-                    </AnimatedBlurView>
-                )}
-            </View>
+                        <ListFilter
+                            size={FAB_ICON_SIZE}
+                            strokeWidth={2}
+                            color={expanded ? "#fff" : vars.textColor}
+                            style={styles.icon}
+                        />
+                    </View>
+                </PressableScale>
+            </LiquidGlassView>
+
+            {!expanded && states.count > 0 && (
+                <Animated.View
+                    entering={FadeIn.duration(120)}
+                    exiting={FadeOut.duration(120)}
+                    style={[styles.badge, { backgroundColor: vars.accentColor }]}
+                >
+                    <Text style={styles.badgeText}>{states.count}</Text>
+                </Animated.View>
+            )}
         </Animated.View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        position: "absolute",
+        bottom: DOCK_BOTTOM,
+        right: DOCK_SIDE + FAB_SIZE + DOCK_GAP,
+        height: FAB_SIZE,
+        zIndex: 1,
+    },
+    glass: {
+        height: FAB_SIZE,
+        width: "100%",
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 3,
+    },
+    toggle: {
+        height: FAB_SIZE,
+        width: "100%",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-end",
+    },
+    labelButton: {
+        flex: 1,
+        paddingHorizontal: 12,
+        justifyContent: "center",
+    },
+    filteredBy: {
+        fontSize: 13,
+        fontWeight: "500",
+    },
+    labelRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
+    },
+    labelText: {
+        flexShrink: 1,
+        fontSize: 14,
+        fontWeight: "600",
+    },
+    iconWrapper: {
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: BORDER_RADIUS_L,
+    },
+    icon: {
+        transform: [{ translateX: 1 }],
+    },
+    badge: {
+        position: "absolute",
+        top: -4,
+        right: -4,
+        minWidth: 20,
+        height: 20,
+        borderRadius: BORDER_RADIUS_FULL,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 5,
+    },
+    badgeText: {
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: "700",
+    },
+})

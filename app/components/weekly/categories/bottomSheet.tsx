@@ -1,27 +1,63 @@
-import { Text } from "react-native"
-import CustomBottomSheet from "@/components/customBottomSheet"
+import { BlurView } from "expo-blur"
 import { RefObject } from "react"
-import GorhomBottomSheet from "@gorhom/bottom-sheet"
+import { StyleSheet, Text, View } from "react-native"
+
+import AppBottomSheet, { BottomSheetRef } from "@/components/native/bottom-sheet/appBottomSheet"
 import UpdateCategoryList from "@/components/products-list/categories/updateCategoryList"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
 
 type Props = {
-    sheetRef: RefObject<GorhomBottomSheet | null>
+    sheetRef: RefObject<BottomSheetRef | null>
     close: () => void
     updateCategory: (category: Category) => void
 }
 
 export default function BottomSheet({ sheetRef, close, updateCategory }: Props) {
-    const { vars } = useThemes()
+    const { vars, appearance } = useThemes()
 
     return (
-        <CustomBottomSheet sheetRef={sheetRef} onClose={close}>
-            <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 12, color: vars.textColor }}>
-                Select New Category
-            </Text>
-
-            <UpdateCategoryList updateCategory={updateCategory} />
-        </CustomBottomSheet>
+        <AppBottomSheet
+            ref={sheetRef}
+            index={-1}
+            snapPoints={["45%", "70%"]}
+            enablePanDownToClose
+            onClose={close}
+            backgroundMode="adaptive"
+        >
+            <View style={styles.container}>
+                <View style={styles.headerWrap}>
+                    <BlurView intensity={10} tint={appearance} style={styles.blur}>
+                        <Text style={[styles.title, { color: vars.textColor }]}>Select Category</Text>
+                    </BlurView>
+                </View>
+                <UpdateCategoryList updateCategory={updateCategory} />
+            </View>
+        </AppBottomSheet>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    headerWrap: {
+        position: "absolute",
+        top: -40,
+        left: 0,
+        right: 0,
+        height: 88,
+        zIndex: 10,
+        overflow: "hidden",
+    },
+    blur: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 48,
+        paddingBottom: 10,
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: "700",
+    },
+})

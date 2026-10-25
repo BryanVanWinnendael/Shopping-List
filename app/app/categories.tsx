@@ -1,5 +1,5 @@
-import { View } from "react-native"
-import { useHeaderHeight } from "@react-navigation/elements"
+import { StyleSheet, View } from "react-native"
+
 import { useProductsListStore } from "@/stores/useProductsListStore"
 import { useCategories } from "@/hooks/categories/useCategories"
 import BottomSheet from "@/components/products-list/categories/bottomSheet"
@@ -9,15 +9,15 @@ import useThemes from "@/hooks/themes/useThemes"
 
 export default function Categories() {
     const { vars } = useThemes()
-    const { products } = useProductsListStore()
+    const products = useProductsListStore((state) => state.products)
     const { refs, actions, states } = useCategories()
-    const headerHeight = useHeaderHeight()
 
     return (
         <>
-            <View style={{ flex: 1, backgroundColor: vars.backgroundColor, padding: 16 }}>
+            <View style={[styles.container, { backgroundColor: vars.backgroundColor }]}>
                 <TrainButton trainModel={actions.trainModel} training={states.training} />
-                <List open={actions.open} headerHeight={headerHeight} products={products} />
+
+                <List open={actions.open} products={products} />
             </View>
 
             <BottomSheet
@@ -28,3 +28,10 @@ export default function Categories() {
         </>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 16,
+    },
+})

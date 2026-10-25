@@ -1,14 +1,17 @@
-import { useState } from "react"
 import { ScrollView, StyleSheet, Text, View } from "react-native"
+import { useState } from "react"
+import { PressableScale } from "pressto"
+
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { CATEGORY_ORDER } from "@/lib/constants"
-import { PressableScale } from "pressto"
 import useThemes from "@/hooks/themes/useThemes"
 import { Category } from "@/types/generated/models/category"
+import { BORDER_RADIUS_L } from "@/lib/theme"
 
 type Props = {
     selected: Category[]
     onApply: (categories: Category[]) => void
+    onClose: () => void
 }
 
 type FilterCategory = {
@@ -17,10 +20,10 @@ type FilterCategory = {
 }
 
 const FILTER_CATEGORIES: FilterCategory[] = CATEGORY_ORDER.filter((c) => c !== "remaining" && c !== "fish").map((c) =>
-    c === "meat" ? { label: "meat/fish", value: "meat" } : { label: c, value: c }
+    c === "meat" ? { label: "Meat / Fish", value: "meat" } : { label: c, value: c }
 )
 
-export default function Filter({ selected, onApply }: Props) {
+export default function Filter({ selected, onApply, onClose }: Props) {
     const { vars } = useThemes()
     const { aColor } = useSettingsStore()
 
@@ -31,6 +34,7 @@ export default function Filter({ selected, onApply }: Props) {
             const newSelected = prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
 
             onApply(newSelected)
+
             return newSelected
         })
     }
@@ -41,63 +45,62 @@ export default function Filter({ selected, onApply }: Props) {
     }
 
     return (
-        <View style={{ padding: 16 }}>
-            <Text
-                style={{
-                    fontSize: 18,
-                    fontWeight: "600",
-                    marginBottom: 12,
-                    color: vars.textColor,
-                }}
-            >
-                Filter by category
-            </Text>
-
+        <View style={styles.container}>
             <ScrollView
-                contentContainerStyle={{
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    gap: 8,
-                }}
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
             >
-                {FILTER_CATEGORIES.map(({ label, value }) => {
-                    const active = localSelected.includes(value)
+                <View style={styles.chipsWrap}>
+                    {FILTER_CATEGORIES.map(({ label, value }) => {
+                        const active = localSelected.includes(value)
 
-                    return (
-                        <PressableScale
-                            key={value}
-                            onPress={() => toggleCategory(value)}
-                            style={{
-                                paddingHorizontal: 12,
-                                paddingVertical: 8,
-                                borderRadius: 24,
-                                borderWidth: 1,
-                                borderColor: active ? aColor : vars.secondaryBorderColor,
-                                backgroundColor: active ? aColor : vars.secondaryBackgroundColor,
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: active ? vars.secondaryBackgroundColor : vars.textColor,
-                                    fontSize: 14,
-                                }}
+                        return (
+                            <PressableScale
+                                key={value}
+                                onPress={() => toggleCategory(value)}
+                                style={[
+                                    styles.chip,
+                                    {
+                                        borderColor: active ? aColor : vars.secondaryBorderColor,
+                                        backgroundColor: active ? aColor : vars.secondaryBackgroundColor,
+                                    },
+                                ]}
                             >
-                                {label}
-                            </Text>
-                        </PressableScale>
-                    )
-                })}
+                                <Text
+                                    style={[
+                                        styles.chipLabel,
+                                        {
+                                            color: active ? "#fff" : vars.textColor,
+                                            fontWeight: active ? "600" : "500",
+                                        },
+                                    ]}
+                                >
+                                    {label}
+                                </Text>
+                            </PressableScale>
+                        )
+                    })}
+                </View>
             </ScrollView>
 
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    marginTop: 20,
-                }}
-            >
-                <PressableScale style={[styles.button, { backgroundColor: aColor }]} onPress={clearAll}>
-                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>Clear</Text>
+            <View style={styles.footer}>
+                <PressableScale
+                    onPress={clearAll}
+                    accessibilityRole="button"
+                    accessibilityLabel="Clear filters"
+                    style={[styles.clearButton, { backgroundColor: vars.secondaryBackgroundColor }]}
+                >
+                    <Text style={[styles.clearText, { color: vars.textColor }]}>Clear Filters</Text>
+                </PressableScale>
+
+                <PressableScale
+                    onPress={onClose}
+                    accessibilityRole="button"
+                    accessibilityLabel="Show results"
+                    style={[styles.applyButton, { backgroundColor: aColor }]}
+                >
+                    <Text style={styles.applyText}>Show results</Text>
                 </PressableScale>
             </View>
         </View>
@@ -105,12 +108,65 @@ export default function Filter({ selected, onApply }: Props) {
 }
 
 const styles = StyleSheet.create({
-    button: {
-        borderRadius: 26,
-        height: 52,
-        justifyContent: "center",
+    container: {
+        flex: 1,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 64,
+        paddingBottom: 74,
+    },
+    chipsWrap: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 8,
+    },
+    chip: {
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
+    },
+    chipLabel: {
+        fontSize: 14,
+    },
+    footer: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 16,
-        width: "100%",
+        gap: 10,
+        paddingHorizontal: 20,
+        paddingTop: 8,
+        paddingBottom: 8,
+        backgroundColor: "transparent",
+    },
+    clearButton: {
+        minHeight: 50,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 20,
+    },
+    clearText: {
+        fontWeight: "600",
+        fontSize: 15,
+    },
+    applyButton: {
+        flex: 1,
+        minHeight: 50,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    applyText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 15,
     },
 })

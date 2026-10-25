@@ -1,11 +1,14 @@
 import { StyleSheet, Text, View } from "react-native"
 import { Users } from "lucide-react-native"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+
 import { useSettingsStore } from "@/stores/useSettingsStore"
 import { USERS_ARRAY } from "@/lib/constants"
 import Accordion from "@/components/accordion"
 import UserColor from "@/components/settings/userColor"
 import CustomSwitch from "@/components/customSwitch"
 import useThemes from "@/hooks/themes/useThemes"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function UserColors() {
     const { vars, theme } = useThemes()
@@ -23,19 +26,23 @@ export default function UserColors() {
         >
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
-                    <View
-                        style={[
-                            styles.iconWrapper,
-                            {
-                                backgroundColor: `${vars.accentColor}20`,
-                            },
-                        ]}
-                    >
-                        <Users size={18} color={vars.accentColor} />
-                    </View>
+                    <LiquidGlassView style={styles.iconGlass}>
+                        <View style={styles.iconWrapper}>
+                            <Users size={18} strokeWidth={2} color={vars.accentColor} />
+                        </View>
+                    </LiquidGlassView>
 
-                    <View style={{ flex: 1 }}>
-                        <Text style={[styles.title, { color: vars.textColor }]}>User Colors</Text>
+                    <View style={styles.textContainer}>
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    color: vars.textColor,
+                                },
+                            ]}
+                        >
+                            User Colors
+                        </Text>
 
                         <Text
                             style={[
@@ -61,8 +68,8 @@ export default function UserColors() {
                 />
             </View>
 
-            <Accordion expanded={userColors.enabled} style={{ marginTop: 20 }}>
-                <View style={{ gap: 12 }}>
+            <Accordion expanded={userColors.enabled} style={styles.accordion}>
+                <View style={styles.userList}>
                     {USERS_ARRAY.map((user, index) => (
                         <UserColor user={user} key={index} />
                     ))}
@@ -74,11 +81,12 @@ export default function UserColors() {
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
         marginHorizontal: 8,
         paddingHorizontal: 18,
         paddingTop: 18,
         borderWidth: 1,
+        overflow: "hidden",
     },
     header: {
         flexDirection: "row",
@@ -92,10 +100,25 @@ const styles = StyleSheet.create({
         flex: 1,
         gap: 12,
     },
+    textContainer: {
+        flex: 1,
+    },
+    iconGlass: {
+        width: 42,
+        height: 42,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
     iconWrapper: {
         width: 42,
         height: 42,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         justifyContent: "center",
         alignItems: "center",
     },
@@ -106,5 +129,11 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 13,
         marginTop: 2,
+    },
+    accordion: {
+        marginTop: 20,
+    },
+    userList: {
+        gap: 12,
     },
 })

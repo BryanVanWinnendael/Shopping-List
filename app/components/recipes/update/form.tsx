@@ -1,21 +1,32 @@
-import { ActivityIndicator, Image, ScrollView, Text, TextInput, View } from "react-native"
+import {
+    ActivityIndicator,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from "react-native"
 import { PressableScale } from "pressto"
+import { useState } from "react"
+import FormError from "@/components/native/formError"
+import { X } from "lucide-react-native"
+import LiquidGlassView from "@/components/native/liquidGlassView"
 import { useUpdateRecipeForm } from "@/hooks/recipes/useUpdateRecipeForm"
 import { useUpdateRecipe } from "@/hooks/recipes/useUpdateRecipe"
 import Ingredient from "@/components/recipes/update/ingredient"
-import { X } from "lucide-react-native"
+import Instruction from "@/components/recipes/update/instruction"
 import CustomSwitch from "@/components/customSwitch"
-import { useRecipesStore } from "@/stores/useRecipesStore"
 import ImageInput from "@/components/inputs/imageInput"
 import MealTypeSegment from "@/components/recipes/mealTypeSegment"
 import CountryInput from "@/components/recipes/countryInput"
 import useThemes from "@/hooks/themes/useThemes"
 import Toast from "react-native-toast-message"
-import Instruction from "@/components/recipes/update/instruction"
 import { delay } from "@/lib/utils"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import { Recipe } from "@/types/generated/models/recipe"
-import { SHADOW_STYLE } from "@/lib/constants"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L, BORDER_RADIUS_M, SHEET_CTA_HEIGHT } from "@/lib/theme"
 
 type Props = {
     recipe: Recipe
@@ -23,32 +34,34 @@ type Props = {
     updateRecipeDetails: (recipe: Recipe) => void
 }
 
+const SUBMIT_DELAY_MS = 2000
+
+const parseNumericField = (value: string) => {
+    if (value.trim() === "") return 0
+    const parsed = Number(value)
+    return Number.isNaN(parsed) ? 0 : parsed
+}
+
 export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: Props) {
-    const { vars, theme } = useThemes()
-    const { updateRecipe: updateRecipeStore } = useRecipesStore()
+    const { vars, appearance } = useThemes()
     const { states: formStates, actions: formActions } = useUpdateRecipeForm(recipe)
     const { states: editStates, actions: editActions } = useUpdateRecipe()
+    const [error, setError] = useState<string | null>(null)
 
     const updateRecipe = async () => {
         const mappedRequest = formActions.getUpdateRecipeRequest()
+
         if (!mappedRequest) {
-            Toast.show({
-                type: "error",
-                text1: "Error: Title cannot be empty",
-            })
+            setError("Title cannot be empty")
             return
         }
 
-        Toast.show({
-            type: "success",
-            text1: "Updating Recipe...",
-            autoHide: false,
-        })
+        setError(null)
         editActions.setLoading(true)
 
         const response = await editActions.updateRecipe(mappedRequest, formStates.imagesToDelete)
 
-        await delay(2000)
+        await delay(SUBMIT_DELAY_MS)
 
         editActions.setLoading(false)
 
@@ -57,39 +70,66 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                 type: "success",
                 text1: "Recipe updated successfully",
             })
-            updateRecipeStore(response)
-            updateRecipeDetails(response)
-        } else {
-            Toast.show({
-                type: "error",
-                text1: "Failed to update Recipe",
-            })
-        }
 
-        close()
+            updateRecipeDetails(response)
+            close()
+        } else {
+            setError("Failed to update recipe. Please try again.")
+        }
     }
 
+    const dynamicInputStyle = [
+        styles.input,
+        {
+            color: vars.textColor,
+            backgroundColor: vars.secondaryBackgroundColor,
+            borderColor: vars.secondaryBorderColor,
+        },
+    ]
+
+    const dynamicLabelStyle = [styles.label, { color: vars.textColor }]
+
     return (
-        <>
-            <ScrollView style={{ height: 560 }} showsVerticalScrollIndicator={false}>
-                <View style={{ paddingBottom: 20 }}>
-                    <FieldLabel label="Title" required textColor={vars.textColor} />
-                    <StyledInput
+        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                automaticallyAdjustKeyboardInsets
+            >
+                <View style={styles.titleSection}>
+                    <Text style={dynamicLabelStyle}>
+                        Title <Text style={styles.required}>*</Text>
+                    </Text>
+
+                    <TextInput
                         value={formStates.title}
                         onChangeText={formActions.setTitle}
+                        style={dynamicInputStyle}
                         placeholder="Recipe title"
-                        borderColor={vars.secondaryBorderColor}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        textColor={vars.textColor}
-                        theme={theme}
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
                     />
+                </View>
 
-                    <FieldLabel label="Public" textColor={vars.textColor} />
+                <View style={styles.rowSection}>
+                    <View style={styles.labelBlock}>
+                        <Text style={dynamicLabelStyle}>Public</Text>
+
+                        <Text style={[styles.hint, { color: vars.tertiaryTextColor }]}>
+                            Make this recipe visible to others
+                        </Text>
+                    </View>
+
                     <CustomSwitch value={formStates.publicRecipe} onChange={formActions.setPublicRecipe} />
+                </View>
 
-                    <FieldLabel label="Banner" textColor={vars.textColor} />
+                <View style={styles.section}>
+                    <Text style={dynamicLabelStyle}>Banner</Text>
+
                     {formStates.banner ? (
-                        <View style={{ position: "relative", width: 120, height: 120 }}>
+                        <View style={styles.bannerContainer}>
                             <Image
                                 source={{
                                     uri:
@@ -97,187 +137,285 @@ export default function EditRecipeForm({ recipe, close, updateRecipeDetails }: P
                                             ? formStates.banner
                                             : formStates.banner.uri,
                                 }}
-                                style={{ width: 120, height: 120, borderRadius: 12 }}
+                                style={styles.banner}
                             />
-                            <View
-                                style={[
-                                    {
-                                        position: "absolute",
-                                        top: -8,
-                                        right: -8,
-                                        borderRadius: 100,
-                                    },
-                                    SHADOW_STYLE,
-                                ]}
-                            >
-                                <GlassOrBlurView
-                                    style={{
-                                        width: 24,
-                                        height: 24,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        overflow: "hidden",
-                                    }}
-                                >
-                                    <PressableScale onPress={() => formActions.setBannerImage(null, null)}>
-                                        <X size={16} color={vars.textColor} />
+
+                            <View style={styles.bannerClose}>
+                                <LiquidGlassView style={styles.closeGlass} isInteractive>
+                                    <PressableScale
+                                        onPress={() => formActions.setBannerImage(null, null)}
+                                        style={styles.closeButton}
+                                    >
+                                        <X size={17} strokeWidth={2} color={vars.textColor} />
                                     </PressableScale>
-                                </GlassOrBlurView>
+                                </LiquidGlassView>
                             </View>
                         </View>
                     ) : (
                         <ImageInput type="recipe" onPick={formActions.setBannerImage} />
                     )}
+                </View>
 
-                    <FieldLabel label="Source URL" textColor={vars.textColor} />
-                    <StyledInput
-                        theme={theme}
+                <View style={styles.section}>
+                    <Text style={dynamicLabelStyle}>Source URL</Text>
+
+                    <TextInput
                         value={formStates.source}
                         onChangeText={formActions.setSource}
+                        style={dynamicInputStyle}
                         placeholder="https://..."
-                        borderColor={vars.secondaryBorderColor}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        textColor={vars.textColor}
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        keyboardAppearance={appearance}
                     />
+                </View>
 
-                    <FieldLabel label="Meal Type" textColor={vars.textColor} />
+                <View style={styles.section}>
+                    <Text style={dynamicLabelStyle}>Meal Type</Text>
+
                     <MealTypeSegment value={formStates.mealType} onChange={formActions.setMealType} />
+                </View>
 
-                    <FieldLabel label="Country" textColor={vars.textColor} />
+                <View style={styles.section}>
+                    <Text style={dynamicLabelStyle}>Country</Text>
+
                     <CountryInput value={formStates.countryObject} onChange={formActions.setCountryObject} />
+                </View>
 
-                    <FieldLabel label="Time (minutes)" textColor={vars.textColor} />
-                    <StyledInput
-                        theme={theme}
+                <View style={styles.section}>
+                    <Text style={dynamicLabelStyle}>Time</Text>
+
+                    <TextInput
                         value={String(formStates.time)}
-                        onChangeText={(v: string) => formActions.setTime(Number(v))}
-                        placeholder="e.g. 45"
+                        onChangeText={(value) => formActions.setTime(parseNumericField(value))}
                         keyboardType="numeric"
-                        borderColor={vars.secondaryBorderColor}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        textColor={vars.textColor}
                         returnKeyType="done"
+                        style={dynamicInputStyle}
+                        placeholder="e.g. 45 minutes"
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
                     />
+                </View>
 
-                    <FieldLabel label="Persons" textColor={vars.textColor} />
-                    <StyledInput
-                        theme={theme}
+                <View style={styles.section}>
+                    <Text style={dynamicLabelStyle}>Persons</Text>
+
+                    <TextInput
                         value={String(formStates.persons)}
-                        onChangeText={(v: string) => formActions.setPersons(Number(v))}
-                        placeholder="e.g. 4"
+                        onChangeText={(value) => formActions.setPersons(parseNumericField(value))}
                         keyboardType="numeric"
-                        borderColor={vars.secondaryBorderColor}
-                        backgroundColor={vars.secondaryBackgroundColor}
-                        textColor={vars.textColor}
                         returnKeyType="done"
+                        style={dynamicInputStyle}
+                        placeholder="e.g. 4"
+                        placeholderTextColor={vars.tertiaryTextColor}
+                        keyboardAppearance={appearance}
                     />
+                </View>
 
-                    <FieldLabel label="Ingredients" textColor={vars.textColor} />
-                    {formStates.ingredients.map((ingredient, index) => (
-                        <Ingredient
-                            key={index}
-                            ingredient={ingredient}
-                            index={index}
-                            onUpdate={(i, field, value) => formActions.updateIngredient(i, { [field]: value })}
-                            onRemove={formActions.deleteIngredient}
-                            onRemoveImage={formActions.deleteIngredientImage}
-                        />
-                    ))}
+                <View style={styles.section}>
+                    <Text style={dynamicLabelStyle}>Ingredients</Text>
+
+                    <View style={styles.stack}>
+                        {formStates.ingredients.map((ingredient, i) => (
+                            <Ingredient
+                                key={i}
+                                ingredient={ingredient}
+                                index={i}
+                                onUpdate={(index, field, value) =>
+                                    formActions.updateIngredient(index, {
+                                        [field]: value,
+                                    })
+                                }
+                                onRemove={formActions.deleteIngredient}
+                                onRemoveImage={formActions.deleteIngredientImage}
+                            />
+                        ))}
+                    </View>
 
                     <PressableScale
                         onPress={formActions.createIngredient}
-                        style={{
-                            backgroundColor: vars.backgroundColor,
-                            padding: 10,
-                            borderWidth: 1,
-                            borderColor: vars.borderColor,
-                            borderRadius: 24,
-                            marginTop: 8,
-                            alignItems: "center",
-                        }}
+                        style={[
+                            styles.addButton,
+                            {
+                                backgroundColor: vars.secondaryBackgroundColor,
+                                borderColor: vars.secondaryBorderColor,
+                            },
+                        ]}
                     >
-                        <Text style={{ color: vars.textColor, fontWeight: "600" }}>+ Add Ingredient</Text>
+                        <Text style={[styles.addButtonText, { color: vars.textColor }]}>+ Add Ingredient</Text>
                     </PressableScale>
+                </View>
 
-                    <FieldLabel label="Instructions" textColor={vars.textColor} />
-                    {formStates.instructions.map((instruction, index) => (
-                        <Instruction
-                            key={index}
-                            instruction={instruction}
-                            index={index}
-                            onUpdate={(i, value) => formActions.updateInstruction(i, value)}
-                            onRemove={formActions.deleteInstruction}
-                        />
-                    ))}
+                <View style={styles.section}>
+                    <Text style={dynamicLabelStyle}>Instructions</Text>
+
+                    <View style={styles.stack}>
+                        {formStates.instructions.map((instruction, i) => (
+                            <Instruction
+                                key={i}
+                                instruction={instruction}
+                                index={i}
+                                onUpdate={(index, value) => formActions.updateInstruction(index, value)}
+                                onRemove={formActions.deleteInstruction}
+                            />
+                        ))}
+                    </View>
+
                     <PressableScale
                         onPress={formActions.createInstruction}
-                        style={{
-                            backgroundColor: vars.backgroundColor,
-                            padding: 10,
-                            borderWidth: 1,
-                            borderColor: vars.borderColor,
-                            borderRadius: 24,
-                            marginTop: 8,
-                            alignItems: "center",
-                        }}
+                        style={[
+                            styles.addButton,
+                            {
+                                backgroundColor: vars.secondaryBackgroundColor,
+                                borderColor: vars.secondaryBorderColor,
+                            },
+                        ]}
                     >
-                        <Text style={{ color: vars.textColor, fontWeight: "600" }}>+ Add Instruction</Text>
+                        <Text style={[styles.addButtonText, { color: vars.textColor }]}>+ Add Instruction</Text>
                     </PressableScale>
                 </View>
             </ScrollView>
 
-            <PressableScale
-                enabled={!editStates.loading}
-                onPress={updateRecipe}
-                style={{
-                    backgroundColor: vars.accentColor,
-                    padding: 14,
-                    borderRadius: 24,
-                    alignItems: "center",
-                    marginTop: 16,
-                }}
-            >
-                {editStates.loading ? (
-                    <ActivityIndicator color="#fff" />
-                ) : (
-                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>Update Recipe</Text>
-                )}
-            </PressableScale>
-        </>
+            <View style={styles.updateButtonContainer}>
+                <FormError message={error} onDismiss={() => setError(null)} />
+                <PressableScale
+                    enabled={!editStates.loading}
+                    onPress={updateRecipe}
+                    style={[styles.updateButton, { backgroundColor: vars.accentColor }]}
+                >
+                    {editStates.loading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.updateButtonText}>Update Recipe</Text>
+                    )}
+                </PressableScale>
+            </View>
+        </KeyboardAvoidingView>
     )
 }
 
-function FieldLabel({ textColor, label, required = false }: any) {
-    return (
-        <Text
-            style={{
-                color: textColor,
-                fontWeight: "600",
-                marginTop: 12,
-                marginBottom: 6,
-            }}
-        >
-            {label} {required && <Text style={{ color: "#AA4A44" }}>*</Text>}
-        </Text>
-    )
-}
-
-function StyledInput({ textColor, backgroundColor, borderColor, theme, ...props }: any) {
-    return (
-        <TextInput
-            keyboardAppearance={theme === "light" ? "light" : "dark"}
-            {...props}
-            style={{
-                color: textColor,
-                backgroundColor: backgroundColor,
-                borderWidth: 1,
-                borderColor: borderColor,
-                borderRadius: 14,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                marginBottom: 8,
-            }}
-            placeholderTextColor="gray"
-        />
-    )
-}
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 64,
+        paddingBottom: 80,
+    },
+    titleSection: {
+        marginBottom: 22,
+    },
+    section: {
+        marginBottom: 24,
+    },
+    rowSection: {
+        minHeight: 52,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 24,
+    },
+    labelBlock: {
+        flex: 1,
+        marginRight: 16,
+    },
+    input: {
+        borderWidth: 1,
+        borderRadius: BORDER_RADIUS_M,
+        paddingHorizontal: 14,
+        paddingVertical: 11,
+        fontSize: 16,
+    },
+    label: {
+        fontWeight: "600",
+        fontSize: 15,
+        marginBottom: 9,
+    },
+    required: {
+        color: "#AA4A44",
+    },
+    hint: {
+        fontSize: 13,
+        marginTop: -5,
+    },
+    stack: {
+        gap: 10,
+    },
+    bannerContainer: {
+        position: "relative",
+        width: 140,
+        height: 140,
+    },
+    banner: {
+        width: 140,
+        height: 140,
+        borderRadius: BORDER_RADIUS_M,
+    },
+    bannerClose: {
+        position: "absolute",
+        top: -8,
+        right: -8,
+        zIndex: 1,
+    },
+    closeGlass: {
+        width: 28,
+        height: 28,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    closeButton: {
+        width: 28,
+        height: 28,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    addButton: {
+        marginTop: 12,
+        paddingVertical: 12,
+        borderWidth: 1,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+    },
+    addButtonText: {
+        fontWeight: "600",
+    },
+    updateButtonContainer: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
+        backgroundColor: "transparent",
+    },
+    updateButton: {
+        minHeight: SHEET_CTA_HEIGHT,
+        borderRadius: BORDER_RADIUS_L,
+        alignItems: "center",
+        justifyContent: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    updateButtonText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 16,
+    },
+})

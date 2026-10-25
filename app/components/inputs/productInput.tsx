@@ -1,21 +1,36 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ActivityIndicator, Image, StyleSheet, TextInput, View } from "react-native"
 import { PressableScale } from "pressto"
-import Svg, { Path } from "react-native-svg"
 import * as ImagePicker from "expo-image-picker"
-import { useSettingsStore } from "@/stores/useSettingsStore"
 import { useSharedValue, withTiming } from "react-native-reanimated"
-import { X } from "lucide-react-native"
+import { SendIcon, X } from "lucide-react-native"
 import { useProductsList } from "@/hooks/products-list/useProductsList"
-import GlassOrBlurView from "@/components/glassOrBlurView"
 import ImageInput from "@/components/inputs/imageInput"
 import useThemes from "@/hooks/themes/useThemes"
-import { SHADOW_STYLE, SHADOW_STYLE_LIGHT } from "@/lib/constants"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+import {
+    BAR_FONT_SIZE,
+    BAR_PADDING_H,
+    BORDER_RADIUS_FULL,
+    BORDER_RADIUS_L,
+    COMPOSER_MIN_HEIGHT,
+    COMPOSER_SEND_SIZE,
+    DOCK_BOTTOM,
+    DOCK_GAP,
+    DOCK_SIDE,
+    FAB_SIZE,
+} from "@/lib/theme"
 
-export default function ProductInput() {
-    const { vars } = useThemes()
-    const { theme, aColorUse } = useSettingsStore()
+type Props = {
+    onFocus: () => void
+    onBlur: () => void
+}
+
+export default function ProductInput({ onFocus, onBlur }: Props) {
+    const { vars, appearance } = useThemes()
     const { actions, states } = useProductsList()
+
+    const inputRef = useRef<TextInput>(null)
     const previewHeight = useSharedValue(0)
 
     const [productName, setProductName] = useState("")
@@ -41,152 +56,162 @@ export default function ProductInput() {
     }
 
     useEffect(() => {
-        previewHeight.value = withTiming(previewUrl ? 80 : 0, { duration: 200 })
+        previewHeight.value = withTiming(previewUrl ? 80 : 0, {
+            duration: 200,
+        })
     }, [previewUrl])
 
+    const isReady = Boolean(productName || previewUrl)
+
     return (
-        <View style={[styles.blurContainer, SHADOW_STYLE_LIGHT]}>
-            <GlassOrBlurView
-                style={styles.glassView}
-                backgroundColor={vars.secondaryBackgroundColor}
-                borderColor={vars.secondaryBackgroundColor}
-            >
-                {previewUrl && (
-                    <View style={styles.previewWrapper}>
+        <View style={styles.container}>
+            <View style={styles.imageContainer}>
+                {previewUrl ? (
+                    <View style={styles.previewContainer}>
                         <Image source={{ uri: previewUrl }} resizeMode="cover" style={styles.previewImage} />
 
-                        <View style={[styles.closeButtonGlass, SHADOW_STYLE]}>
-                            <GlassOrBlurView borderColor={`${vars.borderColor}50`}>
-                                <PressableScale onPress={removeImage}>
-                                    <X size={16} color={vars.textColor} />
-                                </PressableScale>
-                            </GlassOrBlurView>
-                        </View>
+                        <LiquidGlassView style={styles.closeButtonGlass} isInteractive>
+                            <PressableScale onPress={removeImage} style={styles.closeButton}>
+                                <X size={15} strokeWidth={2.5} color={vars.textColor} />
+                            </PressableScale>
+                        </LiquidGlassView>
                     </View>
+                ) : (
+                    <ImageInput type="list" onPick={onPickFile} onFocus={onFocus} onBlur={onBlur} />
                 )}
+            </View>
 
+            <LiquidGlassView style={styles.glassView} isInteractive>
                 <View style={styles.inputRow}>
                     <TextInput
-                        keyboardAppearance={theme === "light" ? "light" : "dark"}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
+                        ref={inputRef}
+                        keyboardAppearance={appearance}
                         placeholder="Type here..."
-                        placeholderTextColor="#aaa"
+                        placeholderTextColor={vars.tertiaryTextColor}
                         value={productName}
                         onChangeText={setProductName}
-                        style={[styles.textInput, { color: vars.textColor }]}
+                        returnKeyType="done"
+                        style={[
+                            styles.textInput,
+                            {
+                                color: vars.textColor,
+                            },
+                        ]}
                     />
-                </View>
-
-                <View style={styles.pillRow}>
-                    <View style={[styles.imageInputWrapper]}>
-                        <ImageInput type="list" onPick={onPickFile} />
-                    </View>
 
                     <View style={styles.sendWrapper}>
-                        {(productName || previewUrl) && (
-                            <PressableScale
-                                onPress={createProduct}
-                                style={[
-                                    styles.sendButton,
-                                    {
-                                        backgroundColor: aColorUse.input ? vars.accentColor : vars.secondaryBorderColor,
-                                        borderColor: aColorUse.input
-                                            ? `${vars.accentColor}50`
-                                            : `${vars.secondaryBackgroundColor}50`,
-                                    },
-                                ]}
-                            >
-                                {states.loading ? (
-                                    <ActivityIndicator size="small" color={vars.textColor} />
-                                ) : (
-                                    <Svg width="20px" height="20px" viewBox="0 -0.5 25 25" fill="none">
-                                        <Path
-                                            d="M18.455 9.8834L7.063 4.1434C6.76535 3.96928 6.40109 3.95274 6.08888 4.09916C5.77667 4.24558 5.55647 4.53621 5.5 4.8764C5.5039 4.98942 5.53114 5.10041 5.58 5.2024L7.749 10.4424C7.85786 10.7903 7.91711 11.1519 7.925 11.5164C7.91714 11.8809 7.85789 12.2425 7.749 12.5904L5.58 17.8304C5.53114 17.9324 5.5039 18.0434 5.5 18.1564C5.55687 18.4961 5.77703 18.7862 6.0889 18.9323C6.40078 19.0785 6.76456 19.062 7.062 18.8884L18.455 13.1484C19.0903 12.8533 19.4967 12.2164 19.4967 11.5159C19.4967 10.8154 19.0903 10.1785 18.455 9.8834V9.8834Z"
-                                            stroke={aColorUse.input ? "#fff" : vars.textColor}
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </Svg>
-                                )}
-                            </PressableScale>
-                        )}
+                        <PressableScale
+                            onPress={createProduct}
+                            enabled={isReady && !states.loading}
+                            style={[
+                                styles.sendButton,
+                                {
+                                    backgroundColor: vars.accentColor,
+                                    opacity: !isReady || states.loading ? 0.35 : 1,
+                                },
+                            ]}
+                        >
+                            {states.loading ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <SendIcon size={16} color="#fff" />
+                            )}
+                        </PressableScale>
                     </View>
                 </View>
-            </GlassOrBlurView>
+            </LiquidGlassView>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    blurContainer: {
-        paddingBottom: 40,
-        paddingHorizontal: 10,
+    container: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: DOCK_SIDE,
+        paddingBottom: DOCK_BOTTOM,
+        gap: DOCK_GAP,
     },
-    glassView: {
-        borderRadius: 28,
-        paddingHorizontal: 18,
-        paddingTop: 10,
-        paddingBottom: 14,
-    },
-    previewWrapper: {
-        marginBottom: 14,
+    imageContainer: {
+        width: FAB_SIZE,
+        height: FAB_SIZE,
         position: "relative",
-        width: 88,
-        height: 88,
+        zIndex: 100,
+        overflow: "visible",
+    },
+    previewContainer: {
+        width: FAB_SIZE,
+        height: FAB_SIZE,
+        borderRadius: BORDER_RADIUS_L,
+        overflow: "visible",
+        position: "relative",
     },
     previewImage: {
-        width: "100%",
-        height: "100%",
-        borderRadius: 20,
-    },
-    closeButton: {
-        position: "absolute",
-        top: 8,
-        right: 8,
-        borderRadius: 50,
-        padding: 4,
-        backgroundColor: "rgba(255,255,255,0.8)",
+        width: FAB_SIZE,
+        height: FAB_SIZE,
+        borderRadius: BORDER_RADIUS_L,
     },
     closeButtonGlass: {
         position: "absolute",
         top: -6,
         right: -6,
-        width: 28,
-        height: 28,
-        borderRadius: 999,
-        justifyContent: "center",
+        width: 25,
+        height: 25,
+        borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+    },
+    closeButton: {
+        width: "100%",
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    glassView: {
+        flex: 1,
+        minHeight: COMPOSER_MIN_HEIGHT,
+        maxHeight: 120,
+        borderRadius: BORDER_RADIUS_L,
+        borderWidth: 1,
+        paddingLeft: BAR_PADDING_H,
+        paddingRight: 8,
+        paddingVertical: 4,
+        justifyContent: "center",
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
     },
     inputRow: {
         flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 4,
-        minHeight: 44,
+        alignItems: "flex-end",
+        minHeight: 40,
     },
     textInput: {
         flex: 1,
         minHeight: 40,
-        fontSize: 16,
+        maxHeight: 110,
+        paddingVertical: 8,
+        paddingHorizontal: 2,
+        fontSize: BAR_FONT_SIZE,
+        fontWeight: "400",
     },
-    pillRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginTop: 12,
-    },
-    imageInputWrapper: {
-        height: 42,
-        width: 42,
-        borderRadius: 999,
+    sendWrapper: {
+        width: COMPOSER_SEND_SIZE,
+        height: COMPOSER_SEND_SIZE,
         alignItems: "center",
         justifyContent: "center",
+        marginLeft: 8,
     },
-    sendWrapper: { height: 40, justifyContent: "center" },
     sendButton: {
-        borderRadius: 999,
-        height: 42,
-        minWidth: 56,
-        paddingHorizontal: 16,
+        width: COMPOSER_SEND_SIZE,
+        height: COMPOSER_SEND_SIZE,
+        borderRadius: BORDER_RADIUS_FULL,
         alignItems: "center",
         justifyContent: "center",
     },

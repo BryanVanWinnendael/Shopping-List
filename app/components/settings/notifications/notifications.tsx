@@ -1,11 +1,13 @@
-import React from "react"
 import { StyleSheet, Text, View } from "react-native"
+import { Bell, BellRing } from "lucide-react-native"
+import LiquidGlassView from "@/components/native/liquidGlassView"
+
 import Accordion from "@/components/accordion"
 import SettingRow from "@/components/settings/notifications/settingsRow"
 import { useNotifications } from "@/hooks/notifications/useNotifications"
 import CustomSwitch from "@/components/customSwitch"
 import useThemes from "@/hooks/themes/useThemes"
-import { Bell, BellRing } from "lucide-react-native"
+import { BORDER_RADIUS_FULL, BORDER_RADIUS_L } from "@/lib/theme"
 
 export default function Notifications() {
     const { vars, theme } = useThemes()
@@ -23,30 +25,35 @@ export default function Notifications() {
         >
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
-                    <View
-                        style={[
-                            styles.iconWrapper,
-                            {
-                                backgroundColor: `${vars.accentColor}20`,
-                            },
-                        ]}
-                    >
-                        {states.masterEnabled ? (
-                            <BellRing size={18} color={vars.accentColor} />
-                        ) : (
-                            <Bell size={18} color={vars.accentColor} />
-                        )}
-                    </View>
+                    <LiquidGlassView style={styles.iconGlass}>
+                        <View style={styles.iconWrapper}>
+                            {states.masterEnabled ? (
+                                <BellRing size={18} strokeWidth={2} color={vars.accentColor} />
+                            ) : (
+                                <Bell size={18} strokeWidth={2} color={vars.accentColor} />
+                            )}
+                        </View>
+                    </LiquidGlassView>
 
-                    <View style={{ flex: 1 }}>
-                        <Text style={[styles.title, { color: vars.textColor }]}>Notifications</Text>
+                    <View style={styles.textContainer}>
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    color: vars.textColor,
+                                },
+                            ]}
+                        >
+                            Notifications
+                        </Text>
 
                         <Text
-                            style={{
-                                color: theme === "light" ? "#6b7280" : "#9ca3af",
-                                marginTop: 2,
-                                fontSize: 13,
-                            }}
+                            style={[
+                                styles.subtitle,
+                                {
+                                    color: theme === "light" ? "#6b7280" : "#9ca3af",
+                                },
+                            ]}
                         >
                             Manage app notification preferences
                         </Text>
@@ -60,8 +67,8 @@ export default function Notifications() {
                 />
             </View>
 
-            <Accordion expanded={states.masterEnabled} style={{ marginTop: 20 }}>
-                <View style={{ gap: 12 }}>
+            <Accordion expanded={states.masterEnabled} style={styles.accordion}>
+                <View style={styles.settingsList}>
                     <SettingRow
                         label="Notify on Added"
                         description="Receive a notification whenever a new product is added."
@@ -90,11 +97,12 @@ export default function Notifications() {
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 24,
+        borderRadius: BORDER_RADIUS_L,
         marginHorizontal: 8,
         paddingHorizontal: 18,
         paddingTop: 18,
         borderWidth: 1,
+        overflow: "hidden",
     },
     header: {
         flexDirection: "row",
@@ -108,15 +116,40 @@ const styles = StyleSheet.create({
         flex: 1,
         gap: 12,
     },
+    textContainer: {
+        flex: 1,
+    },
+    iconGlass: {
+        width: 42,
+        height: 42,
+        borderRadius: BORDER_RADIUS_FULL,
+        borderWidth: 1,
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 2,
+    },
     iconWrapper: {
         width: 42,
         height: 42,
-        borderRadius: 999,
+        borderRadius: BORDER_RADIUS_FULL,
         justifyContent: "center",
         alignItems: "center",
     },
     title: {
         fontSize: 18,
         fontWeight: "700",
+    },
+    subtitle: {
+        fontSize: 13,
+        marginTop: 2,
+    },
+    accordion: {
+        marginTop: 20,
+    },
+    settingsList: {
+        gap: 12,
     },
 })

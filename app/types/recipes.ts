@@ -22,10 +22,11 @@ export type UpdateRecipeRequest = GeneratedUpdateRecipeRequest & {
 }
 
 export type FilterStates = {
-    public: boolean
+    country?: string
     mealType: MealType
-    country: string
-    time: number | null
+    public: boolean
+    time?: number | null
+    isSaved?: boolean | undefined
 }
 
 export type Country = {

@@ -29,12 +29,21 @@ func NewOnlineRecipeService(client *httphelper.Client, baseURL string) *OnlineRe
 	}
 }
 
-func (ors *OnlineRecipeService) GetRecipes(page int) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := ors.baseURL
+func (ors *OnlineRecipeService) GetRecipes(filter models.OnlineRecipeFilter, page int) (*contracts.GetOnlineRecipesResponse, error) {
+	params := url.Values{}
+	params.Set("page", strconv.Itoa(page+1))
 
-	requestUrl += "?page=" + strconv.Itoa(page+1)
+	// 15gram only honours these filters on its search endpoint, so a filtered
+	// browse has to go through /search with an empty query. page stays 0-based
+	// here and is translated above, so callers keep paging the same way.
+	if filter.Active() {
+		params.Set("q", "")
+		httphelper.AddOnlineRecipeFilter(params, filter)
 
-	return fetchRecipes(requestUrl, page)
+		return fetchRecipes(fmt.Sprintf("%s/search?%s", ors.baseURL, params.Encode()), page)
+	}
+
+	return fetchRecipes(fmt.Sprintf("%s?%s", ors.baseURL, params.Encode()), page)
 }
 
 func (ors *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnlineRecipeDetailsResponse, error) {
@@ -150,13 +159,19 @@ func (ors *OnlineRecipeService) GetRecipeDetails(url string) (*contracts.GetOnli
 	}, nil
 }
 
-func (ors *OnlineRecipeService) SearchRecipes(query string, page int) (*contracts.GetOnlineRecipesResponse, error) {
-	requestUrl := fmt.Sprintf("%s/search?q=%s&page=%d", ors.baseURL, urlQueryEscape(query), page)
+func (ors *OnlineRecipeService) SearchRecipes(query string, filter models.OnlineRecipeFilter, page int) (*contracts.GetOnlineRecipesResponse, error) {
+	params := url.Values{}
+	params.Set("q", query)
+	params.Set("page", strconv.Itoa(page))
 
-	return fetchRecipes(requestUrl, page)
+	httphelper.AddOnlineRecipeFilter(params, filter)
+
+	return fetchRecipes(fmt.Sprintf("%s/search?%s", ors.baseURL, params.Encode()), page)
 }
 
 func fetchRecipes(url string, page int) (*contracts.GetOnlineRecipesResponse, error) {
+	fmt.Println(url)
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return &contracts.GetOnlineRecipesResponse{}, err
@@ -201,11 +216,13 @@ func fetchRecipes(url string, page int) (*contracts.GetOnlineRecipesResponse, er
 	})
 
 	totalText := strings.TrimSpace(doc.Find("p.search-total").First().Text())
-	totalText = strings.Fields(totalText)[0]
 
-	total, err := strconv.Atoi(totalText)
-	if err != nil {
-		total = len(recipes)
+	total := len(recipes)
+
+	if fields := strings.Fields(totalText); len(fields) > 0 {
+		if parsed, err := strconv.Atoi(fields[0]); err == nil {
+			total = parsed
+		}
 	}
 
 	maxPages := int(math.Ceil(float64(total) / totalRecipesPerPage))
@@ -216,8 +233,4 @@ func fetchRecipes(url string, page int) (*contracts.GetOnlineRecipesResponse, er
 		TotalRecipes: total,
 		Recipes:      recipes,
 	}, nil
-}
-
-func urlQueryEscape(q string) string {
-	return url.QueryEscape(q)
 }
