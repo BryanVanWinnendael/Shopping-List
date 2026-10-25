@@ -65,6 +65,7 @@ export default {
                 },
             ],
             "@react-native-firebase/app",
+            "./plugins/withFirebaseSceneFix",
             [
                 "expo-build-properties",
                 {
